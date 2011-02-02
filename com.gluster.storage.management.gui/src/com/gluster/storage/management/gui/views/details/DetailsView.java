@@ -13,12 +13,10 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.contexts.IContextService;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.core.model.Entity;
-import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.toolbar.ToolbarManager;
 import com.gluster.storage.management.gui.views.navigator.NavigationView;
 

@@ -350,6 +350,11 @@
                style="push"
                toolbarPath="Normal"
                tooltip="Migrate Disk">
+            <enablement>
+               <objectClass
+                     name="com.gluster.storage.management.core.model.Disk">
+               </objectClass>
+            </enablement>
          </action>
          <action
                allowLabelUpdate="false"
@@ -818,6 +823,42 @@
                </objectClass>
             </not>
          </visibility>
+      </objectContribution>
+      <objectContribution
+            id="gluster.context.menu.entityGroup"
+            objectClass="com.gluster.storage.management.core.model.EntityGroup">
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.CreateVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.CreateVolume"
+               icon="icons/volume-create.png"
+               id="com.gluster.storage.management.gui.actions.CreateVolumeAction"
+               label="&amp;Create Volume"
+               menubarPath="additions"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Create a new Volume">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.AddServerAction"
+               definitionId="com.gluster.storage.management.gui.commands.AddServer"
+               icon="icons/server-add.png"
+               id="com.gluster.storage.management.gui.actions.AddServerAction"
+               label="&amp;Add Server(s)"
+               menubarPath="additions"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Add Server(s) to Cluster">
+         </action>
       </objectContribution>
    </extension>
 

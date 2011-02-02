@@ -3,6 +3,7 @@ package com.gluster.storage.management.gui.actions;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
@@ -27,7 +28,9 @@ public abstract class AbstractActionDelegate implements IWorkbenchWindowActionDe
 				return;
 			}
 
-			this.selectedEntity = selectedEntity;
+			if(selectedEntity != null) {
+				this.selectedEntity = selectedEntity;
+			}
 		}
 	}
 
