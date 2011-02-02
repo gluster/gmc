@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Gluster Storage Platform Client
+Bundle-SymbolicName: com.gluster.storage.management.client
+Bundle-Version: 1.0.0
+Bundle-Vendor: GLUSTER
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Require-Bundle: com.gluster.storage.management.core;bundle-version="1.0.0",
+ com.sun.jersey;bundle-version="1.4.0"
+Export-Package: com.gluster.storage.management.client
+Bundle-ClassPath: lib/jersey-client-1.4.jar,
+ lib/jersey-core-1.4.jar,
+ .

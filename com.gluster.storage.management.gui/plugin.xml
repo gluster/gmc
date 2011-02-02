@@ -1,0 +1,824 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         id="application"
+         point="org.eclipse.core.runtime.applications">
+      <application>
+         <run
+               class="com.gluster.storage.management.gui.Application">
+         </run>
+      </application>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            name="Gluster Perspective"
+            class="com.gluster.storage.management.gui.Perspective"
+            id="com.gluster.storage.management.gui.perspective">
+      </perspective>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            class="com.gluster.storage.management.gui.views.navigator.NavigationView"
+            icon="icons/world.png"
+            id="com.gluster.storage.management.gui.views.navigator"
+            name="Cluster Navigation Tree"
+            restorable="true">
+      </view>
+      <view
+            allowMultiple="false"
+            class="com.gluster.storage.management.gui.views.details.DetailsView"
+            icon="icons/gluster_icon.png"
+            id="com.gluster.storage.management.gui.views.details"
+            name="Details"
+            restorable="true">
+      </view>
+      <view
+            category="org.eclipse.ui"
+            class="org.eclipse.ui.ExtensionFactory:progressView"
+            icon="icons/progress-bar.png"
+            id="org.eclipse.ui.views.ProgressView"
+            name="Tasks in Progress"
+            restorable="true">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            name="Gluster Commands"
+            id="com.gluster.storage.management.gui.category">
+      </category>
+      <command
+            name="Create Volume"
+            description="Create a new Volume"
+            categoryId="com.gluster.storage.management.gui.category"
+            id="com.gluster.storage.management.gui.commands.CreateVolume">
+      </command>
+      <command
+            categoryId="com.gluster.storage.management.gui.category"
+            description="Delete Volume"
+            id="com.gluster.storage.management.gui.commands.DeleteVolume"
+            name="Delete Volume">
+      </command>
+      <command
+            categoryId="com.gluster.storage.management.gui.category"
+            description="Start Volume"
+            id="com.gluster.storage.management.gui.commands.StartVolume"
+            name="Start Volume">
+      </command>
+      <command
+            categoryId="com.gluster.storage.management.gui.category"
+            description="Stop Volume"
+            id="com.gluster.storage.management.gui.commands.StopVolume"
+            name="Stop Volume">
+      </command>
+      <command
+            categoryId="com.gluster.storage.management.gui.category"
+            description="Edit Volume"
+            id="com.gluster.storage.management.gui.commands.EditVolume"
+            name="Edit Volume">
+      </command>
+      <command
+            categoryId="com.gluster.storage.management.gui.category"
+            description="Rebalance Volume"
+            id="com.gluster.storage.management.gui.commands.RebalanceVolume"
+            name="Rebalance Volume">
+      </command>
+      <command
+            categoryId="com.gluster.storage.management.gui.category"
+            description="Add Server(s) to Cluster"
+            id="com.gluster.storage.management.gui.commands.AddServer"
+            name="Add Server(s)">
+      </command>
+      <command
+            categoryId="com.gluster.storage.management.gui.category"
+            description="Remove Server(s) from Cluster"
+            id="com.gluster.storage.management.gui.commands.RemoveServer"
+            name="Remove Server(s)">
+      </command>
+      <command
+            categoryId="com.gluster.storage.management.gui.category"
+            description="Migrate Disk"
+            id="com.gluster.storage.management.gui.commands.MigrateDisk"
+            name="Migrate Disk">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="com.gluster.storage.management.gui.commands.CreateVolume"
+            schemeId="com.gluster.storage.management.gui.KeyConfig"
+            sequence="CTRL+SHIFT+C">
+      </key>
+      <key
+            commandId="com.gluster.storage.management.gui.commands.DeleteVolume"
+            schemeId="com.gluster.storage.management.gui.KeyConfig"
+            sequence="CTRL+SHIFT+D">
+      </key>
+      <key
+            commandId="com.gluster.storage.management.gui.commands.StartVolume"
+            schemeId="com.gluster.storage.management.gui.KeyConfig"
+            sequence="CTRL+SHIFT+S">
+      </key>
+      <key
+            commandId="com.gluster.storage.management.gui.commands.StopVolume"
+            schemeId="com.gluster.storage.management.gui.KeyConfig"
+            sequence="CTRL+SHIFT+T">
+      </key>
+      <key
+            commandId="com.gluster.storage.management.gui.commands.EditVolume"
+            schemeId="com.gluster.storage.management.gui.KeyConfig"
+            sequence="CTRL+SHIFT+E">
+      </key>
+      <key
+            commandId="com.gluster.storage.management.gui.commands.RebalanceVolume"
+            schemeId="com.gluster.storage.management.gui.KeyConfig"
+            sequence="CTRL+SHIFT+B">
+      </key>
+      <key
+            commandId="com.gluster.storage.management.gui.commands.AddServer"
+            schemeId="com.gluster.storage.management.gui.KeyConfig"
+            sequence="CTRL+SHIFT+A">
+      </key>
+      <key
+            commandId="com.gluster.storage.management.gui.commands.RemoveServer"
+            schemeId="com.gluster.storage.management.gui.KeyConfig"
+            sequence="CTRL+SHIFT+R">
+      </key>
+      <key
+            commandId="com.gluster.storage.management.gui.commands.MigrateDisk"
+            schemeId="com.gluster.storage.management.gui.KeyConfig"
+            sequence="CTRL+SHIFT+M">
+      </key>
+      <key
+            commandId="org.eclipse.ui.window.preferences"
+            schemeId="com.gluster.storage.management.gui.KeyConfig"
+            sequence="CTRL+SHIFT+P">
+      </key>
+      <key
+            commandId="org.eclipse.ui.window.showKeyAssist"
+            schemeId="com.gluster.storage.management.gui.KeyConfig"
+            sequence="CTRL+SHIFT+L">
+      </key>
+      <key
+            commandId="org.eclipse.ui.navigate.nextTab"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="com.gluster.storage.management.gui.KeyConfig"
+            sequence="ALT+ARROW_RIGHT">
+      </key>
+      <key
+            commandId="org.eclipse.ui.navigate.previousTab"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="com.gluster.storage.management.gui.KeyConfig"
+            sequence="ALT+ARROW_LEFT">
+      </key>
+      <scheme
+            description="Default Key Bindings Scheme for Gluster Management Console"
+            id="com.gluster.storage.management.gui.KeyConfig"
+            name="Gluster">
+      </scheme>
+   </extension>
+   <extension
+         id="product"
+         name="Gluster Management Console"
+         point="org.eclipse.core.runtime.products">
+      <product
+            application="com.gluster.storage.management.gui.application"
+            name="Gluster Management Console">
+         <property
+               name="aboutText"
+               value="GlusterFS is an open source clustered storage solution. The software is a powerful and flexible solution that simplifies the task of managing unstructured file data whether you have a few terabytes of storage or multiple petabytes. Gluster Management Console is a powerful GUI management interface for the GlusterFS.">
+         </property>
+         <property
+               name="windowImages"
+               value="icons/gluster_icon.png">
+         </property>
+         <property
+               name="aboutImage"
+               value="splash/gluster_about.jpg">
+         </property>
+         <property
+               name="appName"
+               value="about">
+         </property>
+         <property
+               name="preferenceCustomization"
+               value="preferences.ini">
+         </property>
+      </product>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="com.gluster.storage.management.gui.editor.GlusterMultiPageEditor"
+            default="false"
+            icon="icons/gluster_icon.png"
+            id="com.gluster.storage.management.gui.editor.GlusterMultiPageEditor"
+            name="Gluster Storage Platform">
+      </editor>
+   </extension>
+   <extension
+         point="org.eclipse.ui.actionSets">
+      <actionSet
+            description="Set of Actions in &quot;Edit&quot; menu"
+            id="com.gluster.storage.management.gui.actionsets.edit"
+            label="Edit Action Set"
+            visible="true">
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.PreferencesAction"
+               definitionId="org.eclipse.ui.window.preferences"
+               icon="icons/preferences.png"
+               id="com.gluster.storage.management.gui.actions.AddServerAction"
+               label="&amp;Preferences"
+               menubarPath="com.gluster.storage.management.gui.menu.edit/edit"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Preferences">
+         </action>
+         <menu
+               id="com.gluster.storage.management.gui.menu.edit"
+               label="&amp;Edit"
+               path="additions">
+            <groupMarker
+                  name="edit">
+            </groupMarker>
+         </menu>
+      </actionSet>
+      <actionSet
+            description="Set of actions that can be performed on multiple Volumes"
+            id="com.gluster.storage.management.gui.actionsets.volumes"
+            label="Volumes Actions"
+            visible="false">
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.DeleteVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.DeleteVolume"
+               icon="icons/volume-delete.png"
+               id="com.gluster.storage.management.gui.actions.DeleteVolumeAction"
+               label="&amp;Delete Volume(s)"
+               menubarPath="com.gluster.storage.management.gui.menu.volumes/volumes"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Delete Volume(s)">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.StopVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.StopVolume"
+               icon="icons/volume-stop.png"
+               id="com.gluster.storage.management.gui.actions.StopVolumeAction"
+               label="S&amp;top Volume(s)"
+               menubarPath="com.gluster.storage.management.gui.menu.volumes/volumes"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Stop Volume(s)">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.StartVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.StartVolume"
+               icon="icons/volume-start.png"
+               id="com.gluster.storage.management.gui.actions.StartVolumeAction"
+               label="&amp;Start Volume(s)"
+               menubarPath="com.gluster.storage.management.gui.menu.volumes/volumes"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Start Volume(s)">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.CreateVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.CreateVolume"
+               icon="icons/volume-create.png"
+               id="com.gluster.storage.management.gui.actions.CreateVolumeAction"
+               label="&amp;Create Volume"
+               menubarPath="com.gluster.storage.management.gui.menu.volumes/volumes"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Create a new Volume">
+         </action>
+         <menu
+               id="com.gluster.storage.management.gui.menu.volumes"
+               label="&amp;Gluster"
+               path="additions">
+            <groupMarker
+                  name="volumes">
+            </groupMarker>
+         </menu>
+      </actionSet>
+      <actionSet
+            description="Set of actions that can be performed on a single volume"
+            id="com.gluster.storage.management.gui.actionsets.volume"
+            label="Volume Actions"
+            visible="false">
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.MigrateDiskAction"
+               definitionId="com.gluster.storage.management.gui.commands.MigrateDisk"
+               icon="icons/disk-migrate.png"
+               id="com.gluster.storage.management.gui.actions.MigrateDiskAction"
+               label="&amp;Migrate Disk"
+               menubarPath="com.gluster.storage.management.gui.menu.glusterserver/glusterserver"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Migrate Disk">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.DeleteVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.DeleteVolume"
+               icon="icons/volume-delete.png"
+               id="com.gluster.storage.management.gui.actions.DeleteVolumeAction"
+               label="&amp;Delete Volume"
+               menubarPath="com.gluster.storage.management.gui.menu.volume/volume"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Delete Volume">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.RebalanceVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.RebalanceVolume"
+               icon="icons/volume-rebalance.png"
+               id="com.gluster.storage.management.gui.actions.RebalanceVolumeAction"
+               label="&amp;Rebalance Volume"
+               menubarPath="com.gluster.storage.management.gui.menu.volume/volume"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Rebalance Volume">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.StopVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.StopVolume"
+               icon="icons/volume-stop.png"
+               id="com.gluster.storage.management.gui.actions.StopVolumeAction"
+               label="S&amp;top Volume"
+               menubarPath="com.gluster.storage.management.gui.menu.volume/volume"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Stop Volume">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.StartVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.StartVolume"
+               icon="icons/volume-start.png"
+               id="com.gluster.storage.management.gui.actions.StartVolumeAction"
+               label="&amp;Start Volume"
+               menubarPath="com.gluster.storage.management.gui.menu.volume/volume"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Start Volume">
+         </action>
+         <menu
+               id="com.gluster.storage.management.gui.menu.volume"
+               label="&amp;Gluster"
+               path="additions">
+            <groupMarker
+                  name="volume">
+            </groupMarker>
+         </menu>
+      </actionSet>
+      <actionSet
+            description="Set of actions that can be performed from &quot;Cluster&quot; context"
+            id="com.gluster.storage.management.gui.actionsets.gluster"
+            label="Cluster Action Set"
+            visible="false">
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.CreateVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.CreateVolume"
+               icon="icons/volume-create.png"
+               id="com.gluster.storage.management.gui.actions.CreateVolumeAction"
+               label="Create &amp;Volume"
+               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Create a new Volume">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.AddServerAction"
+               definitionId="com.gluster.storage.management.gui.commands.AddServer"
+               icon="icons/server-add.png"
+               id="com.gluster.storage.management.gui.actions.AddServerAction"
+               label="Add &amp;Server(s)"
+               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Add Server(s) to Cluster">
+         </action>
+         <menu
+               id="com.gluster.storage.management.gui.menu.cluster"
+               label="&amp;Gluster">
+            <groupMarker
+                  name="cluster">
+            </groupMarker>
+         </menu>
+      </actionSet>
+      <actionSet
+            description="Set of actions that can be performed on multiple Gluster Servers"
+            id="com.gluster.storage.management.gui.actionsets.glusterservers"
+            label="Gluster Servers Actions"
+            visible="false">
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.RemoveServerAction"
+               definitionId="com.gluster.storage.management.gui.commands.RemoveServer"
+               icon="icons/server-remove.png"
+               id="com.gluster.storage.management.gui.actions.RemoveServerAction"
+               label="&amp;Remove Server(s)"
+               menubarPath="com.gluster.storage.management.gui.menu.servers/servers"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Remove Server(s)">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.AddServerAction"
+               definitionId="com.gluster.storage.management.gui.commands.AddServer"
+               icon="icons/server-add.png"
+               id="com.gluster.storage.management.gui.actions.AddServerAction"
+               label="&amp;Add Server(s)"
+               menubarPath="com.gluster.storage.management.gui.menu.servers/servers"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Add Server(s) to Cluster">
+         </action>
+         <menu
+               id="com.gluster.storage.management.gui.menu.servers"
+               label="&amp;Gluster"
+               path="additions">
+            <groupMarker
+                  name="servers">
+            </groupMarker>
+         </menu>
+      </actionSet>
+      <actionSet
+            description="Set of actions that can be performed in the &quot;Gluster Server&quot; contextt; context"
+            id="com.gluster.storage.management.gui.actionsets.glusterserver"
+            label="Gluster Server Actions"
+            visible="false">
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.RemoveServerAction"
+               definitionId="com.gluster.storage.management.gui.commands.RemoveServer"
+               icon="icons/server-remove.png"
+               id="com.gluster.storage.management.gui.actions.RemoveServerAction"
+               label="&amp;Remove Server"
+               menubarPath="com.gluster.storage.management.gui.menu.glusterserver/glusterserver"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Remove Server">
+         </action>
+         <menu
+               id="com.gluster.storage.management.gui.menu.glusterserver"
+               label="&amp;Gluster"
+               path="additions">
+            <groupMarker
+                  name="glusterserver">
+            </groupMarker>
+         </menu>
+      </actionSet>
+      <actionSet
+            description="Set of actions that can be performed on multiple Discovered Servers"
+            id="com.gluster.storage.management.gui.actionsets.serversdiscovered"
+            label="Discovered Servers Actions"
+            visible="false">
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.AddServerAction"
+               definitionId="com.gluster.storage.management.gui.commands.AddServer"
+               icon="icons/server-add.png"
+               id="com.gluster.storage.management.gui.actions.AddServerAction"
+               label="&amp;Add Server(s)"
+               menubarPath="com.gluster.storage.management.gui.menu.discoveredservers/discoveredservers"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Add Server(s) to Cluster">
+         </action>
+         <menu
+               id="com.gluster.storage.management.gui.menu.discoveredservers"
+               label="&amp;Gluster"
+               path="additions">
+            <groupMarker
+                  name="discoveredservers">
+            </groupMarker>
+         </menu>
+      </actionSet>
+      <actionSet
+            description="Set of actions that can be performed on single Discovered Server"
+            id="com.gluster.storage.management.gui.actionsets.serverdiscovered"
+            label="Discovered Server Actions"
+            visible="false">
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.AddServerAction"
+               definitionId="com.gluster.storage.management.gui.commands.AddServer"
+               icon="icons/server-add.png"
+               id="com.gluster.storage.management.gui.actions.AddServerAction"
+               label="&amp;Add Server"
+               menubarPath="com.gluster.storage.management.gui.menu.discoveredserver/discoveredserver"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Add Server(s) to Cluster">
+         </action>
+         <menu
+               id="com.gluster.storage.management.gui.menu.discoveredserver"
+               label="&amp;Gluster"
+               path="additions">
+            <groupMarker
+                  name="discoveredserver">
+            </groupMarker>
+         </menu>
+      </actionSet>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="*">
+         <view
+               closeable="false"
+               id="com.gluster.storage.management.gui.views.navigator"
+               minimized="false"
+               moveable="false"
+               ratio="0.30f"
+               relationship="left"
+               relative="org.eclipse.ui.editorss"
+               showTitle="false"
+               standalone="true"
+               visible="true">
+         </view>
+         <view
+               closeable="false"
+               id="com.gluster.storage.management.gui.views.details"
+               minimized="false"
+               moveable="false"
+               ratio="0.70f"
+               relationship="right"
+               relative="org.eclipse.ui.editorss"
+               showTitle="false"
+               standalone="true"
+               visible="true">
+         </view>
+         <view
+               closeable="true"
+               id="org.eclipse.ui.views.ProgressView"
+               minimized="false"
+               moveable="false"
+               ratio="0.80f"
+               relationship="bottom"
+               relative="com.gluster.storage.management.gui.views.details"
+               showTitle="true"
+               standalone="true"
+               visible="false">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.ui.decorators">
+      <decorator
+            adaptable="false"
+            class="com.gluster.storage.management.gui.views.navigator.NavigationTreeLabelDecorator"
+            id="com.gluster.storage.management.gui.views.navigator.decorator"
+            label="Navigation Tree Decorator"
+            lightweight="true"
+            location="BOTTOM_LEFT"
+            state="true">
+      </decorator>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="com.gluster.storage.management.gui.preferences.GlusterPreferencePage"
+            id="com.gluster.storage.management.gui.preferences.GlusterPreferencePage"
+            name="Gluster">
+      </page>
+      <page
+            category="com.gluster.storage.management.gui.preferences.GlusterPreferencePage"
+            class="com.gluster.storage.management.gui.preferences.ClusterPreferencePage"
+            id="com.gluster.storage.management.gui.preferences.ClusterPreferencePage"
+            name="Cluster">
+      </page>
+      <page
+            category="com.gluster.storage.management.gui.preferences.GlusterPreferencePage"
+            class="com.gluster.storage.management.gui.preferences.ConsolePreferencePage"
+            id="com.gluster.storage.management.gui.preferences.ConsolePreferencePage"
+            name="Console">
+      </page>
+      <page
+            category="com.gluster.storage.management.gui.preferences.GlusterPreferencePage"
+            class="org.eclipse.ui.ExtensionFactory:newKeysPreferencePage"
+            id="org.eclipse.ui.NewKeysPreferencePage"
+            name="Keys">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="com.gluster.storage.management.gui.preferences.PreferenceInitializer">
+      </initializer>
+   </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            id="gluster.context.menu.glusterserver"
+            objectClass="com.gluster.storage.management.core.model.GlusterServer">
+         <action
+               class="com.gluster.storage.management.gui.actions.RemoveServerAction"
+               definitionId="com.gluster.storage.management.gui.commands.RemoveServer"
+               enablesFor="1"
+               icon="icons/server-remove.png"
+               id="com.gluster.storage.management.gui.actions.RemoveServerAction"
+               label="&amp;Remove Server"
+               menubarPath="additions">
+         </action>
+      </objectContribution>
+      <objectContribution
+            id="gluster.context.menu.volume"
+            objectClass="com.gluster.storage.management.core.model.Volume">
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.MigrateDiskAction"
+               definitionId="com.gluster.storage.management.gui.commands.MigrateDisk"
+               icon="icons/disk-migrate.png"
+               id="com.gluster.storage.management.gui.actions.MigrateDiskAction"
+               label="&amp;Migrate Disk"
+               menubarPath="additions"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Migrate Disk">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.DeleteVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.DeleteVolume"
+               icon="icons/volume-delete.png"
+               id="com.gluster.storage.management.gui.actions.DeleteVolumeAction"
+               label="&amp;Delete Volume"
+               menubarPath="additions"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Delete Volume">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.RebalanceVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.RebalanceVolume"
+               icon="icons/volume-rebalance.png"
+               id="com.gluster.storage.management.gui.actions.RebalanceVolumeAction"
+               label="&amp;Rebalance Volume"
+               menubarPath="additions"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Rebalance Volume">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.StopVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.StopVolume"
+               icon="icons/volume-stop.png"
+               id="com.gluster.storage.management.gui.actions.StopVolumeAction"
+               label="S&amp;top Volume"
+               menubarPath="additions"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Stop Volume">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.StartVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.StartVolume"
+               icon="icons/volume-start.png"
+               id="com.gluster.storage.management.gui.actions.StartVolumeAction"
+               label="&amp;Start Volume"
+               menubarPath="additions"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Start Volume">
+         </action>
+      </objectContribution>
+      <objectContribution
+            id="gluster.context.menu.server"
+            objectClass="com.gluster.storage.management.core.model.Server">
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.AddServerAction"
+               definitionId="com.gluster.storage.management.gui.commands.AddServer"
+               enablesFor="+"
+               icon="icons/server-add.png"
+               id="com.gluster.storage.management.gui.actions.AddServerAction"
+               label="&amp;Add Server(s)"
+               menubarPath="additions"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Add Server(s) to Cluster">
+         </action>
+         <visibility>
+            <not>
+               <objectClass
+                     name="com.gluster.storage.management.core.model.GlusterServer">
+               </objectClass>
+            </not>
+         </visibility>
+      </objectContribution>
+   </extension>
+
+</plugin>

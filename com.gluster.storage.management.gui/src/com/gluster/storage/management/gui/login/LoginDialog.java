@@ -1,0 +1,192 @@
+/*******************************************************************************
+ * Copyright (c) 2004, 2005 Jean-Michel Lemieux, Jeff McAffer and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Hyperbola is an RCP application developed for the book 
+ *     Eclipse Rich Client Platform - 
+ *         Designing, Coding, and Packaging Java Applications 
+ * Addison-Wesley, Summer 2005
+ *
+ * Contributors:
+ *     Jean-Michel Lemieux and Jeff McAffer - initial implementation
+ *     Nick Edgar and Pascal Rapicault - additional work for EclipseCon 2005 tutorial
+ *         http://www.eclipsecon.org/presentations/EclipseCon2005_Tutorial26.pdf
+ *******************************************************************************/
+package com.gluster.storage.management.gui.login;
+
+import org.eclipse.core.databinding.DataBindingContext;
+import org.eclipse.core.databinding.UpdateValueStrategy;
+import org.eclipse.core.databinding.beans.PojoProperties;
+import org.eclipse.jface.databinding.swt.SWTObservables;
+import org.eclipse.jface.databinding.swt.WidgetProperties;
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
+
+import com.gluster.storage.management.client.AuthManager;
+import com.gluster.storage.management.core.model.ConnectionDetails;
+import com.gluster.storage.management.gui.IImageKeys;
+import com.gluster.storage.management.gui.utils.GUIHelper;
+import com.gluster.storage.management.gui.validators.StringRequiredValidator;
+
+/**
+ * Login dialog, which prompts for the user's account info, and has Login and Cancel buttons.
+ */
+public class LoginDialog extends Dialog {
+
+	private Text userIdText = null;
+	private Text passwordText = null;
+	private Button okButton;
+
+	private final ConnectionDetails connectionDetails = new ConnectionDetails("", "gluster", "");
+	private final GUIHelper guiHelper = GUIHelper.getInstance();
+	private Composite composite;
+
+	public LoginDialog(Shell parentShell) {
+		super(parentShell);
+	}
+
+	@Override
+	protected void configureShell(Shell newShell) {
+		super.configureShell(newShell);
+
+		newShell.setText("Gluster Management Console");
+		addEscapeListener(newShell);
+	}
+
+	private void addEscapeListener(Shell shell) {
+		shell.addTraverseListener(new TraverseListener() {
+
+			@Override
+			public void keyTraversed(TraverseEvent e) {
+				if (e.keyCode == SWT.ESC) {
+					cancelPressed();
+				}
+			}
+		});
+	}
+
+	private void createUserIdLabel(Composite composite) {
+		Label userIdLabel = new Label(composite, SWT.NONE);
+		userIdLabel.setText("&User ID:");
+		userIdLabel.setLayoutData(new GridData(GridData.END, GridData.CENTER, false, false));
+	}
+
+	private void createUserIdText(Composite composite) {
+		userIdText = new Text(composite, SWT.BORDER);
+		userIdText.setText("gluster");
+		userIdText.setEnabled(false);
+
+		GridData layoutData = new GridData(SWT.FILL, GridData.FILL, true, false);
+		;
+		layoutData.widthHint = convertWidthInCharsToPixels(32);
+		userIdText.setLayoutData(layoutData);
+	}
+
+	private void createPasswordLabel(Composite composite) {
+		Label passwordLabel = new Label(composite, SWT.NONE);
+		passwordLabel.setText("&Password:");
+		passwordLabel.setLayoutData(new GridData(GridData.END, GridData.CENTER, false, false));
+	}
+
+	private void createPasswordText(Composite composite) {
+		passwordText = new Text(composite, SWT.BORDER | SWT.PASSWORD);
+
+		GridData layoutData = new GridData(SWT.FILL, GridData.FILL, true, false);
+		;
+		layoutData.widthHint = convertWidthInCharsToPixels(32);
+		passwordText.setLayoutData(layoutData);
+	}
+
+	private void configureDialogLayout(Composite composite) {
+		GridLayout layout = (GridLayout) composite.getLayout();
+		layout.numColumns = 2;
+		layout.marginLeft = 20;
+		layout.marginRight = 20;
+		layout.marginTop = 20;
+		layout.horizontalSpacing = 20;
+		layout.verticalSpacing = 20;
+	}
+
+	/**
+	 * Overriding to make sure that the dialog is centered in screen
+	 */
+	@Override
+	protected void initializeBounds() {
+		super.initializeBounds();
+
+		guiHelper.centerShellInScreen(getShell());
+	}
+
+	@Override
+	protected Control createDialogArea(Composite parent) {
+		parent.setBackgroundImage(guiHelper.getImage(IImageKeys.DIALOG_SPLASH_IMAGE));
+		parent.setBackgroundMode(SWT.INHERIT_FORCE); // Makes sure that child composites inherit the same background
+
+		composite = (Composite) super.createDialogArea(parent);
+		configureDialogLayout(composite);
+
+		createUserIdLabel(composite);
+		createUserIdText(composite);
+
+		createPasswordLabel(composite);
+		createPasswordText(composite);
+
+		return composite;
+	}
+
+	@Override
+	protected void createButtonsForButtonBar(Composite parent) {
+		okButton = createButton(parent, IDialogConstants.OK_ID, "&Login", true);
+		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
+
+		setupDataBinding();
+	}
+
+	/**
+	 * Sets up data binding between the text fields and the connection details object. Also attaches a "string required"
+	 * validator to the "password" text field. This validator is configured to do the following on validation failure<br>
+	 * <li>show an ERROR decorator</li><li>disable the "Login" button
+	 */
+	private void setupDataBinding() {
+		DataBindingContext dataBindingContext = new DataBindingContext(SWTObservables.getRealm(Display.getCurrent()));
+		UpdateValueStrategy passwordBindingStrategy = new UpdateValueStrategy(UpdateValueStrategy.POLICY_UPDATE);
+
+		// The Validator shows error decoration and disables OK button on validation failure
+		passwordBindingStrategy.setBeforeSetValidator(new StringRequiredValidator("Please enter password!", guiHelper
+				.createErrorDecoration(passwordText), okButton));
+
+		dataBindingContext.bindValue(WidgetProperties.text(SWT.Modify).observe(passwordText),
+				PojoProperties.value("password").observe(connectionDetails), passwordBindingStrategy,
+				passwordBindingStrategy);
+
+		UpdateValueStrategy userIdBindingStrategy = new UpdateValueStrategy(UpdateValueStrategy.POLICY_UPDATE);
+		dataBindingContext
+				.bindValue(WidgetProperties.text(SWT.Modify).observe(userIdText), PojoProperties.value("userId")
+						.observe(connectionDetails), userIdBindingStrategy, userIdBindingStrategy);
+	}
+
+	protected void okPressed() {
+		if (new AuthManager().authenticate(connectionDetails)) {
+			super.okPressed();
+		} else {
+			MessageDialog.openError(getShell(), "Authentication Failed", "Invalid User ID or password");
+			return;
+		}
+	}
+}

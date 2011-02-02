@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Gluster Storage Platform Core
+Bundle-SymbolicName: com.gluster.storage.management.core
+Bundle-Version: 1.0.0
+Bundle-Vendor: GLUSTER
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Export-Package: com.gluster.storage.management.core.constants,
+ com.gluster.storage.management.core.exceptions,
+ com.gluster.storage.management.core.model,
+ com.gluster.storage.management.core.utils
+Require-Bundle: org.eclipse.core.runtime;bundle-version="3.6.0"
