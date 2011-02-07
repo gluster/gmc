@@ -1,7 +1,10 @@
 package com.gluster.storage.management.core.model;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import com.gluster.storage.management.core.utils.StringUtils;
 
+@XmlRootElement
 public class Disk extends Entity {
 	public enum DISK_STATUS {
 		READY, UNINITIALIZED, INITIALIZING, OFFLINE
@@ -14,6 +17,10 @@ public class Disk extends Entity {
 	private Double spaceInUse;
 	private DISK_STATUS status;
 
+	public Disk() {
+		
+	}
+	
 	public Double getSpace() {
 		return space;
 	}

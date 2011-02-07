@@ -3,8 +3,13 @@ package com.gluster.storage.management.core.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+
 import com.gluster.storage.management.core.utils.StringUtils;
 
+@XmlRootElement
 public class Server extends Entity {
 	private List<NetworkInterface> networkInterfaces = new ArrayList<NetworkInterface>();
 	private int numOfCPUs;
@@ -15,6 +20,10 @@ public class Server extends Entity {
 	private double diskSpaceInUse = 0;
 	private List<Disk> disks = new ArrayList<Disk>();
 
+	public Server() {
+		
+	}
+	
 	public Server(String name, Entity parent, int numOfCPUs, double cpuUsage, double totalMemory, double memoryInUse) {
 		super(name, parent);
 		setNumOfCPUs(numOfCPUs);
@@ -63,6 +72,8 @@ public class Server extends Entity {
 		return diskSpaceInUse;
 	}
 
+	@XmlElementWrapper(name="networkInterfaces")
+	@XmlElement(name="networkInterface", type=NetworkInterface.class)
 	public List<NetworkInterface> getNetworkInterfaces() {
 		return networkInterfaces;
 	}
@@ -71,6 +82,8 @@ public class Server extends Entity {
 		this.networkInterfaces = networkInterfaces;
 	}
 
+	@XmlElementWrapper(name="disks")
+	@XmlElement(name="disk", type=Disk.class)
 	public List<Disk> getDisks() {
 		return disks;
 	}

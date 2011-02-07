@@ -3,10 +3,13 @@ package com.gluster.storage.management.core.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.eclipse.core.runtime.PlatformObject;
 
 import com.gluster.storage.management.core.utils.StringUtils;
 
+@XmlRootElement
 public class Entity extends PlatformObject implements Filterable {
 	private static final long serialVersionUID = 1L;
 
@@ -14,6 +17,10 @@ public class Entity extends PlatformObject implements Filterable {
 	protected List<Entity> children = new ArrayList<Entity>();
 	private Entity parent;
 
+	public Entity() {
+		
+	}
+	
 	public String getName() {
 		return name;
 	}

@@ -1,10 +1,17 @@
 package com.gluster.storage.management.core.model;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class NetworkInterface extends Entity {
 	private String ipAddress;
 	private String netMask;
 	private String defaultGateway;
 	private boolean isPreferred;
+	
+	public NetworkInterface() {
+		
+	}
 	
 	public boolean isPreferred() {
 		return isPreferred;
