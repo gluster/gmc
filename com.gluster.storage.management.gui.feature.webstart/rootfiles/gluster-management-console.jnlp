@@ -25,6 +25,9 @@
 		<property
 			name="eclipse.product"
 			value="com.gluster.storage.management.gui.product"/>
+		<property
+			name="gluster.server.name"
+			value="192.168.1.123"/>
 	</resources>
 	<resources os="Linux">
         <property name="osgi.ws" value="gtk"/>
