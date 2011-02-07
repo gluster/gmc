@@ -10,7 +10,7 @@ public class AuthManager {
 	public boolean authenticate(ConnectionDetails connectionDetails) {
 //		WebResource service = Client.create(new DefaultClientConfig()).resource(getBaseURI());
 //
-//		AuthStatus authStatus = service.path("services").path("login")
+//		AuthStatus authStatus = service.path("resources").path("login")
 //				.queryParam("user", connectionDetails.getUserId())
 //				.queryParam("password", connectionDetails.getPassword()).accept(MediaType.TEXT_XML)
 //				.get(AuthStatus.class);
@@ -27,6 +27,6 @@ public class AuthManager {
 	}
 
 	private static URI getBaseURI() {
-		return UriBuilder.fromUri("http://localhost:8080/glustersp").build();
+		return UriBuilder.fromUri("http://localhost:8080/glustermc").build();
 	}
 }
