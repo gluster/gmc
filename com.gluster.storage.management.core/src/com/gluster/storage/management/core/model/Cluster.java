@@ -3,6 +3,9 @@ package com.gluster.storage.management.core.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement(name="cluster")
 public class Cluster extends Entity {
 	private List<IClusterListener> listeners = new ArrayList<IClusterListener>();
 	List<GlusterServer> servers = new ArrayList<GlusterServer>();

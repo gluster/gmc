@@ -20,6 +20,6 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>Jersey REST Service</servlet-name>
-    <url-pattern>/services/*</url-pattern>
+    <url-pattern>/resources/*</url-pattern>
   </servlet-mapping>
 </web-app>

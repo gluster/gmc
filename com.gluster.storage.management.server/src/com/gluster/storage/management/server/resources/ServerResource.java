@@ -1,4 +1,4 @@
-package com.gluster.storage.management.server.services;
+package com.gluster.storage.management.server.resources;
 
 import java.io.File;
 

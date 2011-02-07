@@ -1,7 +1,10 @@
 package com.gluster.storage.management.core.model;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import com.gluster.storage.management.core.utils.StringUtils;
 
+@XmlRootElement(name="glusterServer")
 public class GlusterServer extends Server {
 	public enum SERVER_STATUS {
 		ONLINE, OFFLINE

@@ -2,7 +2,7 @@ package com.gluster.storage.management.core.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement
+@XmlRootElement(name="networkInterface")
 public class NetworkInterface extends Entity {
 	private String ipAddress;
 	private String netMask;

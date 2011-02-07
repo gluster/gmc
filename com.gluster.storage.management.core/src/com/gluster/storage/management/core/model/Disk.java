@@ -4,7 +4,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.gluster.storage.management.core.utils.StringUtils;
 
-@XmlRootElement
+@XmlRootElement(name="Disk")
 public class Disk extends Entity {
 	public enum DISK_STATUS {
 		READY, UNINITIALIZED, INITIALIZING, OFFLINE

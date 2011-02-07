@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.gluster.storage.management.core.utils.StringUtils;
 
-@XmlRootElement
+@XmlRootElement(name="server")
 public class Server extends Entity {
 	private List<NetworkInterface> networkInterfaces = new ArrayList<NetworkInterface>();
 	private int numOfCPUs;
