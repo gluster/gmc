@@ -19,7 +19,7 @@ public class ServerResource {
 		WebResource service = Client.create(new DefaultClientConfig()).resource(BASE_URI);
 		
 		@SuppressWarnings("unchecked")
-		ServerListResponse<Server> response = service.path("services").path("server").path("discover")
+		ServerListResponse<Server> response = service.path("resources").path("server").path("discover")
 				.accept(MediaType.TEXT_XML).get(ServerListResponse.class);
 		
 		return response.getData();
