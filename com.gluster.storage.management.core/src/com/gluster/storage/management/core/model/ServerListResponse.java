@@ -10,13 +10,17 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class ServerListResponse<T extends Server> extends AbstractServerResponse {
 	private List<T> servers;
 	
-	@Override
 	@XmlElementWrapper(name="servers")
 	@XmlElement(name="server", type=Server.class)
+	public List<T> getServers() {
+		return getData();
+	}
+	
+	@Override
 	public List<T> getData() {
 		return servers;
 	}
-
+	
 	public void setServers(List<T> data) {
 		this.servers = data;
 	}
