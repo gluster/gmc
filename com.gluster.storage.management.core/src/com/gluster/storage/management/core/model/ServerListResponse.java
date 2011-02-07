@@ -13,12 +13,12 @@ public class ServerListResponse<T extends Server> extends AbstractServerResponse
 	@XmlElementWrapper(name="servers")
 	@XmlElement(name="server", type=Server.class)
 	public List<T> getServers() {
-		return getData();
+		return servers;
 	}
 	
 	@Override
 	public List<T> getData() {
-		return servers;
+		return getServers();
 	}
 	
 	public void setServers(List<T> data) {
