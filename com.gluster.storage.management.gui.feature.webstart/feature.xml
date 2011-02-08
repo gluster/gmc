@@ -4,9 +4,9 @@
       label="Gluster Management Console - GUI Feature for Webstart"
       version="1.0.0"
       provider-name="Gluster Inc."
-      os="linux,win32"
-      ws="gtk,win32"
-      arch="x86,x86_64">
+      os="linux,macosx,win32"
+      ws="cocoa,gtk,win32"
+      arch="x86,x86_64,amd64">
 
    <description url="http://www.example.com/description">
       [Enter Feature Description here.]
