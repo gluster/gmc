@@ -1,11 +1,10 @@
-package com.gluster.storage.management.core.utils;
-
-
 /*------------------------------------------------------------------------------
  class
  MD5Crypt
-
  ------------------------------------------------------------------------------*/
+
+package com.gluster.storage.management.core.utils;
+
 
 /**
  * <p>This class defines a method,
@@ -29,7 +28,6 @@ package com.gluster.storage.management.core.utils;
  *
  * @author Jonathan Abbey <jonabbey at arlut.utexas.edu>
  */
-
 public final class MD5Crypt {
 
     /**

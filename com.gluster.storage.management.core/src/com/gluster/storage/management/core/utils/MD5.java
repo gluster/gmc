@@ -1,5 +1,3 @@
-package com.gluster.storage.management.core.utils;
-
 /*
  * MD5 in Java JDK Beta-2
  * written Santeri Paavolainen, Helsinki Finland 1996
@@ -56,6 +54,7 @@ package com.gluster.storage.management.core.utils;
  * Initial revision
  *
  */
+package com.gluster.storage.management.core.utils;
 
 /**
  * Contains internal state of the MD5 class

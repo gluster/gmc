@@ -1,14 +1,27 @@
+/*******************************************************************************
+ * Copyright (c) 2011 Gluster, Inc. <http://www.gluster.com>
+ * This file is part of Gluster Management Console.
+ *
+ * Gluster Management Console is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *  
+ * Gluster Management Console is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License
+ * for more details.
+ *  
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see
+ * <http://www.gnu.org/licenses/>.
+ *******************************************************************************/
 package com.gluster.storage.management.gui.views.details.tabcreators;
 
-import org.eclipse.jface.fieldassist.ComboContentAdapter;
-import org.eclipse.jface.fieldassist.ContentProposalAdapter;
-import org.eclipse.jface.fieldassist.SimpleContentProposalProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.widgets.FormToolkit;
@@ -18,11 +31,10 @@ import org.eclipse.ui.forms.widgets.ScrolledForm;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.GlusterServer;
-import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
+import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.gui.IImageKeys;
-import com.gluster.storage.management.gui.editor.TimeZones;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.views.details.TabCreator;
 
@@ -98,50 +110,6 @@ public class ClusterTabCreator implements TabCreator {
 		chartViewerComposite.setLayoutData(data);	
 	}
 
-	private void createAppSettingsSection(FormToolkit toolkit, final ScrolledForm form) {
-		Composite sectionClient = guiHelper.createSection(form, toolkit, "Application Settings", null, 2, false);
-		toolkit.createButton(sectionClient, "Enable Remote CLI?", SWT.CHECK | SWT.FLAT);
-	}
-
-	private Combo createTimeZoneCombo(Composite sectionClient, GridData layoutData) {
-		Combo cboTimeZone = new Combo(sectionClient, SWT.FLAT);
-		cboTimeZone.setData(FormToolkit.KEY_DRAW_BORDER, FormToolkit.TEXT_BORDER);
-		cboTimeZone.setLayoutData(layoutData);
-
-		for (String timeZone : TimeZones.timeZones) {
-			cboTimeZone.add(timeZone);
-		}
-		cboTimeZone.setText("Asia/Calcutta");
-
-		SimpleContentProposalProvider proposalProvider = new SimpleContentProposalProvider(TimeZones.timeZones);
-		proposalProvider.setFiltering(true);
-		ContentProposalAdapter proposalAdapter = new ContentProposalAdapter(cboTimeZone, new ComboContentAdapter(),
-				proposalProvider, null, null);
-		proposalAdapter.setProposalAcceptanceStyle(ContentProposalAdapter.PROPOSAL_REPLACE);
-
-		return cboTimeZone;
-	}
-
-	private GridData createDefaultLayoutData() {
-		GridData layoutData = new GridData();
-		layoutData.grabExcessHorizontalSpace = true;
-		layoutData.minimumWidth = 200;
-		return layoutData;
-	}
-
-	private void createClusterSettingsSection(final FormToolkit toolkit, final ScrolledForm form) {
-		GridData layoutData = createDefaultLayoutData();
-
-		Composite section = guiHelper.createSection(form, toolkit, "Cluster Settings", null, 2, false);
-
-		toolkit.createLabel(section, "Time Zone: ", SWT.NONE);
-		createTimeZoneCombo(section, layoutData);
-
-		toolkit.createLabel(section, "Network Time GlusterServer: ", SWT.NONE);
-		Text txtTimeServer = toolkit.createText(section, "pool.ntp.org", SWT.BORDER_SOLID);
-		txtTimeServer.setLayoutData(layoutData);
-	}
-
 	private void createActionsSection(final Cluster cluster, final FormToolkit toolkit, final ScrolledForm form) {
 		Composite section = guiHelper.createSection(form, toolkit, "Actions", null, 1, false);
 
@@ -171,20 +139,8 @@ public class ClusterTabCreator implements TabCreator {
 		summaryTab.layout(); // IMP: lays out the form properly
 	}
 
-	private void createSettingsTab(final Cluster cluster, final TabFolder tabFolder, final FormToolkit toolkit) {
-		Composite settingsTab = guiHelper.createTab(tabFolder, "Settings", IImageKeys.SETTINGS);
-
-		final ScrolledForm form = guiHelper.setupForm(settingsTab, toolkit, "Settings");
-		createClusterSettingsSection(toolkit, form);
-		createAppSettingsSection(toolkit, form);
-
-		settingsTab.layout(); // IMP: lays out the form properly
-	}
-
 	@Override
 	public void createTabs(Entity entity, TabFolder tabFolder, FormToolkit toolkit, IWorkbenchSite site) {
 		createClusterSummaryTab((Cluster) entity, tabFolder, toolkit);
-		//createSettingsTab((Cluster) entity, tabFolder, toolkit);
 	}
-
 }

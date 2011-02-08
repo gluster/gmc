@@ -1,14 +1,21 @@
-/***********************************************************************
- * Copyright (c) 2004, 2007 Actuate Corporation.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+/*******************************************************************************
+ * Copyright (c) 2011 Gluster, Inc. <http://www.gluster.com>
+ * This file is part of Gluster Management Console.
  *
- * Contributors:
- * Actuate Corporation - initial API and implementation
- ***********************************************************************/
-
+ * Gluster Management Console is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *  
+ * Gluster Management Console is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License
+ * for more details.
+ *  
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see
+ * <http://www.gnu.org/licenses/>.
+ *******************************************************************************/
 package com.gluster.storage.management.gui.views.details.tabcreators;
 
 import java.util.logging.Level;
@@ -41,7 +48,6 @@ import org.eclipse.birt.chart.model.type.PieSeries;
 import org.eclipse.birt.chart.model.type.impl.PieSeriesImpl;
 import org.eclipse.birt.core.framework.PlatformConfig;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.PaintEvent;
@@ -49,84 +55,70 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
 
 /**
  * 
  */
-public final class PieChartViewerComposite extends Composite implements PaintListener, IUpdateNotifier {
+public final class PieChartViewerComposite extends Composite implements
+		PaintListener, IUpdateNotifier {
 
-	private IDeviceRenderer idr = null;
-	private Chart cm = null;
-	private GeneratedChartState gcs = null;
-	private boolean bNeedsGeneration = true;
+	private IDeviceRenderer deviceReader = null;
+	private Chart chart = null;
+	private GeneratedChartState generatedChartState = null;
+	private boolean needsGeneration = true;
 
-	private static Logger logger = Logger.getLogger(PieChartViewerComposite.class.getName());
-
-	public static void main(String[] args) {
-		Display display = Display.getDefault();
-		Shell shell = new Shell(display);
-		shell.setSize(800, 600);
-		shell.setLayout(new GridLayout());
-
-		// Data Set
-		String[] categories = new String[] { "New York", "Boston", "Chicago", "San Francisco", "Dallas" };//$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
-		Double[] values = new Double[] { 54.65, 21d, 75.95, 91.28, 37.43 };
-
-		PieChartViewerComposite chartViewerComposite = new PieChartViewerComposite(shell, SWT.NO_BACKGROUND,
-				categories, values);
-
-		GridData data = new GridData(SWT.FILL, SWT.FILL, true, true);
-		data.widthHint = 250;
-		data.heightHint = 250;
-		chartViewerComposite.setLayoutData(data);
-
-		shell.setText(chartViewerComposite.getClass().getName() + " [device=" //$NON-NLS-1$
-				+ chartViewerComposite.idr.getClass().getName() + "]");//$NON-NLS-1$
-		shell.open();
-		while (!shell.isDisposed()) {
-			if (!display.readAndDispatch())
-				display.sleep();
-		}
-		display.dispose();
-	}
+	private static Logger logger = Logger
+			.getLogger(PieChartViewerComposite.class.getName());
 
 	/**
-	 * Get the connection with SWT device to render the graphics.
+	 * @param parent
+	 *            Parent composite of this pie chart viewer composite
+	 * @param style
+	 *            SWT style to be used
+	 * @param categories
+	 *            Categories of the pie chart
+	 * @param values
+	 *            Values of each category in the pie chart Constructs a pie
+	 *            chart viewer composite for given categories and values
 	 */
-	PieChartViewerComposite(Composite parent, int style, String[] categories, Double[] values) {
+	PieChartViewerComposite(Composite parent, int style, String[] categories,
+			Double[] values) {
 		super(parent, style);
 		try {
 			PlatformConfig config = new PlatformConfig();
 			config.setBIRTHome(Platform.getInstallLocation().getURL().getPath());
-			idr = ChartEngine.instance(config).getRenderer("dv.SWT");//$NON-NLS-1$
+			// Get the connection with SWT device to render the graphics.
+			deviceReader = ChartEngine.instance(config).getRenderer("dv.SWT");//$NON-NLS-1$
 		} catch (ChartException ex) {
-			logger.log(Level.SEVERE, "Could not create Chart Renderer for SWT", ex);
+			logger.log(Level.SEVERE, "Could not create Chart Renderer for SWT",
+					ex);
 		}
+
 		addControlListener(new ControlListener() {
 
 			public void controlMoved(ControlEvent e) {
-				bNeedsGeneration = true;
+				needsGeneration = true;
 			}
 
 			public void controlResized(ControlEvent e) {
-				bNeedsGeneration = true;
+				needsGeneration = true;
 			}
 		});
-		cm = createPieChart(categories, values);
+
+		chart = createPieChart(categories, values);
 		addPaintListener(this);
 	}
 
 	/**
-	 * Creates a pie chart model as a reference implementation
-	 * 
-	 * @return An instance of the simulated runtime chart model (containing filled datasets)
+	 * @param categories
+	 *            Categories of the pie chart
+	 * @param values
+	 *            Values of each category in the pie chart
+	 * @return The chart object created for given categories and values
 	 */
-	public static final Chart createPieChart(String[] categories, Double[] values) {
+	public static final Chart createPieChart(String[] categories,
+			Double[] values) {
 		ChartWithoutAxes pieChart = ChartWithoutAxesImpl.create();
 
 		// Plot
@@ -180,34 +172,38 @@ public final class PieChartViewerComposite extends Composite implements PaintLis
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.eclipse.swt.events.PaintListener#paintControl(org.eclipse.swt.events.PaintEvent)
+	 * @see
+	 * org.eclipse.swt.events.PaintListener#paintControl(org.eclipse.swt.events
+	 * .PaintEvent)
 	 */
 	public final void paintControl(PaintEvent e) {
 		Rectangle d = ((Composite) e.getSource()).getBounds();
 		Image imgChart = new Image(this.getDisplay(), d);
 		GC gcImage = new GC(imgChart);
-		idr.setProperty(IDeviceRenderer.GRAPHICS_CONTEXT, gcImage);
-		idr.setProperty(IDeviceRenderer.UPDATE_NOTIFIER, this);
+		deviceReader.setProperty(IDeviceRenderer.GRAPHICS_CONTEXT, gcImage);
+		deviceReader.setProperty(IDeviceRenderer.UPDATE_NOTIFIER, this);
 
 		Bounds bo = BoundsImpl.create(0, 0, d.width, d.height);
-		bo.scale(58d / idr.getDisplayServer().getDpiResolution());
+		bo.scale(58d / deviceReader.getDisplayServer().getDpiResolution());
 
 		Generator gr = Generator.instance();
-		if (bNeedsGeneration) {
-			bNeedsGeneration = false;
+		if (needsGeneration) {
+			needsGeneration = false;
 			try {
-				gcs = gr.build(idr.getDisplayServer(), cm, bo, null, null, null);
+				generatedChartState = gr.build(deviceReader.getDisplayServer(),
+						chart, bo, null, null, null);
 			} catch (ChartException ce) {
 				ce.printStackTrace();
 			}
 		}
 
 		try {
-			gr.render(idr, gcs);
+			gr.render(deviceReader, generatedChartState);
 			GC gc = e.gc;
 			gc.drawImage(imgChart, d.x, d.y);
 		} catch (ChartException gex) {
-			logger.log(Level.SEVERE, "Exception while rendering pie chart [" + gex.getMessage() + "]", gex);
+			logger.log(Level.SEVERE, "Exception while rendering pie chart ["
+					+ gex.getMessage() + "]", gex);
 		}
 	}
 
@@ -217,7 +213,7 @@ public final class PieChartViewerComposite extends Composite implements PaintLis
 	 * @see org.eclipse.birt.chart.device.IUpdateNotifier#getDesignTimeModel()
 	 */
 	public Chart getDesignTimeModel() {
-		return cm;
+		return chart;
 	}
 
 	/*
@@ -226,7 +222,7 @@ public final class PieChartViewerComposite extends Composite implements PaintLis
 	 * @see org.eclipse.birt.chart.device.IUpdateNotifier#getRunTimeModel()
 	 */
 	public Chart getRunTimeModel() {
-		return gcs.getChartModel();
+		return generatedChartState.getChartModel();
 	}
 
 	/*
