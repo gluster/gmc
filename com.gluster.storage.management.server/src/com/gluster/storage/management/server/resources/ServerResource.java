@@ -26,6 +26,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.gluster.storage.management.core.utils.FileUtil;
+import com.gluster.storage.management.core.utils.MD5Crypt;
+import com.gluster.storage.management.core.utils.ProcessResult;
+import com.gluster.storage.management.core.utils.ProcessUtil;
 
 @Path("/server")
 public class ServerResource {
@@ -50,4 +53,20 @@ public class ServerResource {
 	public String discoveredServers() {
 		return GetDiscoveredServers();
 	}
+
+	private String GetDetails() {
+		ProcessResult result = new ProcessUtil().executeCommand("get-server-details.py");
+		if (!result.isSuccess()) {
+			//TODO:Generate error message and return
+		}
+		return result.getOutput();
+	}
+
+	@Path("/details")
+	@GET
+	@Produces(MediaType.TEXT_XML)
+	public String serverDetails() {
+		return GetDetails();
+	}
+	
 }

@@ -24,6 +24,13 @@ import com.gluster.storage.management.core.utils.ProcessResult;
 
 @XmlRootElement(name="status")
 public class Status {
+	public static final int STATUS_CODE_SUCCESS = 0;
+	public static final int STATUS_CODE_FAILURE = 1;
+	public static final Status STATUS_SUCCESS = new Status(STATUS_CODE_SUCCESS, "Success");
+	public static final Status STATUS_FAILURE = new Status(STATUS_CODE_FAILURE, "Failure");
+		
+	//public static final Status 
+	
 	@XmlElement(name="code", type=Integer.class)
 	private Integer code;
 	
@@ -31,13 +38,14 @@ public class Status {
 
 	public Status() {
 	}
-
+	
 	public boolean isSuccess() {
-		return code == 0;
+		return code == STATUS_CODE_SUCCESS;
 	}
 
-	public Status(Integer executionStatus, String xmlData) {
-		this.code = executionStatus;
+	public Status(Integer code, String message) {
+		this.code = code;
+		this.message = message;
 	}
 
 	public Status(ProcessResult result) {

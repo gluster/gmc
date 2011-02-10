@@ -20,8 +20,13 @@
  */
 package com.gluster.storage.management.server.tasks;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.gluster.storage.management.server.resources.DiscoveredServersResource;
 
 /**
  * Task for auto-discovery of servers eligible to be added to the Gluster cluster. This task runs periodically and keeps
@@ -35,6 +40,9 @@ public class ServerDiscoveryTask {
 	private static final String ENV_PHYCAL = "physical";
 
 	@Autowired
+	private DiscoveredServersResource discoveredServersResource;
+
+	@Autowired
 	private String environment;
 
 	public void discoverServers() {
@@ -44,8 +52,12 @@ public class ServerDiscoveryTask {
 		 * TODO: Flow should be as follows <br>
 		 * 1) Get the discovery policy specific for the environment <br>
 		 * 2) Execute discovery to get list of auto-discovered server <br>
-		 * 3) Probe each one of them to fetch server details <br>
-		 * 4) Store the details in a common place which can be read by the server resource <br>
+		 * 3) Set the discovered servers list in the discovered servers resource <br>
 		 */
+
+		List<String> discoveredServers = new ArrayList<String>();
+		discoveredServers.add("yserver1");
+
+		discoveredServersResource.setDiscoveredServerNames(discoveredServers);
 	}
 }

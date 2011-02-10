@@ -17,6 +17,6 @@
 	</task:scheduled-tasks>
 	
 	<bean id="environment" class="java.lang.String">
-        <constructor-arg value="aws"/>
+        <constructor-arg value="vmware"/>
     </bean>
 </beans>

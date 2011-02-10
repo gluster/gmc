@@ -38,7 +38,7 @@ public class ServerListResponse<T extends Server> extends AbstractServerResponse
 	public List<T> getData() {
 		return getServers();
 	}
-	
+
 	public void setServers(List<T> data) {
 		this.servers = data;
 	}
