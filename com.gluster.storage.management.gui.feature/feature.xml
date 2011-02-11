@@ -753,7 +753,7 @@
    <plugin
          id="org.eclipse.equinox.launcher.cocoa.macosx.x86_64"
          os="macosx"
-         arch="x86_64, amd64"
+         arch="x86_64"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -772,7 +772,7 @@
    <plugin
          id="org.eclipse.swt.cocoa.macosx.x86_64"
          os="macosx"
-         arch="x86_64, amd64"
+         arch="x86_64"
          download-size="0"
          install-size="0"
          version="0.0.0"
