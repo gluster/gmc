@@ -1,0 +1,25 @@
+<project>
+	<property name="installer.dir" value="${buckminster.output}/installer" />
+	<target name='unsign'>
+			<echo message="output = [${installer.dir}]" />
+			<buckminster.signatureCleaner>
+				<fileset dir='${installer.dir}/plugins'>
+					<include name='*.jar' />
+				</fileset>
+				<fileset dir='${installer.dir}/features'>
+					<include name='*.jar' />
+				</fileset>
+			</buckminster.signatureCleaner>
+	</target>
+
+	<target name="sign">
+		<signjar alias="gluster" storepass="gluster" keypass="gluster" keystore="/home/shireesh/.keystore">
+			<fileset dir="${installer.dir}/plugins">
+				<include name="*.jar" />
+			</fileset>
+			<fileset dir="${installer.dir}/features">
+				<include name="*.jar" />
+			</fileset>
+		</signjar>
+	</target>
+</project>
