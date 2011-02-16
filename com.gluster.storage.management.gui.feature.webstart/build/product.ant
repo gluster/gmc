@@ -13,7 +13,7 @@
 	</target>
 
 	<target name="sign">
-		<signjar alias="gluster" storepass="gluster" keypass="gluster" keystore="gluster.keystore">
+		<signjar alias="gluster" storepass="gluster" keypass="gluster" keystore="build/gluster.keystore">
 			<fileset dir="${installer.dir}/plugins">
 				<include name="*.jar" />
 			</fileset>

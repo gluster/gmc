@@ -24,6 +24,4 @@ Require-Bundle: org.eclipse.ui;bundle-version="3.6.1",
  org.eclipse.core.resources
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
-Bundle-ClassPath: lib/jersey-client-1.4.jar,
- lib/jersey-core-1.4.jar,
- .
+Bundle-ClassPath: .
