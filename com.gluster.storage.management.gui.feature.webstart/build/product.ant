@@ -1,5 +1,5 @@
 <project>
-	<property name="installer.dir" value="${buckminster.output}/installer" />
+	<property name="installer.dir" value="${buckminster.output}/dist/${target.os}.${target.ws}.${target.arch}/" />
 	<target name='unsign'>
 			<echo message="output = [${installer.dir}]" />
 			<buckminster.signatureCleaner>
