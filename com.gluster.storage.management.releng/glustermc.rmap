@@ -1,28 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rm:rmap xmlns:bc="http://www.eclipse.org/buckminster/Common-1.0" xmlns:rm="http://www.eclipse.org/buckminster/RMap-1.0">
-  <rm:property key="useBuild" value="RBUILD"/>
-  <rm:locator pattern="^com\.gluster\.storage\.management(\..+)?" searchPathRef="com.gluster.storage.management"/>
-  <rm:locator pattern="^com\.sun\.jersey(\..+)?" searchPathRef="com.gluster.storage.management"/>
-  <rm:locator pattern="" searchPathRef="org.eclipse.platform" failOnError="false"/>
-  <rm:locator pattern="" searchPathRef="org.eclipse.helios" failOnError="false"/>
-  <rm:searchPath name="com.gluster.storage.management">
-    <rm:provider componentTypes="osgi.bundle,eclipse.feature,buckminster" readerType="git" resolutionFilter="">
-      <rm:uri format="{0}/gmc-src,{1}">
-        <bc:propertyRef key="workspace.root"/>
-        <bc:propertyRef key="buckminster.component"/>
-      </rm:uri>
-      <rm:property key="git.remote.uri" value="/data/private/gmc-src.git"/>
-      <rm:property key="git.remote.name" value="origin"/>
+  <rm:searchPath name="glustermc">
+    <rm:provider readerType="local" componentTypes="osgi.bundle,eclipse.feature"
+                  mutable="true" source="true">
+            <rm:uri format="file:///{0}/gmc-src/{1}/">
+                <bc:propertyRef key="workspace.root" />
+                <bc:propertyRef key="buckminster.component" />
+            </rm:uri>
     </rm:provider>
   </rm:searchPath>
-  <rm:searchPath name="org.eclipse.platform">
-    <rm:provider componentTypes="osgi.bundle,eclipse.feature" readerType="p2" source="false" mutable="false" resolutionFilter="">
-      <rm:uri format="http://download.eclipse.org/eclipse/updates/3.6?importType=binary"/>
-    </rm:provider>
-  </rm:searchPath>
-  <rm:searchPath name="org.eclipse.helios">
-    <rm:provider componentTypes="osgi.bundle,eclipse.feature" readerType="p2" source="false" mutable="false">
-      <rm:uri format="http://download.eclipse.org/releases/helios?importType=binary"/>
-    </rm:provider>
-  </rm:searchPath>
+
+  <rm:locator searchPathRef="glustermc"/>
 </rm:rmap>
