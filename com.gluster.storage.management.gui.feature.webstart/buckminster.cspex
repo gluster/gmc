@@ -15,7 +15,7 @@
 				<attribute name="feature.exports"/>
 			</prerequisites>
 			<products alias="action.output" base="${buckminster.output}" upToDatePolicy="NOT_EMPTY">
-				<path path="dist/"/>
+				<path path="glustermc/"/>
 			</products>
 		</public>
 		<public name="unsign.jars" actor="ant">
