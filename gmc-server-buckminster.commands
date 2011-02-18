@@ -6,6 +6,6 @@ import gmc-src/com.gluster.storage.management.releng/com.gluster.storage.managem
 import gmc-src/com.gluster.storage.management.releng/com.gluster.storage.management.client.cquery
 import gmc-src/com.gluster.storage.management.releng/com.gluster.storage.management.server.cquery
 
-perform com.gluster.storage.management.core#plugin.export
-perform com.gluster.storage.management.client#plugin.export
+perform com.gluster.storage.management.core#bundle.jar
+perform com.gluster.storage.management.client#bundle.jar
 perform com.gluster.storage.management.server#archive
