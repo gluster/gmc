@@ -23,7 +23,9 @@
 
     <target name="compile" depends="init">
         <copy todir="${WEB-INF}/lib" >
-        	<fileset dir="${buckminster.output}/../**/*.jar" />
+        	<fileset dir="${buckminster.output}/.." casesensitive="yes">
+        	  <include name="**/*.jar"/>
+        	</fileset>
         </copy>
         <javac srcdir="${basedir}/src" 
                     destdir="${WEB-INF}/classes" 
