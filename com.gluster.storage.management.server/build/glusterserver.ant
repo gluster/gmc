@@ -22,7 +22,7 @@
     </target>
 
     <target name="compile" depends="init">
-        <copy todir="${WEB-INF}/lib" >
+        <copy todir="${WEB-INF}/lib" flatten="true">
         	<fileset dir="${buckminster.output}/.." casesensitive="yes">
         	  <include name="**/*.jar"/>
         	</fileset>
