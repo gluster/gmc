@@ -22,6 +22,10 @@
     </target>
 
     <target name="compile" depends="init">
+        <copy todir="${WEB-INF}/lib" >
+        	<fileset dir="${buckminster.output}/com.gluster.storage.management.core/**/*.jar" />
+        	<fileset dir="${buckminster.output}/com.gluster.storage.management.client/**/*.jar" />
+        </copy>
         <javac srcdir="${basedir}/src" 
                     destdir="${WEB-INF}/classes" 
                     classpathref="libs">
@@ -40,7 +44,7 @@
         <!--move file="${TEMP}/log4j.properties" 
                         todir="${TEMP}/WEB-INF/classes" /-->
         <war destfile="${OUT}/${WAR_FILE_NAME}" 
-                        basedir="${TEMP}" 
+                        basedir="${TEMP}"
                         compress="true"
                         webxml="${TEMP}/WEB-INF/web.xml" />
         <delete dir="${TEMP}" />
@@ -48,8 +52,6 @@
 
     <path id="libs">
         <fileset includes="*.jar" dir="${WEB-INF}/lib" />
-    	<fileset includes="com.gluster.storage.management.*.jar" dir="${buckminster.output}/glustermc/plugins" />
-    	<fileset includes="org.eclipse.equinox.common.*.jar" dir="${buckminster.output}/glustermc/plugins" />    	
     </path>
 
 </project>
