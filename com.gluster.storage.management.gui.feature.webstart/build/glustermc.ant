@@ -1,5 +1,5 @@
 <project>
-	<property name="export.dir" value="${buckminster.output}/dist/" />
+	<property name="export.dir" value="${buckminster.output}/glustermc/" />
 	<target name='unsign'>
 			<buckminster.signatureCleaner>
 				<fileset dir='${export.dir}/plugins'>

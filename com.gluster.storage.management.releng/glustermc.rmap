@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rm:rmap xmlns:bc="http://www.eclipse.org/buckminster/Common-1.0" xmlns:rm="http://www.eclipse.org/buckminster/RMap-1.0">
+  <rm:locator searchPathRef="glustermc"/>
   <rm:searchPath name="glustermc">
-    <rm:provider readerType="local" componentTypes="osgi.bundle,eclipse.feature"
-                  mutable="true" source="true">
-            <rm:uri format="file:///{0}/gmc-src/{1}/">
-                <bc:propertyRef key="workspace.root" />
-                <bc:propertyRef key="buckminster.component" />
-            </rm:uri>
+    <rm:provider componentTypes="osgi.bundle,eclipse.feature" readerType="local">
+      <rm:uri format="file:///{0}/gmc-src/{1}/">
+        <bc:propertyRef key="workspace.root"/>
+        <bc:propertyRef key="buckminster.component"/>
+      </rm:uri>
     </rm:provider>
   </rm:searchPath>
-
-  <rm:locator searchPathRef="glustermc"/>
 </rm:rmap>

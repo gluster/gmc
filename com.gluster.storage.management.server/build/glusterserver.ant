@@ -1,0 +1,55 @@
+<project name="com.gluster.storage.management.server" basedir="." default="archive">
+	<echo message="basedir=${basedir}" />
+	<echo message="buckminster.output=${buckminster.output}" />
+    <property name="WEB-INF" value="${basedir}/WebContent/WEB-INF" />
+    <property name="OUT" value="${buckminster.output}/glusterserver/" />
+	<!--property name="OUT" value="${basedir}/out" /-->
+    <property name="WAR_FILE_NAME" value="glustermc.war" />
+    <property name="TEMP" value="${buckminster.output}/temp" />
+
+    <target name="help">
+        <echo>
+            --------------------------------------------------
+            compile - Compile
+            archive - Generate WAR file
+            --------------------------------------------------
+        </echo>
+    </target>
+
+    <target name="init">
+        <delete dir="${WEB-INF}/classes" />
+        <mkdir dir="${WEB-INF}/classes" />
+    </target>
+
+    <target name="compile" depends="init">
+        <javac srcdir="${basedir}/src" 
+                    destdir="${WEB-INF}/classes" 
+                    classpathref="libs">
+        </javac>
+    </target>
+
+    <target name="archive" depends="compile">
+        <delete dir="${OUT}" />
+        <mkdir dir="${OUT}" />
+        <delete dir="${TEMP}" />
+        <mkdir dir="${TEMP}" />
+        <copy todir="${TEMP}" >
+            <fileset dir="${basedir}/WebContent">
+            </fileset>
+        </copy>
+        <!--move file="${TEMP}/log4j.properties" 
+                        todir="${TEMP}/WEB-INF/classes" /-->
+        <war destfile="${OUT}/${WAR_FILE_NAME}" 
+                        basedir="${TEMP}" 
+                        compress="true"
+                        webxml="${TEMP}/WEB-INF/web.xml" />
+        <delete dir="${TEMP}" />
+    </target>
+
+    <path id="libs">
+        <fileset includes="*.jar" dir="${WEB-INF}/lib" />
+    	<fileset includes="com.gluster.storage.management.*.jar" dir="${buckminster.output}/glustermc/plugins" />
+    	<fileset includes="org.eclipse.equinox.common.*.jar" dir="${buckminster.output}/glustermc/plugins" />    	
+    </path>
+
+</project>
