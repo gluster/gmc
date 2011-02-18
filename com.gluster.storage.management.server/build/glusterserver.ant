@@ -23,8 +23,7 @@
 
     <target name="compile" depends="init">
         <copy todir="${WEB-INF}/lib" >
-        	<fileset dir="${buckminster.output}/com.gluster.storage.management.core/**/*.jar" />
-        	<fileset dir="${buckminster.output}/com.gluster.storage.management.client/**/*.jar" />
+        	<fileset dir="${buckminster.output}/../**/*.jar" />
         </copy>
         <javac srcdir="${basedir}/src" 
                     destdir="${WEB-INF}/classes" 
