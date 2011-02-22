@@ -18,56 +18,47 @@
  *******************************************************************************/
 package com.gluster.storage.management.client;
 
-import java.net.URI;
 import java.util.List;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
-
-import com.gluster.storage.management.client.utils.ClientUtil;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.ServerDetailsResponse;
 import com.gluster.storage.management.core.model.ServerListResponse;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.WebResource.Builder;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
 
-public class DiscoveredServersClient {
-	private final URI BASE_URI = UriBuilder.fromUri("http://localhost:8080/glustermc").build();
+public class DiscoveredServersClient extends AbstractClient {
+	private static final String RESOURCE_NAME = "discoveredservers";
+
+	public DiscoveredServersClient(String serverName) {
+		super(serverName);
+	}
+
+	@Override
+	public String getResourceName() {
+		return RESOURCE_NAME;
+	}
 
 	public List<Server> getDiscoveredServers() {
-		WebResource service = Client.create(new DefaultClientConfig()).resource(BASE_URI);
-
 		@SuppressWarnings("unchecked")
-		ServerListResponse<Server> response = service.path("resources").path("server").path("discover")
-				.accept(MediaType.TEXT_XML).get(ServerListResponse.class);
-
+		ServerListResponse<Server> response = (ServerListResponse<Server>) fetchResource(ServerListResponse.class);
 		return response.getData();
 	}
 
-	private Builder getServerBuilder(String serverName) {
-		WebResource service = Client.create(new DefaultClientConfig()).resource(
-				new ClientUtil().getServerBaseURI(serverName));
-
-		return service.path("resources").path("server").path("details")
-				.accept(MediaType.TEXT_XML);
-	}
-	
 	public Server getServer(String serverName) {
-		return getServerBuilder(serverName).get(ServerDetailsResponse.class).getData();
+		@SuppressWarnings("unchecked")
+		ServerDetailsResponse<Server> response = (ServerDetailsResponse<Server>) fetchSubResource(serverName,
+				ServerDetailsResponse.class);
+		return response.getData();
 	}
 
 	public String getServerXML(String serverName) {
-		return getServerBuilder(serverName).get(String.class);
+		return ((String) fetchSubResource(serverName, String.class));
 	}
 
 	public static void main(String[] args) {
-		DiscoveredServersClient ServerResource = new DiscoveredServersClient();
+		DiscoveredServersClient ServerResource = new DiscoveredServersClient("localhost");
 		List<Server> discoveredServers = ServerResource.getDiscoveredServers();
 		System.out.println(discoveredServers.size());
 
-		Server serverDetails = ServerResource.getServer("localhost");
-		System.out.println(serverDetails.getName());
+		// Server serverDetails = ServerResource.getServer("localhost");
+		// System.out.println(serverDetails.getName());
 	}
 }
