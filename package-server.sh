@@ -47,6 +47,7 @@ echo "Packaging Gluster Management Server..."
 prepare-dist-dir
 get-server-war
 get-console-dists
+
 tar cvf ${TAR_NAME} ${WAR_NAME}
 gzip ${TAR_NAME}
 
