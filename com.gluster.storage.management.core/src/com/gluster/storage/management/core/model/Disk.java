@@ -20,7 +20,7 @@ package com.gluster.storage.management.core.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.gluster.storage.management.core.utils.StringUtils;
+import com.gluster.storage.management.core.utils.StringUtil;
 
 @XmlRootElement(name="Disk")
 public class Disk extends Entity {
@@ -97,7 +97,7 @@ public class Disk extends Entity {
 
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
-		return StringUtils.filterString(getServer().getName() + getName() + getStatusStr(), filterString, caseSensitive);
+		return StringUtil.filterString(getServer().getName() + getName() + getStatusStr(), filterString, caseSensitive);
 	}
 	
 	public String getQualifiedName() {

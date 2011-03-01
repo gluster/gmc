@@ -25,7 +25,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.gluster.storage.management.core.utils.StringUtils;
+import com.gluster.storage.management.core.utils.StringUtil;
 
 @XmlRootElement(name="server")
 public class Server extends Entity {
@@ -152,6 +152,6 @@ public class Server extends Entity {
 
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
-		return StringUtils.filterString(getName() + getIpAddressesAsString(), filterString, caseSensitive);
+		return StringUtil.filterString(getName() + getIpAddressesAsString(), filterString, caseSensitive);
 	}
 }

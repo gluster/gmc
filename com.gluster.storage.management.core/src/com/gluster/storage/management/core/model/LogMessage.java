@@ -20,7 +20,7 @@ package com.gluster.storage.management.core.model;
 
 import java.util.Date;
 
-import com.gluster.storage.management.core.utils.StringUtils;
+import com.gluster.storage.management.core.utils.StringUtil;
 
 public class LogMessage implements Filterable {
 	private Date timestamp;
@@ -69,7 +69,7 @@ public class LogMessage implements Filterable {
 
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
-		return StringUtils.filterString(getSeverity() + getTimestamp() + getDisk().getServer().getName()
+		return StringUtil.filterString(getSeverity() + getTimestamp() + getDisk().getServer().getName()
 				+ getDisk().getQualifiedName() + getMessage(), filterString, caseSensitive);
 	}
 }

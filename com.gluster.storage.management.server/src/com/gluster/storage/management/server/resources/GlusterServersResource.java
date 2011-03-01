@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.ServerListResponse;
 import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.utils.GlusterUtil;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.sun.jersey.spi.resource.Singleton;
@@ -40,33 +41,13 @@ import com.sun.jersey.spi.resource.Singleton;
 @Singleton
 @Path("/cluster/servers")
 public class GlusterServersResource {
-	
+	private GlusterUtil glusterUtil = new GlusterUtil();
 	public static final String HOSTNAMETAG = "hostname:";
-	
-	public List<String> getGlusterServerNames() {
-		ProcessResult result = new ProcessUtil().executeCommand("gluster-peer-status.py");
-		if (!result.isSuccess())
-			return null;
 
-		List<String> glusterServerNames = new ArrayList<String>();
-		// Parse the result to get the server names
-		for (String line : result.getOutput().split("\n")) {
-			if (line.toLowerCase().contains(HOSTNAMETAG)) {
-				for(String part : line.split(",")) {
-					if (part.toLowerCase().contains(HOSTNAMETAG)) {
-						glusterServerNames.add(part.split(HOSTNAMETAG)[1]);
-						break;
-					}
-				}
-			}
-		}
-		return glusterServerNames;
-	}
-	
 	private List<Server> getServerDetails() {
 		List<Server> glusterServers = new ArrayList<Server>();
-		List<String> serverNames = getGlusterServerNames();
-		for(String serverName : serverNames) {
+		List<String> serverNames = glusterUtil.getGlusterServerNames();
+		for (String serverName : serverNames) {
 			// TODO: With the new design of dedicated management server, this logic has to change.
 			// GlusterServersClient client = new GlusterServersClient(serverName);
 			// Server server = client.getServer("me");
@@ -74,7 +55,7 @@ public class GlusterServersResource {
 		}
 		return glusterServers;
 	}
-	
+
 	@GET
 	@Produces(MediaType.TEXT_XML)
 	public ServerListResponse<Server> getServers() {
@@ -88,16 +69,17 @@ public class GlusterServersResource {
 	@Path("{serverName}")
 	@Produces(MediaType.TEXT_XML)
 	public String getGlusterServer(@PathParam("serverName") String serverName) {
-		if(serverName.equals("me")) {
+		// TODO: With new design of dedicated management server, this concept won't work. Need to change.
+		if (serverName.equals("me")) {
 			return getThisServer();
 		}
-		
+
 		// TODO: With the new design of dedicated management server, this logic has to change.
 		// Fetch details of given server by sending a REST request to that server
 		// return new GlusterServersClient(serverName).getServerXML("me");
 		return null;
 	}
-	
+
 	public String getThisServer() {
 		ProcessResult result = new ProcessUtil().executeCommand("get-server-details.py");
 		if (!result.isSuccess()) {
@@ -106,9 +88,8 @@ public class GlusterServersResource {
 		return result.getOutput();
 	}
 
-	
 	public static void main(String[] args) {
 		GlusterServersResource glusterServersResource = new GlusterServersResource();
-		System.out.println(glusterServersResource.getGlusterServerNames());
+		System.out.println(glusterServersResource.getServerDetails());
 	}
 }

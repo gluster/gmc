@@ -25,7 +25,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.eclipse.core.runtime.PlatformObject;
 
-import com.gluster.storage.management.core.utils.StringUtils;
+import com.gluster.storage.management.core.utils.StringUtil;
 
 @XmlRootElement
 public class Entity extends PlatformObject implements Filterable {
@@ -76,6 +76,6 @@ public class Entity extends PlatformObject implements Filterable {
 	
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
-		return StringUtils.filterString(getName(), filterString, caseSensitive);
+		return StringUtil.filterString(getName(), filterString, caseSensitive);
 	}
 }

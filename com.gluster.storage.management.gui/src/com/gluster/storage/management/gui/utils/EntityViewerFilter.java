@@ -24,7 +24,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 
 import com.gluster.storage.management.core.model.Filterable;
-import com.gluster.storage.management.core.utils.StringUtils;
+import com.gluster.storage.management.core.utils.StringUtil;
 
 public class EntityViewerFilter extends ViewerFilter {
 
@@ -66,11 +66,11 @@ public class EntityViewerFilter extends ViewerFilter {
 		
 		if(element instanceof Entry) {
 			Entry<String, String> entry = (Entry<String, String>)element;
-			return StringUtils.filterString(entry.getKey() + entry.getValue(), filterString, caseSensitive);
+			return StringUtil.filterString(entry.getKey() + entry.getValue(), filterString, caseSensitive);
 		}
 		
 		if(element instanceof String) {
-			return StringUtils.filterString((String)element, filterString, caseSensitive);
+			return StringUtil.filterString((String)element, filterString, caseSensitive);
 		}
 
 		return false;

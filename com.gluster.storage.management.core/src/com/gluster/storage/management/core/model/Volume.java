@@ -29,7 +29,7 @@ import java.util.Set;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
-import com.gluster.storage.management.core.utils.StringUtils;
+import com.gluster.storage.management.core.utils.StringUtil;
 
 public class Volume extends Entity {
 	public enum VOLUME_STATUS {
@@ -240,7 +240,7 @@ public class Volume extends Entity {
 	 */
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
-		return StringUtils.filterString(getName() + getVolumeTypeStr() + getTransportTypeStr() + getStatusStr()
+		return StringUtil.filterString(getName() + getVolumeTypeStr() + getTransportTypeStr() + getStatusStr()
 				+ getNumOfDisks(), filterString, caseSensitive);
 	}
 }

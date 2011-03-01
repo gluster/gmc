@@ -20,7 +20,7 @@ package com.gluster.storage.management.core.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.gluster.storage.management.core.utils.StringUtils;
+import com.gluster.storage.management.core.utils.StringUtil;
 
 @XmlRootElement(name="glusterServer")
 public class GlusterServer extends Server {
@@ -80,7 +80,7 @@ public class GlusterServer extends Server {
 	 */
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
-		return StringUtils.filterString(getName() + getStatusStr() + getPreferredNetworkInterface().getName(),
+		return StringUtil.filterString(getName() + getStatusStr() + getPreferredNetworkInterface().getName(),
 				filterString, caseSensitive);
 	}
 }
