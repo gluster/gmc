@@ -85,9 +85,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		// All action sets from plugin.xml will get added here
 		menuBar.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
 		menuBar.add(helpMenu);
-
-		MenuManager addMenu = new MenuManager("&New");
-		fileMenu.add(addMenu);
 	}
 
 	protected void fillCoolBar(ICoolBarManager coolBar) {

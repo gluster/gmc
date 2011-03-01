@@ -54,14 +54,7 @@ public class ServerDiscoveryTask {
 	private String environment;
 
 	public void discoverServers() {
-		System.out.println("Starting discovery in [" + environment + "] current dir = " + System.getProperty("user.dir"));
-		System.out.println(servletContext);
-		if(servletContext != null) {
-			System.out.println(servletContext.getRealPath("/work"));
-		}
-		System.out.println(Runtime.getRuntime().totalMemory());
-		System.out.println(Runtime.getRuntime().freeMemory());
-		System.out.println(Runtime.getRuntime().maxMemory());
+		System.out.println("Starting discovery in [" + environment + "] environment");
 
 		/**
 		 * TODO: Flow should be as follows <br>

@@ -211,16 +211,6 @@
       </product>
    </extension>
    <extension
-         point="org.eclipse.ui.editors">
-      <editor
-            class="com.gluster.storage.management.gui.editor.GlusterMultiPageEditor"
-            default="false"
-            icon="icons/gluster_icon.png"
-            id="com.gluster.storage.management.gui.editor.GlusterMultiPageEditor"
-            name="Gluster Storage Platform">
-      </editor>
-   </extension>
-   <extension
          point="org.eclipse.ui.actionSets">
       <actionSet
             description="Set of Actions in &quot;Edit&quot; menu"
