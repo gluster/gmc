@@ -27,8 +27,8 @@ import com.gluster.storage.management.core.model.ServerListResponse;
 public class DiscoveredServersClient extends AbstractClient {
 	private static final String RESOURCE_NAME = "discoveredservers";
 
-	public DiscoveredServersClient(String serverName) {
-		super(serverName);
+	public DiscoveredServersClient(String serverName, String user, String password) {
+		super(serverName, user, password);
 	}
 
 	@Override
@@ -54,7 +54,7 @@ public class DiscoveredServersClient extends AbstractClient {
 	}
 
 	public static void main(String[] args) {
-		DiscoveredServersClient ServerResource = new DiscoveredServersClient("localhost");
+		DiscoveredServersClient ServerResource = new DiscoveredServersClient("localhost", "gluster", "gluster");
 		List<Server> discoveredServers = ServerResource.getDiscoveredServers();
 		System.out.println(discoveredServers.size());
 

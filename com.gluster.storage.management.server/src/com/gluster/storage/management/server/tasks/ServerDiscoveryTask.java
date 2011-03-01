@@ -23,21 +23,29 @@ package com.gluster.storage.management.server.tasks;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.ServletContext;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.server.resources.DiscoveredServersResource;
+import com.sun.jersey.spi.resource.Singleton;
 
 /**
  * Task for auto-discovery of servers eligible to be added to the Gluster cluster. This task runs periodically and keeps
  * the discovered server list at a common place. The server resource can then pick it and send to client whenever
  * demanded.
  */
+@Singleton
 @Component
 public class ServerDiscoveryTask {
 	private static final String ENV_AWS = "aws";
 	private static final String ENV_VMWARE = "vmware";
 	private static final String ENV_PHYCAL = "physical";
+	
+	
+	@Autowired
+	private ServletContext servletContext;
 
 	@Autowired
 	private DiscoveredServersResource discoveredServersResource;
@@ -46,7 +54,14 @@ public class ServerDiscoveryTask {
 	private String environment;
 
 	public void discoverServers() {
-		System.out.println("Starting discovery in [" + environment + "]");
+		System.out.println("Starting discovery in [" + environment + "] current dir = " + System.getProperty("user.dir"));
+		System.out.println(servletContext);
+		if(servletContext != null) {
+			System.out.println(servletContext.getRealPath("/work"));
+		}
+		System.out.println(Runtime.getRuntime().totalMemory());
+		System.out.println(Runtime.getRuntime().freeMemory());
+		System.out.println(Runtime.getRuntime().maxMemory());
 
 		/**
 		 * TODO: Flow should be as follows <br>

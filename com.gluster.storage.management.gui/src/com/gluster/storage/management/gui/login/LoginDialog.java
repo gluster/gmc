@@ -39,7 +39,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import com.gluster.storage.management.client.AuthManager;
+import com.gluster.storage.management.client.UsersClient;
 import com.gluster.storage.management.core.model.ConnectionDetails;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.GUIHelper;
@@ -54,7 +54,7 @@ public class LoginDialog extends Dialog {
 	private Text passwordText = null;
 	private Button okButton;
 
-	private final ConnectionDetails connectionDetails = new ConnectionDetails("", "gluster", "");
+	private final ConnectionDetails connectionDetails = new ConnectionDetails("localhost", "gluster", "");
 	private final GUIHelper guiHelper = GUIHelper.getInstance();
 	private Composite composite;
 
@@ -183,7 +183,10 @@ public class LoginDialog extends Dialog {
 	}
 
 	protected void okPressed() {
-		if (new AuthManager().authenticate(connectionDetails)) {
+		String user = connectionDetails.getUserId();
+		String password = connectionDetails.getPassword();
+		String server = connectionDetails.getServer();
+		if (new UsersClient(server, user, password).authenticate()) {
 			super.okPressed();
 		} else {
 			MessageDialog.openError(getShell(), "Authentication Failed", "Invalid User ID or password");

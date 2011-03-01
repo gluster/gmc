@@ -23,4 +23,5 @@ package com.gluster.storage.management.core.constants;
  */
 public class CoreConstants {
     public static final String NEWLINE = System.getProperty("line.separator");
+    public static final String ENCODING_UTF8 = "UTF-8";
 }

@@ -31,9 +31,7 @@ public class Status {
 		
 	//public static final Status 
 	
-	@XmlElement(name="code", type=Integer.class)
 	private Integer code;
-	
 	private String message;
 
 	public Status() {
@@ -52,14 +50,16 @@ public class Status {
 		this.code = result.getExitValue();
 	}
 
-	public String getCode() {
-		return code.toString();
+	@XmlElement(name="code", type=Integer.class)
+	public Integer getCode() {
+		return code;
 	}
 
 	public void setCode(Integer executionStatus) {
 		this.code = executionStatus;
 	}
 
+	@XmlElement
 	public String getMessage() {
 		return message;
 	}

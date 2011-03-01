@@ -31,7 +31,6 @@ import javax.ws.rs.core.MediaType;
 
 import org.springframework.stereotype.Component;
 
-import com.gluster.storage.management.client.DiscoveredServersClient;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.ServerListResponse;
 import com.gluster.storage.management.core.model.Status;
@@ -53,8 +52,8 @@ public class DiscoveredServersResource {
 	private List<String> getDiscoveredServerNames() {
 		File discoveredServersFile = new File(DISCOVERED_SERVERS);
 		String serverNames = new FileUtil().readFileAsString(discoveredServersFile);
-        String[] parts = serverNames.split("\n");
-        return Arrays.asList(parts);
+		String[] parts = serverNames.split("\n");
+		return Arrays.asList(parts);
 	}
 
 	@GET
@@ -69,10 +68,11 @@ public class DiscoveredServersResource {
 	private List<Server> getDiscoveredServerDetails() {
 		List<Server> discoveredServers = new ArrayList<Server>();
 		List<String> serverNames = getDiscoveredServerNames();
-		for(String serverName : serverNames) {
-			DiscoveredServersClient client = new DiscoveredServersClient(serverName);
-			Server server = client.getServer("me");
-			discoveredServers.add(server);
+		for (String serverName : serverNames) {
+			// TODO: With the new design of dedicated management server, this logic has to change.
+			// DiscoveredServersClient client = new DiscoveredServersClient(serverName);
+			// Server server = client.getServer("me");
+			// discoveredServers.add(server);
 		}
 		return discoveredServers;
 	}
@@ -87,14 +87,16 @@ public class DiscoveredServersResource {
 	@GET
 	@Produces(MediaType.TEXT_XML)
 	public String getDiscoveredServer(@PathParam("serverName") String serverName) {
-		if(serverName.equals("me")) {
+		if (serverName.equals("me")) {
 			return getThisServer();
 		}
-		
+
+		// TODO: With the new design of dedicated management server, this logic has to change.
 		// Fetch details of given server by sending a REST request to that server
-		return new DiscoveredServersClient(serverName).getServerXML("me");
+		// return new DiscoveredServersClient(serverName).getServerXML("me");
+		return null;
 	}
-	
+
 	public String getThisServer() {
 		ProcessResult result = new ProcessUtil().executeCommand("get-server-details.py");
 		if (!result.isSuccess()) {

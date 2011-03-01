@@ -29,7 +29,6 @@ import javax.ws.rs.core.MediaType;
 
 import org.springframework.stereotype.Component;
 
-import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.ServerListResponse;
 import com.gluster.storage.management.core.model.Status;
@@ -68,9 +67,10 @@ public class GlusterServersResource {
 		List<Server> glusterServers = new ArrayList<Server>();
 		List<String> serverNames = getGlusterServerNames();
 		for(String serverName : serverNames) {
-			GlusterServersClient client = new GlusterServersClient(serverName);
-			Server server = client.getServer("me");
-			glusterServers.add(server);
+			// TODO: With the new design of dedicated management server, this logic has to change.
+			// GlusterServersClient client = new GlusterServersClient(serverName);
+			// Server server = client.getServer("me");
+			// glusterServers.add(server);
 		}
 		return glusterServers;
 	}
@@ -92,8 +92,10 @@ public class GlusterServersResource {
 			return getThisServer();
 		}
 		
+		// TODO: With the new design of dedicated management server, this logic has to change.
 		// Fetch details of given server by sending a REST request to that server
-		return new GlusterServersClient(serverName).getServerXML("me");
+		// return new GlusterServersClient(serverName).getServerXML("me");
+		return null;
 	}
 	
 	public String getThisServer() {
