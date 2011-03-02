@@ -47,6 +47,7 @@ install_buckminster()
 	./buckminster install ${BUCKMINSTER_URL} org.eclipse.buckminster.core.headless.feature
 	./buckminster install ${BUCKMINSTER_URL} org.eclipse.buckminster.pde.headless.feature
 	./buckminster install ${BUCKMINSTER_URL} org.eclipse.buckminster.git.headless.feature
+	./buckminster install ${BUCKMINSTER_URL} org.eclipse.buckminster.emma.headless.feature
 }
 
 configure_workspace()
@@ -99,7 +100,7 @@ WORKSPACE_DIR=${BUCKMINSTER_HOME}/workspace
 PROPERTIES_FILE=${WORKSPACE_DIR}/gmc-src/com.gluster.storage.management.releng/glustermc_build.properties
 
 if [ "${BUILD_MODE}" == "${TYPE_ALL}" -o "${BUILD_MODE}" == "${TYPE_SETUP}" ]; then
-	#get_director
+	get_director
 	install_buckminster
 fi
 
