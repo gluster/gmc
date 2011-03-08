@@ -1,4 +1,4 @@
-importtarget --active gluster-management-console.target
+importtarget --active gmc-src/com.gluster.storage.management.releng/gluster-management-console.target
 
 import gmc-src/com.gluster.storage.management.releng/com.gluster.storage.management.core.cquery
 perform com.gluster.storage.management.core#java.binaries

@@ -59,7 +59,7 @@ configure_workspace()
 	git clone ${SRC_URL}
 
 	echo "Importing target platform..."
-	../buckminster importtarget --active gluster-management-console.target
+	../buckminster importtarget --active gmc-src/com.gluster.storage.management.releng/gluster-management-console.target
 	echo "Importing component query for glustermc..."
 	../buckminster import gmc-src/com.gluster.storage.management.releng/com.gluster.storage.management.gui.feature.webstart.cquery
 	cd -
