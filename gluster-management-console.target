@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?pde version="3.6"?>
+
+<target includeMode="feature" name="Gluster Storage Platform Target">
+<locations>
+<location path="gmc-target/com.gluster.storage.management.gui.target/rcp.sdk.helios.SR1" type="Directory"/>
+<location path="gmc-target/com.gluster.storage.management.gui.target/richclientgui.rcptoolbox" type="Directory"/>
+<location path="gmc-target/com.gluster.storage.management.gui.target/birt.charts.helios" type="Directory"/>
+<location path="gmc-target/com.gluster.storage.management.gui.target/delta.pack.helios" type="Directory"/>
+</locations>
+<targetJRE path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+</target>
