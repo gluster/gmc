@@ -46,6 +46,7 @@ public class ClusterAdapterFactory implements IAdapterFactory {
 			return ((Entity)o).getName();
 		}
 
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		@Override
 		public ImageDescriptor getImageDescriptor(Object object) {
 			String iconPath = null;
@@ -81,6 +82,7 @@ public class ClusterAdapterFactory implements IAdapterFactory {
 		}
 	};
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public Object getAdapter(Object adaptableObject, Class adapterType) {
 		if (adapterType == IWorkbenchAdapter.class) {
@@ -91,6 +93,7 @@ public class ClusterAdapterFactory implements IAdapterFactory {
 		return null;
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public Class[] getAdapterList() {
 		return new Class[] { IWorkbenchAdapter.class };

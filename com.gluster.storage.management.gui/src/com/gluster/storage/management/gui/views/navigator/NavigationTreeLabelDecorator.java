@@ -49,6 +49,7 @@ public class NavigationTreeLabelDecorator implements ILightweightLabelDecorator 
 	public void removeListener(ILabelProviderListener listener) {
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void decorate(Object element, IDecoration decoration) {
 		if (element instanceof Volume) {

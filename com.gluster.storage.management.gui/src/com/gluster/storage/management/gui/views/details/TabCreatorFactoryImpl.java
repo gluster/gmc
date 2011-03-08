@@ -38,6 +38,7 @@ public class TabCreatorFactoryImpl implements TabCreatorFactory {
 	 * Again, "class name" includes "entity type" in case of {@link EntityGroup} <br>
 	 * 4) Add the newly created tab creator to the cache and return it
 	 */
+	@SuppressWarnings("rawtypes")
 	@Override
 	public TabCreator getTabCreator(Entity entity) {
 		Class entityClass = entity.getClass();

@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ITableLabelProvider;
-import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
@@ -30,7 +29,6 @@ import org.eclipse.ui.IWorkbenchSite;
 
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.gui.DiskTableLabelProvider;
-import com.gluster.storage.management.gui.utils.DiskViewerEditingSupport;
 
 public class DisksPage extends AbstractDisksPage {
 

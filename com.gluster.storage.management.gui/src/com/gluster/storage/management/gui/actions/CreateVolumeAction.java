@@ -42,6 +42,7 @@ public class CreateVolumeAction extends AbstractActionDelegate {
 		window = null;
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		super.selectionChanged(action, selection);

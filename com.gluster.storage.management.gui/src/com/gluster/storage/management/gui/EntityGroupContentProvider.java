@@ -34,6 +34,7 @@ public class EntityGroupContentProvider<T> implements
 
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public Object[] getElements(Object inputElement) {
 		if (inputElement instanceof EntityGroup) {

@@ -20,8 +20,6 @@ package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.Volume;
@@ -37,6 +35,7 @@ public class AddServerAction extends AbstractActionDelegate {
 		System.out.println("Disposing [" + this.getClass().getSimpleName() + "]");
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		super.selectionChanged(action, selection);

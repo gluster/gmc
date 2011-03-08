@@ -65,6 +65,7 @@ import com.gluster.storage.management.gui.IImageKeys;
 
 public class GUIHelper {
 	private static final GUIHelper instance = new GUIHelper();
+	private static final ImageUtil imageUtil = new ImageUtil();
 
 	private GUIHelper() {
 
@@ -134,7 +135,7 @@ public class GUIHelper {
 	public Composite createTab(TabFolder tabFolder, String title, String imageKey) {
 		TabItem item = new TabItem(tabFolder, SWT.NONE);
 		item.setText(title);
-		item.setImage(AbstractUIPlugin.imageDescriptorFromPlugin(Application.PLUGIN_ID, imageKey).createImage());
+		item.setImage(getImage(imageKey));
 
 		Composite composite = new Composite(tabFolder, SWT.NONE);
 		composite.setLayout(new FillLayout());
@@ -145,11 +146,11 @@ public class GUIHelper {
 	}
 
 	public ImageDescriptor getImageDescriptor(String imagePath) {
-		return AbstractUIPlugin.imageDescriptorFromPlugin(Application.PLUGIN_ID, imagePath);
+		return imageUtil.getImageDescriptor(imagePath);
 	}
 
 	public Image getImage(String imagePath) {
-		return getImageDescriptor(imagePath).createImage();
+		return imageUtil.getImage(imagePath);
 	}
 
 	public Action createPullDownMenu(String menuName, String iconPath, final MenuManager menuManager) {
