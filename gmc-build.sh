@@ -61,7 +61,7 @@ configure_workspace()
 	echo "Importing target platform..."
 	../buckminster importtarget --active gmc-src/com.gluster.storage.management.releng/gluster-management-console.target
 	echo "Importing component query for glustermc..."
-	../buckminster import gmc-src/com.gluster.storage.management.releng/glustermc.cquery
+	../buckminster import gmc-src/com.gluster.storage.management.releng/com.gluster.storage.management.gui.feature.webstart.cquery
 	cd -
 }
 
