@@ -18,7 +18,7 @@
  *******************************************************************************/
 package com.gluster.storage.management.core.model;
 
-public abstract class AbstractServerResponse implements ServerResponse {
+public abstract class AbstractServerResponse implements Response {
 	private Status status;
 
 	@Override

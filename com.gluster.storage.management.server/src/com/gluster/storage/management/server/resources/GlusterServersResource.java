@@ -59,10 +59,7 @@ public class GlusterServersResource {
 	@GET
 	@Produces(MediaType.TEXT_XML)
 	public ServerListResponse<Server> getServers() {
-		ServerListResponse<Server> response = new ServerListResponse<Server>();
-		response.setServers(getServerDetails());
-		response.setStatus(Status.STATUS_SUCCESS);
-		return response;
+		return new ServerListResponse<Server>(Status.STATUS_SUCCESS, getServerDetails());
 	}
 
 	@GET

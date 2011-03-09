@@ -20,8 +20,8 @@ package com.gluster.storage.management.client;
 
 import java.util.List;
 
+import com.gluster.storage.management.core.model.GenericResponse;
 import com.gluster.storage.management.core.model.Server;
-import com.gluster.storage.management.core.model.ServerDetailsResponse;
 import com.gluster.storage.management.core.model.ServerListResponse;
 
 public class DiscoveredServersClient extends AbstractClient {
@@ -39,13 +39,13 @@ public class DiscoveredServersClient extends AbstractClient {
 	public List<Server> getDiscoveredServers() {
 		@SuppressWarnings("unchecked")
 		ServerListResponse<Server> response = (ServerListResponse<Server>) fetchResource(ServerListResponse.class);
-		return response.getData();
+		return response.getServers();
 	}
 
 	public Server getServer(String serverName) {
 		@SuppressWarnings("unchecked")
-		ServerDetailsResponse<Server> response = (ServerDetailsResponse<Server>) fetchSubResource(serverName,
-				ServerDetailsResponse.class);
+		GenericResponse<Server> response = (GenericResponse<Server>) fetchSubResource(serverName,
+				GenericResponse.class);
 		return response.getData();
 	}
 

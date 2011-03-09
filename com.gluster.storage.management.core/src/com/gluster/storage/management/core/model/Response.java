@@ -23,7 +23,7 @@ package com.gluster.storage.management.core.model;
  * Server will result in a response that must be an instance of a class
  * implementing this interface.
  */
-public interface ServerResponse {
+public interface Response<T> {
 	/**
 	 * @return Status of request processing
 	 */
@@ -33,5 +33,5 @@ public interface ServerResponse {
 	 * @return Data associated with the response. e.g. A "discover servers"
 	 *         request will return the list of discovered servers.
 	 */
-	public Object getData();
+	public T getData();
 }

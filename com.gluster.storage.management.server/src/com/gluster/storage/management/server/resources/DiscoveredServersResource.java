@@ -59,10 +59,7 @@ public class DiscoveredServersResource {
 	@GET
 	@Produces(MediaType.TEXT_XML)
 	public ServerListResponse<Server> getDiscoveredServers() {
-		ServerListResponse<Server> response = new ServerListResponse<Server>();
-		response.setServers(getDiscoveredServerDetails());
-		response.setStatus(Status.STATUS_SUCCESS);
-		return response;
+		return new ServerListResponse<Server>(Status.STATUS_SUCCESS, getDiscoveredServerDetails());
 	}
 
 	private List<Server> getDiscoveredServerDetails() {

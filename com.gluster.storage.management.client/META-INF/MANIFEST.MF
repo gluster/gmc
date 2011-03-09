@@ -5,7 +5,8 @@ Bundle-SymbolicName: com.gluster.storage.management.client
 Bundle-Version: 1.0.0
 Bundle-Vendor: GLUSTER
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Require-Bundle: com.gluster.storage.management.core;bundle-version="1.0.0"
+Require-Bundle: com.gluster.storage.management.core;bundle-version="1.0.0",
+ org.eclipse.equinox.common;bundle-version="3.6.0"
 Export-Package: com.gluster.storage.management.client
 Bundle-ClassPath: .,
  lib/jersey-1.5/jersey-client-1.5.jar,

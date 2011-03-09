@@ -25,21 +25,15 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name="response")
-public class ServerListResponse<T extends Server> extends AbstractServerResponse {
-	private List<T> servers;
+public class ServerListResponse<T extends Server> extends GenericResponse {
+	public ServerListResponse(Status status, List<T> servers) {
+		super(status, servers);
+	}
 	
+	@SuppressWarnings("unchecked")
 	@XmlElementWrapper(name="servers")
 	@XmlElement(name="server", type=Server.class)
 	public List<T> getServers() {
-		return servers;
-	}
-	
-	@Override
-	public List<T> getData() {
-		return getServers();
-	}
-
-	public void setServers(List<T> data) {
-		this.servers = data;
+		return (List<T>)getData();
 	}
 }
