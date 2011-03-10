@@ -1,34 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cspecExtension xmlns:com="http://www.eclipse.org/buckminster/Common-1.0"
-                    xmlns="http://www.eclipse.org/buckminster/CSpec-1.0">
-    <actions>
+	xmlns="http://www.eclipse.org/buckminster/CSpec-1.0">
+	<actions>
 		<public name="create.eclipse.jnlp.product" actor="ant">
 			<actorProperties>
-				<property key="buildFileId" value="buckminster.pdetasks"/>
-				<property key="targets" value="create.eclipse.jnlp.product"/>
+				<property key="buildFileId" value="buckminster.pdetasks" />
+				<property key="targets" value="create.eclipse.jnlp.product" />
 			</actorProperties>
 			<properties>
-				<!--property key="buckminster.eclipse.productFile" value="buckminster.jnlp.p2.product"/-->
-				<property key="buckminster.eclipse.deleteuilauncher" value="false"/>
+				<!--property key="buckminster.eclipse.productFile" value="buckminster.jnlp.p2.product"/ -->
+				<property key="buckminster.eclipse.deleteuilauncher" value="false" />
 			</properties>
 			<prerequisites alias="action.requirements">
-				<attribute name="feature.exports"/>
+				<attribute name="feature.exports" />
 			</prerequisites>
-			<products alias="action.output" base="${buckminster.output}" upToDatePolicy="NOT_EMPTY">
-				<path path="glustermc/"/>
+			<products alias="action.output" base="${buckminster.output}"
+				upToDatePolicy="NOT_EMPTY">
+				<path path="glustermc/" />
 			</products>
 		</public>
 		<public name="unsign.jars" actor="ant">
 			<actorProperties>
-                <property key="buildFile" value="build/glustermc.ant" />
-				<property key="targets" value="unsign"/>
+				<property key="buildFile" value="build/glustermc.ant" />
+				<property key="targets" value="unsign" />
 			</actorProperties>
 		</public>
 		<public name="sign.jars" actor="ant">
 			<actorProperties>
-                <property key="buildFile" value="build/glustermc.ant" />
-				<property key="targets" value="sign"/>
+				<property key="buildFile" value="build/glustermc.ant" />
+				<property key="targets" value="sign" />
 			</actorProperties>
 		</public>
-    </actions>
+		<public name="copy.root.files" actor="ant">
+			<actorProperties>
+				<property key="buildFile" value="build/glustermc.ant" />
+				<property key="targets" value="copy.root.files" />
+			</actorProperties>
+		</public>
+	</actions>
 </cspecExtension>

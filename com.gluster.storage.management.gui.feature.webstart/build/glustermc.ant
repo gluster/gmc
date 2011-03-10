@@ -1,14 +1,14 @@
 <project>
 	<property name="export.dir" value="${buckminster.output}/glustermc/" />
 	<target name='unsign'>
-			<buckminster.signatureCleaner>
-				<fileset dir='${export.dir}/plugins'>
-					<include name='*.jar' />
-				</fileset>
-				<fileset dir='${export.dir}/features'>
-					<include name='*.jar' />
-				</fileset>
-			</buckminster.signatureCleaner>
+		<buckminster.signatureCleaner>
+			<fileset dir='${export.dir}/plugins'>
+				<include name='*.jar' />
+			</fileset>
+			<fileset dir='${export.dir}/features'>
+				<include name='*.jar' />
+			</fileset>
+		</buckminster.signatureCleaner>
 	</target>
 
 	<target name="sign">
@@ -20,5 +20,11 @@
 				<include name="*.jar" />
 			</fileset>
 		</signjar>
+	</target>
+
+	<target name='copy.root.files'>
+		<copy todir="${export.dir}">
+			<fileset dir="${basedir}/rootfiles" />
+		</copy>
 	</target>
 </project>
