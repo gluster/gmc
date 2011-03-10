@@ -48,6 +48,7 @@ prepare-dist-dir
 get-server-war
 get-console-dists
 
+/bin/rm -rf ${TAR_NAME} ${TAR_NAME}.gz
 tar cvf ${TAR_NAME} ${WAR_NAME}
 gzip ${TAR_NAME}
 
