@@ -19,6 +19,7 @@
 		<delete dir="${WEB-INF}/classes" />
 		<mkdir dir="${WEB-INF}/classes" />
 		<mkdir dir="${WEB-INF}/classes/spring" />
+		<mkdir dir="${WEB-INF}/classes/data" />
 	</target>
 
 	<target name="compile" depends="init">
@@ -31,6 +32,11 @@
 		<copy todir="${WEB-INF}/classes/spring">
 			<fileset dir="${basedir}/src/spring" casesensitive="yes">
 				<include name="**/*.xml" />
+			</fileset>
+		</copy>
+		<copy todir="${WEB-INF}/classes/data">
+			<fileset dir="${basedir}/src/data" casesensitive="yes">
+				<include name="**/*.sql" />
 			</fileset>
 		</copy>
 		<javac srcdir="${basedir}/src" destdir="${WEB-INF}/classes" classpathref="libs" />
