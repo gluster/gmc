@@ -30,7 +30,8 @@ import com.gluster.storage.management.core.constants.CoreConstants;
  *
  */
 public class GlusterUtil {
-   public static final String HOSTNAMETAG = "hostname:";                                                                                                                                                                              
+   public static final String HOSTNAMETAG = "hostname:";
+   private static final ProcessUtil processUtil = new ProcessUtil();
                                                                                                                                                                                                                                       
    private static final String parse(String line, String tagName) {                                                                                                                                                                    
        if (line.toLowerCase().contains(tagName)) {                                                                                                                                                                                    
@@ -44,7 +45,7 @@ public class GlusterUtil {
    }                                                                                                                                                                                                                                  
                                                                                                                                                                                                                                       
    public List<String> getGlusterServerNames() {                                                                                                                                                                                      
-       ProcessResult result = new ProcessUtil().executeCommand("gluster", "peer", "status");                                                                                                                                          
+       ProcessResult result = processUtil.executeCommand("gluster", "peer", "status");                                                                                                                                          
        if (!result.isSuccess())                                                                                                                                                                                                       
            return null;                                                                                                                                                                                                               
                                                                                                                                                                                                                                       
@@ -56,7 +57,11 @@ public class GlusterUtil {
            }                                                                                                                                                                                                                          
        }                                                                                                                                                                                                                              
        return glusterServerNames;                                                                                                                                                                                                     
-   }                                                                                                                                                                                                                                  
+   }
+   
+   public ProcessResult addServer( String serverName ) {
+       return processUtil.executeCommand("gluster", "peer", "probe", serverName );                                                                                                                                          
+   }
                                                                                                                                                                                                                                       
     public static void main(String args[]) {                                                                                                                                                                                          
         List<String> names = new GlusterUtil().getGlusterServerNames();                                                                                                                                                              

@@ -22,21 +22,21 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import com.gluster.storage.management.core.utils.ProcessResult;
 
-@XmlRootElement(name="status")
+@XmlRootElement(name = "status")
 public class Status {
 	public static final int STATUS_CODE_SUCCESS = 0;
 	public static final int STATUS_CODE_FAILURE = 1;
 	public static final Status STATUS_SUCCESS = new Status(STATUS_CODE_SUCCESS, "Success");
 	public static final Status STATUS_FAILURE = new Status(STATUS_CODE_FAILURE, "Failure");
-		
-	//public static final Status 
-	
+
+	// public static final Status
+
 	private Integer code;
 	private String message;
 
 	public Status() {
 	}
-	
+
 	public boolean isSuccess() {
 		return code == STATUS_CODE_SUCCESS;
 	}
@@ -50,7 +50,7 @@ public class Status {
 		this.code = result.getExitValue();
 	}
 
-	@XmlElement(name="code", type=Integer.class)
+	@XmlElement(name = "code", type = Integer.class)
 	public Integer getCode() {
 		return code;
 	}
@@ -66,5 +66,10 @@ public class Status {
 
 	public void setMessage(String message) {
 		this.message = message;
+	}
+
+	@Override
+	public String toString() {
+		return (isSuccess() ? "Success" : "Failure") + ": " + getMessage();
 	}
 }

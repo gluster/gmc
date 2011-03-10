@@ -23,9 +23,11 @@ import java.util.List;
 import com.gluster.storage.management.core.model.GenericResponse;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.ServerListResponse;
+import com.gluster.storage.management.core.model.Status;
+import com.sun.jersey.api.representation.Form;
 
 public class GlusterServersClient extends AbstractClient {
-	private static final String RESOURCE_NAME = "cluster/servers";
+	private static final String RESOURCE_NAME = "/cluster/servers";
 
 	public GlusterServersClient(String serverName, String user, String password) {
 		super(serverName, user, password);
@@ -44,8 +46,7 @@ public class GlusterServersClient extends AbstractClient {
 
 	public Server getServer(String serverName) {
 		@SuppressWarnings("unchecked")
-		GenericResponse<Server> response = (GenericResponse<Server>) fetchSubResource(serverName,
-				GenericResponse.class);
+		GenericResponse<Server> response = (GenericResponse<Server>) fetchSubResource(serverName, GenericResponse.class);
 		return response.getData();
 	}
 
@@ -53,9 +54,23 @@ public class GlusterServersClient extends AbstractClient {
 		return ((String) fetchSubResource(serverName, String.class));
 	}
 
+	@SuppressWarnings("unchecked")
+	public Status addServer(Server discoveredServer) {
+		Form form = new Form();
+		form.add("serverName", discoveredServer.getName());
+		GenericResponse<String> response = (GenericResponse<String>) postRequest(GenericResponse.class, form);
+		return response.getStatus();
+	}
+
 	public static void main(String[] args) {
 		GlusterServersClient ServerResource = new GlusterServersClient("localhost", "gluster", "gluster");
 		List<Server> glusterServers = ServerResource.getServers();
 		System.out.println(glusterServers.size());
+
+		// Add server
+		Server srv = new Server();
+		srv.setName("my-server");
+		Status response = ServerResource.addServer(srv);
+		System.out.println(response.toString());
 	}
 }

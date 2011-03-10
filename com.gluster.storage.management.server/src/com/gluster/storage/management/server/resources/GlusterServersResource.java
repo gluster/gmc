@@ -21,7 +21,9 @@ package com.gluster.storage.management.server.resources;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -29,6 +31,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.springframework.stereotype.Component;
 
+import com.gluster.storage.management.core.model.GenericResponse;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.ServerListResponse;
 import com.gluster.storage.management.core.model.Status;
@@ -85,8 +88,23 @@ public class GlusterServersResource {
 		return result.getOutput();
 	}
 
+	@POST
+	@Produces(MediaType.TEXT_XML)
+	public GenericResponse<String> addServer(@FormParam("serverName") String serverName) {
+		ProcessResult result = glusterUtil.addServer(serverName);
+
+		if (!result.isSuccess()) {
+			return new GenericResponse<String>(Status.STATUS_FAILURE, "Add server failed: [" + result.getOutput() + "]");
+		}
+		return new GenericResponse<String>(Status.STATUS_SUCCESS, "Server added successfully!");
+	}
+
 	public static void main(String[] args) {
 		GlusterServersResource glusterServersResource = new GlusterServersResource();
 		System.out.println(glusterServersResource.getServerDetails());
+
+		// To add a server
+		GenericResponse<String> response = glusterServersResource.addServer("my-server");
+		System.out.println(response.getData());
 	}
 }

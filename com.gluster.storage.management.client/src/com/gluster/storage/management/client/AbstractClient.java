@@ -5,7 +5,6 @@ import java.net.URI;
 import javax.ws.rs.core.MediaType;
 
 import com.gluster.storage.management.client.utils.ClientUtil;
-import com.gluster.storage.management.core.model.AuthStatus;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
@@ -66,10 +65,15 @@ public abstract class AbstractClient {
 		return fetchResource(resource.path(subResourceName), responseClass);
 	}
 
+	protected Object postRequest(Class responseClass, Form form) {
+		return resource.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).header("Authorization", authHeader)
+				.accept(MediaType.TEXT_XML).post(responseClass, form);
+	}
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected Object postRequest(String subResourceName, Class responseClass, Form form) {
-		return resource.path(subResourceName).header("Authorization", authHeader).accept(MediaType.TEXT_XML)
-				.post(responseClass, form);
+		return resource.path(subResourceName).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
+				.header("Authorization", authHeader).accept(MediaType.TEXT_XML).post(responseClass, form);
 	}
 
 	public abstract String getResourceName();

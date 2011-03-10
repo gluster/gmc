@@ -21,44 +21,43 @@ package com.gluster.storage.management.core.utils;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * Represents the result of a command execution in a separate process.
- * Consists of the "exit status" of the process and output from the process.
- * The output includes stdout as well as stderr streams
+ * Represents the result of a command execution in a separate process. Consists of the "exit status" of the process and
+ * output from the process. The output includes stdout as well as stderr streams
  */
 @XmlRootElement
 public class ProcessResult {
 
-    public static final int SUCCESS = 0;
-    private int exitValue;
-    private String output;
+	public static final int SUCCESS = 0;
+	private int exitValue;
+	private String output;
 
-    // Required for JAXB de-serialization
-    public ProcessResult() {
+	// Required for JAXB de-serialization
+	public ProcessResult() {
 
-    }
-    
-    public ProcessResult(int exitValue, String output) {
-        this.exitValue = exitValue;
-        this.output = output;
-    }
+	}
 
-    public int getExitValue() {
-        return exitValue;
-    }
+	public ProcessResult(int exitValue, String output) {
+		this.exitValue = exitValue;
+		this.output = output;
+	}
 
-    public void setExitValue(int exitValue) {
-        this.exitValue = exitValue;
-    }
+	public int getExitValue() {
+		return exitValue;
+	}
 
-    public String getOutput() {
-        return output;
-    }
+	public void setExitValue(int exitValue) {
+		this.exitValue = exitValue;
+	}
 
-    public void setOutput(String output) {
-        this.output = output;
-    }
+	public String getOutput() {
+		return output;
+	}
 
-    public boolean isSuccess() {
-        return exitValue == SUCCESS;
-    }
+	public void setOutput(String output) {
+		this.output = output;
+	}
+
+	public boolean isSuccess() {
+		return exitValue == SUCCESS;
+	}
 }

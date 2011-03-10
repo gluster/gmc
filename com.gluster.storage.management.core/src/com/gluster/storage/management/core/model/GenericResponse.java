@@ -22,10 +22,13 @@ package com.gluster.storage.management.core.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name="response")
+@XmlRootElement(name = "response")
 public class GenericResponse<T> implements Response<T> {
 	private T data;
 	private Status status;
+
+	public GenericResponse() {
+	}
 
 	@Override
 	public Status getStatus() {
@@ -40,8 +43,10 @@ public class GenericResponse<T> implements Response<T> {
 		setStatus(status);
 		this.data = data;
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.gluster.storage.management.core.model.ServerResponse#getData()
 	 */
 	@Override
