@@ -15,7 +15,7 @@
 		<jar href="plugins/org.eclipse.equinox.launcher_1.1.0.v20100507.jar" main="true"/>
 		<extension
 			name="Gluster Management Console"
-			href="features/com.gluster.storage.management.gui.feature_1.0.0.jnlp"/>
+			href="com.gluster.storage.management.gui.feature_1.0.0.jnlp"/>
 		<property
 			name="osgi.instance.area"
 			value="@user.home/Application Data/glustermc"/>
