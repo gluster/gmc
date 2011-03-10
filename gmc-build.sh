@@ -72,6 +72,7 @@ build()
 
 	echo "Exporting the product..."
 	./buckminster perform --properties ${PROPERTIES_FILE} ${MAIN_FEATURE}#create.eclipse.jnlp.product
+	./buckminster perform --properties ${PROPERTIES_FILE} ${MAIN_FEATURE}#copy.root.files
 
 	# buckminster signs the jars using eclipse certificate - hence unsign and sign them again
 	echo "Signing product jars..."
