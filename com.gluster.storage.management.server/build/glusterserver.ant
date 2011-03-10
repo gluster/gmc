@@ -18,16 +18,22 @@
 	<target name="init">
 		<delete dir="${WEB-INF}/classes" />
 		<mkdir dir="${WEB-INF}/classes" />
+		<mkdir dir="${WEB-INF}/classes/spring" />
 	</target>
 
 	<target name="compile" depends="init">
+		<!-- flatten=true means ignore directory structure and copy files directly to destination -->
 		<copy todir="${WEB-INF}/lib" flatten="true">
 			<fileset dir="${buckminster.output}/.." casesensitive="yes">
 				<include name="**/*.jar" />
 			</fileset>
 		</copy>
-		<javac srcdir="${basedir}/src" destdir="${WEB-INF}/classes" classpathref="libs">
-		</javac>
+		<copy todir="${WEB-INF}/classes/spring">
+			<fileset dir="${basedir}/src/spring" casesensitive="yes">
+				<include name="**/*.xml" />
+			</fileset>
+		</copy>
+		<javac srcdir="${basedir}/src" destdir="${WEB-INF}/classes" classpathref="libs" />
 	</target>
 
 	<target name="archive" depends="compile">
