@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jnlp spec="1.0+" codebase="http://192.168.1.123:8080/glustermc/linux.gtk.x86_64" href="gluster-management-console.jnlp">
+<jnlp spec="1.0+" codebase="$$codebase" href="gluster-management-console.jnlp">
 	<information>
 		<title>Gluster Management Console</title>
 		<vendor>Gluster Inc.</vendor>
-		<homepage href="http://192.168.1.123:8080/glustermc/linux.gtk.x86_64" />
+		<homepage href="$$codebase" />
 		<description>Gluster Management Console</description>
 		<icon kind="splash" href="splash.bmp"/>
 	</information>
