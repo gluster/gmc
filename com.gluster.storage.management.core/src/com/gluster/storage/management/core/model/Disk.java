@@ -19,6 +19,7 @@
 package com.gluster.storage.management.core.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import com.gluster.storage.management.core.utils.StringUtil;
 
@@ -83,6 +84,7 @@ public class Disk extends Entity {
 		return server;
 	}
 
+	@XmlTransient
 	public void setServer(Server server) {
 		this.server = server;
 	}

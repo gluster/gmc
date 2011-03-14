@@ -40,7 +40,7 @@ import com.sun.jersey.spi.resource.Singleton;
 @Component
 @Singleton
 @Path("/discoveredservers")
-public class DiscoveredServersResource {
+public class DiscoveredServersResource extends AbstractServersResource {
 	private List<String> discoveredServerNames = new ArrayList<String>();
 
 	public List<String> getDiscoveredServerNames() {
@@ -50,7 +50,6 @@ public class DiscoveredServersResource {
 	@GET
 	@Produces(MediaType.TEXT_XML)
 	public Response getDiscoveredServers(@QueryParam("details") Boolean getDetails) {
-		System.out.println(getDetails);
 		if(getDetails != null && getDetails == true) {
 			return new ServerListResponse<Server>(Status.STATUS_SUCCESS, getDiscoveredServerDetails());
 		}
@@ -61,9 +60,7 @@ public class DiscoveredServersResource {
 		List<Server> discoveredServers = new ArrayList<Server>();
 		List<String> serverNames = getDiscoveredServerNames();
 		for (String serverName : serverNames) {
-			// TODO. Dummy data for now.
-			Server server = new Server(serverName, null, 4, 58.3d, 4d, 2.87d);
-			discoveredServers.add(server);
+			discoveredServers.add(getDiscoveredServer(serverName));
 		}
 		return discoveredServers;
 	}
@@ -78,7 +75,8 @@ public class DiscoveredServersResource {
 	@GET
 	@Produces(MediaType.TEXT_XML)
 	public Server getDiscoveredServer(@PathParam("serverName") String serverName) {
-		Server server = new Server(serverName, null, 4, 58.3d, 4d, 2.87d);
+		Server server = new Server(serverName);
+		fetchServerDetails(server);
 		return server;
 	}
 

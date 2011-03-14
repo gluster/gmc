@@ -32,60 +32,57 @@ import javax.ws.rs.core.MediaType;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.model.GenericResponse;
+import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.ServerListResponse;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.utils.GlusterUtil;
 import com.gluster.storage.management.core.utils.ProcessResult;
-import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Component
 @Singleton
 @Path("/cluster/servers")
-public class GlusterServersResource {
+public class GlusterServersResource extends AbstractServersResource {
 	private GlusterUtil glusterUtil = new GlusterUtil();
 	public static final String HOSTNAMETAG = "hostname:";
 
-	private List<Server> getServerDetails() {
-		List<Server> glusterServers = new ArrayList<Server>();
-		List<String> serverNames = glusterUtil.getGlusterServerNames();
-		for (String serverName : serverNames) {
-			// TODO: With the new design of dedicated management server, this logic has to change.
-			// GlusterServersClient client = new GlusterServersClient(serverName);
-			// Server server = client.getServer("me");
-			// glusterServers.add(server);
+	private List<GlusterServer> getServerDetails() {
+		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();
+		for (String serverName : glusterUtil.getGlusterServerNames()) {
+			glusterServers.add(getGlusterServer(serverName));
 		}
 		return glusterServers;
 	}
 
 	@GET
 	@Produces(MediaType.TEXT_XML)
-	public ServerListResponse<Server> getServers() {
-		return new ServerListResponse<Server>(Status.STATUS_SUCCESS, getServerDetails());
+	public ServerListResponse<GlusterServer> getGlusterServers() {
+		return new ServerListResponse<GlusterServer>(Status.STATUS_SUCCESS, getServerDetails());
 	}
 
 	@GET
 	@Path("{serverName}")
 	@Produces(MediaType.TEXT_XML)
-	public String getGlusterServer(@PathParam("serverName") String serverName) {
-		// TODO: With new design of dedicated management server, this concept won't work. Need to change.
-		if (serverName.equals("me")) {
-			return getThisServer();
-		}
-
-		// TODO: With the new design of dedicated management server, this logic has to change.
-		// Fetch details of given server by sending a REST request to that server
-		// return new GlusterServersClient(serverName).getServerXML("me");
-		return null;
+	public GlusterServer getGlusterServer(@PathParam("serverName") String serverName) {
+		GlusterServer server = new GlusterServer(serverName);
+		fetchServerDetails(server);
+		return server;
 	}
 
-	public String getThisServer() {
-		ProcessResult result = new ProcessUtil().executeCommand("get-server-details.py");
-		if (!result.isSuccess()) {
-			// TODO:Generate error message and return
-		}
-		return result.getOutput();
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.gluster.storage.management.server.resources.AbstractServersResource#fetchServerDetails(com.gluster.storage
+	 * .management.core.model.Server)
+	 */
+	@Override
+	protected void fetchServerDetails(Server server) {
+		// fetch standard server details like cpu, disk, memory details
+		super.fetchServerDetails(server);
+
+		// TODO: Fetch gluster server details like status
 	}
 
 	@POST
@@ -94,9 +91,10 @@ public class GlusterServersResource {
 		ProcessResult result = glusterUtil.addServer(serverName);
 
 		if (!result.isSuccess()) {
-			return new GenericResponse<String>(Status.STATUS_FAILURE, "Add server failed: [" + result.getOutput() + "]");
+			return new GenericResponse<String>(Status.STATUS_FAILURE, "Add server failed: ]" + result.getExitValue()
+					+ "][" + result.getOutput() + "]");
 		}
-		return new GenericResponse<String>(Status.STATUS_SUCCESS, "Server added successfully!");
+		return new GenericResponse<String>(Status.STATUS_SUCCESS, "Server [" + serverName + "] added successfully!");
 	}
 
 	public static void main(String[] args) {

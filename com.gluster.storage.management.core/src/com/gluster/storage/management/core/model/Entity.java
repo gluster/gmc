@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import org.eclipse.core.runtime.PlatformObject;
 
@@ -47,6 +48,7 @@ public class Entity extends PlatformObject implements Filterable {
 		this.name = name;
 	}
 
+	@XmlTransient
 	public Entity getParent() {
 		return parent;
 	}

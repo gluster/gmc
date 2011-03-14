@@ -61,7 +61,6 @@ public class ServerDiscoveryTask {
 	private String environment;
 
 	public void discoverServers() {
-		System.out.println("Starting auto-discovery in [" + environment + "] environment");
 		List<String> serverNameList = new ArrayList<String>();
 		
 		ProcessResult result = serverUtil.executeGlusterScript(true, environment + SCRIPT_NAME_SFX, new ArrayList<String>());

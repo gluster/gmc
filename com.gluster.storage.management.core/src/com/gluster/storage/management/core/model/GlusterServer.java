@@ -19,6 +19,7 @@
 package com.gluster.storage.management.core.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import com.gluster.storage.management.core.utils.StringUtil;
 
@@ -33,6 +34,10 @@ public class GlusterServer extends Server {
 	private NetworkInterface preferredNetworkInterface;
 	private Cluster cluster;
 
+	public GlusterServer(String name) {
+		super(name);
+	}
+	
 	public GlusterServer(String name, Entity parent, SERVER_STATUS status, int numOfCPUs, double cpuUsage, double totalMemory,
 			double memoryInUse) {
 		super(name, parent, numOfCPUs, cpuUsage, totalMemory, memoryInUse);
@@ -66,6 +71,7 @@ public class GlusterServer extends Server {
 		preferredNetworkInterface.setPreferred(true);
 	}
 
+	@XmlTransient
 	public Cluster getCluster() {
 		return cluster;
 	}

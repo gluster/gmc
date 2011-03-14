@@ -26,32 +26,39 @@ import java.util.List;
 import com.gluster.storage.management.core.constants.CoreConstants;
 
 /**
- * @author root
  *
  */
 public class GlusterUtil {
    public static final String HOSTNAMETAG = "hostname:";
    private static final ProcessUtil processUtil = new ProcessUtil();
-                                                                                                                                                                                                                                      
-   private static final String parse(String line, String tagName) {                                                                                                                                                                    
-       if (line.toLowerCase().contains(tagName)) {                                                                                                                                                                                    
-           for(String token : line.split(",")) {                                                                                                                                                                                      
-               if (token.toLowerCase().contains(tagName)) {                                                                                                                                                                           
-                   return token.split(tagName)[1];                                                                                                                                                                                    
-               }                                                                                                                                                                                                                      
-           }                                                                                                                                                                                                                          
-       }                                                                                                                                                                                                                              
-       return null;                                                                                                                                                                                                                   
-   }                                                                                                                                                                                                                                  
+
+   /**
+    * Extract value of given token from given line. It is assumed that the token, if present, will be of the following form:
+    * <code>token: value</code> 
+    * @param line Line to be analyzed
+    * @param tokenName Token whose value is to be extracted
+    * @return Value of the token, if present in the line
+    */
+   private final String extractToken(String line, String tokenName) {
+       if (line.toLowerCase().contains(tokenName)) {
+           for(String part : line.split(",")) {
+               if (part.toLowerCase().contains(tokenName)) {
+                   return part.split(tokenName)[1].trim();
+               }
+           }
+       }
+       return null;
+   }
                                                                                                                                                                                                                                       
    public List<String> getGlusterServerNames() {                                                                                                                                                                                      
        ProcessResult result = processUtil.executeCommand("gluster", "peer", "status");                                                                                                                                          
-       if (!result.isSuccess())                                                                                                                                                                                                       
-           return null;                                                                                                                                                                                                               
-                                                                                                                                                                                                                                      
+       if (!result.isSuccess()) {                                                                                                                                                                                                       
+           return null;
+       }
+                       
        List<String> glusterServerNames = new ArrayList<String>();                                                                                                                                                                     
        for (String line : result.getOutput().split(CoreConstants.NEWLINE)) {                                                                                                                                                                        
-           String hostName = parse(line, HOSTNAMETAG);                                                                                                                                                                                
+           String hostName = extractToken(line, HOSTNAMETAG);                                                                                                                                                                               
            if (hostName != null) {                                                                                                                                                                                                    
                glusterServerNames.add(hostName);                                                                                                                                                                                      
            }                                                                                                                                                                                                                          

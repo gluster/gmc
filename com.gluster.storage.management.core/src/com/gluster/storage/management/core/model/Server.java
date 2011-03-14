@@ -27,7 +27,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.gluster.storage.management.core.utils.StringUtil;
 
-@XmlRootElement(name="server")
+@XmlRootElement(name = "server")
 public class Server extends Entity {
 	private List<NetworkInterface> networkInterfaces = new ArrayList<NetworkInterface>();
 	private int numOfCPUs;
@@ -39,9 +39,13 @@ public class Server extends Entity {
 	private List<Disk> disks = new ArrayList<Disk>();
 
 	public Server() {
-		
+
 	}
-	
+
+	public Server(String name) {
+		super(name, null);
+	}
+
 	public Server(String name, Entity parent, int numOfCPUs, double cpuUsage, double totalMemory, double memoryInUse) {
 		super(name, parent);
 		setNumOfCPUs(numOfCPUs);
@@ -86,12 +90,21 @@ public class Server extends Entity {
 		return totalDiskSpace;
 	}
 
+	/**
+	 * Total disk space is automatically calculated, and hence this method should never be called. It is required only
+	 * to make sure that the element "totalDiskSpace" gets added to the XML tag when jersey converts the server object
+	 * to XML for sending to client.
+	 */
+	public void setTotalDiskSpace(double totalDiskSpace) {
+		this.totalDiskSpace = totalDiskSpace;
+	}
+
 	public double getDiskSpaceInUse() {
 		return diskSpaceInUse;
 	}
 
-	@XmlElementWrapper(name="networkInterfaces")
-	@XmlElement(name="networkInterface", type=NetworkInterface.class)
+	@XmlElementWrapper(name = "networkInterfaces")
+	@XmlElement(name = "networkInterface", type = NetworkInterface.class)
 	public List<NetworkInterface> getNetworkInterfaces() {
 		return networkInterfaces;
 	}
@@ -100,10 +113,14 @@ public class Server extends Entity {
 		this.networkInterfaces = networkInterfaces;
 	}
 
-	@XmlElementWrapper(name="disks")
-	@XmlElement(name="disk", type=Disk.class)
+	@XmlElementWrapper(name = "disks")
+	@XmlElement(name = "disk", type = Disk.class)
 	public List<Disk> getDisks() {
 		return disks;
+	}
+
+	public void addNetworkInterface(NetworkInterface networkInterface) {
+		networkInterfaces.add(networkInterface);
 	}
 
 	public void addDisk(Disk disk) {
@@ -114,7 +131,7 @@ public class Server extends Entity {
 	}
 
 	public void addDisks(List<Disk> disks) {
-		for(Disk disk : disks) {
+		for (Disk disk : disks) {
 			addDisk(disk);
 		}
 	}
@@ -131,7 +148,7 @@ public class Server extends Entity {
 		totalDiskSpace = 0;
 		diskSpaceInUse = 0;
 	}
-	
+
 	public void setDisks(List<Disk> disks) {
 		removeAllDisks();
 		addDisks(disks);
