@@ -18,22 +18,48 @@
  *******************************************************************************/
 package com.gluster.storage.management.core.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
-@XmlRootElement(name="response")
-public class ServerListResponse<T extends Server> extends GenericResponse {
-	public ServerListResponse(Status status, List<T> servers) {
-		super(status, servers);
+@XmlRootElement(name = "response")
+public class ServerListResponse<T extends Server> extends AbstractResponse {
+	private List<T> servers = new ArrayList<T>();
+
+	public ServerListResponse() {
 	}
-	
-	@SuppressWarnings("unchecked")
-	@XmlElementWrapper(name="servers")
-	@XmlElement(name="server", type=Server.class)
+
+	public ServerListResponse(Status status, List<T> servers) {
+		setStatus(status);
+		setServers(servers);
+	}
+
+	@XmlElementWrapper(name = "servers")
+	@XmlElement(name = "server", type = Server.class)
 	public List<T> getServers() {
-		return (List<T>)getData();
+		return servers;
+	}
+
+	/**
+	 * @param servers
+	 *            the servers to set
+	 */
+	public void setServers(List<T> servers) {
+		this.servers = servers;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.gluster.storage.management.core.model.Response#getData()
+	 */
+	@Override
+	@XmlTransient
+	public List<T> getData() {
+		return getServers();
 	}
 }

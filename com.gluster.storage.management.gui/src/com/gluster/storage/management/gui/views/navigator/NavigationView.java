@@ -30,9 +30,9 @@ import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.part.ViewPart;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.GlusterDataModel;
-import com.gluster.storage.management.core.model.GlusterDummyModel;
 
 public class NavigationView extends ViewPart {
 	public static final String ID = "com.gluster.storage.management.gui.views.navigator";
@@ -46,7 +46,7 @@ public class NavigationView extends ViewPart {
 
 	@Override
 	public void createPartControl(Composite parent) {
-		model = GlusterDummyModel.getInstance().getModel();
+		model = GlusterDataModelManager.getInstance().getModel();
 		
 		treeViewer = new TreeViewer(parent, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 		getSite().setSelectionProvider(treeViewer);

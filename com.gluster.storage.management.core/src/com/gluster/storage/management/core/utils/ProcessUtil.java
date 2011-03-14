@@ -55,9 +55,9 @@ public class ProcessUtil {
 
     /**
      * Executes given command in foreground/background
-     * @param command
      * @param runInForeground Boolean flag indicating whether the command should
      * be executed in foreground
+     * @param command
      * @return {@link ProcessResult} object
      */
     public ProcessResult executeCommand(boolean runInForeground, List<String> command) {

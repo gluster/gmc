@@ -16,16 +16,17 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.core.constants;
+package com.gluster.storage.management.core.model;
 
-import java.util.ArrayList;
-import java.util.List;
+public abstract class AbstractResponse implements Response {
+	private Status status;
 
-/**
- *
- */
-public class CoreConstants {
-    public static final String NEWLINE = System.getProperty("line.separator");
-    public static final String FILE_SEPARATOR = System.getProperty("file.separator");
-    public static final String ENCODING_UTF8 = "UTF-8";
+	@Override
+	public Status getStatus() {
+		return status;
+	}
+
+	public void setStatus(Status status) {
+		this.status = status;
+	}
 }

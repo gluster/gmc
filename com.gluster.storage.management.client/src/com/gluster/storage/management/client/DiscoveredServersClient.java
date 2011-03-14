@@ -20,9 +20,14 @@ package com.gluster.storage.management.client;
 
 import java.util.List;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 import com.gluster.storage.management.core.model.GenericResponse;
+import com.gluster.storage.management.core.model.Response;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.ServerListResponse;
+import com.gluster.storage.management.core.model.StringListResponse;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class DiscoveredServersClient extends AbstractClient {
 	private static final String RESOURCE_NAME = "discoveredservers";
@@ -35,11 +40,25 @@ public class DiscoveredServersClient extends AbstractClient {
 	public String getResourceName() {
 		return RESOURCE_NAME;
 	}
+	
+	private Object getDiscoveredServers(Boolean getDetails, Class responseClass) {
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+		queryParams.putSingle("details", getDetails.toString());
+		
+		// TODO: Used during development to check the response contents.
+		// to be removed later
+		String response = (String) fetchResource(queryParams, String.class);
+		System.out.println(response);
 
-	public List<Server> getDiscoveredServers() {
-		@SuppressWarnings("unchecked")
-		ServerListResponse<Server> response = (ServerListResponse<Server>) fetchResource(ServerListResponse.class);
-		return response.getServers();
+		return ((Response) fetchResource(queryParams, responseClass)).getData();
+	}
+
+	public List<String> getDiscoveredServerNames() {
+		return (List<String>)getDiscoveredServers(Boolean.FALSE, StringListResponse.class);
+	}
+	
+	public List<Server> getDiscoveredServerDetails() {
+		return (List<Server>)getDiscoveredServers(Boolean.TRUE, ServerListResponse.class);
 	}
 
 	public Server getServer(String serverName) {
@@ -49,14 +68,12 @@ public class DiscoveredServersClient extends AbstractClient {
 		return response.getData();
 	}
 
-	public String getServerXML(String serverName) {
-		return ((String) fetchSubResource(serverName, String.class));
-	}
-
 	public static void main(String[] args) {
-		DiscoveredServersClient ServerResource = new DiscoveredServersClient("localhost", "gluster", "gluster");
-		List<Server> discoveredServers = ServerResource.getDiscoveredServers();
-		System.out.println(discoveredServers.size());
+		DiscoveredServersClient serverResource = new DiscoveredServersClient("localhost", "gluster", "gluster");
+		List<String> discoveredServerNames = serverResource.getDiscoveredServerNames();
+		System.out.println(discoveredServerNames);
+		List<Server> discoveredServers = serverResource.getDiscoveredServerDetails();
+		System.out.println(discoveredServers);
 
 		// Server serverDetails = ServerResource.getServer("localhost");
 		// System.out.println(serverDetails.getName());

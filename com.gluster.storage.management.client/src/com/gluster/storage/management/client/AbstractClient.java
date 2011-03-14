@@ -3,6 +3,7 @@ package com.gluster.storage.management.client;
 import java.net.URI;
 
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 
 import com.gluster.storage.management.client.utils.ClientUtil;
 import com.sun.jersey.api.client.Client;
@@ -10,9 +11,11 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.core.util.Base64;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public abstract class AbstractClient {
 	private static final String HTTP_HEADER_AUTH = "Authorization";
+	protected static final MultivaluedMap<String, String> NO_PARAMS = new MultivaluedMapImpl();
 
 	protected WebResource resource;
 	private String authHeader;
@@ -28,13 +31,29 @@ public abstract class AbstractClient {
 	 * 
 	 * @param res
 	 *            Resource to be fetched
+	 * @param queryParams Query parameters to be sent for the GET request
 	 * @param responseClass
 	 *            Expected class of the response
 	 * @return Object of responseClass received as a result of the GET request
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private Object fetchResource(WebResource res, Class responseClass) {
-		return res.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML).get(responseClass);
+	private Object fetchResource(WebResource res, MultivaluedMap<String, String> queryParams, Class responseClass) {
+		return res.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML)
+				.get(responseClass);
+	}
+
+	/**
+	 * Fetches the default resource (the one returned by {@link AbstractClient#getResourceName()}) by dispatching a GET
+	 * request on the resource
+	 * 
+	 * @param queryParams Query parameters to be sent for the GET request
+	 * @param responseClass
+	 *            Expected class of the response
+	 * @return Object of responseClass received as a result of the GET request
+	 */
+	@SuppressWarnings("rawtypes")
+	protected Object fetchResource(MultivaluedMap<String, String> queryParams, Class responseClass) {
+		return fetchResource(resource, queryParams, responseClass);
 	}
 
 	/**
@@ -47,7 +66,7 @@ public abstract class AbstractClient {
 	 */
 	@SuppressWarnings("rawtypes")
 	protected Object fetchResource(Class responseClass) {
-		return fetchResource(resource, responseClass);
+		return fetchResource(resource, NO_PARAMS, responseClass);
 	}
 
 	/**
@@ -62,7 +81,7 @@ public abstract class AbstractClient {
 	 */
 	@SuppressWarnings("rawtypes")
 	protected Object fetchSubResource(String subResourceName, Class responseClass) {
-		return fetchResource(resource.path(subResourceName), responseClass);
+		return fetchResource(resource.path(subResourceName), NO_PARAMS, responseClass);
 	}
 
 	protected Object postRequest(Class responseClass, Form form) {

@@ -18,15 +18,28 @@
  *******************************************************************************/
 package com.gluster.storage.management.core.model;
 
-public abstract class AbstractServerResponse implements Response {
-	private Status status;
+import java.util.ArrayList;
+import java.util.List;
 
-	@Override
-	public Status getStatus() {
-		return status;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement(name = "response")
+public class StringListResponse extends AbstractResponse {
+	private List<String> data = new ArrayList<String>();
+	
+	public StringListResponse() {
 	}
-
-	public void setStatus(Status status) {
-		this.status = status;
+	
+	public StringListResponse(List<String> data) {
+		this.data = data;
+	}
+	
+	@Override
+	@XmlElementWrapper(name = "list")
+	@XmlElement(name = "value", type = String.class)
+	public List<String> getData() {
+		return data;
 	}
 }

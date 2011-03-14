@@ -50,7 +50,7 @@ def serverDiscoveryRequest(multiCastGroup, port):
         while True:
             response = socketReceive.recvfrom(200)
             if response and response[0].upper() != "SERVERDISCOVERY":
-                servers.append(response[0] + "\n")
+                servers.append(response[0])
             signal.signal(signal.SIGALRM, timeoutSignal)
             signal.alarm(3)
     except TimeoutException:
@@ -66,10 +66,11 @@ def main():
 
     servers = set(servers)
     try:
-        fp = open(Globals.DISCOVERED_SERVER_LIST_FILENAME, "w")
-        print(list(servers))
-        fp.writelines(list(servers))
-        fp.close()
+        #fp = open(Globals.DISCOVERED_SERVER_LIST_FILENAME, "w")
+        #fp.writelines(list(servers))
+        #fp.close()
+        for server in servers:
+            print server
     except IOError:
         Common.log(syslog.LOG_ERR, "Unable to open file %s" % Globals.DISCOVERED_SERVER_LIST_FILENAME)
         sys.exit(-1)

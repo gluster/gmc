@@ -23,12 +23,9 @@ package com.gluster.storage.management.core.model;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "response")
-public class GenericResponse<T> implements Response<T> {
+public class GenericResponse<T> extends AbstractResponse {
 	private T data;
 	private Status status;
-
-	public GenericResponse() {
-	}
 
 	@Override
 	public Status getStatus() {
@@ -44,13 +41,16 @@ public class GenericResponse<T> implements Response<T> {
 		this.data = data;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.gluster.storage.management.core.model.ServerResponse#getData()
-	 */
+	public GenericResponse() {
+	}
+
 	@Override
 	public T getData() {
 		return data;
 	}
+
+	public void setData(T data) {
+		this.data = data;
+	}
+
 }

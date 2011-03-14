@@ -21,6 +21,7 @@
 package com.gluster.storage.management.server.tasks;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.ServletContext;
@@ -28,7 +29,10 @@ import javax.servlet.ServletContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.server.resources.DiscoveredServersResource;
+import com.gluster.storage.management.server.utils.ServerUtil;
 import com.sun.jersey.spi.resource.Singleton;
 
 /**
@@ -42,7 +46,10 @@ public class ServerDiscoveryTask {
 	private static final String ENV_AWS = "aws";
 	private static final String ENV_VMWARE = "vmware";
 	private static final String ENV_PHYCAL = "physical";
+	private static final String SCRIPT_NAME_SFX = "-discover-servers.py";
 	
+	@Autowired
+	private ServerUtil serverUtil;
 	
 	@Autowired
 	private ServletContext servletContext;
@@ -54,18 +61,16 @@ public class ServerDiscoveryTask {
 	private String environment;
 
 	public void discoverServers() {
-		System.out.println("Starting discovery in [" + environment + "] environment");
-
-		/**
-		 * TODO: Flow should be as follows <br>
-		 * 1) Get the discovery policy specific for the environment <br>
-		 * 2) Execute discovery to get list of auto-discovered server <br>
-		 * 3) Set the discovered servers list in the discovered servers resource <br>
-		 */
-
-		List<String> discoveredServers = new ArrayList<String>();
-		discoveredServers.add("yserver1");
-
-		discoveredServersResource.setDiscoveredServerNames(discoveredServers);
+		System.out.println("Starting auto-discovery in [" + environment + "] environment");
+		List<String> serverNameList = new ArrayList<String>();
+		
+		ProcessResult result = serverUtil.executeGlusterScript(true, environment + SCRIPT_NAME_SFX, new ArrayList<String>());
+		if(result.isSuccess()) {
+			String serverNames = result.getOutput();
+			String[] parts = serverNames.split(CoreConstants.NEWLINE);
+			serverNameList = Arrays.asList(parts);
+		}
+		
+		discoveredServersResource.setDiscoveredServerNames(serverNameList);
 	}
 }
