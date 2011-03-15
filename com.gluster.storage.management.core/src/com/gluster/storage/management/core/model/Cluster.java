@@ -30,6 +30,9 @@ public class Cluster extends Entity {
 	List<Server> autoDiscoveredServers = new ArrayList<Server>();
 	List<Volume> volumes = new ArrayList<Volume>();
 
+	public Cluster() {
+	}
+	
 	public List<GlusterServer> getServers() {
 		return servers;
 	}

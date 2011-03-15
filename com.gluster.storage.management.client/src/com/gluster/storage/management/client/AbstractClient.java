@@ -31,7 +31,8 @@ public abstract class AbstractClient {
 	 * 
 	 * @param res
 	 *            Resource to be fetched
-	 * @param queryParams Query parameters to be sent for the GET request
+	 * @param queryParams
+	 *            Query parameters to be sent for the GET request
 	 * @param responseClass
 	 *            Expected class of the response
 	 * @return Object of responseClass received as a result of the GET request
@@ -46,7 +47,8 @@ public abstract class AbstractClient {
 	 * Fetches the default resource (the one returned by {@link AbstractClient#getResourceName()}) by dispatching a GET
 	 * request on the resource
 	 * 
-	 * @param queryParams Query parameters to be sent for the GET request
+	 * @param queryParams
+	 *            Query parameters to be sent for the GET request
 	 * @param responseClass
 	 *            Expected class of the response
 	 * @return Object of responseClass received as a result of the GET request
@@ -84,15 +86,41 @@ public abstract class AbstractClient {
 		return fetchResource(resource.path(subResourceName), NO_PARAMS, responseClass);
 	}
 
+	/**
+	 * Submits given Form to the resource and returns the object received as response
+	 * @param responseClass Class of the object expected as response
+	 * @param form Form to be submitted
+	 * @return Object of given class received as response
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Object postRequest(Class responseClass, Form form) {
 		return resource.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).header("Authorization", authHeader)
 				.accept(MediaType.TEXT_XML).post(responseClass, form);
 	}
 
+	/**
+	 * Submits given Form to the given sub-resource and returns the object received as response
+	 * @param subResourceName Name of the sub-resource to which the request is to be posted
+	 * @param responseClass Class of the object expected as response
+	 * @param form Form to be submitted
+	 * @return Object of given class received as response
+	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected Object postRequest(String subResourceName, Class responseClass, Form form) {
 		return resource.path(subResourceName).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
 				.header("Authorization", authHeader).accept(MediaType.TEXT_XML).post(responseClass, form);
+	}
+
+	/**
+	 * Submits given object to the resource and returns the object received as response
+	 * @param responseClass Class of the object expected as response
+	 * @param requestObject the Object to be submitted
+	 * @return Object of given class received as response
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected Object postObject(Class responseClass, Object requestObject) {
+		return resource.type(MediaType.APPLICATION_XML).header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML)
+				.post(responseClass, requestObject);
 	}
 
 	public abstract String getResourceName();

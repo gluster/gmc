@@ -27,10 +27,12 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.utils.StringUtil;
 
+@XmlRootElement
 public class Volume extends Entity {
 	public enum VOLUME_STATUS {
 		ONLINE, OFFLINE
@@ -65,6 +67,9 @@ public class Volume extends Entity {
 	private double totalDiskSpace = 0;
 	private List<Disk> disks = new ArrayList<Disk>();
 
+	public Volume() {
+	}
+	
 	// GlusterFS export is always enabled
 	private Set<NAS_PROTOCOL> nasProtocols = new LinkedHashSet<NAS_PROTOCOL>(
 			Arrays.asList(new NAS_PROTOCOL[] { NAS_PROTOCOL.GLUSTERFS }));
@@ -131,6 +136,7 @@ public class Volume extends Entity {
 		this.status = status;
 	}
 
+	@XmlTransient
 	public Cluster getCluster() {
 		return cluster;
 	}

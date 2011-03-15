@@ -34,6 +34,9 @@ public class GlusterServer extends Server {
 	private NetworkInterface preferredNetworkInterface;
 	private Cluster cluster;
 
+	public GlusterServer() {
+	}
+	
 	public GlusterServer(String name) {
 		super(name);
 	}
