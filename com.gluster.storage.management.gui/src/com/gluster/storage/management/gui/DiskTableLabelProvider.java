@@ -79,7 +79,7 @@ public class DiskTableLabelProvider extends TableLabelProviderAdapter {
 		}
 
 		Disk disk = (Disk) element;
-		return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? disk.getServer().getName()
+		return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? disk.getServerName()
 				: columnIndex == DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? disk.getName()
 				: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? getDiskSpace(disk)
 				: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal() ? getDiskSpaceInUse(disk)

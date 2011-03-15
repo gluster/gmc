@@ -29,7 +29,7 @@ public class VolumeLogTableLabelProvider extends TableLabelProviderAdapter {
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 	
 	private String getFormattedDiskName(Disk disk) {
-		return disk.getServer().getName() + ":" + disk.getName();
+		return disk.getServerName() + ":" + disk.getName();
 	}
 
 	@Override

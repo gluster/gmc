@@ -18,7 +18,6 @@
  *******************************************************************************/
 package com.gluster.storage.management.server.resources;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.FormParam;
@@ -33,8 +32,9 @@ import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.model.GenericResponse;
 import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
+import com.gluster.storage.management.core.model.GlusterServerListResponse;
 import com.gluster.storage.management.core.model.Server;
-import com.gluster.storage.management.core.model.ServerListResponse;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.utils.GlusterUtil;
 import com.gluster.storage.management.core.utils.ProcessResult;
@@ -48,17 +48,20 @@ public class GlusterServersResource extends AbstractServersResource {
 	public static final String HOSTNAMETAG = "hostname:";
 
 	private List<GlusterServer> getServerDetails() {
-		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();
-		for (String serverName : glusterUtil.getGlusterServerNames()) {
-			glusterServers.add(getGlusterServer(serverName));
+		List<GlusterServer> glusterServers = glusterUtil.getGlusterServers();
+		for (GlusterServer server : glusterServers) {
+			if(server.getStatus() == SERVER_STATUS.ONLINE) {
+				fetchServerDetails(server);
+				server.setPreferredNetworkInterface(server.getNetworkInterfaces().get(0));
+			}
 		}
 		return glusterServers;
 	}
 
 	@GET
 	@Produces(MediaType.TEXT_XML)
-	public ServerListResponse<GlusterServer> getGlusterServers() {
-		return new ServerListResponse<GlusterServer>(Status.STATUS_SUCCESS, getServerDetails());
+	public GlusterServerListResponse getGlusterServers() {
+		return new GlusterServerListResponse(Status.STATUS_SUCCESS, getServerDetails());
 	}
 
 	@GET
@@ -67,6 +70,8 @@ public class GlusterServersResource extends AbstractServersResource {
 	public GlusterServer getGlusterServer(@PathParam("serverName") String serverName) {
 		GlusterServer server = new GlusterServer(serverName);
 		fetchServerDetails(server);
+		server.setPreferredNetworkInterface(server.getNetworkInterfaces().get(0));
+		server.setStatus(SERVER_STATUS.ONLINE);
 		return server;
 	}
 

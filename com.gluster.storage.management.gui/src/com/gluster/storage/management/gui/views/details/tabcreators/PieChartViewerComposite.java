@@ -82,7 +82,7 @@ public final class PieChartViewerComposite extends Composite implements
 	 *            Values of each category in the pie chart Constructs a pie
 	 *            chart viewer composite for given categories and values
 	 */
-	PieChartViewerComposite(Composite parent, int style, String[] categories,
+	public PieChartViewerComposite(Composite parent, int style, String[] categories,
 			Double[] values) {
 		super(parent, style);
 		try {

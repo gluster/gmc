@@ -30,6 +30,7 @@ public class GlusterServer extends Server {
 	};
 	private static final String[] STATUS_STR = new String[] { "Online", "Offline" };
 
+	private String uuid;
 	private SERVER_STATUS status;
 	private NetworkInterface preferredNetworkInterface;
 	private Cluster cluster;
@@ -63,6 +64,14 @@ public class GlusterServer extends Server {
 	
 	public void setStatus(SERVER_STATUS status) {
 		this.status = status;
+	}
+
+	public String getUuid() {
+		return uuid;
+	}
+
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
 	}
 
 	public NetworkInterface getPreferredNetworkInterface() {

@@ -51,7 +51,7 @@ public class DiscoveredServersResource extends AbstractServersResource {
 	@Produces(MediaType.TEXT_XML)
 	public Response getDiscoveredServers(@QueryParam("details") Boolean getDetails) {
 		if(getDetails != null && getDetails == true) {
-			return new ServerListResponse<Server>(Status.STATUS_SUCCESS, getDiscoveredServerDetails());
+			return new ServerListResponse(Status.STATUS_SUCCESS, getDiscoveredServerDetails());
 		}
 		return new StringListResponse(getDiscoveredServerNames());
 	}

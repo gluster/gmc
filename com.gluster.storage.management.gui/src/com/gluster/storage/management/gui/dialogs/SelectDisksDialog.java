@@ -28,7 +28,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
-import com.gluster.storage.management.core.model.GlusterDummyModel;
+import com.gluster.storage.management.client.GlusterDataModelManager;
 
 public class SelectDisksDialog extends Dialog {
 
@@ -56,7 +56,7 @@ public class SelectDisksDialog extends Dialog {
 		container.setLayoutData(containerLayoutData);
 
 		getShell().setText("Create Volume - Select Disks");
-		CreateVolumeDisksPage disksPage = new CreateVolumeDisksPage(container, SWT.NONE, GlusterDummyModel
+		CreateVolumeDisksPage disksPage = new CreateVolumeDisksPage(container, SWT.NONE, GlusterDataModelManager
 				.getInstance().getReadyDisksOfAllServers());
 
 		return container;

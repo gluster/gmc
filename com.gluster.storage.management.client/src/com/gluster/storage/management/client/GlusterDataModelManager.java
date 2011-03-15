@@ -96,7 +96,6 @@ public class GlusterDataModelManager {
 		initializeVolumes(cluster);
 		initializeAutoDiscoveredServers(cluster);
 		initializeDisks();
-		addDisksToServers();
 		addDisksToVolumes();
 		addVolumeOptions();
 
@@ -203,14 +202,7 @@ public class GlusterDataModelManager {
 	}
 
 	private void initializeGlusterServers(Cluster cluster) {
-		List<GlusterServer> servers = new ArrayList<GlusterServer>();
-		server1 = addGlusterServer(servers, cluster, "Server1", SERVER_STATUS.ONLINE, "eth0", 4, 56.3, 16, 8.4);
-		server2 = addGlusterServer(servers, cluster, "Server2", SERVER_STATUS.ONLINE, "eth1", 8, 41.92, 32, 18.76);
-		server3 = addGlusterServer(servers, cluster, "Server3", SERVER_STATUS.OFFLINE, "eth0", -1, -1, -1, -1);
-		server4 = addGlusterServer(servers, cluster, "Server4", SERVER_STATUS.ONLINE, "eth0", 1, 92.83, 4, 3.18);
-		server5 = addGlusterServer(servers, cluster, "Server5", SERVER_STATUS.ONLINE, "inf0", 2, 87.24, 8, 7.23);
-
-		cluster.setServers(servers);
+		cluster.setServers(new GlusterServersClient("localhost", "gluster", "gluster").getServers());
 	}
 
 	private void initializeAutoDiscoveredServers(Cluster cluster) {

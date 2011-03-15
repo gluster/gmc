@@ -24,55 +24,118 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 
 /**
  *
  */
 public class GlusterUtil {
-   public static final String HOSTNAMETAG = "hostname:";
-   private static final ProcessUtil processUtil = new ProcessUtil();
+	private static final String HOSTNAME_PFX = "Hostname:";
+	private static final String UUID_PFX = "Uuid:";
+	private static final String STATE_PFX = "State:";
+	private static final String GLUSTER_SERVER_STATUS_ONLINE = "Connected";
+	private static final ProcessUtil processUtil = new ProcessUtil();
 
-   /**
-    * Extract value of given token from given line. It is assumed that the token, if present, will be of the following form:
-    * <code>token: value</code> 
-    * @param line Line to be analyzed
-    * @param tokenName Token whose value is to be extracted
-    * @return Value of the token, if present in the line
-    */
-   private final String extractToken(String line, String tokenName) {
-       if (line.toLowerCase().contains(tokenName)) {
-           for(String part : line.split(",")) {
-               if (part.toLowerCase().contains(tokenName)) {
-                   return part.split(tokenName)[1].trim();
-               }
-           }
-       }
-       return null;
-   }
-                                                                                                                                                                                                                                      
-   public List<String> getGlusterServerNames() {                                                                                                                                                                                      
-       ProcessResult result = processUtil.executeCommand("gluster", "peer", "status");                                                                                                                                          
-       if (!result.isSuccess()) {                                                                                                                                                                                                       
-           return null;
-       }
-                       
-       List<String> glusterServerNames = new ArrayList<String>();                                                                                                                                                                     
-       for (String line : result.getOutput().split(CoreConstants.NEWLINE)) {                                                                                                                                                                        
-           String hostName = extractToken(line, HOSTNAMETAG);                                                                                                                                                                               
-           if (hostName != null) {                                                                                                                                                                                                    
-               glusterServerNames.add(hostName);                                                                                                                                                                                      
-           }                                                                                                                                                                                                                          
-       }                                                                                                                                                                                                                              
-       return glusterServerNames;                                                                                                                                                                                                     
-   }
-   
-   public ProcessResult addServer( String serverName ) {
-       return processUtil.executeCommand("gluster", "peer", "probe", serverName );                                                                                                                                          
-   }
-                                                                                                                                                                                                                                      
-    public static void main(String args[]) {                                                                                                                                                                                          
-        List<String> names = new GlusterUtil().getGlusterServerNames();                                                                                                                                                              
-        System.out.println(names);                                                                                                                                                                                                    
-    }
+	/**
+	 * Extract value of given token from given line. It is assumed that the token, if present, will be of the following
+	 * form: <code>token: value</code>
+	 * 
+	 * @param line
+	 *            Line to be analyzed
+	 * @param token
+	 *            Token whose value is to be extracted
+	 * @return Value of the token, if present in the line
+	 */
+	private final String extractToken(String line, String token) {
+		if (line.contains(token)) {
+			return line.split(token)[1].trim();
+		}
+		return null;
+	}
+
+	public List<GlusterServer> getGlusterServers() {
+		String output = getPeerStatus();
+		if (output == null) {
+			return null;
+		}
+
+		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();
+		GlusterServer server = null;
+		boolean foundHost = false;
+		boolean foundUuid = false;
+		for (String line : output.split(CoreConstants.NEWLINE)) {
+			if (foundHost && foundUuid) {
+				// Host and UUID is found, we should look for state
+				String state = extractToken(line, STATE_PFX);
+				if (state != null) {
+					server.setStatus(state.contains(GLUSTER_SERVER_STATUS_ONLINE) ? SERVER_STATUS.ONLINE
+							: SERVER_STATUS.OFFLINE);
+					// Completed populating current server. Add it to the list and reset all related variables.
+					glusterServers.add(server);
+					
+					foundHost = false;
+					foundUuid = false;
+					server = null;
+				}
+			} else if (foundHost) {
+				// Host is found, look for UUID
+				String uuid = extractToken(line, UUID_PFX);
+				if (uuid != null) {
+					server.setUuid(uuid);
+					foundUuid = true;
+				}
+			} else {
+				// Look for the next host
+				if (server == null) {
+					server = new GlusterServer();
+				}
+				String hostName = extractToken(line, HOSTNAME_PFX);
+				if (hostName != null) {
+					server.setName(hostName);
+					foundHost = true;
+				}
+			}
+
+		}
+		return glusterServers;
+	}
+
+	public List<String> getGlusterServerNames() {
+		String output = getPeerStatus();		
+		if(output == null) {
+			return null;
+		}
+		
+		List<String> glusterServerNames = new ArrayList<String>();
+		for (String line : output.split(CoreConstants.NEWLINE)) {
+			String hostName = extractToken(line, HOSTNAME_PFX);
+			if (hostName != null) {
+				glusterServerNames.add(hostName);
+			}
+		}
+		return glusterServerNames;
+	}
+
+	/**
+	 * @return
+	 */
+	private String getPeerStatus() {
+		String output;
+		ProcessResult result = processUtil.executeCommand("gluster", "peer", "status");
+		if (!result.isSuccess()) {
+			output = null;
+		}
+		output = result.getOutput();
+		return output;
+	}
+
+	public ProcessResult addServer(String serverName) {
+		return processUtil.executeCommand("gluster", "peer", "probe", serverName);
+	}
+
+	public static void main(String args[]) {
+		List<String> names = new GlusterUtil().getGlusterServerNames();
+		System.out.println(names);
+	}
 }
-

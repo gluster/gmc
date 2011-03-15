@@ -70,7 +70,7 @@ public class CreateVolumeDisksPage extends Composite {
 				}
 
 				Disk disk = (Disk) element;
-				return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? disk.getServer().getName()
+				return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? disk.getServerName()
 						: columnIndex == DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? disk.getName()
 						: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? NumberUtil.formatNumber(disk.getSpace())
 						: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE_USED.ordinal() ? NumberUtil.formatNumber(disk.getSpaceInUse()) 

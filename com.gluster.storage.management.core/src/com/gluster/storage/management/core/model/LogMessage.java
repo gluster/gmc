@@ -69,7 +69,7 @@ public class LogMessage implements Filterable {
 
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
-		return StringUtil.filterString(getSeverity() + getTimestamp() + getDisk().getServer().getName()
+		return StringUtil.filterString(getSeverity() + getTimestamp() + getDisk().getServerName()
 				+ getDisk().getQualifiedName() + getMessage(), filterString, caseSensitive);
 	}
 }

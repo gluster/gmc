@@ -31,7 +31,7 @@ public class Disk extends Entity {
 
 	private String[] DISK_STATUS_STR = { "Ready", "Uninitialized", "Initializing", "Offline" };
 
-	private Server server;
+	private String serverName;
 	private Double space;
 	private Double spaceInUse;
 	private DISK_STATUS status;
@@ -80,18 +80,17 @@ public class Disk extends Entity {
 		this.spaceInUse = spaceInUse;
 	}
 
-	public Server getServer() {
-		return server;
+	public String getServerName() {
+		return serverName;
 	}
 
-	@XmlTransient
-	public void setServer(Server server) {
-		this.server = server;
+	public void setServerName(String serverName) {
+		this.serverName = serverName;
 	}
 
 	public Disk(Server server, String name, Double space, Double spaceInUse, DISK_STATUS status) {
 		super(name, server);
-		setServer(server);
+		setServerName(server != null ? server.getName() : "");
 		setSpace(space);
 		setSpaceInUse(spaceInUse);
 		setStatus(status);
@@ -99,10 +98,10 @@ public class Disk extends Entity {
 
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
-		return StringUtil.filterString(getServer().getName() + getName() + getStatusStr(), filterString, caseSensitive);
+		return StringUtil.filterString(getServerName() + getName() + getStatusStr(), filterString, caseSensitive);
 	}
 	
 	public String getQualifiedName() {
-		return getServer().getName() + ":" + getName();
+		return getServerName() + ":" + getName();
 	}
 }
