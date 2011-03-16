@@ -18,34 +18,27 @@
  *******************************************************************************/
 package com.gluster.storage.management.client;
 
-import com.gluster.storage.management.core.model.AuthStatus;
 import com.gluster.storage.management.core.model.Status;
 import com.sun.jersey.api.representation.Form;
 
 public class UsersClient extends AbstractClient {
 	private static final String RESOURCE_NAME = "users";
-	private static final String PATH_LOGIN = "login";
-	private static final String PATH_CHANGE_PASSWORD = "changepassword";
-	private static final String QUERY_PARAM_USER = "user";
-	private static final String QUERY_PARAM_PASSWORD = "password";
 	private static final String FORM_PARAM_OLD_PASSWORD = "oldpassword";
 	private static final String FORM_PARAM_NEW_PASSWORD = "newpassword";
 	
 	private String user;
-	private String password;
 
 	public UsersClient(String serverName, String user, String password) {
 		super(serverName, user, password);
 		this.user = user;
-		this.password = password;
 	}
 
 	public boolean authenticate() {
-		resource = resource.queryParam(QUERY_PARAM_USER, user).queryParam(QUERY_PARAM_PASSWORD, password);
 		try {
-			AuthStatus authStatus = (AuthStatus) fetchSubResource(user + "/" + PATH_LOGIN, AuthStatus.class);
-			return authStatus.getIsAuthenticated();
+			Status authStatus = (Status) fetchSubResource(user, Status.class);
+			return authStatus.isSuccess();
 		} catch(Exception e) {
+			e.printStackTrace();
 			return false;
 		}
 
@@ -57,15 +50,23 @@ public class UsersClient extends AbstractClient {
 		Form form = new Form();
 		form.add(FORM_PARAM_OLD_PASSWORD, oldPassword);
 		form.add(FORM_PARAM_NEW_PASSWORD, newPassword);
-		Status status = (Status) postRequest(user + "/" + PATH_CHANGE_PASSWORD, Status.class, form);
+		Status status = (Status) putRequest(user, Status.class, form);
 
 		return status.isSuccess();
 	}
 
 	public static void main(String[] args) {
 		UsersClient authClient = new UsersClient("localhost", "gluster", "gluster");
+		
+		// authenticate user
 		System.out.println(authClient.authenticate());
-		//System.out.println(authClient.changePassword("gluster", "gluster2", "gluster"));
+		
+		// change password to gluster1
+		System.out.println(authClient.changePassword("gluster", "gluster", "gluster1"));
+		
+		// change it back to gluster
+		authClient = new UsersClient("localhost", "gluster", "gluster1");
+		System.out.println(authClient.changePassword("gluster", "gluster1", "gluster"));
 	}
 
 	/*

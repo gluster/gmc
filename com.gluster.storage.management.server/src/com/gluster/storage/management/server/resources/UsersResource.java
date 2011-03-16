@@ -20,11 +20,10 @@ package com.gluster.storage.management.server.resources;
 
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +33,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.stereotype.Component;
 
-import com.gluster.storage.management.core.model.AuthStatus;
 import com.gluster.storage.management.core.model.Status;
 import com.sun.jersey.spi.resource.Singleton;
 
@@ -68,20 +66,17 @@ public class UsersResource {
 	 * return false; }
 	 */
 
-	@Path("{user}/login")
+	@Path("{user}")
 	@GET
 	@Produces(MediaType.TEXT_XML)
-	public AuthStatus login(@PathParam("user") String user, @QueryParam("password") String password) {
-
-		AuthStatus authStatus = new AuthStatus();
+	public Status login(@PathParam("user") String user) {
 		// success only if the user passed in query is same as the one passed in security header
-		authStatus.setIsAuthenticated(SecurityContextHolder.getContext().getAuthentication().getName().equals(user));
-
-		return authStatus;
+		return (SecurityContextHolder.getContext().getAuthentication().getName().equals(user) ? Status.STATUS_SUCCESS
+				: Status.STATUS_FAILURE);
 	}
 
-	@Path("{user}/changepassword")
-	@POST
+	@Path("{user}")
+	@PUT
 	@Produces(MediaType.TEXT_XML)
 	public Status changePassword(@FormParam("oldpassword") String oldPassword,
 			@FormParam("newpassword") String newPassword) {
