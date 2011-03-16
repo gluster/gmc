@@ -23,6 +23,10 @@ package com.gluster.storage.management.core.model;
  * on various events happening on the cluster.
  */
 public interface IClusterListener {
+	public void discoveredServerAdded(Server server);
+	
+	public void discoveredServerRemoved(Server server);
+	
 	public void serverAdded(GlusterServer server);
 
 	public void serverRemoved(GlusterServer server);

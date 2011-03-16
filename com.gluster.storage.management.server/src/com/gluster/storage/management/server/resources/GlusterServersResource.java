@@ -34,6 +34,7 @@ import com.gluster.storage.management.core.model.GenericResponse;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.GlusterServerListResponse;
+import com.gluster.storage.management.core.model.GlusterServerResponse;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.utils.GlusterUtil;
@@ -50,7 +51,7 @@ public class GlusterServersResource extends AbstractServersResource {
 	private List<GlusterServer> getServerDetails() {
 		List<GlusterServer> glusterServers = glusterUtil.getGlusterServers();
 		for (GlusterServer server : glusterServers) {
-			if(server.getStatus() == SERVER_STATUS.ONLINE) {
+			if (server.getStatus() == SERVER_STATUS.ONLINE) {
 				fetchServerDetails(server);
 				server.setPreferredNetworkInterface(server.getNetworkInterfaces().get(0));
 			}
@@ -92,14 +93,15 @@ public class GlusterServersResource extends AbstractServersResource {
 
 	@POST
 	@Produces(MediaType.TEXT_XML)
-	public GenericResponse<String> addServer(@FormParam("serverName") String serverName) {
+	public GlusterServerResponse addServer(@FormParam("serverName") String serverName) {
 		ProcessResult result = glusterUtil.addServer(serverName);
 
 		if (!result.isSuccess()) {
-			return new GenericResponse<String>(Status.STATUS_FAILURE, "Add server failed: ]" + result.getExitValue()
+			Status failure = new Status(Status.STATUS_CODE_FAILURE, "Add server [" + serverName + "] failed: [" + result.getExitValue()
 					+ "][" + result.getOutput() + "]");
+			return new GlusterServerResponse(failure, null);
 		}
-		return new GenericResponse<String>(Status.STATUS_SUCCESS, "Server [" + serverName + "] added successfully!");
+		return new GlusterServerResponse(Status.STATUS_SUCCESS, getGlusterServer(serverName));
 	}
 
 	public static void main(String[] args) {
@@ -107,7 +109,7 @@ public class GlusterServersResource extends AbstractServersResource {
 		System.out.println(glusterServersResource.getServerDetails());
 
 		// To add a server
-		GenericResponse<String> response = glusterServersResource.addServer("my-server");
-		System.out.println(response.getData());
+		GlusterServerResponse response = glusterServersResource.addServer("my-server");
+		System.out.println(response.getData().getName());
 	}
 }

@@ -19,15 +19,36 @@
 package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.widgets.Display;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.client.GlusterServersClient;
+import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.EntityGroup;
+import com.gluster.storage.management.core.model.GlusterServerResponse;
+import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Volume;
 
 public class AddServerAction extends AbstractActionDelegate {
 	@Override
 	public void run(IAction action) {
-		System.out.println("Running [" + this.getClass().getSimpleName() + "]");
+		GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+		GlusterServersClient glusterServersClient = new GlusterServersClient(modelManager.getServerName(),
+				modelManager.getSecurityToken());
+		Server server = (Server) selectedEntity;
+		GlusterServerResponse response = glusterServersClient.addServer(server);
+		if (response.getStatus().isSuccess()) {
+			modelManager.removeDiscoveredServer(server);
+			modelManager.addGlusterServer(response.getGlusterServer());
+			new MessageDialog(Display.getDefault().getActiveShell(), "Add Server", null, "Server [" + server.getName()
+					+ "] added successfully!", MessageDialog.INFORMATION, new String[] { "OK" }, 0).open();
+		} else {
+			new MessageDialog(Display.getDefault().getActiveShell(), "Add Server", null, "Server [" + server.getName()
+					+ " could not be added to cluster! Error: [" + response.getStatus().getMessage() + "]",
+					MessageDialog.ERROR, new String[] { "OK" }, 0).open();
+		}
 	}
 
 	@Override
@@ -39,10 +60,12 @@ public class AddServerAction extends AbstractActionDelegate {
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		super.selectionChanged(action, selection);
-		
-		action.setEnabled(true);
-		if(selectedEntity instanceof EntityGroup && ((EntityGroup)selectedEntity).getEntityType() == Volume.class) {
-			action.setEnabled(false);
+
+		if (selectedEntity != null && selectedEntity instanceof Entity) {
+			action.setEnabled(true);
+			if (selectedEntity instanceof EntityGroup && ((EntityGroup) selectedEntity).getEntityType() == Volume.class) {
+				action.setEnabled(false);
+			}
 		}
 	}
 }

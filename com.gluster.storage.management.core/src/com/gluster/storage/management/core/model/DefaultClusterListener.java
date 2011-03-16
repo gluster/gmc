@@ -47,4 +47,12 @@ public class DefaultClusterListener implements IClusterListener {
 	@Override
 	public void volumeChanged(Volume volume, Event event) {
 	}
+
+	@Override
+	public void discoveredServerAdded(Server server) {
+	}
+
+	@Override
+	public void discoveredServerRemoved(Server server) {
+	}
 }

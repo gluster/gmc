@@ -31,8 +31,11 @@ import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.GlusterDataModel;
+import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.core.model.IClusterListener;
 
 public class NavigationView extends ViewPart {
 	public static final String ID = "com.gluster.storage.management.gui.views.navigator";
@@ -62,7 +65,14 @@ public class NavigationView extends ViewPart {
 		Menu contextMenu = menuManager.createContextMenu(treeViewer.getControl());
 		treeViewer.getTree().setMenu(contextMenu);
 		
-		getSite().registerContextMenu(menuManager, treeViewer);		
+		getSite().registerContextMenu(menuManager, treeViewer);
+		
+		GlusterDataModelManager.getInstance().addClusterListener(new DefaultClusterListener() {
+			@Override
+			public void serverAdded(GlusterServer server) {
+				treeViewer.refresh();
+			}
+		});
 	}
 
 	public void selectEntity(Entity entity) {

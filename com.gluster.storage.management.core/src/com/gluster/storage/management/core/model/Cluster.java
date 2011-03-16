@@ -25,9 +25,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name="cluster")
 public class Cluster extends Entity {
-	private List<IClusterListener> listeners = new ArrayList<IClusterListener>();
 	List<GlusterServer> servers = new ArrayList<GlusterServer>();
-	List<Server> autoDiscoveredServers = new ArrayList<Server>();
+	List<Server> discoveredServers = new ArrayList<Server>();
 	List<Volume> volumes = new ArrayList<Volume>();
 
 	public Cluster() {
@@ -36,6 +35,22 @@ public class Cluster extends Entity {
 	public List<GlusterServer> getServers() {
 		return servers;
 	}
+	
+	public void addServer(GlusterServer server) {
+		servers.add(server);
+	}
+
+	public void removeServer(GlusterServer server) {
+		servers.remove(server);
+	}
+
+	public void addDiscoveredServer(Server server) {
+		discoveredServers.add(server);
+	}
+
+	public void removeDiscoveredServer(Server server) {
+		discoveredServers.remove(server);
+	}
 
 	public void setServers(List<GlusterServer> servers) {
 		this.servers = servers;
@@ -43,11 +58,11 @@ public class Cluster extends Entity {
 	}
 	
 	public List<Server> getAutoDiscoveredServers() {
-		return autoDiscoveredServers;
+		return discoveredServers;
 	}
 
 	public void setAutoDiscoveredServers(List<Server> autoDiscoveredServers) {
-		this.autoDiscoveredServers = autoDiscoveredServers;
+		this.discoveredServers = autoDiscoveredServers;
 		children.add(new EntityGroup<Server>("Discovered Servers", Server.class, this, autoDiscoveredServers));
 	}
 
@@ -68,9 +83,5 @@ public class Cluster extends Entity {
 		super(name, parent);
 		setServers(servers);
 		setVolumes(volumes);
-	}
-	
-	public void addClusterListener(IClusterListener listener) {
-		listeners.add(listener);
 	}
 }

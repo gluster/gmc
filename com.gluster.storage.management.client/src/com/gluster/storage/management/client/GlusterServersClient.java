@@ -23,8 +23,9 @@ import java.util.List;
 import com.gluster.storage.management.core.model.GenericResponse;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServerListResponse;
+import com.gluster.storage.management.core.model.GlusterServerResponse;
+import com.gluster.storage.management.core.model.Response;
 import com.gluster.storage.management.core.model.Server;
-import com.gluster.storage.management.core.model.Status;
 import com.sun.jersey.api.representation.Form;
 
 public class GlusterServersClient extends AbstractClient {
@@ -39,14 +40,13 @@ public class GlusterServersClient extends AbstractClient {
 		return RESOURCE_NAME;
 	}
 
-	@SuppressWarnings("unchecked")
 	public List<GlusterServer> getServers() {
 		GlusterServerListResponse response = (GlusterServerListResponse) fetchResource(GlusterServerListResponse.class);
 		return response.getServers();
 	}
 
+	@SuppressWarnings("unchecked")
 	public Server getServer(String serverName) {
-		@SuppressWarnings("unchecked")
 		GenericResponse<Server> response = (GenericResponse<Server>) fetchSubResource(serverName, GenericResponse.class);
 		return response.getData();
 	}
@@ -55,29 +55,29 @@ public class GlusterServersClient extends AbstractClient {
 		return ((String) fetchSubResource(serverName, String.class));
 	}
 
-	@SuppressWarnings("unchecked")
-	public Status addServer(Server discoveredServer) {
+	public GlusterServerResponse addServer(Server discoveredServer) {
 		Form form = new Form();
 		form.add("serverName", discoveredServer.getName());
-		GenericResponse<String> response = (GenericResponse<String>) postRequest(GenericResponse.class, form);
-		return response.getStatus();
+		return (GlusterServerResponse)postRequest(GlusterServerResponse.class, form);
 	}
 
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient("localhost");
 		if (usersClient.authenticate("gluster", "gluster")) {
 
-			GlusterServersClient ServerResource = new GlusterServersClient("localhost", usersClient.getSecurityToken());
-			List<GlusterServer> glusterServers = ServerResource.getServers();
-			for (GlusterServer server : glusterServers) {
-				System.out.println(server.getName());
-			}
+			GlusterServersClient serverResource = new GlusterServersClient("localhost", usersClient.getSecurityToken());
+//			List<GlusterServer> glusterServers = ServerResource.getServers();
+//			for (GlusterServer server : glusterServers) {
+//				System.out.println(server.getName());
+//			}
 
 			// Add server
-			// Server srv = new Server();
-			// srv.setName("my-server");
-			// Status response = ServerResource.addServer(srv);
-			// System.out.println(response.toString());
+			 Server srv = new Server();
+			 srv.setName("server3");
+			 GlusterServerResponse response = serverResource.addServer(srv);
+			 System.out.println(response.getGlusterServer().getName());
+			 System.out.println(response.getStatus().isSuccess());
+			
 		}
 	}
 }

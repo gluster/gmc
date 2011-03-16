@@ -30,6 +30,7 @@ import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
+import com.gluster.storage.management.core.model.IClusterListener;
 import com.gluster.storage.management.core.model.LogMessage;
 import com.gluster.storage.management.core.model.NetworkInterface;
 import com.gluster.storage.management.core.model.Server;
@@ -48,6 +49,7 @@ public class GlusterDataModelManager {
 	private GlusterDataModel model;
 	private String securityToken;
 	private String serverName;
+	private List<IClusterListener> listeners = new ArrayList<IClusterListener>();
 	
 	private GlusterDataModelManager() {
 	}
@@ -293,5 +295,27 @@ public class GlusterDataModelManager {
 			}
 		}
 		return disks;
+	}
+
+	public void addClusterListener(IClusterListener listener) {
+		listeners.add(listener);
+	}
+
+	public void addGlusterServer(GlusterServer server) {
+		Cluster cluster = (Cluster)model.getChildren().get(0);
+		cluster.addServer(server);
+		
+		for(IClusterListener listener : listeners) {
+			listener.serverAdded(server);
+		}
+	}
+
+	public void removeDiscoveredServer(Server server) {
+		Cluster cluster = (Cluster)model.getChildren().get(0);
+		cluster.removeDiscoveredServer(server);
+		
+		for(IClusterListener listener : listeners) {
+			listener.discoveredServerRemoved(server);
+		}
 	}
 }
