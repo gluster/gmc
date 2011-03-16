@@ -30,8 +30,8 @@ import com.sun.jersey.api.representation.Form;
 public class GlusterServersClient extends AbstractClient {
 	private static final String RESOURCE_NAME = "/cluster/servers";
 
-	public GlusterServersClient(String serverName, String user, String password) {
-		super(serverName, user, password);
+	public GlusterServersClient(String serverName, String securityToken) {
+		super(serverName, securityToken);
 	}
 
 	@Override
@@ -64,16 +64,20 @@ public class GlusterServersClient extends AbstractClient {
 	}
 
 	public static void main(String[] args) {
-		GlusterServersClient ServerResource = new GlusterServersClient("localhost", "gluster", "gluster");
-		List<GlusterServer> glusterServers = ServerResource.getServers();
-		for(GlusterServer server : glusterServers) {
-			System.out.println(server.getName());
-		}
+		UsersClient usersClient = new UsersClient("localhost");
+		if (usersClient.authenticate("gluster", "gluster")) {
 
-		// Add server
-//		Server srv = new Server();
-//		srv.setName("my-server");
-//		Status response = ServerResource.addServer(srv);
-//		System.out.println(response.toString());
+			GlusterServersClient ServerResource = new GlusterServersClient("localhost", usersClient.getSecurityToken());
+			List<GlusterServer> glusterServers = ServerResource.getServers();
+			for (GlusterServer server : glusterServers) {
+				System.out.println(server.getName());
+			}
+
+			// Add server
+			// Server srv = new Server();
+			// srv.setName("my-server");
+			// Status response = ServerResource.addServer(srv);
+			// System.out.println(response.toString());
+		}
 	}
 }

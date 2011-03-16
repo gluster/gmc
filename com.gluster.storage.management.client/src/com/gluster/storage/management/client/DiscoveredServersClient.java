@@ -32,19 +32,19 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 public class DiscoveredServersClient extends AbstractClient {
 	private static final String RESOURCE_NAME = "discoveredservers";
 
-	public DiscoveredServersClient(String serverName, String user, String password) {
-		super(serverName, user, password);
+	public DiscoveredServersClient(String serverName, String securityToken) {
+		super(serverName, securityToken);
 	}
 
 	@Override
 	public String getResourceName() {
 		return RESOURCE_NAME;
 	}
-	
+
 	private Object getDiscoveredServers(Boolean getDetails, Class responseClass) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.putSingle("details", getDetails.toString());
-		
+
 		// TODO: Used during development to check the response contents.
 		// to be removed later
 		String response = (String) fetchResource(queryParams, String.class);
@@ -54,28 +54,31 @@ public class DiscoveredServersClient extends AbstractClient {
 	}
 
 	public List<String> getDiscoveredServerNames() {
-		return (List<String>)getDiscoveredServers(Boolean.FALSE, StringListResponse.class);
-	}
-	
-	public List<Server> getDiscoveredServerDetails() {
-		return (List<Server>)getDiscoveredServers(Boolean.TRUE, ServerListResponse.class);
+		return (List<String>) getDiscoveredServers(Boolean.FALSE, StringListResponse.class);
 	}
 
+	public List<Server> getDiscoveredServerDetails() {
+		return (List<Server>) getDiscoveredServers(Boolean.TRUE, ServerListResponse.class);
+	}
+
+	@SuppressWarnings("unchecked")
 	public Server getServer(String serverName) {
-		@SuppressWarnings("unchecked")
-		GenericResponse<Server> response = (GenericResponse<Server>) fetchSubResource(serverName,
-				GenericResponse.class);
+		GenericResponse<Server> response = (GenericResponse<Server>) fetchSubResource(serverName, GenericResponse.class);
 		return response.getData();
 	}
 
 	public static void main(String[] args) {
-		DiscoveredServersClient serverResource = new DiscoveredServersClient("localhost", "gluster", "gluster");
-		List<String> discoveredServerNames = serverResource.getDiscoveredServerNames();
-		System.out.println(discoveredServerNames);
-		List<Server> discoveredServers = serverResource.getDiscoveredServerDetails();
-		System.out.println(discoveredServers);
+		UsersClient usersClient = new UsersClient("localhost");
+		if (usersClient.authenticate("gluster", "gluster")) {
+			DiscoveredServersClient serverResource = new DiscoveredServersClient("localhost",
+					usersClient.getSecurityToken());
+			List<String> discoveredServerNames = serverResource.getDiscoveredServerNames();
+			System.out.println(discoveredServerNames);
+			List<Server> discoveredServers = serverResource.getDiscoveredServerDetails();
+			System.out.println(discoveredServers);
 
-		// Server serverDetails = ServerResource.getServer("localhost");
-		// System.out.println(serverDetails.getName());
+			// Server serverDetails = ServerResource.getServer("localhost");
+			// System.out.println(serverDetails.getName());
+		}
 	}
 }

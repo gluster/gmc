@@ -33,8 +33,8 @@ import com.gluster.storage.management.core.model.Volume;
 public class VolumesClient extends AbstractClient {
 	private static final String RESOURCE_NAME = "cluster/volumes";
 
-	public VolumesClient(String serverName, String user, String password) {
-		super(serverName, user, password);
+	public VolumesClient(String serverName, String securityToken) {
+		super(serverName, securityToken);
 	}
 
 	@Override
@@ -44,14 +44,11 @@ public class VolumesClient extends AbstractClient {
 
 	public String createVolume(Volume volume) {
 
-		GenericResponse<String> response = (GenericResponse<String>) resource
-				.path("createvolume")
-				.type(MediaType.APPLICATION_XML)
-				.accept(MediaType.APPLICATION_XML)
-				.post(GenericResponse.class, volume);
-		
+		GenericResponse<String> response = (GenericResponse<String>) resource.path("createvolume")
+				.type(MediaType.APPLICATION_XML).accept(MediaType.APPLICATION_XML).post(GenericResponse.class, volume);
+
 		System.out.println("Response : " + response.getData());
-		
+
 		return response.getData();
 
 	}
@@ -60,20 +57,22 @@ public class VolumesClient extends AbstractClient {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		VolumesClient VC = new VolumesClient("localhost", "gluster", "gluster");
-		List<Disk> disks = new ArrayList<Disk>();
-		Disk diskElement = new Disk();
-		diskElement.setName("sda1");
-		diskElement.setStatus(DISK_STATUS.READY);
-		disks.add(diskElement);
-		diskElement.setName("sda2");
-		diskElement.setStatus(DISK_STATUS.READY);
-		disks.add(diskElement);
-		
-		Volume vol = new Volume("vol1", null,
-				Volume.VOLUME_TYPE.PLAIN_DISTRIBUTE,
-				Volume.TRANSPORT_TYPE.ETHERNET, Volume.VOLUME_STATUS.ONLINE);
-		vol.setDisks(disks);
-		System.out.println(VC.createVolume(vol));
+		UsersClient usersClient = new UsersClient("localhost");
+		if (usersClient.authenticate("gluster", "gluster")) {
+			VolumesClient VC = new VolumesClient("localhost", usersClient.getSecurityToken());
+			List<Disk> disks = new ArrayList<Disk>();
+			Disk diskElement = new Disk();
+			diskElement.setName("sda1");
+			diskElement.setStatus(DISK_STATUS.READY);
+			disks.add(diskElement);
+			diskElement.setName("sda2");
+			diskElement.setStatus(DISK_STATUS.READY);
+			disks.add(diskElement);
+
+			Volume vol = new Volume("vol1", null, Volume.VOLUME_TYPE.PLAIN_DISTRIBUTE, Volume.TRANSPORT_TYPE.ETHERNET,
+					Volume.VOLUME_STATUS.ONLINE);
+			vol.setDisks(disks);
+			System.out.println(VC.createVolume(vol));
+		}
 	}
 }

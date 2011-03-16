@@ -39,6 +39,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.UsersClient;
 import com.gluster.storage.management.core.model.ConnectionDetails;
 import com.gluster.storage.management.gui.IImageKeys;
@@ -186,11 +187,13 @@ public class LoginDialog extends Dialog {
 		String user = connectionDetails.getUserId();
 		String password = connectionDetails.getPassword();
 		String server = connectionDetails.getServer();
-		if (new UsersClient(server, user, password).authenticate()) {
+
+		UsersClient usersClient = new UsersClient(server);
+		if (usersClient.authenticate(user, password)) {
+			GlusterDataModelManager.getInstance().initializeModel(server, usersClient.getSecurityToken());
 			super.okPressed();
 		} else {
 			MessageDialog.openError(getShell(), "Authentication Failed", "Invalid User ID or password");
-			return;
 		}
 	}
 }

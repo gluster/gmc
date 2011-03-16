@@ -20,33 +20,40 @@ package com.gluster.storage.management.client;
 
 import com.gluster.storage.management.core.model.Status;
 import com.sun.jersey.api.representation.Form;
+import com.sun.jersey.core.util.Base64;
 
 public class UsersClient extends AbstractClient {
 	private static final String RESOURCE_NAME = "users";
 	private static final String FORM_PARAM_OLD_PASSWORD = "oldpassword";
 	private static final String FORM_PARAM_NEW_PASSWORD = "newpassword";
-	
-	private String user;
 
-	public UsersClient(String serverName, String user, String password) {
-		super(serverName, user, password);
-		this.user = user;
+	private String generateSecurityToken(String user, String password) {
+		return new String(Base64.encode(user + ":" + password));
 	}
 
-	public boolean authenticate() {
+	public UsersClient(String serverName) {
+		super(serverName);
+	}
+
+	public boolean authenticate(String user, String password) {
+		setSecurityToken(generateSecurityToken(user, password));
 		try {
 			Status authStatus = (Status) fetchSubResource(user, Status.class);
-			return authStatus.isSuccess();
-		} catch(Exception e) {
+			if (authStatus.isSuccess()) {
+				return true;
+			}
+		} catch (Exception e) {
 			e.printStackTrace();
-			return false;
 		}
 
-		// Dummy authentication for demo application
-		// return (connectionDetails.getPassword().equals("gluster") ? true : false);
+		// If we reach here, it means authentication failed. Clear security token and return false.
+		setSecurityToken(null);
+		return false;
 	}
 
 	public boolean changePassword(String user, String oldPassword, String newPassword) {
+		setSecurityToken(generateSecurityToken(user, oldPassword));
+
 		Form form = new Form();
 		form.add(FORM_PARAM_OLD_PASSWORD, oldPassword);
 		form.add(FORM_PARAM_NEW_PASSWORD, newPassword);
@@ -56,16 +63,15 @@ public class UsersClient extends AbstractClient {
 	}
 
 	public static void main(String[] args) {
-		UsersClient authClient = new UsersClient("localhost", "gluster", "gluster");
-		
+		UsersClient authClient = new UsersClient("localhost");
+
 		// authenticate user
-		System.out.println(authClient.authenticate());
-		
+		System.out.println(authClient.authenticate("gluster", "gluster"));
+
 		// change password to gluster1
 		System.out.println(authClient.changePassword("gluster", "gluster", "gluster1"));
-		
+
 		// change it back to gluster
-		authClient = new UsersClient("localhost", "gluster", "gluster1");
 		System.out.println(authClient.changePassword("gluster", "gluster1", "gluster"));
 	}
 
@@ -77,5 +83,15 @@ public class UsersClient extends AbstractClient {
 	@Override
 	public String getResourceName() {
 		return RESOURCE_NAME;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.gluster.storage.management.client.AbstractClient#getSecurityToken()
+	 */
+	@Override
+	public String getSecurityToken() {
+		return super.getSecurityToken();
 	}
 }

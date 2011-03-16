@@ -25,15 +25,15 @@ import java.util.List;
 
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.Disk;
+import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.LogMessage;
 import com.gluster.storage.management.core.model.NetworkInterface;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
-import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
@@ -46,9 +46,26 @@ public class GlusterDataModelManager {
 	private static List<LogMessage> logMessages = new ArrayList<LogMessage>();
 	private static GlusterDataModelManager instance = new GlusterDataModelManager();
 	private GlusterDataModel model;
-
+	private String securityToken;
+	private String serverName;
+	
 	private GlusterDataModelManager() {
-		model = initializeModel();
+	}
+
+	public String getSecurityToken() {
+		return securityToken;
+	}
+
+	public void setSecurityToken(String securityToken) {
+		this.securityToken = securityToken;
+	}
+
+	public String getServerName() {
+		return serverName;
+	}
+
+	public void setServerName(String serverName) {
+		this.serverName = serverName;
 	}
 
 	public GlusterDataModel getModel() {
@@ -87,9 +104,12 @@ public class GlusterDataModelManager {
 		servers.add(server);
 	}
 
-	private GlusterDataModel initializeModel() {
+	public void initializeModel(String serverName, String securityToken) {
+		setServerName(serverName);
+		setSecurityToken(securityToken);
+		
 		// Create the dummy data model for demo
-		GlusterDataModel model = new GlusterDataModel("Clusters");
+		model = new GlusterDataModel("Clusters");
 		Cluster cluster = new Cluster("Home", model);
 
 		initializeGlusterServers(cluster);
@@ -102,7 +122,6 @@ public class GlusterDataModelManager {
 		createDummyLogMessages();
 
 		model.addCluster(cluster);
-		return model;
 	}
 
 	private void addVolumeOptions() {
@@ -202,11 +221,11 @@ public class GlusterDataModelManager {
 	}
 
 	private void initializeGlusterServers(Cluster cluster) {
-		cluster.setServers(new GlusterServersClient("localhost", "gluster", "gluster").getServers());
+		cluster.setServers(new GlusterServersClient(serverName, securityToken).getServers());
 	}
 
 	private void initializeAutoDiscoveredServers(Cluster cluster) {
-		cluster.setAutoDiscoveredServers(new DiscoveredServersClient("localhost", "gluster", "gluster")
+		cluster.setAutoDiscoveredServers(new DiscoveredServersClient(serverName, securityToken)
 				.getDiscoveredServerDetails());
 	}
 

@@ -10,7 +10,6 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.representation.Form;
-import com.sun.jersey.core.util.Base64;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public abstract class AbstractClient {
@@ -18,12 +17,17 @@ public abstract class AbstractClient {
 	protected static final MultivaluedMap<String, String> NO_PARAMS = new MultivaluedMapImpl();
 
 	protected WebResource resource;
+	private String securityToken;
 	private String authHeader;
-
-	public AbstractClient(String serverName, String user, String password) {
+	
+	public AbstractClient(String serverName) {
 		URI baseURI = new ClientUtil().getServerBaseURI(serverName);
 		resource = Client.create(new DefaultClientConfig()).resource(baseURI).path(getResourceName());
-		authHeader = "Basic " + new String(Base64.encode(user + ":" + password));
+	}
+	
+	public AbstractClient(String serverName, String securityToken) {
+		this(serverName);
+		setSecurityToken(securityToken);
 	}
 
 	/**
@@ -136,4 +140,19 @@ public abstract class AbstractClient {
 	}
 
 	public abstract String getResourceName();
+
+	/**
+	 * @return the securityToken
+	 */
+	protected String getSecurityToken() {
+		return securityToken;
+	}
+
+	/**
+	 * @param securityToken the securityToken to set
+	 */
+	protected void setSecurityToken(String securityToken) {
+		this.securityToken = securityToken;
+		authHeader = "Basic " + securityToken;
+	}
 }
