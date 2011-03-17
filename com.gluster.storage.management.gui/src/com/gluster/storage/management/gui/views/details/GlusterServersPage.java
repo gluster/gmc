@@ -51,11 +51,11 @@ public class GlusterServersPage extends Composite {
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 
 	public enum GLUSTER_SERVER_TABLE_COLUMN_INDICES {
-		NAME, PREFERRED_NETWORK, IP_ADDRESSES, NUM_OF_CPUS, TOTAL_MEMORY, TOTAL_DISK_SPACE, STATUS
+		NAME, IP_ADDRESSES, NUM_OF_CPUS, TOTAL_MEMORY, TOTAL_DISK_SPACE, STATUS // Removed PREFERRED_NETWORK 
 	};
 
-	private static final String[] GLUSTER_SERVER_TABLE_COLUMN_NAMES = new String[] { "Name", "Preferred\nNetwork",
-			"IP Address(es)", "Number\nof CPUs", "Total\nMemory (GB)", "Total Disk\n Space (GB)", "Status" };
+	private static final String[] GLUSTER_SERVER_TABLE_COLUMN_NAMES = new String[] { "Name", 
+			"IP Address(es)", "Number\nof CPUs", "Total\nMemory (GB)", "Total Disk\n Space (GB)", "Status" }; // Removed "Preferred\nNetwork", 
 
 	public GlusterServersPage(Composite parent, int style) {
 		super(parent, style);
@@ -112,7 +112,7 @@ public class GlusterServersPage extends Composite {
 
 		setColumnProperties(table, GLUSTER_SERVER_TABLE_COLUMN_INDICES.NAME, SWT.CENTER, 100);
 		setColumnProperties(table, GLUSTER_SERVER_TABLE_COLUMN_INDICES.STATUS, SWT.CENTER, 70);
-		setColumnProperties(table, GLUSTER_SERVER_TABLE_COLUMN_INDICES.PREFERRED_NETWORK, SWT.CENTER, 90);
+		// setColumnProperties(table, GLUSTER_SERVER_TABLE_COLUMN_INDICES.PREFERRED_NETWORK, SWT.CENTER, 90);
 		setColumnProperties(table, GLUSTER_SERVER_TABLE_COLUMN_INDICES.NUM_OF_CPUS, SWT.CENTER, 90);
 		//setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.CPU_USAGE, SWT.CENTER, 90);
 		setColumnProperties(table, GLUSTER_SERVER_TABLE_COLUMN_INDICES.TOTAL_MEMORY, SWT.CENTER, 90);

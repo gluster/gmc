@@ -50,13 +50,14 @@ public class GlusterDummyModel {
 		return instance;
 	}
 
+	// Renamed preferredInterfaceName to interfaceName
 	private GlusterServer addGlusterServer(List<GlusterServer> servers, Entity parent, String name,
-			SERVER_STATUS status, String preferredInterfaceName, int numOfCPUs, double cpuUsage, double totalMemory,
+			SERVER_STATUS status, String interfaceName, int numOfCPUs, double cpuUsage, double totalMemory,
 			double memoryInUse) {
 		GlusterServer glusterServer = new GlusterServer(name, parent, status, numOfCPUs, cpuUsage, totalMemory,
 				memoryInUse);
-		NetworkInterface networkInterface = addNetworkInterface(glusterServer, preferredInterfaceName);
-		glusterServer.setPreferredNetworkInterface(networkInterface);
+		NetworkInterface networkInterface = addNetworkInterface(glusterServer, interfaceName);	// Renamed preferredInterfaceName to interfaceName
+		// glusterServer.setPreferredNetworkInterface(networkInterface);
 
 		servers.add(glusterServer);
 		return glusterServer;

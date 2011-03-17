@@ -64,7 +64,7 @@ public class GlusterServerTableLabelProvider extends TableLabelProviderAdapter {
 		
 		return (columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.NAME.ordinal() ? server.getName()
 			: columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.STATUS.ordinal() ? server.getStatusStr()
-			: columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.PREFERRED_NETWORK.ordinal() ? server.getPreferredNetworkInterface().getName()
+			// : columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.PREFERRED_NETWORK.ordinal() ? server.getPreferredNetworkInterface().getName()
 			: columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.NUM_OF_CPUS.ordinal() ? "" + server.getNumOfCPUs()
 			//: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.CPU_USAGE.ordinal() ? "" + server.getCpuUsage()
 			: columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.TOTAL_MEMORY.ordinal() ? "" + server.getTotalMemory()

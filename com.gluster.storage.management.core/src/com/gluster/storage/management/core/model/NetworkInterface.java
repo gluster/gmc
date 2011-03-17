@@ -25,19 +25,19 @@ public class NetworkInterface extends Entity {
 	private String ipAddress;
 	private String netMask;
 	private String defaultGateway;
-	private boolean isPreferred;
+//	private boolean isPreferred;
 	
 	public NetworkInterface() {
 		
 	}
 	
-	public boolean isPreferred() {
-		return isPreferred;
-	}
-
-	public void setPreferred(boolean isPreferred) {
-		this.isPreferred = isPreferred;
-	}
+//	public boolean isPreferred() {
+//		return isPreferred;
+//	}
+//
+//	public void setPreferred(boolean isPreferred) {
+//		this.isPreferred = isPreferred;
+//	}
 
 	public String getIpAddress() {
 		return ipAddress;

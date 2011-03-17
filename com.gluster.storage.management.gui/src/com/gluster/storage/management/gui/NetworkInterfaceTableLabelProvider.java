@@ -34,7 +34,7 @@ public class NetworkInterfaceTableLabelProvider extends TableLabelProviderAdapte
 			: columnIndex == NETWORK_INTERFACE_TABLE_COLUMN_INDICES.IP_ADDRESS.ordinal() ? networkInterface.getIpAddress()
 			: columnIndex == NETWORK_INTERFACE_TABLE_COLUMN_INDICES.NETMASK.ordinal() ? networkInterface.getNetMask()
 			: columnIndex == NETWORK_INTERFACE_TABLE_COLUMN_INDICES.GATEWAY.ordinal() ? networkInterface.getDefaultGateway()
-			: columnIndex == NETWORK_INTERFACE_TABLE_COLUMN_INDICES.PREFERRED.ordinal() ? (networkInterface.isPreferred() ? "Yes" : "No")
+			// : columnIndex == NETWORK_INTERFACE_TABLE_COLUMN_INDICES.PREFERRED.ordinal() ? (networkInterface.isPreferred() ? "Yes" : "No")
 			: "Invalid");
 	}
 }

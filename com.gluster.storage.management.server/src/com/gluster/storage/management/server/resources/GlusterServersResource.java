@@ -53,7 +53,7 @@ public class GlusterServersResource extends AbstractServersResource {
 		for (GlusterServer server : glusterServers) {
 			if (server.getStatus() == SERVER_STATUS.ONLINE) {
 				fetchServerDetails(server);
-				server.setPreferredNetworkInterface(server.getNetworkInterfaces().get(0));
+				// server.setPreferredNetworkInterface(server.getNetworkInterfaces().get(0));
 			}
 		}
 		return glusterServers;
@@ -71,7 +71,7 @@ public class GlusterServersResource extends AbstractServersResource {
 	public GlusterServer getGlusterServer(@PathParam("serverName") String serverName) {
 		GlusterServer server = new GlusterServer(serverName);
 		fetchServerDetails(server);
-		server.setPreferredNetworkInterface(server.getNetworkInterfaces().get(0));
+		// server.setPreferredNetworkInterface(server.getNetworkInterfaces().get(0));
 		server.setStatus(SERVER_STATUS.ONLINE);
 		return server;
 	}

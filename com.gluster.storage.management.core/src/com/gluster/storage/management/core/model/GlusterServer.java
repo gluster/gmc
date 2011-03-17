@@ -23,33 +23,34 @@ import javax.xml.bind.annotation.XmlTransient;
 
 import com.gluster.storage.management.core.utils.StringUtil;
 
-@XmlRootElement(name="glusterServer")
+@XmlRootElement(name = "glusterServer")
 public class GlusterServer extends Server {
 	public enum SERVER_STATUS {
 		ONLINE, OFFLINE
 	};
+
 	private static final String[] STATUS_STR = new String[] { "Online", "Offline" };
 
 	private String uuid;
 	private SERVER_STATUS status;
-	private NetworkInterface preferredNetworkInterface;
+	// private NetworkInterface preferredNetworkInterface;
 	private Cluster cluster;
 
 	public GlusterServer() {
 	}
-	
+
 	public GlusterServer(String name) {
 		super(name);
 	}
-	
-	public GlusterServer(String name, Entity parent, SERVER_STATUS status, int numOfCPUs, double cpuUsage, double totalMemory,
-			double memoryInUse) {
+
+	public GlusterServer(String name, Entity parent, SERVER_STATUS status, int numOfCPUs, double cpuUsage,
+			double totalMemory, double memoryInUse) {
 		super(name, parent, numOfCPUs, cpuUsage, totalMemory, memoryInUse);
 		setStatus(status);
 	}
 
-	public GlusterServer(String name, Entity parent, SERVER_STATUS status, int numOfCPUs, double cpuUsage, double totalMemory,
-			double memoryInUse, Cluster cluster) {
+	public GlusterServer(String name, Entity parent, SERVER_STATUS status, int numOfCPUs, double cpuUsage,
+			double totalMemory, double memoryInUse, Cluster cluster) {
 		this(name, parent, status, numOfCPUs, cpuUsage, totalMemory, memoryInUse);
 		setCluster(cluster);
 	}
@@ -61,7 +62,7 @@ public class GlusterServer extends Server {
 	public SERVER_STATUS getStatus() {
 		return status;
 	}
-	
+
 	public void setStatus(SERVER_STATUS status) {
 		this.status = status;
 	}
@@ -74,15 +75,17 @@ public class GlusterServer extends Server {
 		this.uuid = uuid;
 	}
 
-	public NetworkInterface getPreferredNetworkInterface() {
-		return preferredNetworkInterface;
-	}
+	
+//	public NetworkInterface getPreferredNetworkInterface() {
+//		return preferredNetworkInterface;
+//	}
+//
+//	public void setPreferredNetworkInterface(NetworkInterface preferredNetworkInterface) {
+//		this.preferredNetworkInterface = preferredNetworkInterface;
+//		preferredNetworkInterface.setPreferred(true);
+//	}
 
-	public void setPreferredNetworkInterface(NetworkInterface preferredNetworkInterface) {
-		this.preferredNetworkInterface = preferredNetworkInterface;
-		preferredNetworkInterface.setPreferred(true);
-	}
-
+	
 	@XmlTransient
 	public Cluster getCluster() {
 		return cluster;
@@ -93,12 +96,11 @@ public class GlusterServer extends Server {
 	}
 
 	/**
-	 * Filter matches if any of the properties name, status, preferred network interface, and primary/secondary/third
+	 * Filter matches if any of the properties name, status and primary/secondary/third
 	 * DNS contains the filter string
 	 */
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
-		return StringUtil.filterString(getName() + getStatusStr() + getPreferredNetworkInterface().getName(),
-				filterString, caseSensitive);
+		return StringUtil.filterString(getName() + getStatusStr(), filterString, caseSensitive);
 	}
 }
