@@ -19,14 +19,21 @@
 package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.IWorkbenchWindowActionDelegate;
+import org.eclipse.ui.PlatformUI;
+
+import com.gluster.storage.management.gui.views.DiscoveredServersView;
 
 public class StartVolumeAction extends AbstractActionDelegate {
 	@Override
 	public void run(IAction action) {
-		System.out.println("Running [" + this.getClass().getSimpleName() + "]");
+		PlatformUI
+				.getWorkbench()
+				.getActiveWorkbenchWindow()
+				.getActivePage()
+				.hideView(
+						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
+								.findViewReference(DiscoveredServersView.ID));
+		System.out.println("After closing the view!");
 	}
 
 	@Override

@@ -98,6 +98,11 @@ public class ServersPage extends Composite {
 			}
 		});
 	}
+	
+	public void setInput(EntityGroup<Server> servers) {
+		tableViewer.setInput(servers);
+		tableViewer.refresh();		
+	}
 
 	public void addDoubleClickListener(IDoubleClickListener listener) {
 		tableViewer.addDoubleClickListener(listener);

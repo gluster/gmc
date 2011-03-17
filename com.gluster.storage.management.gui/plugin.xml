@@ -44,6 +44,14 @@
             name="Tasks in Progress"
             restorable="true">
       </view>
+      <view
+            allowMultiple="false"
+            class="com.gluster.storage.management.gui.views.DiscoveredServersView"
+            icon="icons/servers.png"
+            id="com.gluster.storage.management.gui.views.DiscoveredServersView"
+            name="Discovered Servers"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.commands">
@@ -241,6 +249,22 @@
                   name="edit">
             </groupMarker>
          </menu>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.StartVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.StartVolume"
+               icon="icons/volume-start.png"
+               id="com.gluster.storage.management.gui.actions.StartVolumeAction"
+               label="&amp;Start Volume(s)"
+               menubarPath="com.gluster.storage.management.gui.menu.volumes/volumes"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Start Volume(s)">
+         </action>
       </actionSet>
       <actionSet
             description="Set of actions that can be performed on multiple Volumes"
@@ -626,8 +650,8 @@
                relationship="right"
                relative="org.eclipse.ui.editorss"
                showTitle="false"
-               standalone="true"
-               visible="true">
+               standalone="false"
+               visible="false">
          </view>
          <view
                closeable="true"
@@ -639,6 +663,18 @@
                relative="com.gluster.storage.management.gui.views.details"
                showTitle="true"
                standalone="true"
+               visible="false">
+         </view>
+         <view
+               closeable="false"
+               id="com.gluster.storage.management.gui.views.DiscoveredServersView"
+               minimized="false"
+               moveable="false"
+               ratio="0.30f"
+               relationship="right"
+               relative="com.gluster.storage.management.gui.views.navigator"
+               showTitle="true"
+               standalone="false"
                visible="false">
          </view>
       </perspectiveExtension>

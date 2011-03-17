@@ -18,14 +18,24 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.views.navigator;
 
+import org.eclipse.core.commands.Command;
+import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IViewReference;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.part.ViewPart;
@@ -33,15 +43,18 @@ import org.eclipse.ui.part.ViewPart;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Entity;
+import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
-import com.gluster.storage.management.core.model.IClusterListener;
+import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.gui.views.DiscoveredServersView;
 
-public class NavigationView extends ViewPart {
+public class NavigationView extends ViewPart implements ISelectionListener {
 	public static final String ID = "com.gluster.storage.management.gui.views.navigator";
 	private GlusterDataModel model;
 	private TreeViewer treeViewer;
 	private IAdapterFactory adapterFactory = new ClusterAdapterFactory();
+	private Entity entity;
 
 	public NavigationView() {
 		super();
@@ -50,7 +63,7 @@ public class NavigationView extends ViewPart {
 	@Override
 	public void createPartControl(Composite parent) {
 		model = GlusterDataModelManager.getInstance().getModel();
-		
+
 		treeViewer = new TreeViewer(parent, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 		getSite().setSelectionProvider(treeViewer);
 		Platform.getAdapterManager().registerAdapters(adapterFactory, Entity.class);
@@ -60,19 +73,21 @@ public class NavigationView extends ViewPart {
 		treeViewer.expandAll();
 		// select the first element by default
 		treeViewer.setSelection(new StructuredSelection(model.getChildren().get(0)));
-		
+
 		MenuManager menuManager = new MenuManager("&Gluster", "gluster.context.menu");
 		Menu contextMenu = menuManager.createContextMenu(treeViewer.getControl());
 		treeViewer.getTree().setMenu(contextMenu);
-		
+
 		getSite().registerContextMenu(menuManager, treeViewer);
-		
+
 		GlusterDataModelManager.getInstance().addClusterListener(new DefaultClusterListener() {
 			@Override
 			public void serverAdded(GlusterServer server) {
 				treeViewer.refresh();
 			}
 		});
+
+		getSite().getPage().addSelectionListener(this);
 	}
 
 	public void selectEntity(Entity entity) {
@@ -81,9 +96,51 @@ public class NavigationView extends ViewPart {
 		setFocus(); // this ensures that the "selection changed" event gets fired
 	}
 
-
 	@Override
 	public void setFocus() {
 		treeViewer.getControl().setFocus();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.ui.ISelectionListener#selectionChanged(org.eclipse.ui.IWorkbenchPart,
+	 * org.eclipse.jface.viewers.ISelection)
+	 */
+	@Override
+	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+		if (part instanceof NavigationView && selection instanceof TreeSelection) {
+			Entity selectedEntity = (Entity) ((TreeSelection) selection).getFirstElement();
+
+			if (entity == selectedEntity || selectedEntity == null) {
+				// entity selection has not changed. do nothing.
+				return;
+			}
+
+			IViewReference[] viewReferences = getSite().getPage().getViewReferences();
+			for (final IViewReference viewReference : viewReferences) {
+				if (!viewReference.getId().equals(ID)) {					
+					PlatformUI
+					.getWorkbench()
+					.getActiveWorkbenchWindow()
+					.getActivePage()
+					.hideView(
+							PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
+									.findViewReference(DiscoveredServersView.ID));
+				}
+			}
+
+			entity = selectedEntity;
+			if (entity instanceof EntityGroup) {
+				Class type = ((EntityGroup) entity).getEntityType();
+				if (type == Server.class) {
+					try {
+						getSite().getPage().showView(DiscoveredServersView.ID);						
+					} catch (PartInitException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
 	}
 }
