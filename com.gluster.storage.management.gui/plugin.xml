@@ -22,17 +22,19 @@
    <extension
          point="org.eclipse.ui.views">
       <view
+            category="com.gluster.storage.management.gui.category"
             class="com.gluster.storage.management.gui.views.navigator.NavigationView"
             icon="icons/world.png"
-            id="com.gluster.storage.management.gui.views.navigator"
+            id="com.gluster.storage.management.gui.views.navigator.NavigationView"
             name="Cluster Navigation Tree"
             restorable="true">
       </view>
       <view
             allowMultiple="false"
-            class="com.gluster.storage.management.gui.views.details.DetailsView"
+            category="com.gluster.storage.management.gui.category"
+            class="com.gluster.storage.management.gui.views.DetailsView"
             icon="icons/gluster_icon.png"
-            id="com.gluster.storage.management.gui.views.details"
+            id="com.gluster.storage.management.gui.views.details.DetailsView"
             name="Details"
             restorable="true">
       </view>
@@ -46,10 +48,50 @@
       </view>
       <view
             allowMultiple="false"
+            category="com.gluster.storage.management.gui.category"
             class="com.gluster.storage.management.gui.views.DiscoveredServersView"
             icon="icons/servers.png"
             id="com.gluster.storage.management.gui.views.DiscoveredServersView"
             name="Discovered Servers"
+            restorable="true">
+      </view>
+      <view
+            category="com.gluster.storage.management.gui.category"
+            class="com.gluster.storage.management.gui.views.DiscoveredServerView"
+            icon="icons/server.png"
+            id="com.gluster.storage.management.gui.views.DiscoveredServerView"
+            name="Discovered Server"
+            restorable="true">
+      </view>
+      <category
+            id="com.gluster.storage.management.gui.category"
+            name="Gluster Managament Console">
+      </category>
+      <view
+            allowMultiple="false"
+            category="com.gluster.storage.management.gui.category"
+            class="com.gluster.storage.management.gui.views.VolumesView"
+            icon="icons/volumes.png"
+            id="com.gluster.storage.management.gui.views.VolumesView"
+            name="Volumes"
+            restorable="true">
+      </view>
+      <view
+            allowMultiple="false"
+            category="com.gluster.storage.management.gui.category"
+            class="com.gluster.storage.management.gui.views.VolumesSummaryView"
+            icon="icons/gluster_icon.png"
+            id="com.gluster.storage.management.gui.views.VolumesSummaryView"
+            name="Summary (Volumes)"
+            restorable="true">
+      </view>
+      <view
+            allowMultiple="false"
+            category="com.gluster.storage.management.gui.category"
+            class="com.gluster.storage.management.gui.views.ClusterSummaryView"
+            icon="icons/gluster_icon.png"
+            id="com.gluster.storage.management.gui.views.ClusterSummaryView"
+            name="Summary (Cluster)"
             restorable="true">
       </view>
    </extension>
@@ -249,22 +291,6 @@
                   name="edit">
             </groupMarker>
          </menu>
-         <action
-               allowLabelUpdate="false"
-               class="com.gluster.storage.management.gui.actions.StartVolumeAction"
-               definitionId="com.gluster.storage.management.gui.commands.StartVolume"
-               icon="icons/volume-start.png"
-               id="com.gluster.storage.management.gui.actions.StartVolumeAction"
-               label="&amp;Start Volume(s)"
-               menubarPath="com.gluster.storage.management.gui.menu.volumes/volumes"
-               mode="FORCE_TEXT"
-               pulldown="false"
-               retarget="false"
-               state="false"
-               style="push"
-               toolbarPath="Normal"
-               tooltip="Start Volume(s)">
-         </action>
       </actionSet>
       <actionSet
             description="Set of actions that can be performed on multiple Volumes"
@@ -631,7 +657,7 @@
             targetID="*">
          <view
                closeable="false"
-               id="com.gluster.storage.management.gui.views.navigator"
+               id="com.gluster.storage.management.gui.views.navigator.NavigationView"
                minimized="false"
                moveable="false"
                ratio="0.30f"
@@ -643,12 +669,24 @@
          </view>
          <view
                closeable="false"
-               id="com.gluster.storage.management.gui.views.details"
+               id="com.gluster.storage.management.gui.views.ClusterSummaryView"
+               minimized="false"
+               moveable="false"
+               ratio="0.30f"
+               relationship="right"
+               relative="com.gluster.storage.management.gui.views.navigator.NavigationView"
+               showTitle="true"
+               standalone="false"
+               visible="false">
+         </view>
+         <view
+               closeable="false"
+               id="com.gluster.storage.management.gui.views.details.DetailsView"
                minimized="false"
                moveable="false"
                ratio="0.70f"
                relationship="right"
-               relative="org.eclipse.ui.editorss"
+               relative="com.gluster.storage.management.gui.views.navigator.NavigationView"
                showTitle="false"
                standalone="false"
                visible="false">
@@ -660,7 +698,7 @@
                moveable="false"
                ratio="0.80f"
                relationship="bottom"
-               relative="com.gluster.storage.management.gui.views.details"
+               relative="com.gluster.storage.management.gui.views.ClusterSummaryView"
                showTitle="true"
                standalone="true"
                visible="false">
@@ -671,8 +709,44 @@
                minimized="false"
                moveable="false"
                ratio="0.30f"
+               relationship="stack"
+               relative="com.gluster.storage.management.gui.views.ClusterSummaryView"
+               showTitle="true"
+               standalone="false"
+               visible="false">
+         </view>
+         <view
+               closeable="false"
+               id="com.gluster.storage.management.gui.views.DiscoveredServerView"
+               minimized="false"
+               moveable="false"
+               ratio="0.30f"
                relationship="right"
-               relative="com.gluster.storage.management.gui.views.navigator"
+               relative="com.gluster.storage.management.gui.views.navigator.NavigationView"
+               showTitle="true"
+               standalone="false"
+               visible="false">
+         </view>
+         <view
+               closeable="false"
+               id="com.gluster.storage.management.gui.views.VolumesSummaryView"
+               minimized="false"
+               moveable="false"
+               ratio="0.30f"
+               relationship="stack"
+               relative="com.gluster.storage.management.gui.views.ClusterSummaryView"
+               showTitle="true"
+               standalone="false"
+               visible="false">
+         </view>
+         <view
+               closeable="false"
+               id="com.gluster.storage.management.gui.views.VolumesView"
+               minimized="false"
+               moveable="false"
+               ratio="0.30f"
+               relationship="stack"
+               relative="com.gluster.storage.management.gui.views.VolumesSummaryView"
                showTitle="true"
                standalone="false"
                visible="false">

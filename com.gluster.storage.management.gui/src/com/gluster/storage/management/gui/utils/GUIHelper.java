@@ -18,6 +18,8 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.utils;
 
+import java.util.Iterator;
+
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuCreator;
@@ -29,9 +31,12 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnLayoutData;
 import org.eclipse.jface.viewers.ColumnWeightData;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -51,6 +56,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
+import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
@@ -58,10 +64,11 @@ import org.eclipse.ui.forms.widgets.ColumnLayout;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
-import org.eclipse.ui.plugin.AbstractUIPlugin;
 
-import com.gluster.storage.management.gui.Application;
+import com.gluster.storage.management.core.model.Entity;
+import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.gui.IImageKeys;
+import com.gluster.storage.management.gui.views.navigator.NavigationView;
 
 public class GUIHelper {
 	private static final GUIHelper instance = new GUIHelper();
@@ -295,7 +302,7 @@ public class GUIHelper {
 		filterText.setToolTipText(tooltipMessage);
 		return filterText;
 	}
-	
+
 	/**
 	 * Sets properties for alignment and weight of given column of given table
 	 * 
@@ -311,7 +318,7 @@ public class GUIHelper {
 		TableColumnLayout tableColumnLayout = (TableColumnLayout) table.getParent().getLayout();
 		tableColumnLayout.setColumnData(column, new ColumnWeightData(weight));
 	}
-	
+
 	/**
 	 * Sets properties for alignment and weight of given column of given table
 	 * 
@@ -324,9 +331,33 @@ public class GUIHelper {
 	 */
 	public TableViewerColumn setColumnProperties(TableViewer tableViewer, int columnIndex, int style, int weight) {
 		TableViewerColumn column = new TableViewerColumn(tableViewer, style, columnIndex);
-		TableColumnLayout tableColumnLayout = (TableColumnLayout)tableViewer.getTable().getParent().getLayout();
+		TableColumnLayout tableColumnLayout = (TableColumnLayout) tableViewer.getTable().getParent().getLayout();
 		tableColumnLayout.setColumnData(column.getColumn(), new ColumnWeightData(weight));
 		column.setLabelProvider(new ColumnLabelProvider());
 		return column;
+	}
+
+	/**
+	 * Fetches the currently selected objects from the workbench site and returns the one of given type. If none of the
+	 * selected objects are of given type, returns null
+	 * 
+	 * @param site
+	 *            The workbench site
+	 * @param expectedType
+	 *            Type of the selected object to look for
+	 * @return The selected object of given type if found, else null
+	 */
+	public Object getSelectedEntity(IWorkbenchSite site, Class expectedType) {
+		ISelection selection = site.getWorkbenchWindow().getSelectionService().getSelection(NavigationView.ID);
+		if (selection instanceof IStructuredSelection) {
+			Iterator<Object> iter = ((IStructuredSelection) selection).iterator();
+			while (iter.hasNext()) {
+				Object selectedObj = iter.next();
+				if (selectedObj.getClass() == expectedType) {
+					return selectedObj;
+				}
+			}
+		}
+		return null;
 	}
 }

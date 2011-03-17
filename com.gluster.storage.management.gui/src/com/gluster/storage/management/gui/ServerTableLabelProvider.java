@@ -22,7 +22,7 @@ package com.gluster.storage.management.gui;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.views.details.ServersPage.SERVER_TABLE_COLUMN_INDICES;
+import com.gluster.storage.management.gui.views.pages.ServersPage.SERVER_TABLE_COLUMN_INDICES;
 
 public class ServerTableLabelProvider extends TableLabelProviderAdapter {
 	private GUIHelper guiHelper = GUIHelper.getInstance();

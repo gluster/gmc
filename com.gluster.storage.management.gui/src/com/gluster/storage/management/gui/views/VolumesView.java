@@ -33,21 +33,20 @@ import org.eclipse.ui.part.ViewPart;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.views.navigator.NavigationView;
 import com.gluster.storage.management.gui.views.pages.ServersPage;
+import com.gluster.storage.management.gui.views.pages.VolumesPage;
 
 /**
  *
  */
-public class DiscoveredServersView extends ViewPart implements IDoubleClickListener, ISelectionListener {
-	public static final String ID = DiscoveredServersView.class.getName();
+public class VolumesView extends ViewPart implements IDoubleClickListener, ISelectionListener {
+	public static final String ID = VolumesView.class.getName();
 	private static final GUIHelper guiHelper = GUIHelper.getInstance();
-	private EntityGroup<Server> servers;
-	private ServersPage page;
-
-	public DiscoveredServersView() {
-	}
+	private EntityGroup<Volume> volumes;
+	private VolumesPage page;
 
 	/*
 	 * (non-Javadoc)
@@ -56,14 +55,14 @@ public class DiscoveredServersView extends ViewPart implements IDoubleClickListe
 	 */
 	@Override
 	public void createPartControl(Composite parent) {
-		if (servers == null) {
+		if (volumes == null) {
 			Object selectedObj = guiHelper.getSelectedEntity(getSite(), EntityGroup.class);
-			if (selectedObj != null && ((EntityGroup) selectedObj).getEntityType() == Server.class) {
-				servers = (EntityGroup<Server>)selectedObj;
+			if (selectedObj != null && ((EntityGroup) selectedObj).getEntityType() == Volume.class) {
+				volumes = (EntityGroup<Volume>)selectedObj;
 			}
 		}
 		
-		page = new ServersPage(parent, getSite(), servers);
+		page = new VolumesPage(parent, getSite(), volumes);
 		page.addDoubleClickListener(this);
 		getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(NavigationView.ID, this);
 	}
@@ -97,14 +96,14 @@ public class DiscoveredServersView extends ViewPart implements IDoubleClickListe
 		if (part instanceof NavigationView && selection instanceof TreeSelection) {
 			Entity selectedEntity = (Entity) ((TreeSelection) selection).getFirstElement();
 
-			if (servers == selectedEntity || selectedEntity == null || !(selectedEntity instanceof EntityGroup)
-					|| ((EntityGroup) selectedEntity).getEntityType() != Server.class) {
+			if (volumes == selectedEntity || selectedEntity == null || !(selectedEntity instanceof EntityGroup)
+					|| ((EntityGroup) selectedEntity).getEntityType() != Volume.class) {
 				// entity selection has not changed. do nothing.
 				return;
 			}
 
-			servers = (EntityGroup<Server>) selectedEntity;
-			page.setInput(servers);
+			volumes = (EntityGroup<Volume>) selectedEntity;
+			page.setInput(volumes);
 		}
 	}
 }

@@ -25,7 +25,7 @@ import org.eclipse.swt.graphics.Image;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.views.details.VolumesPage.VOLUME_TABLE_COLUMN_INDICES;
+import com.gluster.storage.management.gui.views.pages.VolumesPage.VOLUME_TABLE_COLUMN_INDICES;
 
 public class VolumeTableLabelProvider implements ITableLabelProvider {
 	private GUIHelper guiHelper = GUIHelper.getInstance();

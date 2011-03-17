@@ -16,7 +16,7 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.gui.views.details;
+package com.gluster.storage.management.gui.views;
 
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TreeSelection;
@@ -36,6 +36,8 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.gui.toolbar.ToolbarManager;
+import com.gluster.storage.management.gui.views.details.TabCreatorFactory;
+import com.gluster.storage.management.gui.views.details.TabCreatorFactoryImpl;
 import com.gluster.storage.management.gui.views.navigator.NavigationView;
 
 /**
@@ -43,7 +45,7 @@ import com.gluster.storage.management.gui.views.navigator.NavigationView;
  * whenever selection changes on the navigation view (cluster tree) on the left hand side of the UI.
  */
 public class DetailsView extends ViewPart implements ISelectionListener {
-	public static final String ID = "com.gluster.storage.management.gui.views.details";
+	public static final String ID = DetailsView.class.getName();
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	private TabFolder tabFolder;
 	private Entity entity;

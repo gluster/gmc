@@ -21,7 +21,7 @@ package com.gluster.storage.management.gui;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
 
-import com.gluster.storage.management.gui.views.details.DetailsView;
+import com.gluster.storage.management.gui.views.DetailsView;
 import com.gluster.storage.management.gui.views.navigator.NavigationView;
 
 public class Perspective implements IPerspectiveFactory {

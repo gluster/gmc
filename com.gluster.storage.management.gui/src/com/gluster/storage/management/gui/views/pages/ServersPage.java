@@ -16,7 +16,7 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.gui.views.details;
+package com.gluster.storage.management.gui.views.pages;
 
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
@@ -36,29 +36,38 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
 import com.gluster.storage.management.core.model.EntityGroup;
-import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.gui.EntityGroupContentProvider;
-import com.gluster.storage.management.gui.VolumeTableLabelProvider;
+import com.gluster.storage.management.gui.ServerTableLabelProvider;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
-public class VolumesPage extends Composite {
+public class ServersPage extends Composite {
 
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	private TableViewer tableViewer;
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 
-	public enum VOLUME_TABLE_COLUMN_INDICES {
-		NAME, VOLUME_TYPE, NUM_OF_DISKS, TRANSPORT_TYPE, VOLUME_STATUS
+	public enum SERVER_TABLE_COLUMN_INDICES {
+		NAME, IP_ADDRESSES, NUM_OF_DISKS, TOTAL_DISK_SPACE
 	};
-	
-	private static final String[] VOLUME_TABLE_COLUMN_NAMES = new String[] { "Name",
-			"Volume Type", "Number of\nDisks", "Transport Type", "Status" };
 
-	public VolumesPage(Composite parent, int style) {
-		super(parent, style);
+	private static final String[] SERVER_TABLE_COLUMN_NAMES = new String[] { "Name", "IP Address(es)", "Number of Disks", "Total Disk Space (GB)" };
+
+	// public enum SERVER_DISK_TABLE_COLUMN_INDICES {
+	// NAME, NUM_OF_CPUS, CPU_USAGE, TOTAL_MEMORY, MEMORY_IN_USE, TOTAL_DISK_SPACE, DISK_SPACE_IN_USE
+	// };
+	//
+	// private static final String[] SERVER_TABLE_COLUMN_NAMES = new String[] { "Name",
+	// "Number\nof CPUs", "CPU\nUsage (%)", "Total\nMemory (GB)", "Memory\nIn Use (GB)",
+	// "Total Disk\n Space (GB)", "Disk Space\nin Use (GB)"};
+
+	public ServersPage(final Composite parent, IWorkbenchSite site, EntityGroup<Server> servers) {
+		super(parent, SWT.NONE);
+		
 		addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
 				toolkit.dispose();
@@ -69,16 +78,9 @@ public class VolumesPage extends Composite {
 		toolkit.paintBordersFor(this);
 
 		setupPageLayout();
-		Text filterText = guiHelper.createFilterText(toolkit, this);
-		setupVolumeTableViewer(filterText);
-	}
-
-	public VolumesPage(final Composite parent, int style, EntityGroup<Volume> volumes) {
-		this(parent, style);
-
-		tableViewer.setInput(volumes);
+		setupPage(site, servers);
 		parent.layout(); // Important - this actually paints the table
-		
+
 		/**
 		 * Ideally not required. However the table viewer is not getting laid out properly on performing
 		 * "maximize + restore" So this is a hack to make sure that the table is laid out again on re-size of the window
@@ -89,9 +91,14 @@ public class VolumesPage extends Composite {
 			public void paintControl(PaintEvent e) {
 				parent.layout();
 			}
-		});		
+		});
 	}
 	
+	public void setInput(EntityGroup<Server> servers) {
+		tableViewer.setInput(servers);
+		tableViewer.refresh();		
+	}
+
 	public void addDoubleClickListener(IDoubleClickListener listener) {
 		tableViewer.addDoubleClickListener(listener);
 	}
@@ -103,40 +110,53 @@ public class VolumesPage extends Composite {
 		setLayout(layout);
 	}
 
-	private void setupVolumeTable(Composite parent, Table table) {
+	private void setupServerTable(Composite parent, Table table) {
 		table.setHeaderVisible(true);
-		table.setLinesVisible(true);
-		
-		TableColumnLayout columnLayout = guiHelper.createTableColumnLayout(table, VOLUME_TABLE_COLUMN_NAMES);
-		parent.setLayout(columnLayout);
+		table.setLinesVisible(false);
 
-		setColumnProperties(table, VOLUME_TABLE_COLUMN_INDICES.VOLUME_STATUS, SWT.CENTER, 50);
-		setColumnProperties(table, VOLUME_TABLE_COLUMN_INDICES.NUM_OF_DISKS, SWT.CENTER, 50);
-		setColumnProperties(table, VOLUME_TABLE_COLUMN_INDICES.TRANSPORT_TYPE, SWT.CENTER, 70);
+		TableColumnLayout tableColumnLayout = guiHelper.createTableColumnLayout(table, SERVER_TABLE_COLUMN_NAMES);
+		parent.setLayout(tableColumnLayout);
+
+		setColumnProperties(table, SERVER_TABLE_COLUMN_INDICES.NAME, SWT.CENTER, 70);
+		setColumnProperties(table, SERVER_TABLE_COLUMN_INDICES.IP_ADDRESSES, SWT.CENTER, 100);
+		setColumnProperties(table, SERVER_TABLE_COLUMN_INDICES.NUM_OF_DISKS, SWT.CENTER, 70);
+		setColumnProperties(table, SERVER_TABLE_COLUMN_INDICES.TOTAL_DISK_SPACE, SWT.CENTER, 70);
+		// setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.NUM_OF_CPUS, SWT.CENTER, 90);
+		// setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.CPU_USAGE, SWT.CENTER, 90);
+		// setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.TOTAL_MEMORY, SWT.CENTER, 90);
+		// setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.MEMORY_IN_USE, SWT.CENTER, 90);
+		// setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.DISK_SPACE_IN_USE, SWT.CENTER, 90);
 	}
-	
-	private TableViewer createVolumeTableViewer(Composite parent) {
-		TableViewer tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
-		tableViewer.setLabelProvider(new VolumeTableLabelProvider());
-		tableViewer.setContentProvider(new EntityGroupContentProvider<Volume>());
 
-		setupVolumeTable(parent, tableViewer.getTable());
+	private TableViewer createServerTableViewer(Composite parent) {
+		TableViewer tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
+		// TableViewer tableViewer = new TableViewer(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
+		tableViewer.setLabelProvider(new ServerTableLabelProvider());
+		tableViewer.setContentProvider(new EntityGroupContentProvider<Server>());
+
+		setupServerTable(parent, tableViewer.getTable());
 
 		return tableViewer;
 	}
 
 	private Composite createTableViewerComposite() {
-		Composite tableViewerComposite = new Composite(this, SWT.NO);
+		Composite tableViewerComposite = new Composite(this, SWT.NONE);
 		tableViewerComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
 		tableViewerComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		return tableViewerComposite;
 	}
 
-	private void setupVolumeTableViewer(final Text filterText) {
+	private void setupPage(IWorkbenchSite site, EntityGroup<Server> servers) {
+		Text filterText = guiHelper.createFilterText(toolkit, this);
+		
 		Composite tableViewerComposite = createTableViewerComposite();
-		tableViewer = createVolumeTableViewer(tableViewerComposite);
+		tableViewer = createServerTableViewer(tableViewerComposite);
+		site.setSelectionProvider(tableViewer);
+		
 		// Create a case insensitive filter for the table viewer using the filter text field
 		guiHelper.createFilter(tableViewer, filterText, false);
+		
+		tableViewer.setInput(servers);
 	}
 
 	/**
@@ -147,11 +167,11 @@ public class VolumesPage extends Composite {
 	 * @param alignment
 	 * @param weight
 	 */
-	public void setColumnProperties(Table table, VOLUME_TABLE_COLUMN_INDICES columnIndex, int alignment, int weight) {
+	private void setColumnProperties(Table table, SERVER_TABLE_COLUMN_INDICES columnIndex, int alignment, int weight) {
 		TableColumn column = table.getColumn(columnIndex.ordinal());
 		column.setAlignment(alignment);
 
 		TableColumnLayout tableColumnLayout = (TableColumnLayout) table.getParent().getLayout();
 		tableColumnLayout.setColumnData(column, new ColumnWeightData(weight));
-	}
+	}	
 }

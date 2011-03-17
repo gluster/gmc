@@ -32,9 +32,9 @@ import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.views.details.ServersPage;
 import com.gluster.storage.management.gui.views.details.TabCreator;
 import com.gluster.storage.management.gui.views.navigator.NavigationView;
+import com.gluster.storage.management.gui.views.pages.ServersPage;
 
 public class EntityGroupServerTabCreator implements TabCreator, IDoubleClickListener {
 	private static final GUIHelper guiHelper = GUIHelper.getInstance();
@@ -46,7 +46,7 @@ public class EntityGroupServerTabCreator implements TabCreator, IDoubleClickList
 
 	private void createServersTab(EntityGroup<Server> servers, TabFolder tabFolder) {
 		Composite serversTab = guiHelper.createTab(tabFolder, "Discovered Servers", IImageKeys.SERVERS);
-		ServersPage page = new ServersPage(serversTab, SWT.NONE, servers);
+		ServersPage page = new ServersPage(serversTab, null, servers);
 		page.addDoubleClickListener(this);
 	}
 	

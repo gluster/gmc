@@ -18,8 +18,6 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.views.navigator;
 
-import org.eclipse.core.commands.Command;
-import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.MenuManager;
@@ -31,26 +29,31 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.gui.views.ClusterSummaryView;
+import com.gluster.storage.management.gui.views.DiscoveredServerView;
 import com.gluster.storage.management.gui.views.DiscoveredServersView;
+import com.gluster.storage.management.gui.views.VolumesSummaryView;
+import com.gluster.storage.management.gui.views.VolumesView;
 
 public class NavigationView extends ViewPart implements ISelectionListener {
-	public static final String ID = "com.gluster.storage.management.gui.views.navigator";
+	public static final String ID = NavigationView.class.getName();
 	private GlusterDataModel model;
 	private TreeViewer treeViewer;
 	private IAdapterFactory adapterFactory = new ClusterAdapterFactory();
@@ -65,7 +68,6 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 		model = GlusterDataModelManager.getInstance().getModel();
 
 		treeViewer = new TreeViewer(parent, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
-		getSite().setSelectionProvider(treeViewer);
 		Platform.getAdapterManager().registerAdapters(adapterFactory, Entity.class);
 		treeViewer.setLabelProvider(WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider());
 		treeViewer.setContentProvider(new BaseWorkbenchContentProvider());
@@ -87,6 +89,7 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 			}
 		});
 
+		getSite().setSelectionProvider(treeViewer);
 		getSite().getPage().addSelectionListener(this);
 	}
 
@@ -109,6 +112,7 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 	 */
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+
 		if (part instanceof NavigationView && selection instanceof TreeSelection) {
 			Entity selectedEntity = (Entity) ((TreeSelection) selection).getFirstElement();
 
@@ -119,27 +123,32 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 
 			IViewReference[] viewReferences = getSite().getPage().getViewReferences();
 			for (final IViewReference viewReference : viewReferences) {
-				if (!viewReference.getId().equals(ID)) {					
-					PlatformUI
-					.getWorkbench()
-					.getActiveWorkbenchWindow()
-					.getActivePage()
-					.hideView(
-							PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
-									.findViewReference(DiscoveredServersView.ID));
+				if (!viewReference.getId().equals(ID)) {
+					getSite().getPage().hideView(viewReference);
 				}
 			}
 
 			entity = selectedEntity;
-			if (entity instanceof EntityGroup) {
-				Class type = ((EntityGroup) entity).getEntityType();
-				if (type == Server.class) {
+			try {
+				if (entity instanceof EntityGroup) {
+					if ((((EntityGroup) entity).getEntityType()) == Server.class) {
+						getSite().getPage().showView(DiscoveredServersView.ID);
+					} else if ((((EntityGroup) entity).getEntityType()) == Volume.class) {
+						IViewPart summaryView = getSite().getPage().showView(VolumesSummaryView.ID);
+						getSite().getPage().showView(VolumesView.ID);
+						getSite().getPage().bringToTop(summaryView);
+					}
+				} else if (entity.getClass() == Server.class) {
+					getSite().getPage().showView(DiscoveredServerView.ID);
+				} else if (entity instanceof Cluster) {
 					try {
-						getSite().getPage().showView(DiscoveredServersView.ID);						
-					} catch (PartInitException e) {
-						e.printStackTrace();
+						getSite().getPage().showView(ClusterSummaryView.ID);
+					} catch (RuntimeException e) {
+						// happens when navigation view is opening for the first time. just ignore it!
 					}
 				}
+			} catch (PartInitException e) {
+				e.printStackTrace();
 			}
 		}
 	}

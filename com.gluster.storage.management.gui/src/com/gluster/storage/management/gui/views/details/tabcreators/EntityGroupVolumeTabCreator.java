@@ -38,8 +38,8 @@ import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.views.details.TabCreator;
-import com.gluster.storage.management.gui.views.details.VolumesPage;
 import com.gluster.storage.management.gui.views.navigator.NavigationView;
+import com.gluster.storage.management.gui.views.pages.VolumesPage;
 
 public class EntityGroupVolumeTabCreator implements TabCreator, IDoubleClickListener {
 	private static final GUIHelper guiHelper = GUIHelper.getInstance();
@@ -103,7 +103,7 @@ public class EntityGroupVolumeTabCreator implements TabCreator, IDoubleClickList
 
 	private void createVolumesTab(EntityGroup<Volume> volumes, TabFolder tabFolder, FormToolkit toolkit) {
 		Composite volumesTab = guiHelper.createTab(tabFolder, "Volumes", IImageKeys.VOLUMES);
-		VolumesPage page = new VolumesPage(volumesTab, SWT.NONE, volumes);
+		VolumesPage page = new VolumesPage(volumesTab, null, volumes);
 		page.addDoubleClickListener(this);
 	}
 
