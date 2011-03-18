@@ -18,9 +18,15 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.dialogs;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -34,13 +40,20 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
+import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 
 public class CreateVolumePage1 extends WizardPage {
-	private static final String PAGE_NAME = "create.volume.page.1";
+	public static final String PAGE_NAME = "create.volume.page.1";
 	private Text txtName;
+	private ComboViewer typeComboViewer;
 	private Text txtAccessControl;
+	private Volume volume = new Volume();
+	private List<Disk> disks;
+	private Button btnNfs;
 
 	/**
 	 * Create the wizard.
@@ -82,7 +95,7 @@ public class CreateVolumePage1 extends WizardPage {
 		lblType.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblType.setText("Type: ");
 		
-		ComboViewer typeComboViewer = new ComboViewer(container, SWT.READ_ONLY);
+		typeComboViewer = new ComboViewer(container, SWT.READ_ONLY);
 		Combo typeCombo = typeComboViewer.getCombo();
 		GridData typeComboData = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
 		typeCombo.setLayoutData(typeComboData);
@@ -113,7 +126,10 @@ public class CreateVolumePage1 extends WizardPage {
 			public void handleEvent(Event event) {
 				SelectDisksDialog dialog = new SelectDisksDialog(getShell());
 				dialog.create();
-		        dialog.open();
+		        if(dialog.open() == Window.OK) {
+		        	// user has customized disks. get them from the dialog box.
+		        	volume.setDisks(dialog.getSelectedDisks());
+		        }
 			}
 		});
 
@@ -127,7 +143,7 @@ public class CreateVolumePage1 extends WizardPage {
 		btnGluster.setText("Gluster");
 		new Label(container, SWT.NONE);
 		
-		Button btnNfs = new Button(container, SWT.CHECK);
+		btnNfs = new Button(container, SWT.CHECK);
 		btnNfs.setSelection(true);
 		btnNfs.setText("NFS");
 		
@@ -145,5 +161,23 @@ public class CreateVolumePage1 extends WizardPage {
 		Label lblAccessControlInfo = new Label(container, SWT.TOP);
 		lblAccessControlInfo.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		lblAccessControlInfo.setText("(Comma separated list of IP addresses)");
+	}
+
+	public Volume getVolume() {
+		volume.setName(txtName.getText());
+		
+		IStructuredSelection selection = (IStructuredSelection)typeComboViewer.getSelection();
+		volume.setVolumeType((VOLUME_TYPE)selection.getFirstElement());
+		
+		volume.setTransportType(TRANSPORT_TYPE.ETHERNET);
+		Set<NAS_PROTOCOL> nasProtocols = new HashSet<Volume.NAS_PROTOCOL>();
+		nasProtocols.add(NAS_PROTOCOL.GLUSTERFS);
+		if(btnNfs.getSelection()) {
+			nasProtocols.add(NAS_PROTOCOL.NFS);
+		}
+		
+		volume.setAccessControlList(txtAccessControl.getText());
+		
+		return volume;
 	}
 }

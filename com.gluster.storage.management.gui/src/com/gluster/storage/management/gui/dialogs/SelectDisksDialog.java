@@ -18,6 +18,8 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.dialogs;
 
+import java.util.List;
+
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -29,8 +31,11 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.core.model.Disk;
 
 public class SelectDisksDialog extends Dialog {
+
+	private CreateVolumeDisksPage disksPage;
 
 	/**
 	 * Create the dialog.
@@ -56,7 +61,7 @@ public class SelectDisksDialog extends Dialog {
 		container.setLayoutData(containerLayoutData);
 
 		getShell().setText("Create Volume - Select Disks");
-		CreateVolumeDisksPage disksPage = new CreateVolumeDisksPage(container, SWT.NONE, GlusterDataModelManager
+		disksPage = new CreateVolumeDisksPage(container, SWT.NONE, GlusterDataModelManager
 				.getInstance().getReadyDisksOfAllServers());
 
 		return container;
@@ -83,13 +88,16 @@ public class SelectDisksDialog extends Dialog {
 
 	@Override
 	protected void cancelPressed() {
-		// TODO Auto-generated method stub
 		super.cancelPressed();
 	}
 
 	@Override
 	protected void okPressed() {
-		// TODO Auto-generated method stub
+		// TODO Validations
 		super.okPressed();
+	}
+	
+	public List<Disk> getSelectedDisks() {
+		return disksPage.getSelectedDisks(); 
 	}
 }

@@ -18,6 +18,7 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.dialogs;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.jface.viewers.ITableLabelProvider;
@@ -38,6 +39,8 @@ import com.gluster.storage.management.gui.TableLabelProviderAdapter;
 import com.gluster.storage.management.gui.utils.EntityViewerFilter;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.richclientgui.toolbox.duallists.CustomTableDualListComposite;
+import com.richclientgui.toolbox.duallists.DualListComposite.ListContentChangedListener;
+import com.richclientgui.toolbox.duallists.IRemovableContentProvider;
 import com.richclientgui.toolbox.duallists.RemovableContentProvider;
 import com.richclientgui.toolbox.duallists.TableColumnData;
 
@@ -51,12 +54,14 @@ public class CreateVolumeDisksPage extends Composite {
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 	private CustomTableDualListComposite<Disk> dualTableViewer;
 	private Text filterText;
-	
+
+	private IRemovableContentProvider<Disk> chosenDisksContentProvider;
+
 	public CreateVolumeDisksPage(final Composite parent, int style, List<Disk> disks) {
 		super(parent, style);
 
 		createPage(disks);
-		
+
 		parent.layout();
 	}
 
@@ -72,39 +77,40 @@ public class CreateVolumeDisksPage extends Composite {
 				Disk disk = (Disk) element;
 				return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? disk.getServerName()
 						: columnIndex == DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? disk.getName()
-						: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? NumberUtil.formatNumber(disk.getSpace())
-						: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE_USED.ordinal() ? NumberUtil.formatNumber(disk.getSpaceInUse()) 
-						: "Invalid");
+								: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? NumberUtil
+										.formatNumber(disk.getSpace())
+										: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE_USED.ordinal() ? NumberUtil
+												.formatNumber(disk.getSpaceInUse()) : "Invalid");
 			}
 		};
 	}
 
 	private void createPage(List<Disk> disks) {
 		setupPageLayout();
-		
+
 		filterText = guiHelper.createFilterText(this);
 		new Label(this, SWT.NONE);
-		
-		createDualTableViewer(disks);		
+
+		createDualTableViewer(disks);
 		createFilter(filterText, false); // attach filter text to the dual table viewer for auto-filtering
-		
+
 		Composite buttonContainer = new Composite(this, SWT.NONE);
 		buttonContainer.setLayout(new GridLayout(1, false));
 		GridData buttonContainerData = new GridData(SWT.FILL, SWT.CENTER, true, true);
 		buttonContainerData.minimumWidth = 40;
 		buttonContainer.setLayoutData(buttonContainerData);
-		
+
 		Button btnUp = new Button(buttonContainer, SWT.TOGGLE);
 		GridData btnUpData = new GridData(SWT.LEFT, SWT.BOTTOM, true, false);
 		btnUpData.minimumWidth = 30;
 		btnUp.setLayoutData(btnUpData);
 		btnUp.setImage(guiHelper.getImage(IImageKeys.ARROW_UP));
-		
+
 		Button btnDown = new Button(buttonContainer, SWT.TOGGLE);
 		btnDown.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false));
 		btnDown.setImage(guiHelper.getImage(IImageKeys.ARROW_DOWN));
 	}
-	
+
 	private void createFilter(final Text filterText, boolean caseSensitive) {
 		final String initialFilterString = filterText.getText();
 
@@ -137,10 +143,9 @@ public class CreateVolumeDisksPage extends Composite {
 
 	private void createDualTableViewer(List<Disk> disks) {
 		TableColumnData[] columnData = createColumnData();
-		ITableLabelProvider diskLabelProvider = getDiskLabelProvider();		
+		ITableLabelProvider diskLabelProvider = getDiskLabelProvider();
 
-		dualTableViewer = new CustomTableDualListComposite<Disk>(this, SWT.NONE,
-				columnData, columnData);		
+		dualTableViewer = new CustomTableDualListComposite<Disk>(this, SWT.NONE, columnData, columnData);
 
 		dualTableViewer.setViewerLabels("Available:", "Chosen:");
 
@@ -148,10 +153,12 @@ public class CreateVolumeDisksPage extends Composite {
 		dualTableViewer.setAvailableTableHeaderVisible(true);
 		dualTableViewer.setAvailableContentProvider(new RemovableContentProvider<Disk>());
 		dualTableViewer.setAvailableLabelProvider(diskLabelProvider);
-		
+
 		dualTableViewer.setChosenTableLinesVisible(true);
 		dualTableViewer.setChosenTableHeaderVisible(true);
-		dualTableViewer.setChosenContentProvider(new RemovableContentProvider<Disk>(disks));
+
+		chosenDisksContentProvider = new RemovableContentProvider<Disk>(disks);
+		dualTableViewer.setChosenContentProvider(chosenDisksContentProvider);
 		dualTableViewer.setChosenLabelProvider(diskLabelProvider);
 	}
 
@@ -173,5 +180,14 @@ public class CreateVolumeDisksPage extends Composite {
 		setLayout(layout);
 
 		setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+	}
+
+	public List<Disk> getSelectedDisks() {
+		// dualTableViewer.getChosenTable().getI
+		Disk[] disks = (Disk[])chosenDisksContentProvider.getElements(dualTableViewer);
+		if(disks != null) {
+			return Arrays.asList(disks);
+		}
+		return null;
 	}
 }

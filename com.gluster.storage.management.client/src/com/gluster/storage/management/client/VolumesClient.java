@@ -23,15 +23,14 @@ package com.gluster.storage.management.client;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.core.MediaType;
-
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.model.GenericResponse;
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 
 public class VolumesClient extends AbstractClient {
-	private static final String RESOURCE_NAME = "cluster/volumes";
+	private static final String RESOURCE_NAME = "/cluster/volumes";
 
 	public VolumesClient(String serverName, String securityToken) {
 		super(serverName, securityToken);
@@ -42,15 +41,10 @@ public class VolumesClient extends AbstractClient {
 		return RESOURCE_NAME;
 	}
 
-	public String createVolume(Volume volume) {
-
-		GenericResponse<String> response = (GenericResponse<String>) resource.path("createvolume")
-				.type(MediaType.APPLICATION_XML).accept(MediaType.APPLICATION_XML).post(GenericResponse.class, volume);
-
-		System.out.println("Response : " + response.getData());
-
-		return response.getData();
-
+	@SuppressWarnings("unchecked")
+	public Status createVolume(Volume volume) {
+		GenericResponse<String> response = (GenericResponse<String>) postObject(GenericResponse.class, volume);
+		return response.getStatus();
 	}
 
 	/**
@@ -71,7 +65,7 @@ public class VolumesClient extends AbstractClient {
 
 			Volume vol = new Volume("vol1", null, Volume.VOLUME_TYPE.PLAIN_DISTRIBUTE, Volume.TRANSPORT_TYPE.ETHERNET,
 					Volume.VOLUME_STATUS.ONLINE);
-			vol.setDisks(disks);
+			// vol.setDisks(disks);
 			System.out.println(VC.createVolume(vol));
 		}
 	}
