@@ -46,6 +46,7 @@ import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.gui.toolbar.ToolbarManager;
 import com.gluster.storage.management.gui.views.ClusterSummaryView;
 import com.gluster.storage.management.gui.views.DiscoveredServerView;
 import com.gluster.storage.management.gui.views.DiscoveredServersView;
@@ -57,6 +58,7 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 	private GlusterDataModel model;
 	private TreeViewer treeViewer;
 	private IAdapterFactory adapterFactory = new ClusterAdapterFactory();
+	private ToolbarManager toolbarManager;
 	private Entity entity;
 
 	public NavigationView() {
@@ -91,6 +93,8 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 
 		getSite().setSelectionProvider(treeViewer);
 		getSite().getPage().addSelectionListener(this);
+		// Create the toolbar manager
+		toolbarManager = new ToolbarManager(getSite().getWorkbenchWindow());
 	}
 
 	public void selectEntity(Entity entity) {
@@ -150,6 +154,9 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 			} catch (PartInitException e) {
 				e.printStackTrace();
 			}
+			
+			// update toolbar buttons visibility based on selected entity
+			toolbarManager.updateToolbar(entity);
 		}
 	}
 }
