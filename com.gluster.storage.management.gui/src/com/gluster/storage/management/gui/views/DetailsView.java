@@ -38,7 +38,6 @@ import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.gui.toolbar.ToolbarManager;
 import com.gluster.storage.management.gui.views.details.TabCreatorFactory;
 import com.gluster.storage.management.gui.views.details.TabCreatorFactoryImpl;
-import com.gluster.storage.management.gui.views.navigator.NavigationView;
 
 /**
  * This view is displayed on the right hand side of the platform UI. It updates itself with appropriate tabs

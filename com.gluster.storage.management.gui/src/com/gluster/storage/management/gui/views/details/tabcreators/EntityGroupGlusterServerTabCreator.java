@@ -39,10 +39,10 @@ import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.GUIHelper;
+import com.gluster.storage.management.gui.views.NavigationView;
 import com.gluster.storage.management.gui.views.details.DisksPage;
 import com.gluster.storage.management.gui.views.details.GlusterServersPage;
 import com.gluster.storage.management.gui.views.details.TabCreator;
-import com.gluster.storage.management.gui.views.navigator.NavigationView;
 
 public class EntityGroupGlusterServerTabCreator implements TabCreator, IDoubleClickListener {
 	private static final GUIHelper guiHelper = GUIHelper.getInstance();

@@ -37,8 +37,8 @@ import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.GUIHelper;
+import com.gluster.storage.management.gui.views.NavigationView;
 import com.gluster.storage.management.gui.views.details.TabCreator;
-import com.gluster.storage.management.gui.views.navigator.NavigationView;
 import com.gluster.storage.management.gui.views.pages.VolumesPage;
 
 public class EntityGroupVolumeTabCreator implements TabCreator, IDoubleClickListener {

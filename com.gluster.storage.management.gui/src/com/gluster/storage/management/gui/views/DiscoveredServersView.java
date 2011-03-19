@@ -34,7 +34,6 @@ import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.views.navigator.NavigationView;
 import com.gluster.storage.management.gui.views.pages.ServersPage;
 
 /**

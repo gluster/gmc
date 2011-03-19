@@ -22,7 +22,7 @@ import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
 
 import com.gluster.storage.management.gui.views.DetailsView;
-import com.gluster.storage.management.gui.views.navigator.NavigationView;
+import com.gluster.storage.management.gui.views.NavigationView;
 
 public class Perspective implements IPerspectiveFactory {
 

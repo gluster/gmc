@@ -61,31 +61,31 @@ public class VolumesSummaryView extends ViewPart {
 			}
 		}
 		
-		createSections(parent, volumes, toolkit);
+		createSections(parent);
 	}
 
-	private void createSections(Composite parent, final EntityGroup<Volume> volumes, FormToolkit toolkit) {
-		final ScrolledForm form = guiHelper.setupForm(parent, toolkit, "Volumes - Summary");
-		createSummarySection(volumes, toolkit, form);
-		createRunningTasksSection(volumes, toolkit, form);
-		createAlertsSection(volumes, toolkit, form);
+	private void createSections(Composite parent) {
+		form = guiHelper.setupForm(parent, toolkit, "Volumes - Summary");
+		createSummarySection();
+		createRunningTasksSection();
+		createAlertsSection();
 		
 		parent.layout(); // IMP: lays out the form properly
 	}
 	
-	private void createAlertsSection(final EntityGroup<Volume> volumes, FormToolkit toolkit, final ScrolledForm form) {
+	private void createAlertsSection() {
 		Composite section = guiHelper.createSection(form, toolkit, "Alerts", null, 2, false);
 
 		toolkit.createLabel(section, "Any alerts related to volumes\nwill be displayed here.");
 	}
 
-	private void createRunningTasksSection(final EntityGroup<Volume> volumes, FormToolkit toolkit, final ScrolledForm form) {
+	private void createRunningTasksSection() {
 		Composite section = guiHelper.createSection(form, toolkit, "Running Tasks", null, 2, false);
 
 		toolkit.createLabel(section, "List of running tasks related to\nvolumes will be displayed here.");
 	}
 
-	private void createSummarySection(final EntityGroup<Volume> volumes, FormToolkit toolkit, final ScrolledForm form) {
+	private void createSummarySection() {
 		Composite section = guiHelper.createSection(form, toolkit, "Availability", null, 2, false);
 
 		Double[] values = new Double[] { Double.valueOf(getVolumeCountByStatus(volumes, VOLUME_STATUS.ONLINE)),

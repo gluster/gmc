@@ -16,7 +16,7 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.gui.views.navigator;
+package com.gluster.storage.management.gui.views;
 
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.core.runtime.Platform;
@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
@@ -47,11 +48,7 @@ import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.toolbar.ToolbarManager;
-import com.gluster.storage.management.gui.views.ClusterSummaryView;
-import com.gluster.storage.management.gui.views.DiscoveredServerView;
-import com.gluster.storage.management.gui.views.DiscoveredServersView;
-import com.gluster.storage.management.gui.views.VolumesSummaryView;
-import com.gluster.storage.management.gui.views.VolumesView;
+import com.gluster.storage.management.gui.views.navigator.ClusterAdapterFactory;
 
 public class NavigationView extends ViewPart implements ISelectionListener {
 	public static final String ID = NavigationView.class.getName();
@@ -133,28 +130,29 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 			}
 
 			entity = selectedEntity;
+			IWorkbenchPage page = getSite().getPage();
 			try {
 				if (entity instanceof EntityGroup) {
 					if ((((EntityGroup) entity).getEntityType()) == Server.class) {
-						getSite().getPage().showView(DiscoveredServersView.ID);
+						page.showView(DiscoveredServersView.ID);
 					} else if ((((EntityGroup) entity).getEntityType()) == Volume.class) {
-						IViewPart summaryView = getSite().getPage().showView(VolumesSummaryView.ID);
-						getSite().getPage().showView(VolumesView.ID);
-						getSite().getPage().bringToTop(summaryView);
+						page.showView(VolumesSummaryView.ID);
+						page.showView(VolumesView.ID, null, IWorkbenchPage.VIEW_CREATE);
 					}
 				} else if (entity.getClass() == Server.class) {
-					getSite().getPage().showView(DiscoveredServerView.ID);
+					page.showView(DiscoveredServerView.ID);
+				} else if (entity instanceof Volume) {
+					page.showView(VolumeSummaryView.ID);
+					page.showView(VolumeDisksView.ID, null, IWorkbenchPage.VIEW_CREATE);
+					page.showView(VolumeOptionsView.ID, null, IWorkbenchPage.VIEW_CREATE);
+					page.showView(VolumeLogsView.ID, null, IWorkbenchPage.VIEW_CREATE);
 				} else if (entity instanceof Cluster) {
-					try {
-						getSite().getPage().showView(ClusterSummaryView.ID);
-					} catch (RuntimeException e) {
-						// happens when navigation view is opening for the first time. just ignore it!
-					}
+					page.showView(ClusterSummaryView.ID);
 				}
 			} catch (PartInitException e) {
 				e.printStackTrace();
 			}
-			
+
 			// update toolbar buttons visibility based on selected entity
 			toolbarManager.updateToolbar(entity);
 		}

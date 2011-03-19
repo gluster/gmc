@@ -68,7 +68,7 @@ import org.eclipse.ui.forms.widgets.Section;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.gui.IImageKeys;
-import com.gluster.storage.management.gui.views.navigator.NavigationView;
+import com.gluster.storage.management.gui.views.NavigationView;
 
 public class GUIHelper {
 	private static final GUIHelper instance = new GUIHelper();
