@@ -125,7 +125,7 @@
             allowMultiple="false"
             category="com.gluster.storage.management.gui.category"
             class="com.gluster.storage.management.gui.views.VolumeLogsView"
-            icon="icons/gluster_icon.png"
+            icon="icons/logs.png"
             id="com.gluster.storage.management.gui.views.VolumeLogsView"
             name="Volume Logs"
             restorable="true">
@@ -179,7 +179,7 @@
             allowMultiple="false"
             category="com.gluster.storage.management.gui.category"
             class="com.gluster.storage.management.gui.views.GlusterServerLogsView"
-            icon="icons/gluster_icon.png"
+            icon="icons/logs.png"
             id="com.gluster.storage.management.gui.views.GlusterServerLogsView"
             name="Server Logs"
             restorable="true">

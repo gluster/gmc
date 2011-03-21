@@ -58,9 +58,9 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 		// Create the views and toolbar managers
 		toolbarManager = new GlusterToolbarManager(getSite().getWorkbenchWindow());
 		viewsManager = new GlusterViewsManager(getSite().getPage());
-		
+
 		// listen to selection events to update views/toolbar accordingly
-		getSite().getPage().addSelectionListener(this);		
+		getSite().getPage().addSelectionListener(this);
 	}
 
 	private void createNavigationTree(Composite parent) {
@@ -127,6 +127,9 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 				// update views and toolbar buttons visibility based on selected entity
 				viewsManager.updateViews(entity);
 				toolbarManager.updateToolbar(entity);
+
+				// Opening of other views may cause navigation tree to lose focus; get it back.
+				setFocus();
 			}
 		}
 	}

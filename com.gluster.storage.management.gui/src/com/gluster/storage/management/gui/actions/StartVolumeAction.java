@@ -19,25 +19,37 @@
 package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
-import org.eclipse.ui.PlatformUI;
+import org.eclipse.jface.viewers.ISelection;
 
-import com.gluster.storage.management.gui.views.DiscoveredServersView;
+import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 
 public class StartVolumeAction extends AbstractActionDelegate {
+
 	@Override
 	public void run(IAction action) {
-		PlatformUI
-				.getWorkbench()
-				.getActiveWorkbenchWindow()
-				.getActivePage()
-				.hideView(
-						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
-								.findViewReference(DiscoveredServersView.ID));
-		System.out.println("After closing the view!");
+		System.out.println("Running [" + this.getClass().getSimpleName() + "]");
 	}
 
 	@Override
 	public void dispose() {
 		System.out.println("Disposing [" + this.getClass().getSimpleName() + "]");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.gluster.storage.management.gui.actions.AbstractActionDelegate#selectionChanged(org.eclipse.jface.action.IAction
+	 * , org.eclipse.jface.viewers.ISelection)
+	 */
+	@Override
+	public void selectionChanged(IAction action, ISelection selection) {
+		super.selectionChanged(action, selection);
+
+		if (selectedEntity instanceof Volume) {
+			Volume volume = (Volume) selectedEntity;
+			action.setEnabled(volume.getStatus() == VOLUME_STATUS.OFFLINE);
+		}
 	}
 }
