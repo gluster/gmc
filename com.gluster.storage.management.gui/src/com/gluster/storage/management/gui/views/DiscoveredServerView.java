@@ -52,10 +52,10 @@ public class DiscoveredServerView extends ViewPart {
 		if (server == null) {
 			server = (Server) guiHelper.getSelectedEntity(getSite(), Server.class);
 		}
-		createSections(parent, server, toolkit);
+		createSections(parent);
 	}
 
-	private void createServerSummarySection(Server server, FormToolkit toolkit, final ScrolledForm form) {
+	private void createServerSummarySection() {
 		Composite section = guiHelper.createSection(form, toolkit, "Summary", null, 2, false);
 
 		toolkit.createLabel(section, "Number of CPUs: ", SWT.NONE);
@@ -68,10 +68,10 @@ public class DiscoveredServerView extends ViewPart {
 		toolkit.createLabel(section, "" + NumberUtil.formatNumber(server.getTotalDiskSpace()), SWT.NONE);
 	}
 
-	private void createSections(Composite parent, Server server, FormToolkit toolkit) {
+	private void createSections(Composite parent) {
 		String serverName = server.getName();
 		form = guiHelper.setupForm(parent, toolkit, "Discovered Server Summary [" + serverName + "]");
-		createServerSummarySection(server, toolkit, form);
+		createServerSummarySection();
 
 		parent.layout(); // IMP: lays out the form properly
 	}

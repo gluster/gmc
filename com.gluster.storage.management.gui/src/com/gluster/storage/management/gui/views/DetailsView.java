@@ -35,7 +35,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.core.model.Entity;
-import com.gluster.storage.management.gui.toolbar.ToolbarManager;
+import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
 import com.gluster.storage.management.gui.views.details.TabCreatorFactory;
 import com.gluster.storage.management.gui.views.details.TabCreatorFactoryImpl;
 
@@ -49,7 +49,7 @@ public class DetailsView extends ViewPart implements ISelectionListener {
 	private TabFolder tabFolder;
 	private Entity entity;
 	private TabCreatorFactory tabCreatorFactory = new TabCreatorFactoryImpl();
-	private ToolbarManager toolbarManager;
+	private GlusterToolbarManager toolbarManager;
 	private IWorkbenchPartSite site;
 
 	public DetailsView() {
@@ -71,7 +71,7 @@ public class DetailsView extends ViewPart implements ISelectionListener {
 		window.getSelectionService().addSelectionListener(this);
 		
 		// Create the toolbar manager
-		toolbarManager = new ToolbarManager(window);
+		toolbarManager = new GlusterToolbarManager(window);
 		site = getSite();
 	}
 

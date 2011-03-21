@@ -29,25 +29,17 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.ISelectionListener;
-import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IViewReference;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
-import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Entity;
-import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
-import com.gluster.storage.management.core.model.Server;
-import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.gui.toolbar.ToolbarManager;
+import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
 import com.gluster.storage.management.gui.views.navigator.ClusterAdapterFactory;
 
 public class NavigationView extends ViewPart implements ISelectionListener {
@@ -55,19 +47,27 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 	private GlusterDataModel model;
 	private TreeViewer treeViewer;
 	private IAdapterFactory adapterFactory = new ClusterAdapterFactory();
-	private ToolbarManager toolbarManager;
+	private GlusterToolbarManager toolbarManager;
 	private Entity entity;
-
-	public NavigationView() {
-		super();
-	}
+	private GlusterViewsManager viewsManager;
 
 	@Override
 	public void createPartControl(Composite parent) {
+		createNavigationTree(parent);
+
+		// Create the views and toolbar managers
+		toolbarManager = new GlusterToolbarManager(getSite().getWorkbenchWindow());
+		viewsManager = new GlusterViewsManager(getSite().getPage());
+		
+		// listen to selection events to update views/toolbar accordingly
+		getSite().getPage().addSelectionListener(this);		
+	}
+
+	private void createNavigationTree(Composite parent) {
 		model = GlusterDataModelManager.getInstance().getModel();
 
-		treeViewer = new TreeViewer(parent, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 		Platform.getAdapterManager().registerAdapters(adapterFactory, Entity.class);
+		treeViewer = new TreeViewer(parent, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 		treeViewer.setLabelProvider(WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider());
 		treeViewer.setContentProvider(new BaseWorkbenchContentProvider());
 		treeViewer.setInput(model);
@@ -75,23 +75,28 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 		// select the first element by default
 		treeViewer.setSelection(new StructuredSelection(model.getChildren().get(0)));
 
-		MenuManager menuManager = new MenuManager("&Gluster", "gluster.context.menu");
-		Menu contextMenu = menuManager.createContextMenu(treeViewer.getControl());
-		treeViewer.getTree().setMenu(contextMenu);
+		setupContextMenu();
 
-		getSite().registerContextMenu(menuManager, treeViewer);
+		// register as selection provider so that other views can listen to any selection events on the tree
+		getSite().setSelectionProvider(treeViewer);
 
+		// Refresh the navigation tree whenever there is a change to the data model
 		GlusterDataModelManager.getInstance().addClusterListener(new DefaultClusterListener() {
 			@Override
 			public void serverAdded(GlusterServer server) {
 				treeViewer.refresh();
 			}
 		});
+	}
 
-		getSite().setSelectionProvider(treeViewer);
-		getSite().getPage().addSelectionListener(this);
-		// Create the toolbar manager
-		toolbarManager = new ToolbarManager(getSite().getWorkbenchWindow());
+	/**
+	 * 
+	 */
+	private void setupContextMenu() {
+		MenuManager menuManager = new MenuManager("&Gluster", "gluster.context.menu");
+		Menu contextMenu = menuManager.createContextMenu(treeViewer.getControl());
+		treeViewer.getTree().setMenu(contextMenu);
+		getSite().registerContextMenu(menuManager, treeViewer);
 	}
 
 	public void selectEntity(Entity entity) {
@@ -113,48 +118,16 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 	 */
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-
 		if (part instanceof NavigationView && selection instanceof TreeSelection) {
 			Entity selectedEntity = (Entity) ((TreeSelection) selection).getFirstElement();
 
-			if (entity == selectedEntity || selectedEntity == null) {
-				// entity selection has not changed. do nothing.
-				return;
-			}
+			if (selectedEntity != null && selectedEntity != entity) {
+				entity = selectedEntity;
 
-			IViewReference[] viewReferences = getSite().getPage().getViewReferences();
-			for (final IViewReference viewReference : viewReferences) {
-				if (!viewReference.getId().equals(ID)) {
-					getSite().getPage().hideView(viewReference);
-				}
+				// update views and toolbar buttons visibility based on selected entity
+				viewsManager.updateViews(entity);
+				toolbarManager.updateToolbar(entity);
 			}
-
-			entity = selectedEntity;
-			IWorkbenchPage page = getSite().getPage();
-			try {
-				if (entity instanceof EntityGroup) {
-					if ((((EntityGroup) entity).getEntityType()) == Server.class) {
-						page.showView(DiscoveredServersView.ID);
-					} else if ((((EntityGroup) entity).getEntityType()) == Volume.class) {
-						page.showView(VolumesSummaryView.ID);
-						page.showView(VolumesView.ID, null, IWorkbenchPage.VIEW_CREATE);
-					}
-				} else if (entity.getClass() == Server.class) {
-					page.showView(DiscoveredServerView.ID);
-				} else if (entity instanceof Volume) {
-					page.showView(VolumeSummaryView.ID);
-					page.showView(VolumeDisksView.ID, null, IWorkbenchPage.VIEW_CREATE);
-					page.showView(VolumeOptionsView.ID, null, IWorkbenchPage.VIEW_CREATE);
-					page.showView(VolumeLogsView.ID, null, IWorkbenchPage.VIEW_CREATE);
-				} else if (entity instanceof Cluster) {
-					page.showView(ClusterSummaryView.ID);
-				}
-			} catch (PartInitException e) {
-				e.printStackTrace();
-			}
-
-			// update toolbar buttons visibility based on selected entity
-			toolbarManager.updateToolbar(entity);
 		}
 	}
 }
