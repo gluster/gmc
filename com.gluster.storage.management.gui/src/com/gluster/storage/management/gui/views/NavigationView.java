@@ -37,8 +37,10 @@ import org.eclipse.ui.part.ViewPart;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Entity;
+import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
 import com.gluster.storage.management.gui.views.navigator.ClusterAdapterFactory;
 
@@ -85,6 +87,19 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 			@Override
 			public void serverAdded(GlusterServer server) {
 				treeViewer.refresh();
+			}
+
+			/*
+			 * (non-Javadoc)
+			 * 
+			 * @see
+			 * com.gluster.storage.management.core.model.DefaultClusterListener#volumeChanged(com.gluster.storage.management
+			 * .core.model.Volume, com.gluster.storage.management.core.model.Event)
+			 */
+			@Override
+			public void volumeChanged(Volume volume, Event event) {
+				treeViewer.refresh();
+				selectEntity(volume); // this makes sure that the toolbar buttons get updated accoring to new status
 			}
 		});
 	}

@@ -22,7 +22,7 @@ package com.gluster.storage.management.core.model;
  * Default listener - doesn't do anything. Sub-class and override the method for
  * the event you want to handle.
  */
-public class DefaultClusterListener implements IClusterListener {
+public class DefaultClusterListener implements ClusterListener {
 
 	@Override
 	public void serverAdded(GlusterServer server) {

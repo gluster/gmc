@@ -48,6 +48,7 @@ public class Status {
 
 	public Status(ProcessResult result) {
 		this.code = result.getExitValue();
+		this.message = result.getOutput();
 	}
 
 	@XmlElement(name = "code", type = Integer.class)

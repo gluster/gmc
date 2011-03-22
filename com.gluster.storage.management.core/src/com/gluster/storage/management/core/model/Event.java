@@ -23,7 +23,8 @@ public class Event {
 		DISK_ADDED,
 		DISK_REMOVED,
 		NETWORK_INTERFACE_ADDED,
-		NETWORK_INTERFACE_REMOVED
+		NETWORK_INTERFACE_REMOVED,
+		VOLUME_STATUS_CHANGED
 	}
 	
 	private EVENT_TYPE eventType;
@@ -31,6 +32,22 @@ public class Event {
 	
 	public Event(EVENT_TYPE eventType, Object eventData) {
 		this.eventType = eventType;
+		this.eventData = eventData;
+	}
+
+	public EVENT_TYPE getEventType() {
+		return eventType;
+	}
+
+	public void setEventType(EVENT_TYPE eventType) {
+		this.eventType = eventType;
+	}
+
+	public Object getEventData() {
+		return eventData;
+	}
+
+	public void setEventData(Object eventData) {
 		this.eventData = eventData;
 	}
 }

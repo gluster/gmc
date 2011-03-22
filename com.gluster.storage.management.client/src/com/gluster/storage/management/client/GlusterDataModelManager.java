@@ -26,11 +26,13 @@ import java.util.List;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
+import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.Entity;
+import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
-import com.gluster.storage.management.core.model.IClusterListener;
+import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.LogMessage;
 import com.gluster.storage.management.core.model.NetworkInterface;
 import com.gluster.storage.management.core.model.Server;
@@ -49,7 +51,7 @@ public class GlusterDataModelManager {
 	private GlusterDataModel model;
 	private String securityToken;
 	private String serverName;
-	private List<IClusterListener> listeners = new ArrayList<IClusterListener>();
+	private List<ClusterListener> listeners = new ArrayList<ClusterListener>();
 	
 	private GlusterDataModelManager() {
 	}
@@ -298,7 +300,7 @@ public class GlusterDataModelManager {
 		return disks;
 	}
 
-	public void addClusterListener(IClusterListener listener) {
+	public void addClusterListener(ClusterListener listener) {
 		listeners.add(listener);
 	}
 
@@ -306,7 +308,7 @@ public class GlusterDataModelManager {
 		Cluster cluster = (Cluster)model.getChildren().get(0);
 		cluster.addServer(server);
 		
-		for(IClusterListener listener : listeners) {
+		for(ClusterListener listener : listeners) {
 			listener.serverAdded(server);
 		}
 	}
@@ -315,8 +317,15 @@ public class GlusterDataModelManager {
 		Cluster cluster = (Cluster)model.getChildren().get(0);
 		cluster.removeDiscoveredServer(server);
 		
-		for(IClusterListener listener : listeners) {
+		for(ClusterListener listener : listeners) {
 			listener.discoveredServerRemoved(server);
+		}
+	}
+	
+	public void updateVolumeStatus(Volume volume, VOLUME_STATUS newStatus) {
+		volume.setStatus(newStatus);
+		for(ClusterListener listener : listeners) {
+			listener.volumeChanged(volume, new Event(EVENT_TYPE.VOLUME_STATUS_CHANGED, newStatus));
 		}
 	}
 }

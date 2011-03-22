@@ -16,14 +16,26 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.core.constants;
-
+package com.gluster.storage.management.core.model;
 
 /**
- *
+ * Interface for a cluster listener. Every registered listener will be notified
+ * on various events happening on the cluster.
  */
-public class CoreConstants {
-    public static final String NEWLINE = System.getProperty("line.separator");
-    public static final String FILE_SEPARATOR = System.getProperty("file.separator");
-    public static final String ENCODING_UTF8 = "UTF-8";
+public interface ClusterListener {
+	public void discoveredServerAdded(Server server);
+	
+	public void discoveredServerRemoved(Server server);
+	
+	public void serverAdded(GlusterServer server);
+
+	public void serverRemoved(GlusterServer server);
+
+	public void serverChanged(GlusterServer server, Event event);
+
+	public void volumeAdded(Volume volume);
+
+	public void volumeRemoved(Volume volume);
+
+	public void volumeChanged(Volume volume, Event event);
 }

@@ -23,14 +23,16 @@ package com.gluster.storage.management.client;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.model.GenericResponse;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
+import com.sun.jersey.api.representation.Form;
 
 public class VolumesClient extends AbstractClient {
-	private static final String RESOURCE_NAME = "/cluster/volumes";
+	private static final String RESOURCE_NAME = "/cluster/volumes"; // TODO: move to common place
 
 	public VolumesClient(String serverName, String securityToken) {
 		super(serverName, securityToken);
@@ -46,10 +48,22 @@ public class VolumesClient extends AbstractClient {
 		GenericResponse<String> response = (GenericResponse<String>) postObject(GenericResponse.class, volume);
 		return response.getStatus();
 	}
+	
+	private Status performOperation(String volumeName, String operation) {
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_OPERATION, operation);
+		
+		return (Status)putRequest(volumeName, Status.class, form);
+	}
+	
+	public Status startVolume(String volumeName) {
+		return performOperation(volumeName, RESTConstants.FORM_PARAM_VALUE_START);
+	}
 
-	/**
-	 * @param args
-	 */
+	public Status stopVolume(String volumeName) {
+		return performOperation(volumeName, RESTConstants.FORM_PARAM_VALUE_STOP);
+	}
+
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient("localhost");
 		if (usersClient.authenticate("gluster", "gluster")) {

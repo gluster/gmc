@@ -19,21 +19,39 @@
 package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.widgets.Display;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 
 public class StartVolumeAction extends AbstractActionDelegate {
+	private Volume volume;
+	GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 
 	@Override
 	public void run(IAction action) {
-		System.out.println("Running [" + this.getClass().getSimpleName() + "]");
+		VolumesClient client = new VolumesClient(modelManager.getServerName(), modelManager.getSecurityToken());
+		Status status = client.startVolume(volume.getName());
+		if (status.isSuccess()) {
+			new MessageDialog(Display.getDefault().getActiveShell(), "Create Volume", null, "Volume ["
+					+ volume.getName() + "] started successfully!", MessageDialog.INFORMATION, new String[] { "OK" }, 0)
+					.open();
+			modelManager.updateVolumeStatus(volume, VOLUME_STATUS.ONLINE);
+		} else {
+			new MessageDialog(Display.getDefault().getActiveShell(), "Create Volume", null, "Volume ["
+					+ volume.getName() + "] could not be started! Error: [" + status + "]", MessageDialog.ERROR,
+					new String[] { "OK" }, 0).open();
+		}
 	}
 
 	@Override
 	public void dispose() {
-		System.out.println("Disposing [" + this.getClass().getSimpleName() + "]");
+
 	}
 
 	/*
@@ -48,7 +66,7 @@ public class StartVolumeAction extends AbstractActionDelegate {
 		super.selectionChanged(action, selection);
 
 		if (selectedEntity instanceof Volume) {
-			Volume volume = (Volume) selectedEntity;
+			volume = (Volume) selectedEntity;
 			action.setEnabled(volume.getStatus() == VOLUME_STATUS.OFFLINE);
 		}
 	}

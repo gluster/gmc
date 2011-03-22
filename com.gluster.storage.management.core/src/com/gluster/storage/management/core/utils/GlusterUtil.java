@@ -117,9 +117,6 @@ public class GlusterUtil {
 		return glusterServerNames;
 	}
 
-	/**
-	 * @return
-	 */
 	private String getPeerStatus() {
 		String output;
 		ProcessResult result = processUtil.executeCommand("gluster", "peer", "status");
@@ -132,6 +129,14 @@ public class GlusterUtil {
 
 	public ProcessResult addServer(String serverName) {
 		return processUtil.executeCommand("gluster", "peer", "probe", serverName);
+	}
+	
+	public ProcessResult startVolume(String volumeName) {
+		return processUtil.executeCommand("gluster", "volume", "start", volumeName);
+	}
+
+	public ProcessResult stopVolume(String volumeName) {
+		return processUtil.executeCommand("gluster", "--mode=script", "volume", "stop", volumeName);
 	}
 
 	public static void main(String args[]) {

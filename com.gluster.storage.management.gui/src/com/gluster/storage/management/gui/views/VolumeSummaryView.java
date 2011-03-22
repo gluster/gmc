@@ -16,11 +16,17 @@ import org.eclipse.ui.forms.widgets.Hyperlink;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.ViewPart;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.core.model.DefaultClusterListener;
+import com.gluster.storage.management.core.model.Event;
+import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
+import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.IImageKeys;
+import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public class VolumeSummaryView extends ViewPart {
@@ -29,6 +35,7 @@ public class VolumeSummaryView extends ViewPart {
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	private ScrolledForm form;
 	private Volume volume;
+	private CLabel lblStatusValue;
 
 	@Override
 	public void createPartControl(Composite parent) {
@@ -37,6 +44,20 @@ public class VolumeSummaryView extends ViewPart {
 		}
 
 		createSections(parent);
+		
+		// Refresh the navigation tree whenever there is a change to the data model
+		GlusterDataModelManager.getInstance().addClusterListener(new DefaultClusterListener() {
+			/* (non-Javadoc)
+			 * @see com.gluster.storage.management.core.model.DefaultClusterListener#volumeChanged(com.gluster.storage.management.core.model.Volume, com.gluster.storage.management.core.model.Event)
+			 */
+			@Override
+			public void volumeChanged(Volume volume, Event event) {
+				if(event.getEventType() == EVENT_TYPE.VOLUME_STATUS_CHANGED) {
+					updateVolumeStatusLabel();
+					new GlusterToolbarManager(getSite().getWorkbenchWindow()).updateToolbar(volume);
+				}
+			}
+		});
 	}
 
 	private void createSections(Composite parent) {
@@ -192,12 +213,16 @@ public class VolumeSummaryView extends ViewPart {
 	private void createStatusField(Composite section) {
 		toolkit.createLabel(section, "Status: ", SWT.NONE);
 
-		CLabel lblStatusValue = new CLabel(section, SWT.NONE);
+		lblStatusValue = new CLabel(section, SWT.NONE);
+		updateVolumeStatusLabel();
+
+		toolkit.createLabel(section, "", SWT.NONE); // dummy
+	}
+
+	private void updateVolumeStatusLabel() {
 		lblStatusValue.setText(volume.getStatusStr());
 		lblStatusValue.setImage(volume.getStatus() == Volume.VOLUME_STATUS.ONLINE ? guiHelper
 				.getImage(IImageKeys.STATUS_ONLINE) : guiHelper.getImage(IImageKeys.STATUS_OFFLINE));
-
-		toolkit.createLabel(section, "", SWT.NONE); // dummy
 	}
 
 	private void createTransportTypeField(Composite section) {
