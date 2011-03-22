@@ -71,6 +71,6 @@ public class Status {
 
 	@Override
 	public String toString() {
-		return (isSuccess() ? "Success" : "Failure") + ": " + getMessage();
+		return (isSuccess() ? "Success" : "Failure [" + getCode() + "]") + ": " + getMessage();
 	}
 }

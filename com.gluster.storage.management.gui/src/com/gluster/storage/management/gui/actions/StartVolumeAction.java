@@ -31,19 +31,23 @@ import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 
 public class StartVolumeAction extends AbstractActionDelegate {
 	private Volume volume;
-	GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 
 	@Override
 	public void run(IAction action) {
+		if(volume.getStatus() == VOLUME_STATUS.ONLINE) {
+			return; // Volume already online. Don't do anything.
+		}
+		
 		VolumesClient client = new VolumesClient(modelManager.getServerName(), modelManager.getSecurityToken());
 		Status status = client.startVolume(volume.getName());
 		if (status.isSuccess()) {
-			new MessageDialog(Display.getDefault().getActiveShell(), "Create Volume", null, "Volume ["
+			new MessageDialog(Display.getDefault().getActiveShell(), action.getDescription(), null, "Volume ["
 					+ volume.getName() + "] started successfully!", MessageDialog.INFORMATION, new String[] { "OK" }, 0)
 					.open();
 			modelManager.updateVolumeStatus(volume, VOLUME_STATUS.ONLINE);
 		} else {
-			new MessageDialog(Display.getDefault().getActiveShell(), "Create Volume", null, "Volume ["
+			new MessageDialog(Display.getDefault().getActiveShell(), action.getDescription(), null, "Volume ["
 					+ volume.getName() + "] could not be started! Error: [" + status + "]", MessageDialog.ERROR,
 					new String[] { "OK" }, 0).open();
 		}

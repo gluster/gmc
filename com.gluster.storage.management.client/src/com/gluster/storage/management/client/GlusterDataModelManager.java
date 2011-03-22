@@ -303,6 +303,10 @@ public class GlusterDataModelManager {
 	public void addClusterListener(ClusterListener listener) {
 		listeners.add(listener);
 	}
+	
+	public void removeClusterListener(ClusterListener listener) {
+		listeners.remove(listener);
+	}
 
 	public void addGlusterServer(GlusterServer server) {
 		Cluster cluster = (Cluster)model.getChildren().get(0);

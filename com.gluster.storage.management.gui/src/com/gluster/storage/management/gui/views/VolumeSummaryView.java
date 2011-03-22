@@ -36,6 +36,7 @@ public class VolumeSummaryView extends ViewPart {
 	private ScrolledForm form;
 	private Volume volume;
 	private CLabel lblStatusValue;
+	private DefaultClusterListener volumeChangedListener;
 
 	@Override
 	public void createPartControl(Composite parent) {
@@ -46,10 +47,7 @@ public class VolumeSummaryView extends ViewPart {
 		createSections(parent);
 		
 		// Refresh the navigation tree whenever there is a change to the data model
-		GlusterDataModelManager.getInstance().addClusterListener(new DefaultClusterListener() {
-			/* (non-Javadoc)
-			 * @see com.gluster.storage.management.core.model.DefaultClusterListener#volumeChanged(com.gluster.storage.management.core.model.Volume, com.gluster.storage.management.core.model.Event)
-			 */
+		volumeChangedListener = new DefaultClusterListener() {
 			@Override
 			public void volumeChanged(Volume volume, Event event) {
 				if(event.getEventType() == EVENT_TYPE.VOLUME_STATUS_CHANGED) {
@@ -57,7 +55,17 @@ public class VolumeSummaryView extends ViewPart {
 					new GlusterToolbarManager(getSite().getWorkbenchWindow()).updateToolbar(volume);
 				}
 			}
-		});
+		};
+		GlusterDataModelManager.getInstance().addClusterListener(volumeChangedListener);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.part.WorkbenchPart#dispose()
+	 */
+	@Override
+	public void dispose() {
+		super.dispose();
+		GlusterDataModelManager.getInstance().removeClusterListener(volumeChangedListener);
 	}
 
 	private void createSections(Composite parent) {

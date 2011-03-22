@@ -19,20 +19,42 @@
 package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.widgets.Display;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 
 public class StopVolumeAction extends AbstractActionDelegate {
+	private Volume volume;
+	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+	
 	@Override
 	public void run(IAction action) {
-		System.out.println("Running [" + this.getClass().getSimpleName() + "]");
+		if(volume.getStatus() == VOLUME_STATUS.OFFLINE) {
+			return; // Volume already offline. Don't do anything.
+		}
+		
+		VolumesClient client = new VolumesClient(modelManager.getServerName(), modelManager.getSecurityToken());
+		Status status = client.stopVolume(volume.getName());
+		if (status.isSuccess()) {
+			new MessageDialog(Display.getDefault().getActiveShell(), action.getDescription(), null, "Volume ["
+					+ volume.getName() + "] stopped successfully!", MessageDialog.INFORMATION, new String[] { "OK" }, 0)
+					.open();
+			modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
+		} else {
+			new MessageDialog(Display.getDefault().getActiveShell(), action.getDescription(), null, "Volume ["
+					+ volume.getName() + "] could not be stopped! Error: [" + status + "]", MessageDialog.ERROR,
+					new String[] { "OK" }, 0).open();
+		}
 	}
 
 	@Override
 	public void dispose() {
-		System.out.println("Disposing [" + this.getClass().getSimpleName() + "]");
 	}
 	
 	/* (non-Javadoc)
@@ -40,11 +62,10 @@ public class StopVolumeAction extends AbstractActionDelegate {
 	 */
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
-		// TODO Auto-generated method stub
 		super.selectionChanged(action, selection);
 
 		if (selectedEntity instanceof Volume) {
-			Volume volume = (Volume) selectedEntity;
+			volume = (Volume) selectedEntity;
 			action.setEnabled(volume.getStatus() == VOLUME_STATUS.ONLINE);
 		}
 	}
