@@ -24,7 +24,7 @@ import static com.gluster.storage.management.core.constants.RESTConstants.FORM_P
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_START;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_STOP;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_VOLUME_NAME;
-import static com.gluster.storage.management.core.constants.RESTConstants.PATH_RESOURCE_VOLUMES;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_VOLUMES;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS;
 
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Singleton
-@Path(PATH_RESOURCE_VOLUMES)
+@Path(RESOURCE_PATH_VOLUMES)
 public class VolumesResource {
 	private final GlusterUtil glusterUtil = new GlusterUtil();
 

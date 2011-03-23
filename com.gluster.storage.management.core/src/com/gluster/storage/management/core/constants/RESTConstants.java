@@ -24,12 +24,14 @@ package com.gluster.storage.management.core.constants;
  * All constants related to the Gluster REST server and client
  */
 public class RESTConstants {
-	// Constants related to Volumes Resource
-	public static final String PATH_RESOURCE_VOLUMES = "/cluster/volumes";
+	// Volumes Resource
+	public static final String RESOURCE_PATH_VOLUMES = "/cluster/volumes";
 	public static final String FORM_PARAM_OPERATION = "operation";
 	public static final String FORM_PARAM_VALUE_START = "start";
 	public static final String FORM_PARAM_VALUE_STOP = "stop";
 	public static final String PATH_PARAM_VOLUME_NAME = "volumeName";
-	public static final String PATH_PARAM_RUNNING_TASKS = "/cluster/runningtasks";
 	public static final String SUBRESOURCE_DEFAULT_OPTIONS = "defaultoptions";
+	
+	// Running tasks resource
+	public static final String RESOURCE_PATH_RUNNING_TASKS = "/cluster/runningtasks";
 }
