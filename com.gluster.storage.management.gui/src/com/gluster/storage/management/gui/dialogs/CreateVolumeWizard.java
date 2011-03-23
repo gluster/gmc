@@ -44,7 +44,7 @@ public class CreateVolumeWizard extends Wizard {
 		Volume newVol = page.getVolume();
 
 		GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
-		VolumesClient volumesClient = new VolumesClient(modelManager.getServerName(), modelManager.getSecurityToken());
+		VolumesClient volumesClient = new VolumesClient(modelManager.getSecurityToken());
 		Status status = volumesClient.createVolume(newVol);
 		if (status.isSuccess()) {
 			new MessageDialog(getShell(), "Create Volume", null, "Volume created successfully!",

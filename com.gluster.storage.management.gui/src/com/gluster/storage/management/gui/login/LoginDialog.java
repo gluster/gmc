@@ -41,6 +41,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.UsersClient;
+import com.gluster.storage.management.client.constants.ClientConstants;
 import com.gluster.storage.management.core.model.ConnectionDetails;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.GUIHelper;
@@ -55,13 +56,14 @@ public class LoginDialog extends Dialog {
 	private Text passwordText = null;
 	private Button okButton;
 
-	private final ConnectionDetails connectionDetails = new ConnectionDetails("localhost", "gluster", "");
+	private final ConnectionDetails connectionDetails = new ConnectionDetails("gluster", "");
 	private final GUIHelper guiHelper = GUIHelper.getInstance();
 	private Composite composite;
 
 	public LoginDialog(Shell parentShell) {
 		super(parentShell);
 	}
+
 
 	@Override
 	protected void configureShell(Shell newShell) {
@@ -186,11 +188,10 @@ public class LoginDialog extends Dialog {
 	protected void okPressed() {
 		String user = connectionDetails.getUserId();
 		String password = connectionDetails.getPassword();
-		String server = connectionDetails.getServer();
 
-		UsersClient usersClient = new UsersClient(server);
+		UsersClient usersClient = new UsersClient();
 		if (usersClient.authenticate(user, password)) {
-			GlusterDataModelManager.getInstance().initializeModel(server, usersClient.getSecurityToken());
+			GlusterDataModelManager.getInstance().initializeModel(usersClient.getSecurityToken());
 			super.okPressed();
 		} else {
 			MessageDialog.openError(getShell(), "Authentication Failed", "Invalid User ID or password");

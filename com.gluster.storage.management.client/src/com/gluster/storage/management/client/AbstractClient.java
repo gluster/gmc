@@ -20,13 +20,13 @@ public abstract class AbstractClient {
 	private String securityToken;
 	private String authHeader;
 	
-	public AbstractClient(String serverName) {
-		URI baseURI = new ClientUtil().getServerBaseURI(serverName);
+	public AbstractClient() {
+		URI baseURI = new ClientUtil().getServerBaseURI();
 		resource = Client.create(new DefaultClientConfig()).resource(baseURI).path(getResourceName());
 	}
 	
-	public AbstractClient(String serverName, String securityToken) {
-		this(serverName);
+	public AbstractClient(String securityToken) {
+		this();
 		setSecurityToken(securityToken);
 	}
 

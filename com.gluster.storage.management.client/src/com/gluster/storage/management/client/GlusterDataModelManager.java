@@ -64,14 +64,6 @@ public class GlusterDataModelManager {
 		this.securityToken = securityToken;
 	}
 
-	public String getServerName() {
-		return serverName;
-	}
-
-	public void setServerName(String serverName) {
-		this.serverName = serverName;
-	}
-
 	public GlusterDataModel getModel() {
 		return model;
 	}
@@ -109,8 +101,7 @@ public class GlusterDataModelManager {
 		servers.add(server);
 	}
 
-	public void initializeModel(String serverName, String securityToken) {
-		setServerName(serverName);
+	public void initializeModel(String securityToken) {
 		setSecurityToken(securityToken);
 		
 		// Create the dummy data model for demo
@@ -226,7 +217,7 @@ public class GlusterDataModelManager {
 	}
 
 	private void initializeGlusterServers(Cluster cluster) {
-		cluster.setServers(new GlusterServersClient(serverName, securityToken).getServers());
+		cluster.setServers(new GlusterServersClient(securityToken).getServers());
 	}
 
 	private void initializeAutoDiscoveredServers(Cluster cluster) {

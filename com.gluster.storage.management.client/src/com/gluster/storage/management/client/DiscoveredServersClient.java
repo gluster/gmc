@@ -33,7 +33,7 @@ public class DiscoveredServersClient extends AbstractClient {
 	private static final String RESOURCE_NAME = "discoveredservers";
 
 	public DiscoveredServersClient(String serverName, String securityToken) {
-		super(serverName, securityToken);
+		super(securityToken);
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class DiscoveredServersClient extends AbstractClient {
 	}
 
 	public static void main(String[] args) {
-		UsersClient usersClient = new UsersClient("localhost");
+		UsersClient usersClient = new UsersClient();
 		if (usersClient.authenticate("gluster", "gluster")) {
 			DiscoveredServersClient serverResource = new DiscoveredServersClient("localhost",
 					usersClient.getSecurityToken());

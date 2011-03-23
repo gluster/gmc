@@ -34,8 +34,8 @@ import com.sun.jersey.api.representation.Form;
 public class VolumesClient extends AbstractClient {
 	private static final String RESOURCE_NAME = "/cluster/volumes"; // TODO: move to common place
 
-	public VolumesClient(String serverName, String securityToken) {
-		super(serverName, securityToken);
+	public VolumesClient(String securityToken) {
+		super(securityToken);
 	}
 
 	@Override
@@ -65,9 +65,9 @@ public class VolumesClient extends AbstractClient {
 	}
 
 	public static void main(String[] args) {
-		UsersClient usersClient = new UsersClient("localhost");
+		UsersClient usersClient = new UsersClient();
 		if (usersClient.authenticate("gluster", "gluster")) {
-			VolumesClient VC = new VolumesClient("localhost", usersClient.getSecurityToken());
+			VolumesClient VC = new VolumesClient(usersClient.getSecurityToken());
 			List<Disk> disks = new ArrayList<Disk>();
 			Disk diskElement = new Disk();
 			diskElement.setName("sda1");

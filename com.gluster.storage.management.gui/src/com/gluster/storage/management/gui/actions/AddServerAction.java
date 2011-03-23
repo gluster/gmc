@@ -35,8 +35,7 @@ public class AddServerAction extends AbstractActionDelegate {
 	@Override
 	public void run(IAction action) {
 		GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
-		GlusterServersClient glusterServersClient = new GlusterServersClient(modelManager.getServerName(),
-				modelManager.getSecurityToken());
+		GlusterServersClient glusterServersClient = new GlusterServersClient(modelManager.getSecurityToken());
 		Server server = (Server) selectedEntity;
 		GlusterServerResponse response = glusterServersClient.addServer(server);
 		if (response.getStatus().isSuccess()) {

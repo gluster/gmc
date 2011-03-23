@@ -4,16 +4,17 @@ import java.net.URI;
 
 import javax.ws.rs.core.UriBuilder;
 
-import com.sun.jersey.api.client.WebResource;
+import com.gluster.storage.management.client.constants.ClientConstants;
 
 public class ClientUtil {
-	private static final String SERVER_PORT = "8080";
-	private static final String WEB_CONTEXT = "/glustermc";
-	private static final String WEB_RESOURCE_BASE_PATH = "/resources";
 
-	public URI getServerBaseURI(String serverName) {
-		return UriBuilder.fromUri("http://" + serverName + ":" + SERVER_PORT + WEB_CONTEXT + WEB_RESOURCE_BASE_PATH)
-				.build();
+	public URI getServerBaseURI() {
+		return UriBuilder.fromUri(getBaseURL()).path(ClientConstants.WEB_RESOURCE_BASE_PATH).build();
 	}
 	
+	private String getBaseURL() {
+		// remove the platform path (e.g. /linux.gtk.x86_64) from the URL
+		return System.getProperty(ClientConstants.SYS_PROP_SERVER_URL, ClientConstants.DEFAULT_SERVER_URL)
+				.replaceAll("glustermc\\/.*", "glustermc\\/");
+	}
 }

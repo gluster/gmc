@@ -31,8 +31,8 @@ import com.sun.jersey.api.representation.Form;
 public class GlusterServersClient extends AbstractClient {
 	private static final String RESOURCE_NAME = "/cluster/servers";
 
-	public GlusterServersClient(String serverName, String securityToken) {
-		super(serverName, securityToken);
+	public GlusterServersClient(String securityToken) {
+		super(securityToken);
 	}
 
 	@Override
@@ -62,10 +62,10 @@ public class GlusterServersClient extends AbstractClient {
 	}
 
 	public static void main(String[] args) {
-		UsersClient usersClient = new UsersClient("localhost");
+		UsersClient usersClient = new UsersClient();
 		if (usersClient.authenticate("gluster", "gluster")) {
 
-			GlusterServersClient serverResource = new GlusterServersClient("localhost", usersClient.getSecurityToken());
+			GlusterServersClient serverResource = new GlusterServersClient(usersClient.getSecurityToken());
 			List<GlusterServer> glusterServers = serverResource.getServers();
 			for (GlusterServer server : glusterServers) {
 				System.out.println(server.getName());

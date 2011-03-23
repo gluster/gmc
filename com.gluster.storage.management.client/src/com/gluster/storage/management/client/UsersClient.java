@@ -31,8 +31,8 @@ public class UsersClient extends AbstractClient {
 		return new String(Base64.encode(user + ":" + password));
 	}
 
-	public UsersClient(String serverName) {
-		super(serverName);
+	public UsersClient() {
+		super();
 	}
 
 	public boolean authenticate(String user, String password) {
@@ -63,7 +63,7 @@ public class UsersClient extends AbstractClient {
 	}
 
 	public static void main(String[] args) {
-		UsersClient authClient = new UsersClient("localhost");
+		UsersClient authClient = new UsersClient();
 
 		// authenticate user
 		System.out.println(authClient.authenticate("gluster", "gluster"));

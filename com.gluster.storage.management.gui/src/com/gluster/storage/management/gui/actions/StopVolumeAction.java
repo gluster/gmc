@@ -39,7 +39,7 @@ public class StopVolumeAction extends AbstractActionDelegate {
 			return; // Volume already offline. Don't do anything.
 		}
 		
-		VolumesClient client = new VolumesClient(modelManager.getServerName(), modelManager.getSecurityToken());
+		VolumesClient client = new VolumesClient(modelManager.getSecurityToken());
 		Status status = client.stopVolume(volume.getName());
 		if (status.isSuccess()) {
 			new MessageDialog(Display.getDefault().getActiveShell(), action.getDescription(), null, "Volume ["
