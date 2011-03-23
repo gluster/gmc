@@ -135,13 +135,23 @@ public class GlusterDataModelManager {
 		}
 	}
 
-	private Volume addVolume(List<Volume> volumes, String name, Cluster cluster, VOLUME_TYPE volumeType,
+	public Volume addVolume(List<Volume> volumes, String name, Cluster cluster, VOLUME_TYPE volumeType,
 			TRANSPORT_TYPE transportType, VOLUME_STATUS status) {
 		Volume volume = new Volume(name, cluster, volumeType, transportType, status);
 		volumes.add(volume);
 
 		return volume;
 	}
+	
+	public void addVolume(Volume volume ) {
+		Cluster cluster = (Cluster)model.getChildren().get(0);
+		cluster.addVolume(volume);
+		
+		for(ClusterListener listener : listeners) {
+			listener.volumeCreated(volume);
+		}
+	}
+	
 
 	private void initializeVolumes(Cluster cluster) {
 		List<Volume> volumes = new ArrayList<Volume>();

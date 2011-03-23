@@ -18,6 +18,9 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.dialogs;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.wizard.Wizard;
 
@@ -25,6 +28,7 @@ import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 
 public class CreateVolumeWizard extends Wizard {
 
@@ -42,17 +46,25 @@ public class CreateVolumeWizard extends Wizard {
 	public boolean performFinish() {
 		CreateVolumePage1 page = (CreateVolumePage1) getPage(CreateVolumePage1.PAGE_NAME);
 		Volume newVol = page.getVolume();
-
 		GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 		VolumesClient volumesClient = new VolumesClient(modelManager.getSecurityToken());
 		Status status = volumesClient.createVolume(newVol);
+		
 		if (status.isSuccess()) {
-			new MessageDialog(getShell(), "Create Volume", null, "Volume created successfully!",
-					MessageDialog.INFORMATION, new String[] { "OK" }, 0);
-			// TODO: Update the model
+			newVol.setStatus(VOLUME_STATUS.OFFLINE);
+			
+			if (page.getStartVolumeRequest()) {
+				Status volumeStartStatus = volumesClient.startVolume(newVol.getName());
+				if (volumeStartStatus.isSuccess()) {
+					newVol.setStatus(VOLUME_STATUS.ONLINE);
+				}
+			}
+			
+			modelManager.addVolume(newVol);
+			MessageDialog.openInformation(getShell(), "Create Volume", "Volume created successfully and configuration added!");
 		} else {
-			new MessageDialog(getShell(), "Create Volume", null, "Volume creation failed! [" + status.getCode() + "]["
-					+ status.getMessage() + "]", MessageDialog.INFORMATION, new String[] { "OK" }, 0);
+			MessageDialog.openError(getShell(), "Create Volume", "Volume creation failed! [" + status.getCode() + "]["
+					+ status.getMessage() + "]");
 		}
 
 		return true;

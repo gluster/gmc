@@ -22,6 +22,8 @@ import java.util.List;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.osgi.framework.internal.core.Msg;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
@@ -32,19 +34,24 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Disk;
+import com.gluster.storage.management.core.model.Volume;
 
 public class SelectDisksDialog extends Dialog {
 
 	private CreateVolumeDisksPage disksPage;
+	private List<Disk> allDisks;
+	private List<Disk> selectedDisks;
 
 	/**
 	 * Create the dialog.
 	 * 
 	 * @param parentShell
 	 */
-	public SelectDisksDialog(Shell parentShell) {
+	public SelectDisksDialog(Shell parentShell, List<Disk> allDisks, List<Disk> selectedDisks) {
 		super(parentShell);
 		setShellStyle(getShellStyle() | SWT.RESIZE);
+		this.allDisks = allDisks;
+		this.selectedDisks = selectedDisks;
 	}
 
 	/**
@@ -61,8 +68,8 @@ public class SelectDisksDialog extends Dialog {
 		container.setLayoutData(containerLayoutData);
 
 		getShell().setText("Create Volume - Select Disks");
-		disksPage = new CreateVolumeDisksPage(container, SWT.NONE, GlusterDataModelManager
-				.getInstance().getReadyDisksOfAllServers());
+		
+		disksPage = new CreateVolumeDisksPage(container, SWT.NONE, allDisks, selectedDisks);
 
 		return container;
 	}
@@ -93,11 +100,14 @@ public class SelectDisksDialog extends Dialog {
 
 	@Override
 	protected void okPressed() {
-		// TODO Validations
-		super.okPressed();
+		if (this.getSelectedDisks().size() == 0 ) {
+			MessageDialog.openError(getShell(), "Select Disk(s)", "Please select atlease one disk");
+		} else {
+			super.okPressed();
+		}
 	}
 	
 	public List<Disk> getSelectedDisks() {
-		return disksPage.getSelectedDisks(); 
+		return disksPage.getChosenDisks(); 
 	}
 }

@@ -24,8 +24,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
+import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
+import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 
 /**
  *
@@ -131,6 +135,7 @@ public class GlusterUtil {
 		return processUtil.executeCommand("gluster", "peer", "probe", serverName);
 	}
 	
+
 	public ProcessResult startVolume(String volumeName) {
 		return processUtil.executeCommand("gluster", "volume", "start", volumeName);
 	}
@@ -139,6 +144,65 @@ public class GlusterUtil {
 		return processUtil.executeCommand("gluster", "--mode=script", "volume", "stop", volumeName);
 	}
 
+	public ProcessResult createVolume(Volume volume) {
+		int count=1; // replica or stripe count
+		String volumeType = null;
+		VOLUME_TYPE volType = volume.getVolumeType(); 
+		if(volType == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
+			volumeType = "replica";
+			count = 2;
+		} else if(volType == VOLUME_TYPE.DISTRIBUTED_STRIPE) {
+			volumeType = "stripe";
+			count = 4;
+		}
+		
+		String transportTypeStr = null;
+		TRANSPORT_TYPE transportType = volume.getTransportType();
+		transportTypeStr = (transportType == TRANSPORT_TYPE.ETHERNET) ? "tcp" : "rdma"; 
+		
+		List<String> command = new ArrayList<String>();
+		command.add("gluster");
+		command.add("volume");
+		command.add("create");
+		command.add(volume.getName());
+		if(volumeType != null) {
+			command.add(volumeType);
+			command.add("" + count);
+		}
+		command.add("transport");
+		command.add(transportTypeStr);
+		for(Disk disk : volume.getDisks()) {
+			command.add(getBrickNotation(volume, disk));
+		}
+		return processUtil.executeCommand(command);
+	}
+	
+	public ProcessResult setOption(List<String> command) {
+		return processUtil.executeCommand(command);
+	}
+	
+	public ProcessResult setVolumeAccessControl(Volume volume) {
+		List<String> command = new ArrayList<String>();
+		command.add("gluster");
+		command.add("volume");
+		command.add("set");
+		command.add(volume.getName());
+		command.add("auth.allow");
+		command.add(volume.getAccessControlList());
+		return setOption(command);
+	}
+	
+	/**
+	 * @param disk
+	 * @return
+	 */
+	private String getBrickNotation(Volume vol, Disk disk) {
+		// TODO: Figure out an appropriate directory INSIDE the DISK having given NAME (e.g. sda, sdb, etc)
+		// String dirName = "/export/" + vol.getName() + "/" + disk.getName();
+		String dirName = "/export/" + vol.getName() ;
+		return disk.getServerName() + ":" + dirName;
+	}
+	
 	public static void main(String args[]) {
 		List<String> names = new GlusterUtil().getGlusterServerNames();
 		System.out.println(names);

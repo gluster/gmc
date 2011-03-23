@@ -29,6 +29,8 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -40,6 +42,7 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
@@ -52,8 +55,11 @@ public class CreateVolumePage1 extends WizardPage {
 	private ComboViewer typeComboViewer;
 	private Text txtAccessControl;
 	private Volume volume = new Volume();
-	private List<Disk> disks;
+	private List<Disk> allDisks;
 	private Button btnNfs;
+	private Button btnStartVolume;
+	private Link linkCustomize;
+	private ValidationListener valListener = new ValidationListener();
 
 	/**
 	 * Create the wizard.
@@ -62,13 +68,53 @@ public class CreateVolumePage1 extends WizardPage {
 		super(PAGE_NAME);
 		setTitle("Create Volume");
 		setDescription("Create a new Volume by choosing disks from the cluster servers and configuring the volume properties.");
+		
+		// by default, we create volume with all available disks
+		allDisks = GlusterDataModelManager.getInstance().getReadyDisksOfAllServers();
+		volume.setDisks(allDisks);
 	}
 
+	private class ValidationListener implements ModifyListener {
+		/* (non-Javadoc)
+		 * @see org.eclipse.swt.events.ModifyListener#modifyText(org.eclipse.swt.events.ModifyEvent)
+		 */
+		@Override
+		public void modifyText(ModifyEvent e) {
+			String volumeName = txtName.getText().trim();
+			String accessControl = txtAccessControl.getText().trim();
+			String volumeNameToken = "^[a-zA-Z][a-zA-Z0-9\\-]*";
+
+			
+			setErrorMessage(null);
+			setPageComplete(true);
+			
+			if(volumeName.length() == 0) {
+				setPageComplete(false);
+				setErrorMessage("Please enter Volume Name");
+			}
+			
+		    if (!volumeName.matches(volumeNameToken)) {
+		    	setPageComplete(false);
+		    	setErrorMessage("Please enter valid Volume Name");
+		    }
+		    
+			if(accessControl.length() == 0) {
+				setPageComplete(false);
+				setErrorMessage("Please enter Access Control");
+			}
+			// TODO: acl validation
+			// String[] aclList = accessControl.split(",");
+			
+		}		
+	}
+	
 	/**
 	 * Create contents of the wizard.
 	 * @param parent
 	 */
 	public void createControl(Composite parent) {
+		
+		setPageComplete(false);
 		Composite container = new Composite(parent, SWT.NULL);
 
 		setControl(container);
@@ -89,7 +135,8 @@ public class CreateVolumePage1 extends WizardPage {
 		txtName = new Text(container, SWT.BORDER);
 		GridData txtNameData = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
 		txtNameData.widthHint = 300;
-		txtName.setLayoutData(txtNameData);
+		txtName.setLayoutData(txtNameData);		
+		txtName.addModifyListener(valListener);		
 		
 		Label lblType = new Label(container, SWT.NONE);
 		lblType.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -120,19 +167,21 @@ public class CreateVolumePage1 extends WizardPage {
 		lblDisks.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblDisks.setText("Disks: ");
 		
-		Link linkCustomize = new Link(container, SWT.UNDERLINE_LINK);
-		linkCustomize.setText("All Disks (<A>customize</A>)");
+		linkCustomize = new Link(container, SWT.UNDERLINE_LINK);
+		linkCustomize.setText("All Disk(s) (<a>customize</a>)");
 		linkCustomize.addListener (SWT.Selection, new Listener () {
 			public void handleEvent(Event event) {
-				SelectDisksDialog dialog = new SelectDisksDialog(getShell());
+				SelectDisksDialog dialog = new SelectDisksDialog(getShell(), allDisks, volume.getDisks());
+
 				dialog.create();
 		        if(dialog.open() == Window.OK) {
 		        	// user has customized disks. get them from the dialog box.
 		        	volume.setDisks(dialog.getSelectedDisks());
+		        	linkCustomize.setText("" + volume.getDisks().size() + " Disk(s) (<a>customize</a>)");
 		        }
 			}
 		});
-
+		
 		Label lblNasProtocol = new Label(container, SWT.RIGHT);
 		lblNasProtocol.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblNasProtocol.setText("NAS Protocol: ");
@@ -155,15 +204,24 @@ public class CreateVolumePage1 extends WizardPage {
 		txtAccessControl.setText("*");
 		GridData accessControlData = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
 		accessControlData.widthHint = 300;
-		txtAccessControl.setLayoutData(accessControlData);
+		txtAccessControl.setLayoutData(accessControlData);		
+		txtAccessControl.addModifyListener(valListener);
 
 		new Label(container, SWT.NONE);
 		Label lblAccessControlInfo = new Label(container, SWT.TOP);
 		lblAccessControlInfo.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		lblAccessControlInfo.setText("(Comma separated list of IP addresses)");
+		
+		Label lblStartVolume = new Label(container, SWT.NONE);
+		lblStartVolume.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblStartVolume.setText("Start Volume: ");
+		
+		btnStartVolume = new Button(container, SWT.CHECK);
+		btnStartVolume.setSelection(true);
 	}
 
 	public Volume getVolume() {
+	
 		volume.setName(txtName.getText());
 		
 		IStructuredSelection selection = (IStructuredSelection)typeComboViewer.getSelection();
@@ -179,5 +237,9 @@ public class CreateVolumePage1 extends WizardPage {
 		volume.setAccessControlList(txtAccessControl.getText());
 		
 		return volume;
+	}
+	
+	public Boolean getStartVolumeRequest() {
+		return btnStartVolume.getSelection();
 	}
 }

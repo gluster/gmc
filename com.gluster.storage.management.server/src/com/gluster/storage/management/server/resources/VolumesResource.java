@@ -27,8 +27,6 @@ import static com.gluster.storage.management.core.constants.RESTConstants.PATH_P
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_VOLUMES;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.Consumes;
@@ -41,15 +39,11 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.GenericResponse;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
-import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.utils.GlusterUtil;
 import com.gluster.storage.management.core.utils.ProcessResult;
-import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
 import com.sun.jersey.spi.resource.Singleton;
 
@@ -62,55 +56,15 @@ public class VolumesResource {
 	@Consumes(MediaType.TEXT_XML)
 	@Produces(MediaType.TEXT_XML)
 	public GenericResponse<String> createVolume(Volume volume) {
-
-		int count = 1; // replica or stripe count
-		String volumeType = null;
-		VOLUME_TYPE volType = volume.getVolumeType();
-		if (volType == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
-			volumeType = "replica";
-			count = 2;
-		} else if (volType == VOLUME_TYPE.DISTRIBUTED_STRIPE) {
-			volumeType = "stripe";
-			count = 4;
+		ProcessResult response = glusterUtil.createVolume(volume);
+		if (!response.isSuccess()) {
+			return new GenericResponse<String>(Status.STATUS_FAILURE, "Volume creation failed: ["
+					+ response.getOutput() + "]");
 		}
 
-		String transportTypeStr = null;
-		TRANSPORT_TYPE transportType = volume.getTransportType();
-		transportTypeStr = (transportType == TRANSPORT_TYPE.ETHERNET) ? "tcp" : "rdma";
+		response = glusterUtil.setVolumeAccessControl(volume);
 
-		List<String> command = new ArrayList<String>();
-		command.add("gluster");
-		command.add("volume");
-		command.add("create");
-		command.add(volume.getName());
-		if (volumeType != null) {
-			command.add(volumeType);
-			command.add("" + count);
-		}
-		command.add("transport");
-		command.add(transportTypeStr);
-
-		for (Disk disk : volume.getDisks()) {
-			command.add(getBrickNotation(volume, disk));
-		}
-
-		ProcessResult result = new ProcessUtil().executeCommand(command);
-
-		if (!result.isSuccess()) {
-			return new GenericResponse<String>(Status.STATUS_FAILURE, "Volume creation failed: [" + result.getOutput()
-					+ "]");
-		}
-		return new GenericResponse<String>(Status.STATUS_SUCCESS, "Volume created successfully!");
-	}
-
-	/**
-	 * @param disk
-	 * @return
-	 */
-	private String getBrickNotation(Volume vol, Disk disk) {
-		// TODO: Figure out an appropriate directory INSIDE the DISK having given NAME (e.g. sda, sdb, etc)
-		String dirName = "/export/" + vol.getName() + "/" + disk.getName();
-		return disk.getServerName() + ":" + dirName;
+		return new GenericResponse<String>(Status.STATUS_SUCCESS, response.getOutput());
 	}
 
 	@PUT

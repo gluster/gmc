@@ -75,6 +75,10 @@ public class Cluster extends Entity {
 		this.volumes = volumes;
 		children.add(new EntityGroup<Volume>("Volumes", Volume.class, this, volumes));
 	}
+	
+	public void addVolume(Volume volume) {
+		this.volumes.add(volume);
+	}
 
 	public Cluster(String name, Entity parent) {
 		super(name, parent);

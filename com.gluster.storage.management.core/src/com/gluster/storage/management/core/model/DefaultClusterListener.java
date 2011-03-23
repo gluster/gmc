@@ -55,4 +55,8 @@ public class DefaultClusterListener implements ClusterListener {
 	@Override
 	public void discoveredServerRemoved(Server server) {
 	}
+
+	@Override
+	public void volumeCreated(Volume volume) {
+	}
 }

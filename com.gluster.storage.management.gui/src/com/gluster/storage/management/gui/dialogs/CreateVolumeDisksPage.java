@@ -18,6 +18,7 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.dialogs;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -25,11 +26,14 @@ import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
 import com.gluster.storage.management.core.model.Disk;
@@ -54,13 +58,19 @@ public class CreateVolumeDisksPage extends Composite {
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 	private CustomTableDualListComposite<Disk> dualTableViewer;
 	private Text filterText;
+	// This list keeps track of the order of the disks as user changes the same by clicking on up/down arrow buttons
+	private List<Disk> chosenDisks = new ArrayList<Disk>();
 
 	private IRemovableContentProvider<Disk> chosenDisksContentProvider;
 
-	public CreateVolumeDisksPage(final Composite parent, int style, List<Disk> disks) {
+	private Button btnUp;
+
+	private Button btnDown;
+
+	public CreateVolumeDisksPage(final Composite parent, int style, List<Disk> allDisks, List<Disk> selectedDisks) {
 		super(parent, style);
 
-		createPage(disks);
+		createPage(allDisks, selectedDisks);
 
 		parent.layout();
 	}
@@ -85,13 +95,22 @@ public class CreateVolumeDisksPage extends Composite {
 		};
 	}
 
-	private void createPage(List<Disk> disks) {
+	private int indexOf(List<Disk> disks, Disk searchDisk) {
+		for(Disk disk : disks) {
+			if(disk.getQualifiedName().equals(searchDisk.getQualifiedName())) {
+				return disks.indexOf(disk);
+			}
+		}
+		return -1;
+	}
+	
+	private void createPage(List<Disk> allDisks, List<Disk> selectedDisks) {
 		setupPageLayout();
 
 		filterText = guiHelper.createFilterText(this);
 		new Label(this, SWT.NONE);
 
-		createDualTableViewer(disks);
+		createDualTableViewer(allDisks, selectedDisks);
 		createFilter(filterText, false); // attach filter text to the dual table viewer for auto-filtering
 
 		Composite buttonContainer = new Composite(this, SWT.NONE);
@@ -100,15 +119,64 @@ public class CreateVolumeDisksPage extends Composite {
 		buttonContainerData.minimumWidth = 40;
 		buttonContainer.setLayoutData(buttonContainerData);
 
-		Button btnUp = new Button(buttonContainer, SWT.TOGGLE);
+		btnUp = new Button(buttonContainer, SWT.TOGGLE);
 		GridData btnUpData = new GridData(SWT.LEFT, SWT.BOTTOM, true, false);
 		btnUpData.minimumWidth = 30;
 		btnUp.setLayoutData(btnUpData);
 		btnUp.setImage(guiHelper.getImage(IImageKeys.ARROW_UP));
+		btnUp.addSelectionListener(new SelectionAdapter() {
 
-		Button btnDown = new Button(buttonContainer, SWT.TOGGLE);
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				chosenDisks = getChosenDisks();
+				List<Disk> selectedDisks = getSelectedChosenDisks();
+				
+				chosenDisksContentProvider.removeElements(chosenDisks);
+				for(Disk disk : selectedDisks) {
+					int index = chosenDisks.indexOf(disk);
+					Disk diskAbove = chosenDisks.get(index - 1);
+					chosenDisks.set(index - 1, disk);
+					chosenDisks.set(index, diskAbove);
+				}
+				chosenDisksContentProvider.addElements(chosenDisks);
+				dualTableViewer.refreshChosenViewer();
+				updateButtons();
+			}
+		});
+
+		btnDown = new Button(buttonContainer, SWT.TOGGLE);
 		btnDown.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false));
 		btnDown.setImage(guiHelper.getImage(IImageKeys.ARROW_DOWN));
+		btnDown.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+
+				chosenDisks = getChosenDisks();
+				List<Disk> selectedDisks = getSelectedChosenDisks();
+				
+				chosenDisksContentProvider.removeElements(chosenDisks);
+				for(Disk disk : selectedDisks) {
+					int index = chosenDisks.indexOf(disk);
+					Disk diskBelow = chosenDisks.get(index + 1);
+					chosenDisks.set(index + 1, disk);
+					chosenDisks.set(index, diskBelow);
+				}
+				chosenDisksContentProvider.addElements(chosenDisks);
+				dualTableViewer.refreshChosenViewer();
+				updateButtons();
+				
+			}
+		});
+	}
+
+	private List<Disk> getSelectedChosenDisks() {
+		TableItem[] selectedItems = dualTableViewer.getChosenTable().getSelection();
+		List<Disk> selectedDisks = new ArrayList<Disk>();
+		for (TableItem item : selectedItems) {
+			selectedDisks.add((Disk)item.getData());
+		}
+		return selectedDisks;
 	}
 
 	private void createFilter(final Text filterText, boolean caseSensitive) {
@@ -141,7 +209,7 @@ public class CreateVolumeDisksPage extends Composite {
 		dualTableViewer.setChosenViewerFilter(filter);
 	}
 
-	private void createDualTableViewer(List<Disk> disks) {
+	private void createDualTableViewer(List<Disk> allDisks, List<Disk> selectedDisks) {
 		TableColumnData[] columnData = createColumnData();
 		ITableLabelProvider diskLabelProvider = getDiskLabelProvider();
 
@@ -151,15 +219,57 @@ public class CreateVolumeDisksPage extends Composite {
 
 		dualTableViewer.setAvailableTableLinesVisible(false);
 		dualTableViewer.setAvailableTableHeaderVisible(true);
-		dualTableViewer.setAvailableContentProvider(new RemovableContentProvider<Disk>());
+		dualTableViewer.setAvailableContentProvider(new RemovableContentProvider<Disk>(getAvailableDisks(allDisks,
+				selectedDisks)));
 		dualTableViewer.setAvailableLabelProvider(diskLabelProvider);
 
 		dualTableViewer.setChosenTableLinesVisible(true);
 		dualTableViewer.setChosenTableHeaderVisible(true);
 
-		chosenDisksContentProvider = new RemovableContentProvider<Disk>(disks);
+		chosenDisksContentProvider = new RemovableContentProvider<Disk>(selectedDisks);
 		dualTableViewer.setChosenContentProvider(chosenDisksContentProvider);
 		dualTableViewer.setChosenLabelProvider(diskLabelProvider);
+		
+		dualTableViewer.getChosenTable().addSelectionListener(new SelectionAdapter() {
+			/* (non-Javadoc)
+			 * @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
+			 */
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				updateButtons();
+			}
+		});
+	}
+
+	private void updateButtons() {
+		btnUp.setEnabled(true);
+		btnDown.setEnabled(true);
+		List<Disk> selectedChosenDisks = getSelectedChosenDisks();
+		List<Disk> chosenDisks = getChosenDisks();
+		for(Disk disk : selectedChosenDisks) {
+			int index = chosenDisks.indexOf(disk); 
+			if(index == 0) {
+				btnUp.setEnabled(false);
+			}
+			if(index == chosenDisks.size() - 1) {
+				btnDown.setEnabled(false);
+			}
+		}
+	}
+
+	/**
+	 * @param allDisks
+	 * @param selectedDisks
+	 * @return
+	 */
+	private List<Disk> getAvailableDisks(List<Disk> allDisks, List<Disk> selectedDisks) {
+		List<Disk> availableDisks = new ArrayList<Disk>();
+		for (Disk disk : allDisks) {
+			if (!selectedDisks.contains(disk)) {
+				availableDisks.add(disk);
+			}
+		}
+		return availableDisks;
 	}
 
 	private TableColumnData[] createColumnData() {
@@ -182,11 +292,14 @@ public class CreateVolumeDisksPage extends Composite {
 		setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 	}
 
-	public List<Disk> getSelectedDisks() {
-		// dualTableViewer.getChosenTable().getI
-		Disk[] disks = (Disk[])chosenDisksContentProvider.getElements(dualTableViewer);
-		if(disks != null) {
-			return Arrays.asList(disks);
+	public List<Disk> getChosenDisks() {
+		Object[] disksArr = (Object[]) chosenDisksContentProvider.getElements(dualTableViewer);
+		if (disksArr != null) {
+			List<Disk> disks = new ArrayList<Disk>();
+			for (Object disk : disksArr) {
+				disks.add((Disk) disk);
+			}
+			return disks;
 		}
 		return null;
 	}

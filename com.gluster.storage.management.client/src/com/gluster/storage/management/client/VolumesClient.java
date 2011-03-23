@@ -32,7 +32,6 @@ import com.gluster.storage.management.core.model.Volume;
 import com.sun.jersey.api.representation.Form;
 
 public class VolumesClient extends AbstractClient {
-	private static final String RESOURCE_NAME = "/cluster/volumes"; // TODO: move to common place
 
 	public VolumesClient(String securityToken) {
 		super(securityToken);
@@ -40,13 +39,17 @@ public class VolumesClient extends AbstractClient {
 
 	@Override
 	public String getResourceName() {
-		return RESOURCE_NAME;
+		return RESTConstants.RESOURCE_PATH_VOLUMES;
 	}
 
 	@SuppressWarnings("unchecked")
 	public Status createVolume(Volume volume) {
-		GenericResponse<String> response = (GenericResponse<String>) postObject(GenericResponse.class, volume);
-		return response.getStatus();
+		GenericResponse<String> createVolumeResponse = (GenericResponse<String>) postObject(GenericResponse.class, volume);
+		
+		if (!createVolumeResponse.getStatus().isSuccess()) {
+			return (Status) createVolumeResponse.getStatus();
+		}
+		return (Status) createVolumeResponse.getStatus();
 	}
 	
 	private Status performOperation(String volumeName, String operation) {
@@ -63,6 +66,7 @@ public class VolumesClient extends AbstractClient {
 	public Status stopVolume(String volumeName) {
 		return performOperation(volumeName, RESTConstants.FORM_PARAM_VALUE_STOP);
 	}
+
 
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();

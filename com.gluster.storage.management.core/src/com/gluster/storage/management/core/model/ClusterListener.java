@@ -38,4 +38,6 @@ public interface ClusterListener {
 	public void volumeRemoved(Volume volume);
 
 	public void volumeChanged(Volume volume, Event event);
+
+	public void volumeCreated(Volume volume);
 }
