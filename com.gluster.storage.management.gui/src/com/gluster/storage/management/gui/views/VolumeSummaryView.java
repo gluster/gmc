@@ -20,7 +20,6 @@ import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
-import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
@@ -231,6 +230,7 @@ public class VolumeSummaryView extends ViewPart {
 		lblStatusValue.setText(volume.getStatusStr());
 		lblStatusValue.setImage(volume.getStatus() == Volume.VOLUME_STATUS.ONLINE ? guiHelper
 				.getImage(IImageKeys.STATUS_ONLINE) : guiHelper.getImage(IImageKeys.STATUS_OFFLINE));
+		lblStatusValue.redraw();
 	}
 
 	private void createTransportTypeField(Composite section) {

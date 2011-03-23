@@ -42,12 +42,12 @@ public class StopVolumeAction extends AbstractActionDelegate {
 		VolumesClient client = new VolumesClient(modelManager.getSecurityToken());
 		Status status = client.stopVolume(volume.getName());
 		if (status.isSuccess()) {
-			new MessageDialog(window.getShell(), action.getDescription(), null, "Volume ["
+			new MessageDialog(Display.getCurrent().getActiveShell(), action.getDescription(), null, "Volume ["
 					+ volume.getName() + "] stopped successfully!", MessageDialog.INFORMATION, new String[] { "OK" }, 0)
 					.open();
 			modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
 		} else {
-			new MessageDialog(window.getShell(), action.getDescription(), null, "Volume ["
+			new MessageDialog(Display.getCurrent().getActiveShell(), action.getDescription(), null, "Volume ["
 					+ volume.getName() + "] could not be stopped! Error: [" + status + "]", MessageDialog.ERROR,
 					new String[] { "OK" }, 0).open();
 		}

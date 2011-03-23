@@ -42,12 +42,12 @@ public class StartVolumeAction extends AbstractActionDelegate {
 		VolumesClient client = new VolumesClient(modelManager.getSecurityToken());
 		Status status = client.startVolume(volume.getName());
 		if (status.isSuccess()) {
-			new MessageDialog(window.getShell(), action.getDescription(), null, "Volume ["
+			new MessageDialog(Display.getCurrent().getActiveShell(), action.getDescription(), null, "Volume ["
 					+ volume.getName() + "] started successfully!", MessageDialog.INFORMATION, new String[] { "OK" }, 0)
 					.open();
 			modelManager.updateVolumeStatus(volume, VOLUME_STATUS.ONLINE);
 		} else {
-			new MessageDialog(window.getShell(), action.getDescription(), null, "Volume ["
+			new MessageDialog(Display.getCurrent().getActiveShell(), action.getDescription(), null, "Volume ["
 					+ volume.getName() + "] could not be started! Error: [" + status + "]", MessageDialog.ERROR,
 					new String[] { "OK" }, 0).open();
 		}

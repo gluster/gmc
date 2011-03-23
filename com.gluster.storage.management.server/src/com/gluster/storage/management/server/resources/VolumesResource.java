@@ -25,12 +25,15 @@ import static com.gluster.storage.management.core.constants.RESTConstants.FORM_P
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_STOP;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_VOLUME_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_RESOURCE_VOLUMES;
+import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -47,6 +50,7 @@ import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.utils.GlusterUtil;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.ProcessUtil;
+import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Singleton
@@ -122,5 +126,14 @@ public class VolumesResource {
 			return new Status(glusterUtil.stopVolume(volumeName));
 		}
 		return new Status(Status.STATUS_CODE_FAILURE, "Invalid operation code [" + operation + "]");
+	}
+	
+	@GET
+	@Path(SUBRESOURCE_DEFAULT_OPTIONS)
+	@Produces(MediaType.TEXT_XML)
+	public Map<String, String> getDefaultOptions() {
+		// TODO: Fetch all volume options with their default values from GlusterFS
+		// whenever such a CLI command is made available in GlusterFS
+		return VolumeOptionsDefaults.OPTIONS;
 	}
 }

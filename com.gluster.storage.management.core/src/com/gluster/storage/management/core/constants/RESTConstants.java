@@ -30,6 +30,6 @@ public class RESTConstants {
 	public static final String FORM_PARAM_VALUE_START = "start";
 	public static final String FORM_PARAM_VALUE_STOP = "stop";
 	public static final String PATH_PARAM_VOLUME_NAME = "volumeName";
-	
 	public static final String PATH_PARAM_RUNNING_TASKS = "/cluster/runningtasks";
+	public static final String SUBRESOURCE_DEFAULT_OPTIONS = "defaultoptions";
 }
