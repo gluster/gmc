@@ -18,8 +18,6 @@
  *******************************************************************************/
 package com.gluster.storage.management.server.resources;
 
-import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_RUNNING_TASKS;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,15 +30,16 @@ import javax.ws.rs.core.MediaType;
 
 import org.springframework.stereotype.Component;
 
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_RUNNING_TASKS;
 import com.gluster.storage.management.core.model.Response;
 import com.gluster.storage.management.core.model.RunningTask;
 import com.gluster.storage.management.core.model.RunningTaskListResponse;
-import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.RunningTaskStatus;
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.server.runningtasks.managers.RunningTaskManager;
 
 @Component
-@Path(PATH_PARAM_RUNNING_TASKS)
+@Path(RESOURCE_PATH_RUNNING_TASKS)
 public class RunningTaskResource {
 
 	@GET
