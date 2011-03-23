@@ -28,6 +28,7 @@ public class Cluster extends Entity {
 	List<GlusterServer> servers = new ArrayList<GlusterServer>();
 	List<Server> discoveredServers = new ArrayList<Server>();
 	List<Volume> volumes = new ArrayList<Volume>();
+	List<RunningTask> runningTasks = new ArrayList<RunningTask>();
 
 	public Cluster() {
 	}
@@ -83,5 +84,13 @@ public class Cluster extends Entity {
 		super(name, parent);
 		setServers(servers);
 		setVolumes(volumes);
+	}
+
+	public List<RunningTask> getRunningTasks() {
+		return runningTasks;
+	}
+
+	public void setRunningTasks(List<RunningTask> runningTasks) {
+		this.runningTasks = runningTasks;
 	}
 }

@@ -35,7 +35,10 @@ import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.LogMessage;
 import com.gluster.storage.management.core.model.NetworkInterface;
+import com.gluster.storage.management.core.model.RunningTask;
 import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.model.RunningTaskStatus;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
@@ -116,6 +119,8 @@ public class GlusterDataModelManager {
 		addVolumeOptions();
 
 		createDummyLogMessages();
+		
+		initializeRunningTasks(cluster);
 
 		model.addCluster(cluster);
 	}
@@ -237,6 +242,10 @@ public class GlusterDataModelManager {
 		addMessages(logMessages, disk, "WARNING", 5);
 		addMessages(logMessages, disk, "DEBUG", 5);
 		addMessages(logMessages, disk, "INFO", 5);
+	}
+	
+	public void initializeRunningTasks(Cluster cluster) {
+		cluster.setRunningTasks(new RunningTaskClient(securityToken).getRunningTasks());
 	}
 
 	public List<LogMessage> createDummyLogMessages() {

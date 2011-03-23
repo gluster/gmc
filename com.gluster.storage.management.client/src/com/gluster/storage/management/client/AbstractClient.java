@@ -72,7 +72,8 @@ public abstract class AbstractClient {
 	 */
 	@SuppressWarnings("rawtypes")
 	protected Object fetchResource(Class responseClass) {
-		return fetchResource(resource, NO_PARAMS, responseClass);
+		Object response = fetchResource(resource, NO_PARAMS, responseClass);
+		return response;
 	}
 
 	/**

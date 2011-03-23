@@ -31,6 +31,10 @@ import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.core.model.EntityGroup;
+import com.gluster.storage.management.core.model.Cluster;
+import com.gluster.storage.management.core.model.GlusterDataModel;
+import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.core.model.RunningTask;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.gui.utils.GUIHelper;
@@ -81,8 +85,21 @@ public class VolumesSummaryView extends ViewPart {
 
 	private void createRunningTasksSection() {
 		Composite section = guiHelper.createSection(form, toolkit, "Running Tasks", null, 2, false);
-
-		toolkit.createLabel(section, "List of running tasks related to\nvolumes will be displayed here.");
+		
+		GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+		GlusterDataModel model = modelManager.getModel();
+		Cluster cluster = (Cluster) model.getChildren().get(0); // Assume the first/root node of the model is cluster (invisible)
+		
+		List<RunningTask> runningTasks = cluster.getRunningTasks();
+		String taskMessage = "";
+		for(RunningTask task : runningTasks) {
+			if (task.getStatus().isPercentageSupported()) {
+				//TODO Progress bar 
+			}
+			taskMessage = taskMessage + "\n" + task.getDescription();
+			System.out.println(task.getId());
+		}
+		toolkit.createLabel(section, taskMessage);
 	}
 
 	private void createSummarySection() {

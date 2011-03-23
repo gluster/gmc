@@ -1,6 +1,4 @@
-/**
- * RESTConstants.java
- *
+/*******************************************************************************
  * Copyright (c) 2011 Gluster, Inc. <http://www.gluster.com>
  * This file is part of Gluster Management Console.
  *
@@ -8,28 +6,39 @@
  * modify it under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- *
+ *  
  * Gluster Management Console is distributed in the hope that it will be useful, 
  * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License
  * for more details.
- *
+ *  
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
- */
-package com.gluster.storage.management.core.constants;
+ *******************************************************************************/
 
-/**
- * All constants related to the Gluster REST server and client
- */
-public class RESTConstants {
-	// Constants related to Volumes Resource
-	public static final String PATH_RESOURCE_VOLUMES = "/cluster/volumes";
-	public static final String FORM_PARAM_OPERATION = "operation";
-	public static final String FORM_PARAM_VALUE_START = "start";
-	public static final String FORM_PARAM_VALUE_STOP = "stop";
-	public static final String PATH_PARAM_VOLUME_NAME = "volumeName";
+package com.gluster.storage.management.server.runningtasks.managers;
+
+import java.util.Map;
+
+import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.model.RunningTaskStatus;
+
+public interface RunningTaskManager {
 	
-	public static final String PATH_PARAM_RUNNING_TASKS = "/cluster/runningtasks";
+	public String getId();
+	
+	public RunningTaskStatus start();
+	
+	public RunningTaskStatus stop();
+	
+	public RunningTaskStatus pause();
+	
+	public RunningTaskStatus resume();
+	
+	public RunningTaskStatus getStatus();
+	
+	@SuppressWarnings("rawtypes") 
+	public void setFormParams(Map params);
+		
 }
