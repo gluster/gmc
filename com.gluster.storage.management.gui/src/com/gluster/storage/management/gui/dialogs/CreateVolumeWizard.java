@@ -18,9 +18,6 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.dialogs;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.wizard.Wizard;
 
@@ -45,22 +42,25 @@ public class CreateVolumeWizard extends Wizard {
 	@Override
 	public boolean performFinish() {
 		CreateVolumePage1 page = (CreateVolumePage1) getPage(CreateVolumePage1.PAGE_NAME);
-		Volume newVol = page.getVolume();
+		if (!page.isValidCreateVolumeForm()) {
+			return false;
+		}
+		
+		Volume newVolume = page.getVolume();
 		GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 		VolumesClient volumesClient = new VolumesClient(modelManager.getSecurityToken());
-		Status status = volumesClient.createVolume(newVol);
+		Status status = volumesClient.createVolume(newVolume);
 		
 		if (status.isSuccess()) {
-			newVol.setStatus(VOLUME_STATUS.OFFLINE);
-			
+			newVolume.setStatus(VOLUME_STATUS.OFFLINE);
 			if (page.getStartVolumeRequest()) {
-				Status volumeStartStatus = volumesClient.startVolume(newVol.getName());
+				Status volumeStartStatus = volumesClient.startVolume(newVolume.getName());
 				if (volumeStartStatus.isSuccess()) {
-					newVol.setStatus(VOLUME_STATUS.ONLINE);
+					newVolume.setStatus(VOLUME_STATUS.ONLINE);
 				}
 			}
-			
-			modelManager.addVolume(newVol);
+			//update the model
+			modelManager.addVolume(newVolume);				
 			MessageDialog.openInformation(getShell(), "Create Volume", "Volume created successfully and configuration added!");
 		} else {
 			MessageDialog.openError(getShell(), "Create Volume", "Volume creation failed! [" + status.getCode() + "]["

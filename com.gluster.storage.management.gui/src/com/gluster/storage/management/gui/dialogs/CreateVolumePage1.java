@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.window.Window;
@@ -102,10 +103,34 @@ public class CreateVolumePage1 extends WizardPage {
 				setPageComplete(false);
 				setErrorMessage("Please enter Access Control");
 			}
-			// TODO: acl validation
-			// String[] aclList = accessControl.split(",");
 			
-		}		
+
+			// acl validation
+			String[] aclList = accessControl.split(",");
+			for (String ip : aclList) {
+				if (!isValidIP(ip)) {
+					setPageComplete(false);
+					setErrorMessage("Please enter valid access control list");
+				} 
+			}
+			
+		}
+		
+		private Boolean isValidIP(String ip) {
+			// String pattern = "^.[0-9]{1,3}/..[0-9]{1,3}/..[0-9]{1,3}/..[0-9]{1,3}";
+			String pattern = "^.[0-9]{1,3}/.";
+			if (ip == "*") {
+				return true;
+			}
+			String[] ipQuads = ip.split(".");
+			for (String quad : ipQuads) {
+				if (!quad.matches(pattern)) {
+					return false;
+				}
+			}
+			return true;
+			
+		}
 	}
 	
 	/**
@@ -221,7 +246,6 @@ public class CreateVolumePage1 extends WizardPage {
 	}
 
 	public Volume getVolume() {
-	
 		volume.setName(txtName.getText());
 		
 		IStructuredSelection selection = (IStructuredSelection)typeComboViewer.getSelection();
@@ -241,5 +265,17 @@ public class CreateVolumePage1 extends WizardPage {
 	
 	public Boolean getStartVolumeRequest() {
 		return btnStartVolume.getSelection();
+	}
+	
+	public Boolean isValidCreateVolumeForm() {
+		IStructuredSelection selection = (IStructuredSelection)typeComboViewer.getSelection();
+		if (selection.getFirstElement().equals(VOLUME_TYPE.DISTRIBUTED_MIRROR) && ((int)volume.getDisks().size()) % 2 != 0 ) {
+			setErrorMessage("Mirror type volume requires disk in multiples of two");
+			return false;
+		} else if(selection.getFirstElement().equals(VOLUME_TYPE.DISTRIBUTED_STRIPE) && ((int)volume.getDisks().size()) % 4 != 0) {
+			setErrorMessage("Stripe type volume requires disk in multiples of four");
+			return false;
+		}
+		return true;
 	}
 }

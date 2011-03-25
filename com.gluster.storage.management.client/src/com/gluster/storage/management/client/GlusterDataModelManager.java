@@ -143,16 +143,6 @@ public class GlusterDataModelManager {
 		return volume;
 	}
 	
-	public void addVolume(Volume volume ) {
-		Cluster cluster = (Cluster)model.getChildren().get(0);
-		cluster.addVolume(volume);
-		
-		for(ClusterListener listener : listeners) {
-			listener.volumeCreated(volume);
-		}
-	}
-	
-
 	private void initializeVolumes(Cluster cluster) {
 		List<Volume> volumes = new ArrayList<Volume>();
 
@@ -340,6 +330,15 @@ public class GlusterDataModelManager {
 		volume.setStatus(newStatus);
 		for(ClusterListener listener : listeners) {
 			listener.volumeChanged(volume, new Event(EVENT_TYPE.VOLUME_STATUS_CHANGED, newStatus));
+		}
+	}
+	
+	public void addVolume(Volume volume) {
+		Cluster cluster = (Cluster)model.getChildren().get(0);
+		cluster.addVolume(volume);
+		
+		for(ClusterListener listener : listeners) {
+			listener.volumeCreated(volume);
 		}
 	}
 }

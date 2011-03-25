@@ -20,6 +20,7 @@
  */
 package com.gluster.storage.management.core.utils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -199,6 +200,13 @@ public class GlusterUtil {
 	private String getBrickNotation(Volume vol, Disk disk) {
 		// TODO: Figure out an appropriate directory INSIDE the DISK having given NAME (e.g. sda, sdb, etc)
 		// String dirName = "/export/" + vol.getName() + "/" + disk.getName();
+		
+		// if /export directory is not exist then create the directory
+		boolean exists = (new File("/export")).exists();
+		
+		if (!exists) {
+			processUtil.executeCommand("mkdir", "/export");
+		}
 		String dirName = "/export/" + vol.getName() ;
 		return disk.getServerName() + ":" + dirName;
 	}

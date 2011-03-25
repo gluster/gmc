@@ -26,37 +26,55 @@ public class DefaultClusterListener implements ClusterListener {
 
 	@Override
 	public void serverAdded(GlusterServer server) {
+		clusterChanged();
 	}
 
 	@Override
 	public void serverRemoved(GlusterServer server) {
+		clusterChanged();
 	}
 
 	@Override
 	public void serverChanged(GlusterServer server, Event event) {
+		clusterChanged();
 	}
 
 	@Override
 	public void volumeAdded(Volume volume) {
+		clusterChanged();
 	}
 
 	@Override
 	public void volumeRemoved(Volume volume) {
+		clusterChanged();
 	}
 
 	@Override
-	public void volumeChanged(Volume volume, Event event) {
+	public void volumeChanged(Volume volume, Event event) {		
+		clusterChanged();
 	}
 
 	@Override
 	public void discoveredServerAdded(Server server) {
+		clusterChanged();
 	}
 
 	@Override
 	public void discoveredServerRemoved(Server server) {
+		clusterChanged();
 	}
 
 	@Override
 	public void volumeCreated(Volume volume) {
+		clusterChanged();
+	}
+	
+	/**
+	 * This method is called by every other event method. Thus, if a view/listener is interested in performing the same
+	 * task on any change happening in the cluster data model, it can simply override this method and implement the
+	 * logic. e.g. A view may simply refresh its tree/table viewer whenever the cluster data model changes.
+	 */
+	public void clusterChanged() {
+		
 	}
 }

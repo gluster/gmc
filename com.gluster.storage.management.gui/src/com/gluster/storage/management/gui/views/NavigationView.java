@@ -84,29 +84,24 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 
 		// Refresh the navigation tree whenever there is a change to the data model
 		GlusterDataModelManager.getInstance().addClusterListener(new DefaultClusterListener() {
-			@Override
-			public void serverAdded(GlusterServer server) {
+			public void clusterChanged() {
 				treeViewer.refresh();
 			}
-
-			/*
-			 * (non-Javadoc)
-			 * 
-			 * @see
-			 * com.gluster.storage.management.core.model.DefaultClusterListener#volumeChanged(com.gluster.storage.management
-			 * .core.model.Volume, com.gluster.storage.management.core.model.Event)
-			 */
+			
 			@Override
 			public void volumeChanged(Volume volume, Event event) {
-				treeViewer.refresh();
+				super.volumeChanged(volume, event);
 				selectEntity(volume); // this makes sure that the toolbar buttons get updated accoring to new status
+			}
+			
+			@Override
+			public void volumeCreated(Volume volume) {
+				super.volumeCreated(volume);
+				selectEntity(volume);
 			}
 		});
 	}
 
-	/**
-	 * 
-	 */
 	private void setupContextMenu() {
 		MenuManager menuManager = new MenuManager("&Gluster", "gluster.context.menu");
 		Menu contextMenu = menuManager.createContextMenu(treeViewer.getControl());
@@ -125,12 +120,6 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 		treeViewer.getControl().setFocus();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.ui.ISelectionListener#selectionChanged(org.eclipse.ui.IWorkbenchPart,
-	 * org.eclipse.jface.viewers.ISelection)
-	 */
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 		if (part instanceof NavigationView && selection instanceof TreeSelection) {
