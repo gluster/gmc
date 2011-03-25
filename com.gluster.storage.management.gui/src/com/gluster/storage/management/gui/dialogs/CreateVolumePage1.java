@@ -37,6 +37,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
@@ -196,14 +197,20 @@ public class CreateVolumePage1 extends WizardPage {
 		linkCustomize.setText("All Disk(s) (<a>customize</a>)");
 		linkCustomize.addListener (SWT.Selection, new Listener () {
 			public void handleEvent(Event event) {
-				SelectDisksDialog dialog = new SelectDisksDialog(getShell(), allDisks, volume.getDisks());
+				Display.getDefault().asyncExec(new Runnable() {
+					
+					@Override
+					public void run() {
+						SelectDisksDialog dialog = new SelectDisksDialog(getShell(), allDisks, volume.getDisks());
 
-				dialog.create();
-		        if(dialog.open() == Window.OK) {
-		        	// user has customized disks. get them from the dialog box.
-		        	volume.setDisks(dialog.getSelectedDisks());
-		        	linkCustomize.setText("" + volume.getDisks().size() + " Disk(s) (<a>customize</a>)");
-		        }
+						dialog.create();
+				        if(dialog.open() == Window.OK) {
+				        	// user has customized disks. get them from the dialog box.
+				        	volume.setDisks(dialog.getSelectedDisks());
+				        	linkCustomize.setText("" + volume.getDisks().size() + " Disk(s) (<a>customize</a>)");
+				        }
+					}
+				});
 			}
 		});
 		

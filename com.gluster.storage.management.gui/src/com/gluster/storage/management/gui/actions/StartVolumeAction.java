@@ -34,23 +34,31 @@ public class StartVolumeAction extends AbstractActionDelegate {
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 
 	@Override
-	public void run(IAction action) {
-		if(volume.getStatus() == VOLUME_STATUS.ONLINE) {
+	public void run(final IAction action) {
+		if (volume.getStatus() == VOLUME_STATUS.ONLINE) {
 			return; // Volume already online. Don't do anything.
 		}
-		
+
 		VolumesClient client = new VolumesClient(modelManager.getSecurityToken());
-		Status status = client.startVolume(volume.getName());
-		if (status.isSuccess()) {
-			new MessageDialog(Display.getCurrent().getActiveShell(), action.getDescription(), null, "Volume ["
-					+ volume.getName() + "] started successfully!", MessageDialog.INFORMATION, new String[] { "OK" }, 0)
-					.open();
-			modelManager.updateVolumeStatus(volume, VOLUME_STATUS.ONLINE);
-		} else {
-			new MessageDialog(Display.getCurrent().getActiveShell(), action.getDescription(), null, "Volume ["
-					+ volume.getName() + "] could not be started! Error: [" + status + "]", MessageDialog.ERROR,
-					new String[] { "OK" }, 0).open();
-		}
+		final Status status = client.startVolume(volume.getName());
+		final String actionDesc = action.getDescription();
+		final Display display = Display.getDefault();
+		display.asyncExec(new Runnable() {
+
+			@Override
+			public void run() {
+				if (status.isSuccess()) {
+					new MessageDialog(display.getActiveShell(), actionDesc, null, "Volume ["
+							+ volume.getName() + "] started successfully!", MessageDialog.INFORMATION,
+							new String[] { "OK" }, 0).open();
+					modelManager.updateVolumeStatus(volume, VOLUME_STATUS.ONLINE);
+				} else {
+					new MessageDialog(display.getActiveShell(), actionDesc, null, "Volume ["
+							+ volume.getName() + "] could not be started! Error: [" + status + "]",
+							MessageDialog.ERROR, new String[] { "OK" }, 0).open();
+				}
+			}
+		});
 	}
 
 	@Override
