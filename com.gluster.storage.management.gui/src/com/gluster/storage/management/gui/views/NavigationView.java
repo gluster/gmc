@@ -39,7 +39,6 @@ import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.GlusterDataModel;
-import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
 import com.gluster.storage.management.gui.views.navigator.ClusterAdapterFactory;

@@ -30,6 +30,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.ViewPart;
 
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.GlusterDataModel;
@@ -41,7 +42,6 @@ import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.views.details.tabcreators.PieChartViewerComposite;
 
 /**
- * @author root
  * 
  */
 public class VolumesSummaryView extends ViewPart {
@@ -96,8 +96,8 @@ public class VolumesSummaryView extends ViewPart {
 			if (task.getStatus().isPercentageSupported()) {
 				//TODO Progress bar 
 			}
-			taskMessage = taskMessage + "\n" + task.getDescription();
-			System.out.println(task.getId());
+			//TODO show different labels for each task
+			taskMessage = taskMessage + CoreConstants.NEWLINE + task.getDescription();
 		}
 		toolkit.createLabel(section, taskMessage);
 	}
