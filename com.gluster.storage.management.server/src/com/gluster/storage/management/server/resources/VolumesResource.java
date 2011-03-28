@@ -85,9 +85,9 @@ public class VolumesResource {
 	@GET
 	@Path(SUBRESOURCE_DEFAULT_OPTIONS)
 	@Produces(MediaType.TEXT_XML)
-	public Map<String, String> getDefaultOptions() {
+	public VolumeOptionsDefaults getDefaultOptions() {
 		// TODO: Fetch all volume options with their default values from GlusterFS
 		// whenever such a CLI command is made available in GlusterFS
-		return VolumeOptionsDefaults.OPTIONS;
+		return new VolumeOptionsDefaults().getDefaults();
 	}
 }

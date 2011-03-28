@@ -20,32 +20,101 @@
  */
 package com.gluster.storage.management.server.constants;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.model.VolumeOptionInfo;
+
+@XmlRootElement
 public class VolumeOptionsDefaults {
-	public static final Map<String, String> OPTIONS = new HashMap<String, String>();
+	@XmlElementWrapper(name = "volumeOptions")
+	@XmlElement(name = "volumeOption", type = VolumeOptionInfo.class)
+	public List<VolumeOptionInfo> options;
 	
-	static {
-		OPTIONS.put("cluster.stripe-block-size", "*:128KB");
-		OPTIONS.put("cluster.self-heal-window-size", "16");
-		OPTIONS.put("cluster.data-self-heal-algorithm", "full/diff");
-		OPTIONS.put("network.frame-timeout", "1800");
-		OPTIONS.put("network.ping-timeout", "42");
-		OPTIONS.put("auth.allow", "*");
-		OPTIONS.put("auth.reject", "NONE");
-		OPTIONS.put("performance.cache-refresh-timeout", "1");
-		OPTIONS.put("performance.cache-size", "32MB");
-		OPTIONS.put("performance.write-behind-window-size", "1MB");
-		OPTIONS.put("performance.cache-max-file-size", "?");
-		OPTIONS.put("performance.cache-min-file-size", "?");
-		OPTIONS.put("performance.io-thread-count", "?");
-		OPTIONS.put("diagnostics.latency-measurement", "off");
-		OPTIONS.put("diagnostics.dump-fd-stats", "off");
-		OPTIONS.put("diagnostics.brick-log-level", "NORMAL");
-		OPTIONS.put("diagnostics.client-log-level", "NORMAL");
-		OPTIONS.put("nfs.enable-ino32", "off");
-		OPTIONS.put("nfs.mem-factor", "15");
-		OPTIONS.put("transport.keepalive", "?");
+	public VolumeOptionsDefaults() {
+	}
+	
+	public VolumeOptionsDefaults getDefaults() {
+		options = getVolumeOptionsInfo();
+		return this;
+	}
+
+	/**
+	 * Fetches the list of all volume options with their information from GlusterFS and returns the same
+	 * 
+	 * @return List of volume option information objects
+	 */
+	private List<VolumeOptionInfo> getVolumeOptionsInfo() {
+		List<VolumeOptionInfo> volumeOptionsInfo = new ArrayList<VolumeOptionInfo>();
+
+		volumeOptionsInfo
+				.add(new VolumeOptionInfo(
+						"cluster.stripe-block-size",
+						"This could be used in case of a stripe setup. Specifies the size of the stripe unit that will read from or written to the striped servers. "
+								+ CoreConstants.NEWLINE
+								+ "Optionally different stripe unit sizes can be specified for different fies, with the following pattern <filename-pattern:blk-size>. ",
+						"*:128KB"));
+		volumeOptionsInfo
+				.add(new VolumeOptionInfo(
+						"cluster.self-heal-window-size",
+						"Specifies the number of maximum number blocks per file for which self-heal process would be applied simultaneously.",
+						"16"));
+		volumeOptionsInfo.add(new VolumeOptionInfo("cluster.data-self-heal-algorithm",
+				"cluster.data-self-heal-algorithm", "auto"));
+		volumeOptionsInfo
+				.add(new VolumeOptionInfo(
+						"network.frame-timeout",
+						"The time frame after which the operation has to be declared as dead, if the server does not respond for a particular operation.",
+						"1800"));
+		volumeOptionsInfo.add(new VolumeOptionInfo("network.ping-timeout",
+				"The time duration for which the client waits to check if the server is responsive.", "42"));
+		volumeOptionsInfo.add(new VolumeOptionInfo("auth.allow",
+				"'IP addresses/Host name' of the clients which should be allowed to access the the volume.", "*"));
+		volumeOptionsInfo.add(new VolumeOptionInfo("auth.reject",
+				"'IP addresses/Host name' of the clients which should be denied to access the volume.", "NONE"));
+		volumeOptionsInfo
+				.add(new VolumeOptionInfo(
+						"performance.cache-refresh-timeout",
+						"The cached data for a file will be retained till 'cache-refresh-timeout' seconds, after which data re-validation is performed.",
+						"1"));
+		volumeOptionsInfo.add(new VolumeOptionInfo("performance.cache-size", "Size of the read cache.", "32MB"));
+		volumeOptionsInfo.add(new VolumeOptionInfo("performance.write-behind-window-size",
+				"Size of the per-file write-behind buffer.", "1MB"));
+		volumeOptionsInfo.add(new VolumeOptionInfo("performance.cache-max-file-size",
+				"performance.cache-max-file-size", "-1"));
+		volumeOptionsInfo.add(new VolumeOptionInfo("performance.cache-min-file-size",
+				"performance.cache-min-file-size", "0"));
+		volumeOptionsInfo
+				.add(new VolumeOptionInfo(
+						"performance.io-thread-count",
+						" Number of threads in the thread-pool in the bricks to improve the concurrency in I/O s of server side.",
+						"16"));
+		volumeOptionsInfo
+				.add(new VolumeOptionInfo(
+						"diagnostics.latency-measurement",
+						"Statistics related to the latency of each operation would be tracked inside GlusterFS data-structures.",
+						"off"));
+		volumeOptionsInfo.add(new VolumeOptionInfo("diagnostics.dump-fd-stats",
+				"Statistics related to file-operations would be tracked inside GlusterFS data-structures.", "off"));
+		volumeOptionsInfo.add(new VolumeOptionInfo("diagnostics.brick-log-level",
+				"Changes the log-level of the bricks (servers).", "NORMAL"));
+		volumeOptionsInfo.add(new VolumeOptionInfo("diagnostics.client-log-level",
+				"Changes the log-level of the clients.", "NORMAL"));
+		volumeOptionsInfo.add(new VolumeOptionInfo("nfs.enable-ino32",
+				"Use this option from the CLI to make Gluster NFS return 32-bit inode numbers instead of 64-bit.",
+				"off"));
+		volumeOptionsInfo
+				.add(new VolumeOptionInfo(
+						"nfs.mem-factor",
+						"This option specifies a multiple that determines the total amount of memory used. Increases this increases the performance of NFS.",
+						"15"));
+		volumeOptionsInfo.add(new VolumeOptionInfo("transport.keepalive", "transport.keepalive", "on"));
+
+		return volumeOptionsInfo;
 	}
 }

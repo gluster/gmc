@@ -45,11 +45,6 @@ public class DiscoveredServersClient extends AbstractClient {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.putSingle("details", getDetails.toString());
 
-		// TODO: Used during development to check the response contents.
-		// to be removed later
-		String response = (String) fetchResource(queryParams, String.class);
-		System.out.println(response);
-
 		return ((Response) fetchResource(queryParams, responseClass)).getData();
 	}
 
