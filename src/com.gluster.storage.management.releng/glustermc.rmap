@@ -3,7 +3,7 @@
   <rm:locator searchPathRef="glustermc"/>
   <rm:searchPath name="glustermc">
     <rm:provider componentTypes="osgi.bundle,eclipse.feature,unknown" readerType="local">
-      <rm:uri format="file:///{0}/gmc-src/{1}/">
+      <rm:uri format="file:///{0}/src/{1}/">
         <bc:propertyRef key="workspace.root"/>
         <bc:propertyRef key="buckminster.component"/>
       </rm:uri>
