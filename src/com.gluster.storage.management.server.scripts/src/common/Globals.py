@@ -52,7 +52,7 @@ SERVER_AGENT_PORT  = 50000
 BOOT_PARTITION_LABEL      = "GLUSTEROS"
 DATA_PARTITION_LABEL      = "GLUSTERDATA"
 VOLUME_USER_DESCRIPTION   = "Gluster Volume User"
-SERVER_AGENT_RUN_USERNAME = "transport"
+SERVER_AGENT_RUN_USERNAME = "gluster"
 INSTALLER_SERVER_NAME     = "$installer$"
 
 GLUSTER_BASE_DIR         = "/GLUSTER"
@@ -64,7 +64,7 @@ WEBDAV_DOCUMENT_ROOT_DIR = "/var/www/html"
 UPDATES_DIR              = "/UPDATES"
 TRANSPORT_HOME_DIR       = "/transport"
 GLUSTERFS_LOG_DIR        = "/var/log/glusterfs"
-LOG_DIR                  = "/var/log/platform"
+LOG_DIR                  = "/var/log/glustermc"
 
 GLUSTER_UPDATES_FILE        = "updates.xml"
 INSTALLER_STATUS_FILE       = "/var/log/install-server-status.log"
@@ -103,6 +103,7 @@ SESSION_FILE = GLUSTER_TMP_DIR + "/login.sessions"
 
 GENERAL_LOG_FILE         = LOG_DIR + "/general.log"
 INSTALLER_LOG_FILE       = LOG_DIR + "/installer.log"
+PEER_AGENT_LOG_FILE    = LOG_DIR + "/peeragent.log"
 SERVER_AGENT_LOG_FILE    = LOG_DIR + "/serveragent.log"
 TRANSPORT_AGENT_LOG_FILE = LOG_DIR + "/transport.log"
 ##

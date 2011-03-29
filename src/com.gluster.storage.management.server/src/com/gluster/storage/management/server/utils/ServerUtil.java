@@ -20,6 +20,11 @@
  */
 package com.gluster.storage.management.server.utils;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,5 +59,42 @@ public class ServerUtil {
 	private String getScriptPath(String scriptName) {
 		String scriptPath = servletContext.getRealPath(SCRIPT_DIR) + CoreConstants.FILE_SEPARATOR + scriptName;
 		return scriptPath;
+	}
+
+	/**
+	 * Executes given command on given server
+	 * 
+	 * @param runInForeground
+	 * @param serverName
+	 * @param commandWithArgs
+	 * @return Response from remote execution of the command
+	 */
+	public String executeOnServer(boolean runInForeground, String serverName, String commandWithArgs) {
+		try {
+			InetAddress address = InetAddress.getByName(serverName);
+			Socket connection = new Socket(address, 50000);
+
+			PrintWriter writer = new PrintWriter(connection.getOutputStream(), true);
+			BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
+
+			writer.println(commandWithArgs);
+			writer.println(); // empty line means end of request
+
+			StringBuffer output = new StringBuffer();
+			String line;
+			while (!(line = reader.readLine()).trim().isEmpty()) {
+				output.append(line + CoreConstants.NEWLINE);
+			}
+
+			connection.close();
+			return output.toString();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static void main(String args[]) {
+		System.out.println(new ServerUtil().executeOnServer(true, "localhost", "ls -lrt"));
 	}
 }
