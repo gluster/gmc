@@ -1,4 +1,4 @@
-com.gluster.storage.management.client/bin
-com.gluster.storage.management.core/bin
-com.gluster.storage.management.gui/bin
-com.gluster.storage.management.server/WebContent/WEB-INF/classes
+src/com.gluster.storage.management.client/bin
+src/com.gluster.storage.management.core/bin
+src/com.gluster.storage.management.gui/bin
+src/com.gluster.storage.management.server/WebContent/WEB-INF/classes
