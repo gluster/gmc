@@ -27,6 +27,8 @@ public class Status {
 	public static final int STATUS_CODE_SUCCESS = 0;
 	public static final int STATUS_CODE_FAILURE = 1;
 	public static final int STATUS_CODE_RUNNING = 2;
+	public static final int STATUS_CODE_PAUSE = 3;
+	public static final int STATUS_CODE_WARNING = 4;
 	public static final Status STATUS_SUCCESS = new Status(STATUS_CODE_SUCCESS, "Success");
 	public static final Status STATUS_FAILURE = new Status(STATUS_CODE_FAILURE, "Failure");
 

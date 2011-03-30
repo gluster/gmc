@@ -34,4 +34,5 @@ public class RESTConstants {
 	
 	// Running tasks resource
 	public static final String RESOURCE_PATH_RUNNING_TASKS = "/cluster/runningtasks";
+	public static final String RESOURCE_PATH_ALERTS = "/cluster/alerts";
 }

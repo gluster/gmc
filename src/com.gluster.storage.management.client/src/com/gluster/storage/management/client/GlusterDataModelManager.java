@@ -121,6 +121,8 @@ public class GlusterDataModelManager {
 		createDummyLogMessages();
 		
 		initializeRunningTasks(cluster);
+		
+		initializeAlerts(cluster);
 
 		model.addCluster(cluster);
 	}
@@ -246,6 +248,11 @@ public class GlusterDataModelManager {
 	
 	public void initializeRunningTasks(Cluster cluster) {
 		cluster.setRunningTasks(new RunningTaskClient(securityToken).getRunningTasks());
+	}
+	
+	public void initializeAlerts(Cluster cluster) {
+		cluster.setAlerts(new AlertsClient(securityToken).getAlerts());
+		System.out.println(cluster.getAlerts().toString());
 	}
 
 	public List<LogMessage> createDummyLogMessages() {

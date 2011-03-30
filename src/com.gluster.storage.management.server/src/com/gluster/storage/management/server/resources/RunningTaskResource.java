@@ -55,36 +55,35 @@ public class RunningTaskResource {
 		// Volume rebalance
 		RunningTask task = new RunningTask();
 		task.setId("0001");
-		task.setType("VolumeRebalance");
-		task.setReference("");
-		task.setDescription("Volume [Volume1] rebalance is running");
+		task.setType(RunningTask.TASK_TYPES.VOLUME_REBALANCE);
+		task.setReference("Volume1");
+		task.setDescription("Volume [" + task.getReference() + "] rebalance is running");
 		task.setStatus(status);
 		runningTasks.add(task);
 
 		task = new RunningTask();
 		task.setId("0002");
-		task.setType("VolumeRebalance");
-		task.setReference("");
-		task.setDescription("Volume [Volume2] rebalance is running");
-		//task.setDescription("Error: volume rebalance operation failed at fd 0000 [/export/test-song-volume/mydirectory/test-video.avi");
+		task.setType(RunningTask.TASK_TYPES.VOLUME_REBALANCE);
+		task.setReference("Volume2");
+		task.setDescription("Volume [" +  task.getReference() + "] rebalance is running");
 		task.setStatus(status);
 		runningTasks.add(task);
 
 		// MigrateDisk
 		task = new RunningTask();
 		task.setId("0003");
-		task.setType("MigrateDisk");
-		task.setReference("");
-		task.setDescription("Disk migration [Volume3/sda] is running");
+		task.setType(RunningTask.TASK_TYPES.MIGRATE_DISK);
+		task.setReference("Volume3/sda");
+		task.setDescription("Disk migration [" +  task.getReference() + "] is running");
 		task.setStatus(status);
 		runningTasks.add(task);
 
 		// FormatDisk
 		task = new RunningTask();
 		task.setId("0004");
-		task.setType("FormatDisk");
-		task.setReference("");
-		task.setDescription("Volume [vol1] rebalance is running");
+		task.setType(RunningTask.TASK_TYPES.FORMAT_DISK);
+		task.setReference("vol1");
+		task.setDescription("Volume [" + task.getReference() + "] rebalance is running");
 		status.setPercentageSupported(true);
 		status.getPercentCompleted(45);
 		task.setStatus(status);
@@ -93,8 +92,11 @@ public class RunningTaskResource {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public Response startTask(@FormParam("taskType") String taskType) {
-		String managerClassName = "com.gluster.storage.management.server.runningtasks.managers." + taskType + "Manager";
+	public Response startTask(@FormParam("taskType") RunningTask.TASK_TYPES taskType) {
+		
+		String taskTypeStr =  new RunningTask().getTaskType(taskType).replaceAll("\\s+", "");
+		String managerClassName = "com.gluster.storage.management.server.runningtasks.managers." + taskTypeStr + "Manager";
+		
 		Class managerClass;
 		RunningTaskManager manager = null;
 		try {
