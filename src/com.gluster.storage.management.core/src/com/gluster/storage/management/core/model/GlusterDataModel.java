@@ -39,4 +39,8 @@ public class GlusterDataModel extends Entity {
 	public void addCluster(Cluster cluster) {
 		children.add(cluster);
 	}
+	
+	public Cluster getCluster() {
+		return (Cluster) children.get(0);
+	}
 }

@@ -8,7 +8,6 @@ import com.gluster.storage.management.core.model.RunningTask;
 import com.gluster.storage.management.core.model.RunningTaskListResponse;
 
 public class RunningTaskClient extends AbstractClient {
-	private static final String RESOURCE_NAME = RESTConstants.RESOURCE_PATH_RUNNING_TASKS;
 	
 	public RunningTaskClient(String securityToken) {
 		super(securityToken);
@@ -16,7 +15,7 @@ public class RunningTaskClient extends AbstractClient {
 
 	@Override
 	public String getResourceName() {
-		return RESOURCE_NAME;
+		return RESTConstants.RESOURCE_PATH_RUNNING_TASKS;
 	}
 	
 	@SuppressWarnings("rawtypes") 

@@ -18,6 +18,7 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.dialogs;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -73,7 +74,15 @@ public class CreateVolumePage1 extends WizardPage {
 		
 		// by default, we create volume with all available disks
 		allDisks = GlusterDataModelManager.getInstance().getReadyDisksOfAllServers();
-		volume.setDisks(allDisks);
+		volume.setDisks(getBricks(allDisks)); // volume.setDisks(allDisks);
+	}
+	
+	private List<String> getBricks(List<Disk> allDisks) {
+		List<String> disks = new ArrayList<String>();
+		for(Disk disk: allDisks) {
+			disks.add(disk.getServerName() + ":" + disk.getName());
+		}
+		return disks;
 	}
 
 	private class ValidationListener implements ModifyListener {
@@ -206,7 +215,7 @@ public class CreateVolumePage1 extends WizardPage {
 						dialog.create();
 				        if(dialog.open() == Window.OK) {
 				        	// user has customized disks. get them from the dialog box.
-				        	volume.setDisks(dialog.getSelectedDisks());
+				        	volume.setDisks(dialog.getSelectedBricks());
 				        	linkCustomize.setText("" + volume.getDisks().size() + " Disk(s) (<a>customize</a>)");
 				        }
 					}

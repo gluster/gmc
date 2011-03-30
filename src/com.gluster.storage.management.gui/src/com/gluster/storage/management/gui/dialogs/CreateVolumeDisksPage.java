@@ -291,13 +291,26 @@ public class CreateVolumeDisksPage extends Composite {
 
 		setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 	}
-
+	
+	
 	public List<Disk> getChosenDisks() {
 		Object[] disksArr = (Object[]) chosenDisksContentProvider.getElements(dualTableViewer);
 		if (disksArr != null) {
 			List<Disk> disks = new ArrayList<Disk>();
 			for (Object disk : disksArr) {
-				disks.add((Disk) disk);
+				disks.add( (Disk)disk ); 
+			}
+			return disks;
+		}
+		return null;
+	}
+
+	public List<String> getChosenBricks() {
+		Object[] disksArr = (Object[]) chosenDisksContentProvider.getElements(dualTableViewer);
+		if (disksArr != null) {
+			List<String> disks = new ArrayList<String>();
+			for (Object disk : disksArr) {
+				disks.add( ((Disk)disk).getServerName() + ":" + ((Disk)disk).getName() ); // Format: Server:disk
 			}
 			return disks;
 		}

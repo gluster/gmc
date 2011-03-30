@@ -29,6 +29,7 @@ import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.model.GenericResponse;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.VolumeListResponse;
 import com.sun.jersey.api.representation.Form;
 
 public class VolumesClient extends AbstractClient {
@@ -66,7 +67,10 @@ public class VolumesClient extends AbstractClient {
 	public Status stopVolume(String volumeName) {
 		return performOperation(volumeName, RESTConstants.FORM_PARAM_VALUE_STOP);
 	}
-
+	
+	public VolumeListResponse getAllVolumes() {
+		return (VolumeListResponse) fetchResource(VolumeListResponse.class);
+	}
 
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();

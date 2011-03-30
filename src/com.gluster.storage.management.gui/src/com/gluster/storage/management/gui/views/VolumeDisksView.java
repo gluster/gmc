@@ -4,6 +4,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.ViewPart;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.views.details.DisksPage;
@@ -27,7 +29,7 @@ public class VolumeDisksView extends ViewPart {
 	 * @param parent
 	 */
 	private void createPage(Composite parent) {
-		page = new DisksPage(parent, SWT.NONE, getSite(), volume.getDisks());
+		page = new DisksPage(parent, SWT.NONE, getSite(), GlusterDataModelManager.getInstance().getReadyDisksOfVolume(volume));
 		parent.layout(); // IMP: lays out the form properly
 	}
 

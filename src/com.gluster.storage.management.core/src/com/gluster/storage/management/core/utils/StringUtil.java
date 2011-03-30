@@ -25,4 +25,8 @@ public class StringUtil {
 				: sourceString.toLowerCase().contains(
 						filterString.toLowerCase());
 	}
+	
+	public static String removeSpaces(String str) {
+		return str.replaceAll("\\s+", "");
+	}
 }

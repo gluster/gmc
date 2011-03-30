@@ -27,6 +27,8 @@ import static com.gluster.storage.management.core.constants.RESTConstants.PATH_P
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_VOLUMES;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.Consumes;
@@ -39,11 +41,14 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.GenericResponse;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.VolumeListResponse;
 import com.gluster.storage.management.core.utils.GlusterUtil;
 import com.gluster.storage.management.core.utils.ProcessResult;
+import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
 import com.sun.jersey.spi.resource.Singleton;
 
@@ -52,6 +57,18 @@ import com.sun.jersey.spi.resource.Singleton;
 public class VolumesResource {
 	private final GlusterUtil glusterUtil = new GlusterUtil();
 
+	@GET 
+	@Produces(MediaType.TEXT_XML)
+	public VolumeListResponse getAllVolumes() {
+		ProcessResult response = glusterUtil.getVolumeInfo();  
+		if (response.isSuccess()) {
+			return new VolumeListResponse( Status.STATUS_SUCCESS, glusterUtil.getAllVolumes(response.getOutput()) );
+		} else {
+			//TODO: log the error
+			return new VolumeListResponse(Status.STATUS_FAILURE, new  ArrayList<Volume>());
+		}
+	}
+	
 	@POST
 	@Consumes(MediaType.TEXT_XML)
 	@Produces(MediaType.TEXT_XML)
@@ -89,5 +106,14 @@ public class VolumesResource {
 		// TODO: Fetch all volume options with their default values from GlusterFS
 		// whenever such a CLI command is made available in GlusterFS
 		return new VolumeOptionsDefaults().getDefaults();
+	}
+	
+	
+	public static void main(String[] args) {
+		VolumesResource vr = new VolumesResource();
+		VolumeListResponse response = vr.getAllVolumes(); 
+		for(Volume volume : response.getVolumes() ) {
+			System.out.println( "\nName:" + volume.getName() + "\nType: " + volume.getVolumeTypeStr() + "\nStatus: " + volume.getStatusStr());
+		}
 	}
 }
