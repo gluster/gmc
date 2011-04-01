@@ -19,9 +19,7 @@
 package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.GlusterServersClient;
@@ -33,7 +31,8 @@ import com.gluster.storage.management.core.model.Volume;
 
 public class AddServerAction extends AbstractActionDelegate {
 	@Override
-	public void run(IAction action) {
+	protected void performAction(IAction action) {
+		final String actionDesc = action.getDescription();
 		GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 		GlusterServersClient glusterServersClient = new GlusterServersClient(modelManager.getSecurityToken());
 		Server server = (Server) selectedEntity;
@@ -41,12 +40,10 @@ public class AddServerAction extends AbstractActionDelegate {
 		if (response.getStatus().isSuccess()) {
 			modelManager.removeDiscoveredServer(server);
 			modelManager.addGlusterServer(response.getGlusterServer());
-			new MessageDialog(Display.getDefault().getActiveShell(), "Add Server", null, "Server [" + server.getName()
-					+ "] added successfully!", MessageDialog.INFORMATION, new String[] { "OK" }, 0).open();
+			showInfoDialog(actionDesc, "Server [" + server.getName() + "] added successfully!");
 		} else {
-			new MessageDialog(Display.getDefault().getActiveShell(), "Add Server", null, "Server [" + server.getName()
-					+ " could not be added to cluster! Error: [" + response.getStatus().getMessage() + "]",
-					MessageDialog.ERROR, new String[] { "OK" }, 0).open();
+			showErrorDialog(actionDesc, "Server [" + server.getName() + " could not be added to cluster! Error: ["
+					+ response.getStatus().getMessage() + "]");
 		}
 	}
 

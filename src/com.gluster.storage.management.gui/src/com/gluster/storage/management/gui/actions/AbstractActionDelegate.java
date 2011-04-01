@@ -19,9 +19,11 @@
 package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.TreeSelection;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
@@ -37,6 +39,20 @@ public abstract class AbstractActionDelegate implements IWorkbenchWindowActionDe
 	protected Entity selectedEntity;
 
 	@Override
+	public void run(final IAction action) {
+		// Real action code must be executed using Display#asyncExec. Otherwise the system can hang when opening new
+		// dialog boxes on linux platform
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				performAction(action);
+			}
+		});
+	}
+
+	abstract protected void performAction(IAction action);
+
+	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		if (selection instanceof StructuredSelection) {
 			Entity selectedEntity = (Entity) ((StructuredSelection) selection).getFirstElement();
@@ -46,7 +62,7 @@ public abstract class AbstractActionDelegate implements IWorkbenchWindowActionDe
 				return;
 			}
 
-			if(selectedEntity != null) {
+			if (selectedEntity != null) {
 				this.selectedEntity = selectedEntity;
 			}
 		}
@@ -55,5 +71,28 @@ public abstract class AbstractActionDelegate implements IWorkbenchWindowActionDe
 	@Override
 	public void init(IWorkbenchWindow window) {
 		this.window = window;
+	}
+	
+	private Shell getShell() {
+		if(window == null) {
+			return Display.getDefault().getActiveShell();
+		}
+		return window.getShell();
+	}
+
+	protected void showInfoDialog(final String title, final String message) {
+		MessageDialog.openInformation(getShell(), title, message);
+	}
+
+	protected void showWarningDialog(final String title, final String message) {
+		MessageDialog.openWarning(getShell(), title, message);
+	}
+
+	protected void showErrorDialog(final String title, final String message) {
+		MessageDialog.openError(getShell(), title, message);
+	}
+
+	protected synchronized boolean showConfirmDialog(final String title, final String message) {
+		return MessageDialog.openQuestion(getShell(), title, message);
 	}
 }

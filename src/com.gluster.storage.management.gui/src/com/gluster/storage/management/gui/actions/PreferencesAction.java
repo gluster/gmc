@@ -29,7 +29,7 @@ public class PreferencesAction extends AbstractActionDelegate {
 	}
 
 	@Override
-	public void run(IAction action) {
+	protected void performAction(IAction action) {
 		ActionFactory.PREFERENCES.create(window).run();
 	}
 

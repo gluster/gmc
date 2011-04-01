@@ -19,9 +19,7 @@
 package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
@@ -32,42 +30,45 @@ import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 public class StopVolumeAction extends AbstractActionDelegate {
 	private Volume volume;
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
-	
+
 	@Override
-	public void run(IAction action) {
-		if(volume.getStatus() == VOLUME_STATUS.OFFLINE) {
+	protected void performAction(IAction action) {
+		final String actionDesc = action.getDescription();
+		if (volume.getStatus() == VOLUME_STATUS.OFFLINE) {
+			showWarningDialog(actionDesc, "Volume [" + volume.getName() + "] is already offline!");
 			return; // Volume already offline. Don't do anything.
 		}
-		
-		VolumesClient client = new VolumesClient(modelManager.getSecurityToken());
-		final Status status = client.stopVolume(volume.getName());
-		final String actionDesc = action.getDescription();
-		final Display display = Display.getDefault();
-		
-		display.asyncExec(new Runnable() {
-			
-			@Override
-			public void run() {
-				if (status.isSuccess()) {
-					new MessageDialog(Display.getCurrent().getActiveShell(), actionDesc, null, "Volume ["
-							+ volume.getName() + "] stopped successfully!", MessageDialog.INFORMATION, new String[] { "OK" }, 0)
-							.open();
-					modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
-				} else {
-					new MessageDialog(Display.getCurrent().getActiveShell(), actionDesc, null, "Volume ["
-							+ volume.getName() + "] could not be stopped! Error: [" + status + "]", MessageDialog.ERROR,
-							new String[] { "OK" }, 0).open();
-				}
-			}
-		});
+
+		boolean confirmed = showConfirmDialog(actionDesc,
+				"Are you sure you want to stop the volume [" + volume.getName() + "] ?");
+		if (!confirmed) {
+			return;
+		}
+
+		final Status status = stopVolume();
+		if (status.isSuccess()) {
+			showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] stopped successfully!");
+			modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
+		} else {
+			showErrorDialog(actionDesc, "Volume [" + volume.getName() + "] could not be stopped! Error: [" + status
+					+ "]");
+		}
+	}
+
+	private Status stopVolume() {
+		return new VolumesClient(modelManager.getSecurityToken()).stopVolume(volume.getName());
 	}
 
 	@Override
 	public void dispose() {
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.gluster.storage.management.gui.actions.AbstractActionDelegate#selectionChanged(org.eclipse.jface.action.IAction, org.eclipse.jface.viewers.ISelection)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.gluster.storage.management.gui.actions.AbstractActionDelegate#selectionChanged(org.eclipse.jface.action.IAction
+	 * , org.eclipse.jface.viewers.ISelection)
 	 */
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
