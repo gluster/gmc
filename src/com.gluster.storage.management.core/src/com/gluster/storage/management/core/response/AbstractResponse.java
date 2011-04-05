@@ -16,7 +16,10 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.core.model;
+package com.gluster.storage.management.core.response;
+
+import com.gluster.storage.management.core.model.Response;
+import com.gluster.storage.management.core.model.Status;
 
 public abstract class AbstractResponse implements Response {
 	private Status status;

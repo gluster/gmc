@@ -25,9 +25,9 @@ import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.EntityGroup;
-import com.gluster.storage.management.core.model.GlusterServerResponse;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.response.GlusterServerResponse;
 
 public class AddServerAction extends AbstractActionDelegate {
 	@Override

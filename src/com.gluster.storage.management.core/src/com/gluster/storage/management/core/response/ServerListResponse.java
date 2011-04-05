@@ -16,7 +16,7 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.core.model;
+package com.gluster.storage.management.core.response;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,22 +24,45 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+
+import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.model.Status;
 
 @XmlRootElement(name = "response")
-public class StringListResponse extends AbstractResponse {
-	private List<String> data = new ArrayList<String>();
-	
-	public StringListResponse() {
+public class ServerListResponse extends AbstractResponse {
+	private List<Server> servers = new ArrayList<Server>();
+
+	public ServerListResponse() {
 	}
-	
-	public StringListResponse(List<String> data) {
-		this.data = data;
+
+	public ServerListResponse(Status status, List<Server> servers) {
+		setStatus(status);
+		setServers(servers);
 	}
-	
+
+	@XmlElementWrapper(name = "servers")
+	@XmlElement(name = "server", type=Server.class)
+	public List<Server> getServers() {
+		return servers;
+	}
+
+	/**
+	 * @param servers
+	 *            the servers to set
+	 */
+	public void setServers(List<Server> servers) {
+		this.servers = servers;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.gluster.storage.management.core.model.Response#getData()
+	 */
 	@Override
-	@XmlElementWrapper(name = "list")
-	@XmlElement(name = "value", type = String.class)
-	public List<String> getData() {
-		return data;
+	@XmlTransient
+	public List<Server> getData() {
+		return getServers();
 	}
 }

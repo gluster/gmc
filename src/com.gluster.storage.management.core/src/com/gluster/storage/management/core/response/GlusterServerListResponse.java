@@ -18,7 +18,7 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package com.gluster.storage.management.core.model;
+package com.gluster.storage.management.core.response;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +27,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
+
+import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.core.model.Status;
 
 /**
  *

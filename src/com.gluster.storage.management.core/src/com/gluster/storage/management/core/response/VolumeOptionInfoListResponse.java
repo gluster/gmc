@@ -16,7 +16,7 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.core.model;
+package com.gluster.storage.management.core.response;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,30 +26,33 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.model.VolumeOptionInfo;
+
 @XmlRootElement(name = "response")
-public class ServerListResponse extends AbstractResponse {
-	private List<Server> servers = new ArrayList<Server>();
+public class VolumeOptionInfoListResponse extends AbstractResponse {
+	private List<VolumeOptionInfo> options = new ArrayList<VolumeOptionInfo>();
 
-	public ServerListResponse() {
+	public VolumeOptionInfoListResponse() {
 	}
 
-	public ServerListResponse(Status status, List<Server> servers) {
+	public VolumeOptionInfoListResponse(Status status, List<VolumeOptionInfo> options) {
 		setStatus(status);
-		setServers(servers);
+		setOptions(options);
 	}
 
-	@XmlElementWrapper(name = "servers")
-	@XmlElement(name = "server", type=Server.class)
-	public List<Server> getServers() {
-		return servers;
+	@XmlElementWrapper(name = "volumeOptionDefaults")
+	@XmlElement(name = "volumeOption", type=VolumeOptionInfo.class)
+	public List<VolumeOptionInfo> getOptions() {
+		return options;
 	}
 
 	/**
-	 * @param servers
-	 *            the servers to set
+	 * @param options
+	 *            the options to set
 	 */
-	public void setServers(List<Server> servers) {
-		this.servers = servers;
+	public void setOptions(List<VolumeOptionInfo> options) {
+		this.options = options;
 	}
 
 	/*
@@ -59,7 +62,7 @@ public class ServerListResponse extends AbstractResponse {
 	 */
 	@Override
 	@XmlTransient
-	public List<Server> getData() {
-		return getServers();
+	public List<VolumeOptionInfo> getData() {
+		return getOptions();
 	}
 }

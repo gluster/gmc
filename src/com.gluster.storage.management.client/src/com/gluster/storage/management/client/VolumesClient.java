@@ -20,15 +20,14 @@
  */
 package com.gluster.storage.management.client;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.gluster.storage.management.core.constants.RESTConstants;
-import com.gluster.storage.management.core.model.Disk;
-import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
-import com.gluster.storage.management.core.model.GenericResponse;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.VolumeOptionInfo;
+import com.gluster.storage.management.core.response.GenericResponse;
+import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 import com.sun.jersey.api.representation.Form;
 
 public class VolumesClient extends AbstractClient {
@@ -67,24 +66,32 @@ public class VolumesClient extends AbstractClient {
 		return performOperation(volumeName, RESTConstants.FORM_PARAM_VALUE_STOP);
 	}
 
+	public List<VolumeOptionInfo> getVolumeOptionsDefaults() {
+		VolumeOptionInfoListResponse response = (VolumeOptionInfoListResponse) fetchSubResource(
+				RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS, VolumeOptionInfoListResponse.class);
+		return response.getOptions();
+	}
 
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();
 		if (usersClient.authenticate("gluster", "gluster")) {
-			VolumesClient VC = new VolumesClient(usersClient.getSecurityToken());
-			List<Disk> disks = new ArrayList<Disk>();
-			Disk diskElement = new Disk();
-			diskElement.setName("sda1");
-			diskElement.setStatus(DISK_STATUS.READY);
-			disks.add(diskElement);
-			diskElement.setName("sda2");
-			diskElement.setStatus(DISK_STATUS.READY);
-			disks.add(diskElement);
-
-			Volume vol = new Volume("vol1", null, Volume.VOLUME_TYPE.PLAIN_DISTRIBUTE, Volume.TRANSPORT_TYPE.ETHERNET,
-					Volume.VOLUME_STATUS.ONLINE);
-			// vol.setDisks(disks);
-			System.out.println(VC.createVolume(vol));
+			VolumesClient client = new VolumesClient(usersClient.getSecurityToken());
+//			List<Disk> disks = new ArrayList<Disk>();
+//			Disk diskElement = new Disk();
+//			diskElement.setName("sda1");
+//			diskElement.setStatus(DISK_STATUS.READY);
+//			disks.add(diskElement);
+//			diskElement.setName("sda2");
+//			diskElement.setStatus(DISK_STATUS.READY);
+//			disks.add(diskElement);
+//
+//			Volume vol = new Volume("vol1", null, Volume.VOLUME_TYPE.PLAIN_DISTRIBUTE, Volume.TRANSPORT_TYPE.ETHERNET,
+//					Volume.VOLUME_STATUS.ONLINE);
+//			// vol.setDisks(disks);
+//			System.out.println(client.createVolume(vol));
+			for (VolumeOptionInfo option : client.getVolumeOptionsDefaults()) {
+				System.out.println(option.getName() + "-" + option.getDescription() + "-" + option.getDefaultValue());
+			}
 		}
 	}
 }

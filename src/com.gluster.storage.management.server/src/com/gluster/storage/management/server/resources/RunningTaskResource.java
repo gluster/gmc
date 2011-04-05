@@ -33,9 +33,9 @@ import org.springframework.stereotype.Component;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_RUNNING_TASKS;
 import com.gluster.storage.management.core.model.Response;
 import com.gluster.storage.management.core.model.RunningTask;
-import com.gluster.storage.management.core.model.RunningTaskListResponse;
 import com.gluster.storage.management.core.model.RunningTaskStatus;
 import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.response.RunningTaskListResponse;
 import com.gluster.storage.management.server.runningtasks.managers.RunningTaskManager;
 
 @Component
