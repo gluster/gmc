@@ -27,8 +27,6 @@ import static com.gluster.storage.management.core.constants.RESTConstants.PATH_P
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_VOLUMES;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS;
 
-
-import java.util.ArrayList;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -38,7 +36,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-
 
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
@@ -54,6 +51,7 @@ import com.sun.jersey.spi.resource.Singleton;
 @Singleton
 @Path(RESOURCE_PATH_VOLUMES)
 public class VolumesResource {
+	
 	private final GlusterUtil glusterUtil = new GlusterUtil();
 	
 	@InjectParam
@@ -62,12 +60,11 @@ public class VolumesResource {
 	@GET 
 	@Produces(MediaType.TEXT_XML)
 	public VolumeListResponse getAllVolumes() {
-		ProcessResult response = glusterUtil.getVolumeInfo();  
-		if (response.isSuccess()) {
-			return new VolumeListResponse( Status.STATUS_SUCCESS, glusterUtil.getAllVolumes(response.getOutput()) );
-		} else {
-			//TODO: log the error
-			return new VolumeListResponse(Status.STATUS_FAILURE, new  ArrayList<Volume>());
+		try {
+			return new VolumeListResponse(Status.STATUS_SUCCESS, glusterUtil.getAllVolumes());
+		} catch(Exception e) {
+			// TODO: log the error
+			return new VolumeListResponse(new Status(Status.STATUS_CODE_FAILURE, e.getMessage()), null);
 		}
 	}
 	
