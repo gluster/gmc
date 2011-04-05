@@ -98,10 +98,9 @@ public class RunningTaskResource {
 
 	@SuppressWarnings("rawtypes")
 	public Response startTask(@FormParam("taskType") RunningTask.TASK_TYPES taskType) {
-		
 		String taskTypeStr =  StringUtil.removeSpaces( new RunningTask().getTaskType(taskType) );
 		String managerClassName = PKG + "." + taskTypeStr + MANAGER;
-		
+
 		Class managerClass;
 		RunningTaskManager manager = null;
 		try {

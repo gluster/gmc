@@ -4,8 +4,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "alert")
 public class Alert {
+
 	public enum ALERT_TYPES { CPU_USAGE_ALERT, MEMORY_USAGE_ALERT, DISK_USAGE_ALERT, OFFLINE_VOLUME_DISKS_ALERT, OFFLINE_SERVERS_ALERT };
-	
 	public static final String[] ALERT_TYPE_STR = {"High CPU Usage", "High Memory Usage", "Low Disk Space", "Offline Disks", "Offline Servers" };
 
 	protected String id;

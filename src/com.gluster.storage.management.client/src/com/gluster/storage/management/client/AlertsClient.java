@@ -27,7 +27,3 @@ public class AlertsClient  extends AbstractClient {
 		return response.getAlerts();
 	}
 }
-
-
-
-

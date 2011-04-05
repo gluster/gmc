@@ -30,12 +30,10 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.ViewPart;
 
-import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.GlusterDataModel;
-import com.gluster.storage.management.core.model.RunningTaskStatus;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.RunningTask;
 import com.gluster.storage.management.core.model.Volume;
@@ -118,6 +116,9 @@ public class VolumesSummaryView extends ViewPart {
 		Composite section = guiHelper.createSection(form, toolkit, AVAILABILITY, null, 2, false);
 
 		// Cluster cluster = GlusterDataModelManager.getInstance().getModel().getCluster();
+
+		GlusterDataModel model = GlusterDataModelManager.getInstance().getModel();
+		Cluster cluster = (Cluster) model.getChildren().get(0);
 
 		Double[] values = new Double[] { Double.valueOf(getVolumeCountByStatus(volumes, VOLUME_STATUS.ONLINE)),
 				Double.valueOf(getVolumeCountByStatus(volumes, VOLUME_STATUS.OFFLINE)) };
