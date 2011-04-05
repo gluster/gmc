@@ -16,18 +16,30 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.gui.actions;
+package com.gluster.storage.management.core.response;
 
-import org.eclipse.jface.action.IAction;
+import java.util.ArrayList;
+import java.util.List;
 
-public class EditVolumeAction extends AbstractActionDelegate {
-	@Override
-	protected void performAction(IAction action) {
-		System.out.println("Running [" + this.getClass().getSimpleName() + "]");
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement(name = "response")
+public class StringListResponse extends AbstractResponse {
+	private List<String> data = new ArrayList<String>();
+	
+	public StringListResponse() {
 	}
-
+	
+	public StringListResponse(List<String> data) {
+		this.data = data;
+	}
+	
 	@Override
-	public void dispose() {
-		System.out.println("Disposing [" + this.getClass().getSimpleName() + "]");
+	@XmlElementWrapper(name = "list")
+	@XmlElement(name = "value", type = String.class)
+	public List<String> getData() {
+		return data;
 	}
 }

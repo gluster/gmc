@@ -40,7 +40,7 @@ import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
-import com.gluster.storage.management.core.model.VolumeListResponse;
+import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.client.VolumesClient;
 
 public class GlusterDataModelManager {
@@ -104,9 +104,10 @@ public class GlusterDataModelManager {
 	}
 
 	public void initializeModel(String securityToken) {
+		model = new GlusterDataModel("Gluster Data Model");
 		setSecurityToken(securityToken);
 		
-		Cluster cluster = model.getCluster();
+		Cluster cluster = new Cluster("Home",model);
 		VolumesClient volumeClient = new VolumesClient(securityToken);
 		
 		initializeGlusterServers(cluster);

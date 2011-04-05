@@ -33,9 +33,9 @@ import org.springframework.stereotype.Component;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_RUNNING_TASKS;
 import com.gluster.storage.management.core.model.Response;
 import com.gluster.storage.management.core.model.RunningTask;
-import com.gluster.storage.management.core.model.RunningTaskListResponse;
 import com.gluster.storage.management.core.model.RunningTaskStatus;
 import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.response.RunningTaskListResponse;
 import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.server.runningtasks.managers.RunningTaskManager;
 
@@ -61,7 +61,7 @@ public class RunningTaskResource {
 		task.setId("0001");
 		task.setType(RunningTask.TASK_TYPES.VOLUME_REBALANCE);
 		task.setReference("Volume1");
-		task.setTaskInfo( task.getTaskType(task.getType()) +  "is rinning in volume - " + task.getReference());
+		task.setTaskInfo( task.getTaskType(task.getType()) +  "is running in volume " + task.getReference());
 		task.setStatus(status);
 		runningTasks.add(task);
 
@@ -69,7 +69,7 @@ public class RunningTaskResource {
 		task.setId("0002");
 		task.setType(RunningTask.TASK_TYPES.VOLUME_REBALANCE);
 		task.setReference("Volume2");
-		task.setTaskInfo( task.getTaskType(task.getType()) +  " is rinning in volume " + task.getReference());
+		task.setTaskInfo( task.getTaskType(task.getType()) +  " is running in volume " + task.getReference());
 		task.setStatus(status);
 		runningTasks.add(task);
 
@@ -99,7 +99,7 @@ public class RunningTaskResource {
 	@SuppressWarnings("rawtypes")
 	public Response startTask(@FormParam("taskType") RunningTask.TASK_TYPES taskType) {
 		
-		String taskTypeStr =  StringUtil.stripSpaces( new RunningTask().getTaskType(taskType) );
+		String taskTypeStr =  StringUtil.removeSpaces( new RunningTask().getTaskType(taskType) );
 		String managerClassName = PKG + "." + taskTypeStr + MANAGER;
 		
 		Class managerClass;

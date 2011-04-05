@@ -22,11 +22,11 @@ import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
 
-import com.gluster.storage.management.core.model.GenericResponse;
 import com.gluster.storage.management.core.model.Response;
 import com.gluster.storage.management.core.model.Server;
-import com.gluster.storage.management.core.model.ServerListResponse;
-import com.gluster.storage.management.core.model.StringListResponse;
+import com.gluster.storage.management.core.response.GenericResponse;
+import com.gluster.storage.management.core.response.ServerListResponse;
+import com.gluster.storage.management.core.response.StringListResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class DiscoveredServersClient extends AbstractClient {

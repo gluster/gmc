@@ -32,7 +32,7 @@ public class MigrateDiskAction extends AbstractActionDelegate {
 	private Disk disk;
 
 	@Override
-	public void run(IAction action) {
+	protected void performAction(IAction action) {
 //		MigrateDiskDialog dialog = new MigrateDiskDialog(window.getShell(), volume, disk);
 // 		dialog.create();
 // 		dialog.open();

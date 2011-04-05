@@ -7,6 +7,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.gluster.storage.management.core.response.AbstractResponse;
+
 @XmlRootElement(name = "response")
 public class AlertListResponse  extends AbstractResponse {
 	private List<Alert> alerts = new ArrayList<Alert>();

@@ -26,7 +26,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.gluster.storage.management.core.utils.FileUtil;
-import com.gluster.storage.management.core.utils.MD5Crypt;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.ProcessUtil;
 

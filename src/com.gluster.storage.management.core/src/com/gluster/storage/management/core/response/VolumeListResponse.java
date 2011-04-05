@@ -1,4 +1,4 @@
-package com.gluster.storage.management.core.model;
+package com.gluster.storage.management.core.response;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +7,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
+
+import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.model.Volume;
 
 @XmlRootElement(name = "response")
 public class VolumeListResponse extends AbstractResponse {

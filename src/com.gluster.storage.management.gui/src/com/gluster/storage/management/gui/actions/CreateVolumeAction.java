@@ -29,7 +29,7 @@ import com.gluster.storage.management.gui.dialogs.CreateVolumeWizard;
 
 public class CreateVolumeAction extends AbstractActionDelegate {
 	@Override
-	public void run(IAction action) {
+	protected void performAction(IAction action) {
 		Display.getDefault().asyncExec(new Runnable() {
 			
 			@Override

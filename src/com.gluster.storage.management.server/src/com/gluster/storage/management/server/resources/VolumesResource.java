@@ -27,10 +27,8 @@ import static com.gluster.storage.management.core.constants.RESTConstants.PATH_P
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_VOLUMES;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
+import java.util.ArrayList;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -41,21 +39,25 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.gluster.storage.management.core.constants.RESTConstants;
-import com.gluster.storage.management.core.model.GenericResponse;
+
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.model.VolumeListResponse;
+import com.gluster.storage.management.core.response.GenericResponse;
+import com.gluster.storage.management.core.response.VolumeListResponse;
+import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 import com.gluster.storage.management.core.utils.GlusterUtil;
 import com.gluster.storage.management.core.utils.ProcessResult;
-import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
+import com.sun.jersey.api.core.InjectParam;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Singleton
 @Path(RESOURCE_PATH_VOLUMES)
 public class VolumesResource {
 	private final GlusterUtil glusterUtil = new GlusterUtil();
+	
+	@InjectParam
+	private VolumeOptionsDefaults volumeOptionsDefaults;
 
 	@GET 
 	@Produces(MediaType.TEXT_XML)
@@ -102,10 +104,10 @@ public class VolumesResource {
 	@GET
 	@Path(SUBRESOURCE_DEFAULT_OPTIONS)
 	@Produces(MediaType.TEXT_XML)
-	public VolumeOptionsDefaults getDefaultOptions() {
+	public VolumeOptionInfoListResponse getDefaultOptions() {
 		// TODO: Fetch all volume options with their default values from GlusterFS
 		// whenever such a CLI command is made available in GlusterFS
-		return new VolumeOptionsDefaults().getDefaults();
+		return new VolumeOptionInfoListResponse(Status.STATUS_SUCCESS, volumeOptionsDefaults.getDefaults());
 	}
 	
 	

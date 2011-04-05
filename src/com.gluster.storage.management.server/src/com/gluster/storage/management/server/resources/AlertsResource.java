@@ -55,7 +55,7 @@ public class AlertsResource {
 		alert.setId("0004");
 		alert.setReference("Volume2"); // Volume name 
 		alert.setType(Alert.ALERT_TYPES.OFFLINE_VOLUME_DISKS_ALERT);
-		alert.setMessage("sda1, sd2 are " + alert.getAlertType(alert.getType()) + " in volume: " + alert.getReference());
+		alert.setMessage("Server1:sda1, server2:sda2 are " + alert.getAlertType(alert.getType()) + " in volume: " + alert.getReference());
 		alerts.add(alert);
 		
 		// Alert #5

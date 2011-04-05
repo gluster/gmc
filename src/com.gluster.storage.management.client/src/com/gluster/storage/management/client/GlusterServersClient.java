@@ -20,12 +20,12 @@ package com.gluster.storage.management.client;
 
 import java.util.List;
 
-import com.gluster.storage.management.core.model.GenericResponse;
 import com.gluster.storage.management.core.model.GlusterServer;
-import com.gluster.storage.management.core.model.GlusterServerListResponse;
-import com.gluster.storage.management.core.model.GlusterServerResponse;
 import com.gluster.storage.management.core.model.Response;
 import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.response.GenericResponse;
+import com.gluster.storage.management.core.response.GlusterServerListResponse;
+import com.gluster.storage.management.core.response.GlusterServerResponse;
 import com.sun.jersey.api.representation.Form;
 
 public class GlusterServersClient extends AbstractClient {
