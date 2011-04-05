@@ -29,7 +29,6 @@ import java.util.Set;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.utils.StringUtil;
 
 @XmlRootElement
@@ -49,6 +48,7 @@ public class Volume extends Entity {
 	public enum NAS_PROTOCOL {
 		GLUSTERFS, NFS
 	};
+	private static final String OPTION_AUTH_ALLOW = "auth.allow:";
 
 	private static final String[] VOLUME_TYPE_STR = new String[] { "Plain Distribute", "Distributed Mirror",
 			"Distributed Stripe" };
@@ -174,7 +174,7 @@ public class Volume extends Entity {
 	}
 
 	public String getAccessControlList() {
-		return accessControlList;
+		return options.get(OPTION_AUTH_ALLOW);
 	}
 
 	public void setAccessControlList(String accessControlList) {

@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
@@ -48,7 +49,6 @@ public class GlusterUtil {
 	private static final String VOLUME_TRANSPORT_TYPE_PFX = "Transport-type:";
 	private static final String VOLUME_BRICKS_GROUP_PFX = "Bricks"; // Colon not used
 	private static final String VOLUME_OPTIONS_RECONFIG_PFX = "Options Reconfigured";
-	private static final String VOLUME_OPTIONS_AUTH_ALLOW = "auth.allow:";
 
 	private static final ProcessUtil processUtil = new ProcessUtil();
 
@@ -230,45 +230,54 @@ public class GlusterUtil {
 		return disk.getServerName() + ":" + dirName;
 	}
 
-	public ProcessResult getVolumeInfo() {
-		return new ProcessUtil().executeCommand("gluster", "volume", "info");
+	private String getVolumeInfo() {
+		ProcessResult result = new ProcessUtil().executeCommand("gluster", "volume", "info");
+		if (!result.isSuccess()) {
+			throw new GlusterRuntimeException("Command [gluster volume info] failed with error: ["
+					+ result.getExitValue() + "][" + result.getOutput() + "]");
+		}
+		return result.getOutput();
 	}
 	
-	public List<Volume> getAllVolumes(String volumeInfoText) {
+	public List<Volume> getAllVolumes() {
+		String volumeInfoText = getVolumeInfo();
+		
 		List<Volume> volumes = new ArrayList<Volume>();
 		boolean isBricksGroupFound = false;
 		boolean isOptionReconfigFound = false;
-		List<String> bricks = new ArrayList<String>();
 		Volume volume = null;
 		
 		for (String line : volumeInfoText.split(CoreConstants.NEWLINE)) {
-			if (extractToken(line, VOLUME_NAME_PFX) != null) {
+			String volumeName = extractToken(line, VOLUME_NAME_PFX);
+			if (volumeName != null) {
 				if (volume != null) {
-					volume.setDisks(bricks);
-					bricks.clear();
+					// add the previously read volume to volume list
 					volumes.add(volume);
 				}
+				
+				// prepare next volume to be read
 				volume = new Volume();
-				volume.setName(extractToken(line, VOLUME_NAME_PFX));
+				volume.setName(volumeName);
 				isBricksGroupFound = isOptionReconfigFound = false;
 				continue;
 			}
 
-			if (extractToken(line, VOLUME_TYPE_PFX) != null) {
-				String volumeType = extractToken(line, VOLUME_TYPE_PFX);
+			String volumeType = extractToken(line, VOLUME_TYPE_PFX);
+			if (volumeType != null) {
 				volume.setVolumeType((volumeType == "Distribute") ? VOLUME_TYPE.PLAIN_DISTRIBUTE
 						: VOLUME_TYPE.DISTRIBUTED_MIRROR); // TODO: for Stripe
 				continue;
 			}
 			
-			if (extractToken(line, VOLUME_STATUS_PFX) != null) {
-				volume.setStatus(extractToken(line, VOLUME_STATUS_PFX).equals("Started") ? VOLUME_STATUS.ONLINE : VOLUME_STATUS.OFFLINE);
+			String volumeStatus = extractToken(line, VOLUME_STATUS_PFX);
+			if (volumeStatus != null) {
+				volume.setStatus(volumeStatus.equals("Started") ? VOLUME_STATUS.ONLINE : VOLUME_STATUS.OFFLINE);
 				continue;
 			}
 			
-			if (extractToken(line, VOLUME_TRANSPORT_TYPE_PFX) != null) {
-				volume.setTransportType((extractToken(line,
-						VOLUME_TRANSPORT_TYPE_PFX) == "tcp") ? TRANSPORT_TYPE.ETHERNET
+			String transportType = extractToken(line, VOLUME_TRANSPORT_TYPE_PFX);
+			if (transportType != null) {
+				volume.setTransportType(transportType.equals("tcp") ? TRANSPORT_TYPE.ETHERNET
 						: TRANSPORT_TYPE.INFINIBAND);
 				continue;
 			}
@@ -280,7 +289,7 @@ public class GlusterUtil {
 			
 			if (isBricksGroupFound) {
 				if (line.matches("Brick[0-9]+:.*")) {
-					bricks.add( line.split(":")[2].trim().split("/")[2].trim() ); // line: "Brick1: server1:/export/md0/volume-name"
+					volume.addDisk(line.split(":")[2].trim().split("/")[2].trim()); // line: "Brick1: server1:/export/md0/volume-name"
 					continue;
 				} else {
 					isBricksGroupFound = false;
@@ -293,14 +302,16 @@ public class GlusterUtil {
 			}
 
 			if (isOptionReconfigFound) {
-				if (extractToken(line, VOLUME_OPTIONS_AUTH_ALLOW) != null) {
-					volume.setAccessControlList( extractToken(line, VOLUME_OPTIONS_AUTH_ALLOW) );
+				if(line.matches("^[^:]*:[^:]*$")) {
+					String[] parts = line.split(":");
+					volume.setOption(parts[0].trim(), parts[1].trim());
+				} else {
 					isOptionReconfigFound = false;
 				}
 			}
 		}
+		
 		if (volume != null)  {// Adding the last volume parsed
-			volume.setDisks(bricks);
 			volumes.add(volume);
 		}
 		return volumes;

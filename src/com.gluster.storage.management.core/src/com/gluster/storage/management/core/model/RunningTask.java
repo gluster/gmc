@@ -22,12 +22,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class RunningTask {
-	public enum TASK_TYPES { FORMAT_DISK, MIGRATE_DISK, VOLUME_REBALANCE };
-	public String[] TASK_TYPE_STR = {"Formating Disk", "Migrating Disk", "Volume Rebalance"};
+	public enum TASK_TYPES { DISK_FORMAT, DISK_MIGRATE, VOLUME_REBALANCE };
+	public String[] TASK_TYPE_STR = {"Formatting Disk", "Disk Migration", "Volume Rebalance"};
 	
 	protected String id;
-	protected TASK_TYPES type;       // FormatDisk, MigrateDisk, VolumeRebalance
-	protected String reference;      // Server: Server name, Volume: Volume name, Disk: disk name referred as "VolumeName:ServerName:DiskName"
+	protected TASK_TYPES type; 
+	protected String reference;  // Server: Server name, Volume: Volume name, Disk: disk name referred as "VolumeName:ServerName:DiskName"
 	protected String taskInfo;
 	protected RunningTaskStatus status; // TODO redefine
 	
@@ -35,7 +35,7 @@ public class RunningTask {
 		
 	}
 	
-	public String getTaskType(TASK_TYPES type) {
+	public String getTaskType(TASK_TYPES task) {
 		return TASK_TYPE_STR[type.ordinal()]; 
 	}
 	
