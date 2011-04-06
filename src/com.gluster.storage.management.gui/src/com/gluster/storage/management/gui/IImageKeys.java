@@ -42,18 +42,24 @@ public interface IImageKeys {
 	public static final String WORK_IN_PROGRESS = "icons/progress-bar.png";
 	public static final String CHECKBOX_UNCHECKED = "icons/ui-check-box-uncheck.png";
 	public static final String CHECKBOX_CHECKED = "icons/ui-check-box.png";
+	public static final String DISK = "icons/disk.png";
+	public static final String DISKS = "icons/disks.png";
 	public static final String DISK_UNINITIALIZED = "icons/disk-uninitialized.png";
 	public static final String SEARCH = "icons/search.png";
 	public static final String ARROW_UP = "icons/arrow-up.png";
 	public static final String ARROW_DOWN = "icons/arrow-down.png";
-	
+	public static final String VOLUME_REBALANCE = "icons/volume-rebalance.png";
+	public static final String DISK_MIGRATE = "icons/disk-migrate.png";
+	public static final String LOW_DISK_SPACE = "icons/disk.png";
+	public static final String DISK_OFFLINE = "icons/status-offline.png";
+
 	public static final String OVERLAY_OFFLINE = "icons/status-offline-small.png";
 	public static final String OVERLAY_ONLINE = "icons/status-online-small.png";
 	public static final String OVERLAY_STAR = "icons/star-small.png";
-	
+
 	public static final String SPLASH_IMAGE = "splash.bmp";
 	public static final String DIALOG_SPLASH_IMAGE = "splash/splash-dialog.bmp";
-	
+
 	public static final String PROGRESS_BAR_LEFT = "images/progress_image_left.png";
 	public static final String PROGRESS_BAR_RIGHT = "images/progress_image_right.png";
 	public static final String PROGRESS_BAR_FILLED = "images/progress_image_filled_safe.png";

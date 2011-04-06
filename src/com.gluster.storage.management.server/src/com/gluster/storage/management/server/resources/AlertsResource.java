@@ -29,57 +29,54 @@ public class AlertsResource {
 		// Alert #1
 		Alert alert = new Alert();
 		alert.setId("0001");
-		alert.setReference("Server1"); // Server 
+		alert.setReference("Server1"); // Server
 		alert.setType(Alert.ALERT_TYPES.CPU_USAGE_ALERT);
-		alert.setMessage(alert.getAlertType(alert.getType()) + " in server: " + alert.getReference());
+		alert.setMessage(alert.getAlertType(alert.getType()) + " in server [" + alert.getReference() + "]");
 		alerts.add(alert);
-		
+
 		// Alert #2
 		alert = new Alert();
 		alert.setId("0002");
 		alert.setReference("Server2"); // server:Disk - brick
 		alert.setType(Alert.ALERT_TYPES.MEMORY_USAGE_ALERT);
-		alert.setMessage(alert.getAlertType(alert.getType()) + " in server: " + alert.getReference());
+		alert.setMessage(alert.getAlertType(alert.getType()) + " in server [" + alert.getReference() + "]");
 		alerts.add(alert);
-		
+
 		// Alert #3
 		alert = new Alert();
 		alert.setId("0003");
-		alert.setReference("Volume1"); // Volume name 
+		alert.setReference("server1:sda1"); // Disk name
 		alert.setType(Alert.ALERT_TYPES.DISK_USAGE_ALERT);
-		alert.setMessage(alert.getAlertType(alert.getType()) + " in volume: " + alert.getReference());
+		alert.setMessage(alert.getAlertType(alert.getType()) + " in disk [" + alert.getReference() + "]");
 		alerts.add(alert);
-		
+
 		// Alert #4
 		alert = new Alert();
 		alert.setId("0004");
-		alert.setReference("Volume2"); // Volume name 
+		alert.setReference("Volume2:server2:sda1"); // volume:[Disk name]
 		alert.setType(Alert.ALERT_TYPES.OFFLINE_VOLUME_DISKS_ALERT);
-		alert.setMessage("Server1:sda1, server2:sda2 are " + alert.getAlertType(alert.getType()) + " in volume: " + alert.getReference());
+		alert.setMessage(alert.getAlertType(alert.getType()) + " in volume [" + alert.getReference().split(":")[0]
+				+ "] disk [" + alert.getReference().split(":")[1] + ":" + alert.getReference().split(":")[2] + "]");
 		alerts.add(alert);
-		
+
 		// Alert #5
 		alert = new Alert();
 		alert.setId("0005");
-		alert.setReference("Volume2"); // Volume name 
+		alert.setReference("Server2"); // Server name
 		alert.setType(Alert.ALERT_TYPES.OFFLINE_SERVERS_ALERT);
-		alert.setMessage("server1, server2 are " + alert.getAlertType(alert.getType()) + " in volume: " + alert.getReference());
+		alert.setMessage(alert.getAlertType(alert.getType()) + " [" + alert.getReference() + "]");
 		alerts.add(alert);
-		
+
 		return new AlertListResponse(alerts);
 
 	}
-	
-	public static void  main(String[] args) {
+
+	public static void main(String[] args) {
 		/*
-		// Unit test code
-		AlertsResource alertResource = new AlertsResource();
-		AlertsListResponse alertResponse = alertResource.getAlerts();
-		List<Alert> alerts = alertResponse.getAlerts();
-		for (Alert alert: alerts) {
-		    System.out.println(alert.getMessage());
-		}
-		*/
+		 * // Unit test code AlertsResource alertResource = new AlertsResource(); AlertsListResponse alertResponse =
+		 * alertResource.getAlerts(); List<Alert> alerts = alertResponse.getAlerts(); for (Alert alert: alerts) {
+		 * System.out.println(alert.getMessage()); }
+		 */
 	}
 
 }

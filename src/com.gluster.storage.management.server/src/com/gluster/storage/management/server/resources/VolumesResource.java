@@ -51,23 +51,23 @@ import com.sun.jersey.spi.resource.Singleton;
 @Singleton
 @Path(RESOURCE_PATH_VOLUMES)
 public class VolumesResource {
-	
+
 	private final GlusterUtil glusterUtil = new GlusterUtil();
-	
+
 	@InjectParam
 	private VolumeOptionsDefaults volumeOptionsDefaults;
 
-	@GET 
+	@GET
 	@Produces(MediaType.TEXT_XML)
 	public VolumeListResponse getAllVolumes() {
 		try {
 			return new VolumeListResponse(Status.STATUS_SUCCESS, glusterUtil.getAllVolumes());
-		} catch(Exception e) {
+		} catch (Exception e) {
 			// TODO: log the error
 			return new VolumeListResponse(new Status(Status.STATUS_CODE_FAILURE, e.getMessage()), null);
 		}
 	}
-	
+
 	@POST
 	@Consumes(MediaType.TEXT_XML)
 	@Produces(MediaType.TEXT_XML)
@@ -97,22 +97,23 @@ public class VolumesResource {
 		}
 		return new Status(Status.STATUS_CODE_FAILURE, "Invalid operation code [" + operation + "]");
 	}
-	
+
 	@GET
 	@Path(SUBRESOURCE_DEFAULT_OPTIONS)
 	@Produces(MediaType.TEXT_XML)
 	public VolumeOptionInfoListResponse getDefaultOptions() {
-		// TODO: Fetch all volume options with their default values from GlusterFS
+		// TODO: Fetch all volume options with their default values from
+		// GlusterFS
 		// whenever such a CLI command is made available in GlusterFS
 		return new VolumeOptionInfoListResponse(Status.STATUS_SUCCESS, volumeOptionsDefaults.getDefaults());
 	}
-	
-	
+
 	public static void main(String[] args) {
 		VolumesResource vr = new VolumesResource();
-		VolumeListResponse response = vr.getAllVolumes(); 
-		for(Volume volume : response.getVolumes() ) {
-			System.out.println( "\nName:" + volume.getName() + "\nType: " + volume.getVolumeTypeStr() + "\nStatus: " + volume.getStatusStr());
+		VolumeListResponse response = vr.getAllVolumes();
+		for (Volume volume : response.getVolumes()) {
+			System.out.println("\nName:" + volume.getName() + "\nType: " + volume.getVolumeTypeStr() + "\nStatus: "
+					+ volume.getStatusStr());
 		}
 	}
 }

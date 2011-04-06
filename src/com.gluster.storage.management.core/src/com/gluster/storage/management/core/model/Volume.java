@@ -48,6 +48,7 @@ public class Volume extends Entity {
 	public enum NAS_PROTOCOL {
 		GLUSTERFS, NFS
 	};
+
 	private static final String OPTION_AUTH_ALLOW = "auth.allow:";
 
 	private static final String[] VOLUME_TYPE_STR = new String[] { "Plain Distribute", "Distributed Mirror",
@@ -62,14 +63,14 @@ public class Volume extends Entity {
 	private VOLUME_STATUS status;
 	private int replicaCount;
 	private int stripeCount;
-	private Map<String, String> options = new LinkedHashMap<String, String>(); 
+	private Map<String, String> options = new LinkedHashMap<String, String>();
 
 	private double totalDiskSpace = 0;
 	private List<String> disks = new ArrayList<String>();
 
 	public Volume() {
 	}
-	
+
 	// GlusterFS export is always enabled
 	private Set<NAS_PROTOCOL> nasProtocols = new LinkedHashSet<NAS_PROTOCOL>(
 			Arrays.asList(new NAS_PROTOCOL[] { NAS_PROTOCOL.GLUSTERFS }));
@@ -79,7 +80,7 @@ public class Volume extends Entity {
 	public String getVolumeTypeStr() {
 		return getVolumeTypeStr(getVolumeType());
 	}
-	
+
 	public static String getVolumeTypeStr(VOLUME_TYPE volumeType) {
 		return VOLUME_TYPE_STR[volumeType.ordinal()];
 	}
@@ -106,10 +107,10 @@ public class Volume extends Entity {
 		if (volumeType == VOLUME_TYPE.DISTRIBUTED_STRIPE) {
 			setReplicaCount(0);
 			setStripeCount(3);
-		} else if(volumeType == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
+		} else if (volumeType == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
 			setReplicaCount(2);
 			setStripeCount(0);
-		} else{
+		} else {
 			setReplicaCount(0);
 			setStripeCount(0);
 		}
@@ -188,7 +189,7 @@ public class Volume extends Entity {
 	public void setOption(String key, String value) {
 		options.put(key, value);
 	}
-	
+
 	public void setOptions(Map<String, String> options) {
 		this.options = options;
 	}
@@ -202,9 +203,9 @@ public class Volume extends Entity {
 	}
 
 	public void addDisk(String disk) {
-//		if (disks.add(disk) && disk.getStatus() != DISK_STATUS.OFFLINE) {
-//			totalDiskSpace += disk.getSpace();
-//		}
+		// if (disks.add(disk) && disk.getStatus() != DISK_STATUS.OFFLINE) {
+		// totalDiskSpace += disk.getSpace();
+		// }
 		disks.add(disk);
 	}
 
@@ -215,9 +216,9 @@ public class Volume extends Entity {
 	}
 
 	public void removeDisk(String disk) {
-//		if (disks.remove(disk)) {
-//			totalDiskSpace -= disk.getSpace();
-//		}
+		// if (disks.remove(disk)) {
+		// totalDiskSpace -= disk.getSpace();
+		// }
 	}
 
 	public void removeAllDisks() {

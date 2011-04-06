@@ -10,23 +10,23 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.gluster.storage.management.core.response.AbstractResponse;
 
 @XmlRootElement(name = "response")
-public class AlertListResponse  extends AbstractResponse {
+public class AlertListResponse extends AbstractResponse {
 	private List<Alert> alerts = new ArrayList<Alert>();
 
 	public AlertListResponse() {
-	
+
 	}
-	
+
 	public AlertListResponse(List<Alert> alerts) {
 		setAlerts(alerts);
 	}
-	
+
 	public void setAlerts(List<Alert> alerts) {
 		this.alerts = alerts;
 	}
-	
+
 	@XmlElementWrapper(name = "alerts")
-	@XmlElement(name = "alert", type=Alert.class)
+	@XmlElement(name = "alert", type = Alert.class)
 	public List<Alert> getAlerts() {
 		return this.alerts;
 	}

@@ -8,7 +8,7 @@ import com.gluster.storage.management.core.model.RunningTask;
 import com.gluster.storage.management.core.response.RunningTaskListResponse;
 
 public class RunningTaskClient extends AbstractClient {
-	
+
 	public RunningTaskClient(String securityToken) {
 		super(securityToken);
 	}
@@ -17,14 +17,8 @@ public class RunningTaskClient extends AbstractClient {
 	public String getResourceName() {
 		return RESTConstants.RESOURCE_PATH_RUNNING_TASKS;
 	}
-	
-	@SuppressWarnings("rawtypes") 
-	private Object fetchRunningTasks(Class responseClass) {
-		return fetchResource( responseClass );
-	}
-	
-	public List<RunningTask> getRunningTasks() {
-		RunningTaskListResponse response = (RunningTaskListResponse) fetchRunningTasks( RunningTaskListResponse.class );
-		return response.getRunningTasks(); 
+
+	public RunningTaskListResponse getRunningTasks() {
+		return (RunningTaskListResponse) fetchResource(RunningTaskListResponse.class);
 	}
 }
