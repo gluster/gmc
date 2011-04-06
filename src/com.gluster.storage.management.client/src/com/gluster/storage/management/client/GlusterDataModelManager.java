@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.Disk;
@@ -40,6 +41,7 @@ import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
+import com.gluster.storage.management.core.response.RunningTaskListResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.client.VolumesClient;
 
@@ -250,7 +252,11 @@ public class GlusterDataModelManager {
 	}
 	
 	public void initializeRunningTasks(Cluster cluster) {
-		cluster.setRunningTasks(new RunningTaskClient(securityToken).getRunningTasks());
+		RunningTaskListResponse runningTaskResponse = new RunningTaskClient(securityToken).getRunningTasks();
+		if (!runningTaskResponse.getStatus().isSuccess()) {
+			throw new GlusterRuntimeException(runningTaskResponse.getStatus().getMessage());
+		}
+		cluster.setRunningTasks( runningTaskResponse.getRunningTasks());
 	}
 	
 	public void initializeAlerts(Cluster cluster) {

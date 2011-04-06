@@ -23,6 +23,7 @@ package com.gluster.storage.management.gui.views;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -33,11 +34,11 @@ import org.eclipse.ui.part.ViewPart;
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.Cluster;
-import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.RunningTask;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
+import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.views.details.tabcreators.PieChartViewerComposite;
 
@@ -50,22 +51,27 @@ public class VolumesSummaryView extends ViewPart {
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	private ScrolledForm form;
 	private EntityGroup<Volume> volumes;
-	
+
 	private static final String ALERTS = "Alerts";
 	private static final String RUNNING_TASKS = "Running Tasks";
 	private static final String VOLUMES_SUMMARY = "Volumes - Summary";
 	private static final String AVAILABILITY = "Availability";
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
+	 * @see
+	 * org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets
+	 * .Composite)
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public void createPartControl(Composite parent) {
 		if (volumes == null) {
-			Object selectedObj = guiHelper.getSelectedEntity(getSite(), EntityGroup.class);
-			if (selectedObj != null && ((EntityGroup) selectedObj).getEntityType() == Volume.class) {
+			Object selectedObj = guiHelper.getSelectedEntity(getSite(),
+					EntityGroup.class);
+			if (selectedObj != null
+					&& ((EntityGroup) selectedObj).getEntityType() == Volume.class) {
 				volumes = (EntityGroup<Volume>) selectedObj;
 			}
 		}
@@ -83,50 +89,74 @@ public class VolumesSummaryView extends ViewPart {
 	}
 
 	private void createAlertsSection() {
-		Composite section = guiHelper.createSection(form, toolkit, ALERTS, null, 1, false);
-		// toolkit.createLabel(section, "Any alerts related to volumes\nwill be displayed here.");
+		Composite section = guiHelper.createSection(form, toolkit, ALERTS,
+				null, 1, false);
+		List<Alert> alerts = GlusterDataModelManager.getInstance().getModel()
+				.getCluster().getAlerts();
 
-		Cluster cluster = GlusterDataModelManager.getInstance().getModel().getCluster();
-		List<Alert> alerts = cluster.getAlerts();
 		for (Alert alert : alerts) {
-			if (alert.getType() == Alert.ALERT_TYPES.DISK_USAGE_ALERT ||
-					alert.getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_DISKS_ALERT) {
-				toolkit.createLabel(section, alert.getMessage());
-			}
+			addAlertLabel(section, alert);
+		}
+	}
+
+	private void addAlertLabel(Composite section, Alert alert) {
+		if (alert.getType() == Alert.ALERT_TYPES.DISK_USAGE_ALERT
+				|| alert.getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_DISKS_ALERT) {
+			CLabel lblAlert = new CLabel(section, SWT.NONE);
+			lblAlert.setText(alert.getMessage());
+			lblAlert.setImage((alert.getType() == Alert.ALERT_TYPES.DISK_USAGE_ALERT) ? guiHelper
+					.getImage(IImageKeys.LOW_DISK_SPACE) : guiHelper
+					.getImage(IImageKeys.DISK_OFFLINE));
+			lblAlert.redraw();
 		}
 	}
 
 	private void createRunningTasksSection() {
-		Composite section = guiHelper.createSection(form, toolkit, RUNNING_TASKS, null, 1, false);
+		Composite section = guiHelper.createSection(form, toolkit,
+				RUNNING_TASKS, null, 1, false);
 
-		List<RunningTask> runningTasks = GlusterDataModelManager.getInstance().getModel().getCluster().getRunningTasks();
+		List<RunningTask> runningTasks = GlusterDataModelManager.getInstance()
+				.getModel().getCluster().getRunningTasks();
 
 		for (RunningTask task : runningTasks) {
-			if (task.getType() == RunningTask.TASK_TYPES.MIGRATE_DISK
-					|| task.getType() == RunningTask.TASK_TYPES.VOLUME_REBALANCE) {
-				if (task.getStatus().isPercentageSupported()) {
-					// TODO Progress bar
-				}
-				toolkit.createLabel(section, task.getTaskInfo());
+			addRunningTaskLabel(section, task);
+		}
+	}
+
+	private void addRunningTaskLabel(Composite section, RunningTask task) {
+		// Task related to Volumes context
+		if (task.getType() == RunningTask.TASK_TYPES.DISK_MIGRATE
+				|| task.getType() == RunningTask.TASK_TYPES.VOLUME_REBALANCE) {
+			if (task.getStatus().isPercentageSupported()) {
+				// TODO Progress bar
 			}
+			CLabel lblAlert = new CLabel(section, SWT.NONE);
+			lblAlert.setText(task.getTaskInfo());
+			lblAlert.setImage((task.getType() == RunningTask.TASK_TYPES.DISK_MIGRATE) ? guiHelper
+					.getImage(IImageKeys.DISK_MIGRATE) : guiHelper
+					.getImage(IImageKeys.VOLUME_REBALANCE));
+			lblAlert.redraw();
 		}
 	}
 
 	private void createSummarySection() {
-		Composite section = guiHelper.createSection(form, toolkit, AVAILABILITY, null, 2, false);
+		Composite section = guiHelper.createSection(form, toolkit,
+				AVAILABILITY, null, 2, false);
 
-		// Cluster cluster = GlusterDataModelManager.getInstance().getModel().getCluster();
+//		Cluster cluster = GlusterDataModelManager.getInstance().getModel()
+//				.getCluster();
 
-		GlusterDataModel model = GlusterDataModelManager.getInstance().getModel();
-		Cluster cluster = (Cluster) model.getChildren().get(0);
-
-		Double[] values = new Double[] { Double.valueOf(getVolumeCountByStatus(volumes, VOLUME_STATUS.ONLINE)),
-				Double.valueOf(getVolumeCountByStatus(volumes, VOLUME_STATUS.OFFLINE)) };
+		Double[] values = new Double[] {
+				Double.valueOf(getVolumeCountByStatus(volumes,
+						VOLUME_STATUS.ONLINE)),
+				Double.valueOf(getVolumeCountByStatus(volumes,
+						VOLUME_STATUS.OFFLINE)) };
 		createStatusChart(toolkit, section, values);
 	}
 
 	@SuppressWarnings("unchecked")
-	private int getVolumeCountByStatus(EntityGroup<Volume> volumes, VOLUME_STATUS status) {
+	private int getVolumeCountByStatus(EntityGroup<Volume> volumes,
+			VOLUME_STATUS status) {
 		int count = 0;
 		for (Volume volume : (List<Volume>) volumes.getEntities()) {
 			if (volume.getStatus() == status) {
@@ -136,10 +166,11 @@ public class VolumesSummaryView extends ViewPart {
 		return count;
 	}
 
-	private void createStatusChart(FormToolkit toolkit, Composite section, Double[] values) {
+	private void createStatusChart(FormToolkit toolkit, Composite section,
+			Double[] values) {
 		String[] categories = new String[] { "Online", "Offline" };
-		PieChartViewerComposite chartViewerComposite = new PieChartViewerComposite(section, SWT.NONE, categories,
-				values);
+		PieChartViewerComposite chartViewerComposite = new PieChartViewerComposite(
+				section, SWT.NONE, categories, values);
 
 		GridData data = new GridData(SWT.FILL, SWT.FILL, true, true);
 		data.widthHint = 250;

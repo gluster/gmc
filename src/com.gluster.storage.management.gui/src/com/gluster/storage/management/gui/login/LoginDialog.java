@@ -42,6 +42,7 @@ import org.eclipse.swt.widgets.Text;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.UsersClient;
 import com.gluster.storage.management.client.constants.ClientConstants;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.ConnectionDetails;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.GUIHelper;
@@ -51,7 +52,7 @@ import com.gluster.storage.management.gui.validators.StringRequiredValidator;
  * Login dialog, which prompts for the user's account info, and has Login and Cancel buttons.
  */
 public class LoginDialog extends Dialog {
-
+	public static final int RETURN_CODE_ERROR = 2; 
 	private Text userIdText = null;
 	private Text passwordText = null;
 	private Button okButton;
@@ -191,8 +192,16 @@ public class LoginDialog extends Dialog {
 
 		UsersClient usersClient = new UsersClient();
 		if (usersClient.authenticate(user, password)) {
-			GlusterDataModelManager.getInstance().initializeModel(usersClient.getSecurityToken());
-			super.okPressed();
+			try {
+				GlusterDataModelManager.getInstance().initializeModel(
+						usersClient.getSecurityToken());
+				super.okPressed();
+			} catch (GlusterRuntimeException e) {
+				setReturnCode(RETURN_CODE_ERROR);
+				MessageDialog.openError(getShell(), "Initialization Error", e.getMessage());
+				close();
+			}
+			
 		} else {
 			MessageDialog.openError(getShell(), "Authentication Failed", "Invalid User ID or password");
 		}

@@ -23,8 +23,7 @@ public class RunningTaskClient extends AbstractClient {
 		return fetchResource( responseClass );
 	}
 	
-	public List<RunningTask> getRunningTasks() {
-		RunningTaskListResponse response = (RunningTaskListResponse) fetchRunningTasks( RunningTaskListResponse.class );
-		return response.getRunningTasks(); 
+	public RunningTaskListResponse getRunningTasks() {
+		return (RunningTaskListResponse) fetchRunningTasks( RunningTaskListResponse.class );
 	}
 }

@@ -49,48 +49,49 @@ public class RunningTaskResource {
 	@GET
 	@Produces(MediaType.TEXT_XML)
 	public RunningTaskListResponse getRunningTasks() {
-
-		RunningTaskStatus status = new RunningTaskStatus();
+		
+		RunningTaskStatus taskStatus = new RunningTaskStatus();
 		List<RunningTask> runningTasks = new ArrayList<RunningTask>(); 
 		
-		status.setCode(Status.STATUS_CODE_RUNNING);
-		status.setPercentageSupported(false);
+		taskStatus.setCode(Status.STATUS_CODE_RUNNING);
+		taskStatus.setPercentageSupported(false);
 
+		
 		// Volume rebalance
 		RunningTask task = new RunningTask();
 		task.setId("0001");
 		task.setType(RunningTask.TASK_TYPES.VOLUME_REBALANCE);
 		task.setReference("Volume1");
-		task.setTaskInfo( task.getTaskType(task.getType()) +  "is running in volume " + task.getReference());
-		task.setStatus(status);
+		task.setTaskInfo( task.getTaskType( task.getType() ) +  " on [" + task.getReference() + "]");
+		task.setStatus(taskStatus);
 		runningTasks.add(task);
 
 		task = new RunningTask();
 		task.setId("0002");
 		task.setType(RunningTask.TASK_TYPES.VOLUME_REBALANCE);
 		task.setReference("Volume2");
-		task.setTaskInfo( task.getTaskType(task.getType()) +  " is running in volume " + task.getReference());
-		task.setStatus(status);
+		task.setTaskInfo( task.getTaskType( task.getType() ) +  " on [" + task.getReference() + "]");
+		task.setStatus(taskStatus);
 		runningTasks.add(task);
 
 		// MigrateDisk
 		task = new RunningTask();
 		task.setId("0003");
-		task.setType(RunningTask.TASK_TYPES.MIGRATE_DISK);
+		task.setType(RunningTask.TASK_TYPES.DISK_MIGRATE);
 		task.setReference("Volume3:server1:sda1");  // Disk reference
-		task.setTaskInfo( task.getTaskType(task.getType()) +  " is running in disk " +  task.getReference() + "");
-		task.setStatus(status);
+		task.setTaskInfo( task.getTaskType( task.getType() ) +  " for volume [" +  task.getReference().split(":")[0] + "] disk [" + task.getReference().split(":")[1] + ":" + task.getReference().split(":")[2] + "]" ) ;
+		task.setStatus(taskStatus);
 		runningTasks.add(task);
 
 		// FormatDisk
 		task = new RunningTask();
 		task.setId("0004");
-		task.setType(RunningTask.TASK_TYPES.FORMAT_DISK);
-		task.setReference("Volume1:server1:sdb1");  // Disk reference
-		task.setTaskInfo( task.getTaskType(task.getType()) +  " " + task.getReference() );
-		status.setPercentageSupported(true);
-		status.getPercentCompleted(45);
-		task.setStatus(status);
+		task.setType(RunningTask.TASK_TYPES.DISK_FORMAT);
+		task.setReference("server1:sdb1");  // Disk reference
+		task.setTaskInfo( task.getTaskType( task.getType() ) +  " [" + task.getReference() + "]");
+		taskStatus.setPercentageSupported(true);
+		taskStatus.getPercentCompleted(45);
+		task.setStatus(taskStatus);
 		runningTasks.add(task);
 		
 		return new RunningTaskListResponse(Status.STATUS_SUCCESS, runningTasks);
