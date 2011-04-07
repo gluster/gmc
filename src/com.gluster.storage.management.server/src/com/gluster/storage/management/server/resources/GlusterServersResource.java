@@ -94,12 +94,10 @@ public class GlusterServersResource extends AbstractServersResource {
 	@POST
 	@Produces(MediaType.TEXT_XML)
 	public GlusterServerResponse addServer(@FormParam("serverName") String serverName) {
-		ProcessResult result = glusterUtil.addServer(serverName);
+		Status status = glusterUtil.addServer(serverName);
 
-		if (!result.isSuccess()) {
-			Status failure = new Status(Status.STATUS_CODE_FAILURE, "Add server [" + serverName + "] failed: [" + result.getExitValue()
-					+ "][" + result.getOutput() + "]");
-			return new GlusterServerResponse(failure, null);
+		if (!status.isSuccess()) {
+			return new GlusterServerResponse(status, null);
 		}
 		return new GlusterServerResponse(Status.STATUS_SUCCESS, getGlusterServer(serverName));
 	}

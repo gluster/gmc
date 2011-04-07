@@ -26,7 +26,6 @@ import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
-import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 import com.sun.jersey.api.representation.Form;
@@ -42,14 +41,8 @@ public class VolumesClient extends AbstractClient {
 		return RESTConstants.RESOURCE_PATH_VOLUMES;
 	}
 
-	@SuppressWarnings("unchecked")
 	public Status createVolume(Volume volume) {
-		GenericResponse<String> createVolumeResponse = (GenericResponse<String>) postObject(GenericResponse.class, volume);
-		
-		if (!createVolumeResponse.getStatus().isSuccess()) {
-			return (Status) createVolumeResponse.getStatus();
-		}
-		return (Status) createVolumeResponse.getStatus();
+		return (Status) postObject(Status.class, volume);
 	}
 	
 	private Status performOperation(String volumeName, String operation) {
@@ -67,11 +60,30 @@ public class VolumesClient extends AbstractClient {
 		return performOperation(volumeName, RESTConstants.FORM_PARAM_VALUE_STOP);
 	}
 	
+	public Status setVolumeOption(String volume, String key, String value) {
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_OPTION_KEY, key);
+		form.add(RESTConstants.FORM_PARAM_OPTION_VALUE, value);
+		return (Status)postRequest(volume + "/" + RESTConstants.SUBRESOURCE_OPTIONS, Status.class, form);
+	}
+	
+	public Status resetVolumeOptions(String volume) {
+		return (Status)putRequest(volume, Status.class);
+	}
+	
 	public VolumeListResponse getAllVolumes() {
 		return (VolumeListResponse) fetchResource(VolumeListResponse.class);
 	}
+	
+	public Volume getVolume(String volumeName) {
+		return (Volume) fetchSubResource(volumeName, Volume.class);
+	}
 
 	public List<VolumeOptionInfo> getVolumeOptionsDefaults() {
+		String responseStr = (String)fetchSubResource(
+				RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS, String.class);
+		System.out.println(responseStr);
+		
 		VolumeOptionInfoListResponse response = (VolumeOptionInfoListResponse) fetchSubResource(
 				RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS, VolumeOptionInfoListResponse.class);
 		return response.getOptions();
@@ -79,7 +91,7 @@ public class VolumesClient extends AbstractClient {
 
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();
-		if (usersClient.authenticate("gluster", "gluster")) {
+		if (usersClient.authenticate("gluster", "gluster").isSuccess()) {
 			VolumesClient client = new VolumesClient(usersClient.getSecurityToken());
 //			List<Disk> disks = new ArrayList<Disk>();
 //			Disk diskElement = new Disk();
@@ -94,9 +106,11 @@ public class VolumesClient extends AbstractClient {
 //					Volume.VOLUME_STATUS.ONLINE);
 //			// vol.setDisks(disks);
 //			System.out.println(client.createVolume(vol));
-			for (VolumeOptionInfo option : client.getVolumeOptionsDefaults()) {
-				System.out.println(option.getName() + "-" + option.getDescription() + "-" + option.getDefaultValue());
-			}
+//			for (VolumeOptionInfo option : client.getVolumeOptionsDefaults()) {
+//				System.out.println(option.getName() + "-" + option.getDescription() + "-" + option.getDefaultValue());
+//			}
+			System.out.println(client.getVolume("Volume3").getOptions());
+			System.out.println(client.setVolumeOption("Volume3", "network.frame-timeout", "600").getMessage());
 		}
 	}
 }

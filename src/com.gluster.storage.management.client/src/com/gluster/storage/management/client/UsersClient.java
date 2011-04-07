@@ -19,6 +19,7 @@
 package com.gluster.storage.management.client;
 
 import com.gluster.storage.management.core.model.Status;
+import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.core.util.Base64;
 
@@ -26,6 +27,7 @@ public class UsersClient extends AbstractClient {
 	private static final String RESOURCE_NAME = "users";
 	private static final String FORM_PARAM_OLD_PASSWORD = "oldpassword";
 	private static final String FORM_PARAM_NEW_PASSWORD = "newpassword";
+	private static final int HTTP_STATUS_UNAUTHORIZED = 401;
 
 	private String generateSecurityToken(String user, String password) {
 		return new String(Base64.encode(user + ":" + password));
@@ -35,20 +37,26 @@ public class UsersClient extends AbstractClient {
 		super();
 	}
 
-	public boolean authenticate(String user, String password) {
+	public Status authenticate(String user, String password) {
 		setSecurityToken(generateSecurityToken(user, password));
 		try {
 			Status authStatus = (Status) fetchSubResource(user, Status.class);
-			if (authStatus.isSuccess()) {
-				return true;
+			if(!authStatus.isSuccess()) {
+				// authentication failed. clear security token.
+				setSecurityToken(null);
 			}
+			return authStatus;
 		} catch (Exception e) {
-			e.printStackTrace();
+			if (e instanceof UniformInterfaceException
+					&& ((UniformInterfaceException) e).getResponse().getStatus() == HTTP_STATUS_UNAUTHORIZED) {
+				// authentication failed. clear security token.
+				setSecurityToken(null);
+				return new Status(Status.STATUS_CODE_FAILURE, "Invalid user id or password!");
+			} else {
+				return new Status(Status.STATUS_CODE_FAILURE, "Exception during authentication: [" + e.getMessage()
+						+ "]");
+			}
 		}
-
-		// If we reach here, it means authentication failed. Clear security token and return false.
-		setSecurityToken(null);
-		return false;
 	}
 
 	public boolean changePassword(String user, String oldPassword, String newPassword) {

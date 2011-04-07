@@ -63,7 +63,7 @@ public class GlusterServersClient extends AbstractClient {
 
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();
-		if (usersClient.authenticate("gluster", "gluster")) {
+		if (usersClient.authenticate("gluster", "gluster").isSuccess()) {
 
 			GlusterServersClient serverResource = new GlusterServersClient(usersClient.getSecurityToken());
 			List<GlusterServer> glusterServers = serverResource.getServers();

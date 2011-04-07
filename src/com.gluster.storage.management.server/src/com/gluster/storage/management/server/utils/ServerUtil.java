@@ -22,7 +22,6 @@ package com.gluster.storage.management.server.utils;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
@@ -32,7 +31,7 @@ import java.util.List;
 
 import javax.servlet.ServletContext;
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +41,7 @@ import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.ProcessUtil;
-import com.sun.jersey.spi.resource.Singleton;
 
-@Singleton
 @Component
 public class ServerUtil {
 	@Autowired
@@ -73,9 +70,11 @@ public class ServerUtil {
 	 * @param runInForeground
 	 * @param serverName
 	 * @param commandWithArgs
+	 * @param expectedClass Class of the object expected from script execution 
 	 * @return Response from remote execution of the command
 	 */
-	public Status executeOnServer(boolean runInForeground, String serverName, String commandWithArgs) {
+	public Object executeOnServer(boolean runInForeground, String serverName, String commandWithArgs, Class expectedClass) {
+		StringBuffer output = new StringBuffer();
 		try {
 			InetAddress address = InetAddress.getByName(serverName);
 			Socket connection = new Socket(address, 50000);
@@ -86,7 +85,6 @@ public class ServerUtil {
 			writer.println(commandWithArgs);
 			writer.println(); // empty line means end of request
 
-			StringBuffer output = new StringBuffer();
 			String line;
 			while (!(line = reader.readLine()).trim().isEmpty()) {
 				output.append(line + CoreConstants.NEWLINE);
@@ -94,23 +92,45 @@ public class ServerUtil {
 
 			connection.close();
 			System.out.println("The ouput string is : " + output.toString());
-			// create JAXB context and instantiate marshaller
-			JAXBContext context = JAXBContext.newInstance(Status.class);
 			
-			Unmarshaller um = context.createUnmarshaller();
-			Status result = (Status) um.unmarshal(new ByteArrayInputStream(output.toString().getBytes()));
-
-			return result;
-			
-			// return new ProcessResult( 0, output.toString());
-		} catch (Exception e) {
-			e.printStackTrace();
+			return unmarshal(expectedClass, output.toString(), expectedClass != Status.class);
+		} catch(Exception e) {
+			// any other exception means unexpected error. return status with error from exception.
+			return new Status(Status.STATUS_CODE_FAILURE, "Error during remote execution: [" + e.getMessage() + "]");
 		}
-		return null;
+	}
+
+	/**
+	 * Unmarshals given input string into object of given class
+	 * 
+	 * @param expectedClass
+	 *            Class whose object is expected
+	 * @param input
+	 *            Input string
+	 * @param tryStatusOnFailure
+	 *            If true, and if the unmarshalling fails for given class, another unmarshalling will be attempted with
+	 *            class Status. If that also fails, a status object with exception message is created and returned.
+	 * @return Object of given expected class, or a status object in case first unmarshalling fails.
+	 */
+	private Object unmarshal(Class expectedClass, String input, boolean tryStatusOnFailure) {
+		try {
+			// create JAXB context and instantiate marshaller
+			JAXBContext context = JAXBContext.newInstance(expectedClass);
+			Unmarshaller um = context.createUnmarshaller();
+			return um.unmarshal(new ByteArrayInputStream(input.getBytes()));
+		} catch (JAXBException e) {
+			if(tryStatusOnFailure) {
+				// unmarshalling failed. try to unmarshal a Status object
+				return unmarshal(Status.class, input, false);
+			}
+			
+			return new Status(Status.STATUS_CODE_FAILURE, "Error during unmarshalling string [" + input
+					+ "] for class [" + expectedClass.getName() + ": [" + e.getMessage() + "]");
+		}
 	}
 
 	public static void main(String args[]) {
 		// CreateVolumeExportDirectory.py md0 testvol
-		System.out.println(new ServerUtil().executeOnServer(true, "localhost", "python CreateVolumeExportDirectory.py md0 testvol").getMessage());
+		System.out.println(new ServerUtil().executeOnServer(true, "localhost", "python CreateVolumeExportDirectory.py md0 testvol", Status.class));
 	}
 }

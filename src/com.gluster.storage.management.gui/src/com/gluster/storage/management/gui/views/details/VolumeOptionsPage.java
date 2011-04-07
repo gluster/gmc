@@ -18,16 +18,28 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.views.details;
 
+import java.util.Map.Entry;
+
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
+import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.ColumnLayoutData;
+import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.ColumnWeightData;
+import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -38,6 +50,9 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.VolumeOptionsTableLabelProvider;
 import com.gluster.storage.management.gui.utils.GUIHelper;
@@ -47,6 +62,7 @@ public class VolumeOptionsPage extends Composite {
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	private TableViewer tableViewer;
 	private GUIHelper guiHelper = GUIHelper.getInstance();
+	private Volume volume;
 
 	public enum OPTIONS_TABLE_COLUMN_INDICES {
 		OPTION_KEY, OPTION_VALUE
@@ -72,6 +88,7 @@ public class VolumeOptionsPage extends Composite {
 
 	public VolumeOptionsPage(final Composite parent, int style, Volume volume) {
 		this(parent, style);
+		this.volume = volume;
 
 		tableViewer.setInput(volume.getOptions().entrySet().toArray());
 		
@@ -98,26 +115,117 @@ public class VolumeOptionsPage extends Composite {
 		setLayout(layout);
 	}
 
-	private void setupDiskTable(Composite parent, Table table) {
+	private void setupDiskTable(Composite parent) {
+		Table table = tableViewer.getTable();
 		table.setHeaderVisible(true);
 		table.setLinesVisible(false);
 
-		TableColumnLayout tableColumnLayout = guiHelper.createTableColumnLayout(table, OPTIONS_TABLE_COLUMN_NAMES);
+		TableColumnLayout tableColumnLayout = createTableColumnLayout();
 		parent.setLayout(tableColumnLayout);
 
 		setColumnProperties(table, OPTIONS_TABLE_COLUMN_INDICES.OPTION_KEY, SWT.CENTER, 100);
 		setColumnProperties(table, OPTIONS_TABLE_COLUMN_INDICES.OPTION_VALUE, SWT.CENTER, 100);
 	}
+	
+	private TableColumnLayout createTableColumnLayout() {
+		TableColumnLayout tableColumnLayout = new TableColumnLayout();
+		ColumnLayoutData defaultColumnLayoutData = new ColumnWeightData(100);
 
-	private TableViewer createDiskTableViewer(Composite parent) {
-		TableViewer tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
+		tableColumnLayout.setColumnData(createKeyColumn(), defaultColumnLayoutData);
+		tableColumnLayout.setColumnData(createValueColumn(), defaultColumnLayoutData);
+
+		return tableColumnLayout;
+	}
+	
+	private class OptionValueEditingSupport extends EditingSupport {
+		private CellEditor cellEditor;
+
+		public OptionValueEditingSupport(ColumnViewer viewer) {
+			super(viewer);
+			cellEditor = new TextCellEditor((Composite) viewer.getControl());
+		}
+		
+		@Override
+		protected void setValue(final Object element, final Object value) {
+			final Entry<String, String> entry = (Entry<String, String>)element;
+			if(entry.getValue().equals(value)) {
+				// value is same as that present in the model. return without doing anything.
+				return;
+			}
+			
+			final Cursor oldCursor = getViewer().getControl().getCursor();
+			//getViewer().getControl().setCursor(new Cursor(Display.getDefault(), SWT.CURSOR_WAIT));
+			// value has changed. set volume option at back-end and update model accordingly 
+			BusyIndicator.showWhile(getDisplay(), new Runnable() {
+				
+				@Override
+				public void run() {
+					VolumesClient client = new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken());
+					Status status = client.setVolumeOption(volume.getName(), entry.getKey(), (String)value);
+					if(status.isSuccess()) {
+						volume.setOption(entry.getKey(), (String)value);
+					} else {
+						MessageDialog.openError(getShell(), "Set Volume Option", status.getMessage());
+					}
+					getViewer().update(entry, null);
+					//getViewer().refresh();
+					//getViewer().getControl().setCursor(oldCursor);
+				}
+			});
+		}
+		
+		@Override
+		protected Object getValue(Object element) {
+			return ((Entry<String, String>) element).getValue();
+		}
+		
+		@Override
+		protected CellEditor getCellEditor(Object element) {
+			return cellEditor;
+		}
+		
+		@Override
+		protected boolean canEdit(Object element) {
+			return true;
+		}
+	}
+
+	private TableColumn createValueColumn() {
+		TableViewerColumn valueColumn = new TableViewerColumn(tableViewer, SWT.NONE);
+		valueColumn.getColumn()
+				.setText(OPTIONS_TABLE_COLUMN_NAMES[OPTIONS_TABLE_COLUMN_INDICES.OPTION_VALUE.ordinal()]);
+		valueColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				return ((Entry<String, String>) element).getValue();
+			}
+		});
+		
+		// User can edit value of a volume option
+		valueColumn.setEditingSupport(new OptionValueEditingSupport(valueColumn.getViewer()));
+		
+		return valueColumn.getColumn();
+	}
+
+	private TableColumn createKeyColumn() {
+		TableViewerColumn keyColumn = new TableViewerColumn(tableViewer, SWT.NONE);
+		keyColumn.getColumn().setText(OPTIONS_TABLE_COLUMN_NAMES[OPTIONS_TABLE_COLUMN_INDICES.OPTION_KEY.ordinal()]);
+		keyColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				return ((Entry<String, String>) element).getKey();
+			}
+		});
+		return keyColumn.getColumn();
+	}
+
+	private void createDiskTableViewer(Composite parent) {
+		tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
 		// TableViewer tableViewer = new TableViewer(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
 		tableViewer.setLabelProvider(new VolumeOptionsTableLabelProvider());
 		tableViewer.setContentProvider(new ArrayContentProvider());
 
-		setupDiskTable(parent, tableViewer.getTable());
-
-		return tableViewer;
+		setupDiskTable(parent);
 	}
 
 	private Composite createTableViewerComposite() {
@@ -129,7 +237,7 @@ public class VolumeOptionsPage extends Composite {
 
 	private void setupDiskTableViewer(final Text filterText) {
 		Composite tableViewerComposite = createTableViewerComposite();
-		tableViewer = createDiskTableViewer(tableViewerComposite);
+		createDiskTableViewer(tableViewerComposite);
 		// Create a case insensitive filter for the table viewer using the filter text field
 		guiHelper.createFilter(tableViewer, filterText, false);
 	}

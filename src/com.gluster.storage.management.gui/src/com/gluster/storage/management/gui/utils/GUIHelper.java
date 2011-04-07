@@ -36,7 +36,6 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
-import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -57,6 +56,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchSite;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
@@ -64,9 +64,9 @@ import org.eclipse.ui.forms.widgets.ColumnLayout;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
+import org.eclipse.ui.progress.IProgressConstants;
 
-import com.gluster.storage.management.core.model.Entity;
-import com.gluster.storage.management.core.model.EntityGroup;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.views.NavigationView;
 
@@ -359,5 +359,15 @@ public class GUIHelper {
 			}
 		}
 		return null;
+	}
+	
+	public void showProgressView() {
+		try {
+			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
+					.showView(IProgressConstants.PROGRESS_VIEW_ID);
+		} catch (PartInitException e) {
+			e.printStackTrace();
+			throw new GlusterRuntimeException("Could not open the progress view!", e);
+		}
 	}
 }

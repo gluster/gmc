@@ -276,13 +276,7 @@ public abstract class AbstractDisksPage extends Composite implements IEntityList
 		@Override
 		public void linkActivated(HyperlinkEvent e) {
 			updateStatus(DISK_STATUS.INITIALIZING, true);
-
-			try {
-				site.getWorkbenchWindow().getActivePage().showView(IProgressConstants.PROGRESS_VIEW_ID);
-			} catch (PartInitException e1) {
-				e1.printStackTrace();
-				throw new GlusterRuntimeException("Could not open the progress view!", e1);
-			}
+			guiHelper.showProgressView();
 
 			new InitializeDiskJob(disk).schedule();
 		}

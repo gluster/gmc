@@ -193,7 +193,7 @@ public class LoginDialog extends Dialog {
 		String password = connectionDetails.getPassword();
 
 		UsersClient usersClient = new UsersClient();
-		if (usersClient.authenticate(user, password)) {
+		if (usersClient.authenticate(user, password).isSuccess()) {
 			try {
 				GlusterDataModelManager.getInstance().initializeModel(usersClient.getSecurityToken());
 				super.okPressed();
