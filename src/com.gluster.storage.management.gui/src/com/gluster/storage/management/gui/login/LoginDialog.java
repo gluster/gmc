@@ -193,16 +193,15 @@ public class LoginDialog extends Dialog {
 		String password = connectionDetails.getPassword();
 
 		UsersClient usersClient = new UsersClient();
-		if (usersClient.authenticate(user, password)) {
+		if (usersClient.authenticate(user, password).isSuccess()) {
 			try {
 				GlusterDataModelManager.getInstance().initializeModel(usersClient.getSecurityToken());
 				super.okPressed();
-			} catch (GlusterRuntimeException e) {
+			} catch (Exception e) {
 				setReturnCode(RETURN_CODE_ERROR);
 				MessageDialog.openError(getShell(), "Initialization Error", e.getMessage());
 				close();
 			}
-
 		} else {
 			MessageDialog.openError(getShell(), "Authentication Failed", "Invalid User ID or password");
 		}

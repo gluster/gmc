@@ -26,6 +26,7 @@ import static com.gluster.storage.management.core.constants.RESTConstants.FORM_P
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_VOLUME_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_VOLUMES;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS;
+import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_OPTIONS;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,15 +41,12 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
+import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 import com.gluster.storage.management.core.utils.GlusterUtil;
-import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
 import com.gluster.storage.management.server.utils.ServerUtil;
 import com.sun.jersey.api.core.InjectParam;
@@ -57,9 +55,9 @@ import com.sun.jersey.spi.resource.Singleton;
 @Singleton
 @Path(RESOURCE_PATH_VOLUMES)
 public class VolumesResource {
-	private static final String SCRIPT_NAME = "CreateVolumeExportDirectory.py";
+	private static final String SCRIPT_NAME = "preVolumeCreate.py";
 	
-	@Autowired
+	@InjectParam
 	private static ServerUtil serverUtil;
 	private final GlusterUtil glusterUtil = new GlusterUtil();
 
@@ -80,30 +78,34 @@ public class VolumesResource {
 	@POST
 	@Consumes(MediaType.TEXT_XML)
 	@Produces(MediaType.TEXT_XML)
-	public GenericResponse<String> createVolume(Volume volume) {
+	public Status createVolume(Volume volume) {
 		//Create the directories for the volume
 		List<String> bricks = new ArrayList<String>();
 		for(String disk : volume.getDisks()) {
 			
-			String brickNotation = getBrickNotation(volume, disk);
+			String brickNotation = prepareBrick(volume, disk);
 			if (brickNotation != null) {
 				bricks.add(brickNotation);
 			} else {
-				return new GenericResponse<String>(Status.STATUS_FAILURE, "Disk is not mounted properly. Pls mount the disk.");
+				int failedIndex = volume.getDisks().indexOf(disk);
+				// TODO: Perform cleanup on all previously prepared bricks
+				// i.e. those disks with index < failedIndex
+				
+				return new Status(Status.STATUS_CODE_FAILURE, "Error while preparing disk [" + disk + "] for volume ["
+						+ volume.getName() + "]");
 			}
 		}
 		
-		ProcessResult response = glusterUtil.createVolume(volume, bricks);
-		if (!response.isSuccess()) {
-			return new GenericResponse<String>(Status.STATUS_FAILURE, "Volume creation failed: ["
-					+ response.getOutput() + "]");
-		}
-
-		response = glusterUtil.setVolumeAccessControl(volume);
-
-		return new GenericResponse<String>(Status.STATUS_SUCCESS, response.getOutput());
+		return glusterUtil.createVolume(volume, bricks);
 	}
 
+	@GET
+	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
+	@Produces(MediaType.TEXT_XML)
+	public Volume getVolume(@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName) {
+		return glusterUtil.getVolume(volumeName);
+	}
+	
 	@PUT
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
 	@Produces(MediaType.TEXT_XML)
@@ -111,40 +113,57 @@ public class VolumesResource {
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName) {
 
 		if (operation.equals(FORM_PARAM_VALUE_START)) {
-			return new Status(glusterUtil.startVolume(volumeName));
+			return glusterUtil.startVolume(volumeName);
 		}
 		if (operation.equals(FORM_PARAM_VALUE_STOP)) {
-			return new Status(glusterUtil.stopVolume(volumeName));
+			return glusterUtil.stopVolume(volumeName);
 		}
 		return new Status(Status.STATUS_CODE_FAILURE, "Invalid operation code [" + operation + "]");
+	}
+
+	@POST
+	@Path("{" + PATH_PARAM_VOLUME_NAME + " }/" + SUBRESOURCE_OPTIONS)
+	@Produces(MediaType.TEXT_XML)
+	public Status setOption(@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName,
+			@FormParam(RESTConstants.FORM_PARAM_OPTION_KEY) String key,
+			@FormParam(RESTConstants.FORM_PARAM_OPTION_VALUE) String value) {
+		return glusterUtil.setOption(volumeName, key, value);
+	}
+	
+	@PUT
+	@Path("{" + PATH_PARAM_VOLUME_NAME + " }/" + SUBRESOURCE_OPTIONS)
+	@Produces(MediaType.TEXT_XML)
+	public Status resetOptions(@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName) {
+		return glusterUtil.resetOptions(volumeName);
 	}
 
 	@GET
 	@Path(SUBRESOURCE_DEFAULT_OPTIONS)
 	@Produces(MediaType.TEXT_XML)
 	public VolumeOptionInfoListResponse getDefaultOptions() {
-		// TODO: Fetch all volume options with their default values from
-		// GlusterFS
+		// TODO: Fetch all volume options with their default values from GlusterFS
 		// whenever such a CLI command is made available in GlusterFS
 		return new VolumeOptionInfoListResponse(Status.STATUS_SUCCESS, volumeOptionsDefaults.getDefaults());
 	}
 	
-	private String getBrickNotation(Volume vol, String disk) {
+	private String prepareBrick(Volume vol, String disk) {
 		String serverName = disk.split(":")[0];
-		String exportDirectory = disk.split(":")[1];
-		Status result  =  serverUtil.executeOnServer(true, serverName, "python " + SCRIPT_NAME +" " + exportDirectory + " " + vol.getName());
+		String diskName = disk.split(":")[1];
+		Status result  =  (Status)serverUtil.executeOnServer(true, serverName, SCRIPT_NAME + " " + vol.getName() + " " + diskName, Status.class);
 		
-		if(result.getCode() == 0) {	
-			String dirName = "/export/" + disk + "/" + vol.getName() ;
-			return serverName + ":" + dirName;
+		if(result.isSuccess()) {
+			return result.getMessage();
 		} else {
 			return null;
 		}
-		
 	}
 	
-	public static void main(String args[]) {
-		// Disk disk = null;
-		serverUtil.executeOnServer(true, "localhost", "CreateVolumeExportDirectory.py md0 testvol");
+	public static void main(String[] args) {
+		VolumesResource vr = new VolumesResource();
+		VolumeListResponse response = vr.getAllVolumes();
+		for (Volume volume : response.getVolumes()) {
+			System.out.println("\nName:" + volume.getName() + "\nType: " + volume.getVolumeTypeStr() + "\nStatus: "
+					+ volume.getStatusStr());
+		}
 	}
 }

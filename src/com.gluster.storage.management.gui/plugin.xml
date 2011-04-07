@@ -223,6 +223,12 @@
       </command>
       <command
             categoryId="com.gluster.storage.management.gui.category"
+            description="Reset all options of a Volume"
+            id="com.gluster.storage.management.gui.commands.ResetVolumeOptions"
+            name="Reset Options">
+      </command>
+      <command
+            categoryId="com.gluster.storage.management.gui.category"
             description="Rebalance Volume"
             id="com.gluster.storage.management.gui.commands.RebalanceVolume"
             name="Rebalance Volume">
@@ -320,6 +326,11 @@
             id="com.gluster.storage.management.gui.KeyConfig"
             name="Gluster">
       </scheme>
+      <key
+            commandId="com.gluster.storage.management.gui.commands.ResetVolumeOptions"
+            schemeId="com.gluster.storage.management.gui.KeyConfig"
+            sequence="CTRL+SHIFT+O">
+      </key>
    </extension>
    <extension
          id="product"
@@ -501,6 +512,22 @@
                style="push"
                toolbarPath="Normal"
                tooltip="Delete Volume">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.ResetVolumeOptionsAction"
+               definitionId="com.gluster.storage.management.gui.commands.ResetVolumeOptions"
+               icon="icons/reset-options.png"
+               id="com.gluster.storage.management.gui.actions.ResetVolumeOptionsAction"
+               label="Reset &amp;Options"
+               menubarPath="com.gluster.storage.management.gui.menu.volume/volume"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Reset all options of the volume">
          </action>
          <action
                allowLabelUpdate="false"

@@ -174,12 +174,13 @@ public class Volume extends Entity {
 		return protocolsStr;
 	}
 
+	@XmlTransient
 	public String getAccessControlList() {
 		return options.get(OPTION_AUTH_ALLOW);
 	}
 
 	public void setAccessControlList(String accessControlList) {
-		this.accessControlList = accessControlList;
+		setOption(OPTION_AUTH_ALLOW, accessControlList);
 	}
 
 	public Map<String, String> getOptions() {

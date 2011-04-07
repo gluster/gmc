@@ -129,6 +129,17 @@ public abstract class AbstractClient {
 	}
 
 	/**
+	 * Submits given Form using PUT method to the given sub-resource and returns the object received as response
+	 * @param subResourceName Name of the sub-resource to which the request is to be posted
+	 * @param responseClass Class of the object expected as response
+	 * @return Object of given class received as response
+	 */
+	protected Object putRequest(String subResourceName, Class responseClass) {
+		return resource.path(subResourceName).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
+				.header("Authorization", authHeader).accept(MediaType.TEXT_XML).put(responseClass);
+	}
+
+	/**
 	 * Submits given object to the resource and returns the object received as response
 	 * @param responseClass Class of the object expected as response
 	 * @param requestObject the Object to be submitted

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Cluster;
@@ -41,9 +42,10 @@ import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
+import com.gluster.storage.management.core.model.VolumeOptionInfo;
 import com.gluster.storage.management.core.response.RunningTaskListResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
-import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 
 public class GlusterDataModelManager {
 	// private Server discoveredServer1, discoveredServer2, discoveredServer3,
@@ -57,6 +59,7 @@ public class GlusterDataModelManager {
 	private String securityToken;
 	private String serverName;
 	private List<ClusterListener> listeners = new ArrayList<ClusterListener>();
+	private List<VolumeOptionInfo> volumeOptionsDefaults;
 
 	private GlusterDataModelManager() {
 	}
@@ -130,10 +133,18 @@ public class GlusterDataModelManager {
 		createDummyLogMessages();
 
 		initializeRunningTasks(cluster);
-
 		initializeAlerts(cluster);
+		initializeVolumeOptionsDefaults();
 
 		model.addCluster(cluster);
+	}
+
+	private void initializeVolumeOptionsDefaults() {
+		VolumeOptionInfoListResponse response = new VolumesClient(getSecurityToken()).getVolumeOptionsDefaults();
+		if(!response.getStatus().isSuccess()) {
+			throw new GlusterRuntimeException("Error fetching volume option defaults: [" + response.getStatus().getMessage() + "]"); 
+		}
+		this.volumeOptionsDefaults = response.getOptions();
 	}
 
 	private void addVolumeOptions() {
@@ -376,6 +387,13 @@ public class GlusterDataModelManager {
 			listener.volumeChanged(volume, new Event(EVENT_TYPE.VOLUME_STATUS_CHANGED, newStatus));
 		}
 	}
+	
+	public void resetVolumeOptions(Volume volume) {
+		volume.getOptions().clear();
+		for (ClusterListener listener : listeners) {
+			listener.volumeChanged(volume, new Event(EVENT_TYPE.VOLUME_OPTIONS_RESET, null));
+		}
+	}
 
 	public void addVolume(Volume volume) {
 		Cluster cluster = model.getCluster();
@@ -384,5 +402,9 @@ public class GlusterDataModelManager {
 		for (ClusterListener listener : listeners) {
 			listener.volumeCreated(volume);
 		}
+	}
+	
+	public List<VolumeOptionInfo> getVolumeOptionsDefaults() {
+		return volumeOptionsDefaults;
 	}
 }
