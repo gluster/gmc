@@ -27,7 +27,8 @@ import static com.gluster.storage.management.core.constants.RESTConstants.PATH_P
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_VOLUMES;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
@@ -39,24 +40,46 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.GenericResponse;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.utils.GlusterUtil;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
+import com.gluster.storage.management.server.utils.ServerUtil;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Singleton
 @Path(RESOURCE_PATH_VOLUMES)
 public class VolumesResource {
+	
+	private static final String SCRIPT_NAME = "CreateVolumeExportDirectory.py";
+	
+	@Autowired
+	private static ServerUtil serverUtil;
+	
 	private final GlusterUtil glusterUtil = new GlusterUtil();
 
 	@POST
 	@Consumes(MediaType.TEXT_XML)
 	@Produces(MediaType.TEXT_XML)
 	public GenericResponse<String> createVolume(Volume volume) {
-		ProcessResult response = glusterUtil.createVolume(volume);
+		//Create the directories for the volume
+		List<String> bricks = new ArrayList<String>();
+		for(Disk disk : volume.getDisks()) {
+			
+			String brickNotation = getBrickNotation(volume, disk);
+			if (brickNotation != null) {
+				bricks.add(brickNotation);
+			} else {
+				return new GenericResponse<String>(Status.STATUS_FAILURE, "Disk is not mounted properly. Pls mount the disk.");
+			}
+		}
+		
+		ProcessResult response = glusterUtil.createVolume(volume, bricks);
 		if (!response.isSuccess()) {
 			return new GenericResponse<String>(Status.STATUS_FAILURE, "Volume creation failed: ["
 					+ response.getOutput() + "]");
@@ -89,5 +112,23 @@ public class VolumesResource {
 		// TODO: Fetch all volume options with their default values from GlusterFS
 		// whenever such a CLI command is made available in GlusterFS
 		return new VolumeOptionsDefaults().getDefaults();
+	}
+	
+	private String getBrickNotation(Volume vol, Disk disk) {
+		Status result  =  serverUtil.executeOnServer(true, disk.getServerName(), "python CreateVolumeExportDirectory.py " + disk + " " + vol.getName());
+		
+		if(result.getCode() == 0) {	
+			String dirName = "/export/" + disk + "/" + vol.getName() ;
+			return disk.getServerName() + ":" + dirName;
+		} else {
+			return null;
+			// return result.getMessage();
+		}
+		
+	}
+	
+	public static void main(String args[]) {
+		// Disk disk = null;
+		serverUtil.executeOnServer(true, "localhost", "CreateVolumeExportDirectory.py md0 testvol");
 	}
 }

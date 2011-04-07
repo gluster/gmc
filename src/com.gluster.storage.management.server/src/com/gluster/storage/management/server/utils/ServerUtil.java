@@ -21,6 +21,8 @@
 package com.gluster.storage.management.server.utils;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
@@ -29,11 +31,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.ServletContext;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.sun.jersey.spi.resource.Singleton;
@@ -69,7 +75,7 @@ public class ServerUtil {
 	 * @param commandWithArgs
 	 * @return Response from remote execution of the command
 	 */
-	public String executeOnServer(boolean runInForeground, String serverName, String commandWithArgs) {
+	public Status executeOnServer(boolean runInForeground, String serverName, String commandWithArgs) {
 		try {
 			InetAddress address = InetAddress.getByName(serverName);
 			Socket connection = new Socket(address, 50000);
@@ -87,7 +93,16 @@ public class ServerUtil {
 			}
 
 			connection.close();
-			return output.toString();
+			System.out.println("The ouput string is : " + output.toString());
+			// create JAXB context and instantiate marshaller
+			JAXBContext context = JAXBContext.newInstance(Status.class);
+			
+			Unmarshaller um = context.createUnmarshaller();
+			Status result = (Status) um.unmarshal(new ByteArrayInputStream(output.toString().getBytes()));
+
+			return result;
+			
+			// return new ProcessResult( 0, output.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -95,6 +110,7 @@ public class ServerUtil {
 	}
 
 	public static void main(String args[]) {
-		System.out.println(new ServerUtil().executeOnServer(true, "localhost", "ls -lrt"));
+		// CreateVolumeExportDirectory.py md0 testvol
+		System.out.println(new ServerUtil().executeOnServer(true, "localhost", "python CreateVolumeExportDirectory.py md0 testvol").getMessage());
 	}
 }

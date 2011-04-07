@@ -20,7 +20,6 @@
  */
 package com.gluster.storage.management.core.utils;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +35,7 @@ import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
  *
  */
 public class GlusterUtil {
+	
 	private static final String HOSTNAME_PFX = "Hostname:";
 	private static final String UUID_PFX = "Uuid:";
 	private static final String STATE_PFX = "State:";
@@ -145,7 +145,7 @@ public class GlusterUtil {
 		return processUtil.executeCommand("gluster", "--mode=script", "volume", "stop", volumeName);
 	}
 
-	public ProcessResult createVolume(Volume volume) {
+	public ProcessResult createVolume(Volume volume, List<String> bricks) {
 		int count=1; // replica or stripe count
 		String volumeType = null;
 		VOLUME_TYPE volType = volume.getVolumeType(); 
@@ -172,9 +172,7 @@ public class GlusterUtil {
 		}
 		command.add("transport");
 		command.add(transportTypeStr);
-		for(Disk disk : volume.getDisks()) {
-			command.add(getBrickNotation(volume, disk));
-		}
+		command.addAll(bricks);
 		return processUtil.executeCommand(command);
 	}
 	
@@ -191,24 +189,6 @@ public class GlusterUtil {
 		command.add("auth.allow");
 		command.add(volume.getAccessControlList());
 		return setOption(command);
-	}
-	
-	/**
-	 * @param disk
-	 * @return
-	 */
-	private String getBrickNotation(Volume vol, Disk disk) {
-		// TODO: Figure out an appropriate directory INSIDE the DISK having given NAME (e.g. sda, sdb, etc)
-		// String dirName = "/export/" + vol.getName() + "/" + disk.getName();
-		
-		// if /export directory is not exist then create the directory
-		boolean exists = (new File("/export")).exists();
-		
-		if (!exists) {
-			processUtil.executeCommand("mkdir", "/export");
-		}
-		String dirName = "/export/" + vol.getName() ;
-		return disk.getServerName() + ":" + dirName;
 	}
 	
 	public static void main(String args[]) {

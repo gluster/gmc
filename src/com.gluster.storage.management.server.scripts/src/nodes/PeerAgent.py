@@ -77,7 +77,7 @@ def executeCommand(command):
         rs = ResponseXml()
         rs.appendTagRoute("status", statusCode);
         rs.appendTagRoute("output", stripEmptyLines(rv["Stdout"]))
-        rs.appendTagRoute("error", stripEmptyLines(rv["Stderr"]))
+        rs.appendTagRoute("message", stripEmptyLines(rv["Stderr"]))
         print rs.toprettyxml()
         return rs.toprettyxml()
     else:
