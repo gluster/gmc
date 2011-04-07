@@ -1,7 +1,10 @@
-package com.gluster.storage.management.core.model;
+package com.gluster.storage.management.core.response;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
+
+import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.core.model.Status;
 
 @XmlRootElement(name = "response")
 public class GlusterServerResponse extends AbstractResponse {

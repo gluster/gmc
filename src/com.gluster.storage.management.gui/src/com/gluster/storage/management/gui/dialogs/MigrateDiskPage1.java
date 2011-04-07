@@ -166,7 +166,7 @@ public class MigrateDiskPage1 extends WizardPage {
 
 		GlusterDummyModel glusterDummyModel = GlusterDummyModel.getInstance();
 		List<Disk> fromDisks = glusterDummyModel.getReadyDisksOfVolume(volume);		
-		List<Disk> toDisks = glusterDummyModel.getReadyDisksOfAllServersExcluding(volume.getDisks());
+		List<Disk> toDisks = glusterDummyModel.getReadyDisksOfAllServersExcluding( glusterDummyModel.getReadyDisksOfVolume(volume));
 		
 		TableViewer tableViewerFrom = createTableViewer(container, diskLabelProvider, fromDisks, txtFilterFrom);
 		if(fromDisk != null) {

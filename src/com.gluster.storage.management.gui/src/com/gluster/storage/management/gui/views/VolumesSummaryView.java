@@ -30,7 +30,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.ViewPart;
 
-import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.GlusterDataModel;
@@ -50,7 +50,12 @@ public class VolumesSummaryView extends ViewPart {
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	private ScrolledForm form;
 	private EntityGroup<Volume> volumes;
-
+	
+	private static final String ALERTS = "Alerts";
+	private static final String RUNNING_TASKS = "Running Tasks";
+	private static final String VOLUMES_SUMMARY = "Volumes - Summary";
+	private static final String AVAILABILITY = "Availability";
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -61,55 +66,66 @@ public class VolumesSummaryView extends ViewPart {
 		if (volumes == null) {
 			Object selectedObj = guiHelper.getSelectedEntity(getSite(), EntityGroup.class);
 			if (selectedObj != null && ((EntityGroup) selectedObj).getEntityType() == Volume.class) {
-				volumes = (EntityGroup<Volume>)selectedObj;
+				volumes = (EntityGroup<Volume>) selectedObj;
 			}
 		}
-		
+
 		createSections(parent);
 	}
 
 	private void createSections(Composite parent) {
-		form = guiHelper.setupForm(parent, toolkit, "Volumes - Summary");
+		form = guiHelper.setupForm(parent, toolkit, VOLUMES_SUMMARY);
 		createSummarySection();
 		createRunningTasksSection();
 		createAlertsSection();
-		
+
 		parent.layout(); // IMP: lays out the form properly
 	}
-	
-	private void createAlertsSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Alerts", null, 2, false);
 
-		toolkit.createLabel(section, "Any alerts related to volumes\nwill be displayed here.");
+	private void createAlertsSection() {
+		Composite section = guiHelper.createSection(form, toolkit, ALERTS, null, 1, false);
+		// toolkit.createLabel(section, "Any alerts related to volumes\nwill be displayed here.");
+
+		Cluster cluster = GlusterDataModelManager.getInstance().getModel().getCluster();
+		List<Alert> alerts = cluster.getAlerts();
+		for (Alert alert : alerts) {
+			if (alert.getType() == Alert.ALERT_TYPES.DISK_USAGE_ALERT ||
+					alert.getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_DISKS_ALERT) {
+				toolkit.createLabel(section, alert.getMessage());
+			}
+		}
 	}
 
 	private void createRunningTasksSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Running Tasks", null, 2, false);
-		
-		GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
-		GlusterDataModel model = modelManager.getModel();
-		Cluster cluster = (Cluster) model.getChildren().get(0); // Assume the first/root node of the model is cluster (invisible)
-		
-		List<RunningTask> runningTasks = cluster.getRunningTasks();
-		String taskMessage = "";
-		for(RunningTask task : runningTasks) {
-			if (task.getStatus().isPercentageSupported()) {
-				//TODO Progress bar 
+		Composite section = guiHelper.createSection(form, toolkit, RUNNING_TASKS, null, 1, false);
+
+		List<RunningTask> runningTasks = GlusterDataModelManager.getInstance().getModel().getCluster().getRunningTasks();
+
+		for (RunningTask task : runningTasks) {
+			if (task.getType() == RunningTask.TASK_TYPES.MIGRATE_DISK
+					|| task.getType() == RunningTask.TASK_TYPES.VOLUME_REBALANCE) {
+				if (task.getStatus().isPercentageSupported()) {
+					// TODO Progress bar
+				}
+				toolkit.createLabel(section, task.getTaskInfo());
 			}
-			//TODO show different labels for each task
-			taskMessage = taskMessage + CoreConstants.NEWLINE + task.getDescription();
 		}
-		toolkit.createLabel(section, taskMessage);
 	}
 
 	private void createSummarySection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Availability", null, 2, false);
+		Composite section = guiHelper.createSection(form, toolkit, AVAILABILITY, null, 2, false);
+
+		// Cluster cluster = GlusterDataModelManager.getInstance().getModel().getCluster();
+
+		GlusterDataModel model = GlusterDataModelManager.getInstance().getModel();
+		Cluster cluster = (Cluster) model.getChildren().get(0);
 
 		Double[] values = new Double[] { Double.valueOf(getVolumeCountByStatus(volumes, VOLUME_STATUS.ONLINE)),
 				Double.valueOf(getVolumeCountByStatus(volumes, VOLUME_STATUS.OFFLINE)) };
 		createStatusChart(toolkit, section, values);
 	}
-	
+
+	@SuppressWarnings("unchecked")
 	private int getVolumeCountByStatus(EntityGroup<Volume> volumes, VOLUME_STATUS status) {
 		int count = 0;
 		for (Volume volume : (List<Volume>) volumes.getEntities()) {
@@ -130,7 +146,7 @@ public class VolumesSummaryView extends ViewPart {
 		data.heightHint = 250;
 		chartViewerComposite.setLayoutData(data);
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 

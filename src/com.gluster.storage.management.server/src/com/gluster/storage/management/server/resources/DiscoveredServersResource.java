@@ -32,9 +32,9 @@ import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.model.Response;
 import com.gluster.storage.management.core.model.Server;
-import com.gluster.storage.management.core.model.ServerListResponse;
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.model.StringListResponse;
+import com.gluster.storage.management.core.response.ServerListResponse;
+import com.gluster.storage.management.core.response.StringListResponse;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Component

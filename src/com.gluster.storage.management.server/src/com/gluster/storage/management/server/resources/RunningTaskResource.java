@@ -33,14 +33,18 @@ import org.springframework.stereotype.Component;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_RUNNING_TASKS;
 import com.gluster.storage.management.core.model.Response;
 import com.gluster.storage.management.core.model.RunningTask;
-import com.gluster.storage.management.core.model.RunningTaskListResponse;
 import com.gluster.storage.management.core.model.RunningTaskStatus;
 import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.response.RunningTaskListResponse;
+import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.server.runningtasks.managers.RunningTaskManager;
 
 @Component
 @Path(RESOURCE_PATH_RUNNING_TASKS)
 public class RunningTaskResource {
+	
+	private static final String PKG = "com.gluster.storage.management.server.runningtasks.managers";
+	private static final String MANAGER = "Manager";
 
 	@GET
 	@Produces(MediaType.TEXT_XML)
@@ -55,46 +59,48 @@ public class RunningTaskResource {
 		// Volume rebalance
 		RunningTask task = new RunningTask();
 		task.setId("0001");
-		task.setType("VolumeRebalance");
-		task.setReference("");
-		task.setDescription("Volume [Volume1] rebalance is running");
+		task.setType(RunningTask.TASK_TYPES.VOLUME_REBALANCE);
+		task.setReference("Volume1");
+		task.setTaskInfo( task.getTaskType(task.getType()) +  "is running in volume " + task.getReference());
 		task.setStatus(status);
 		runningTasks.add(task);
 
 		task = new RunningTask();
 		task.setId("0002");
-		task.setType("VolumeRebalance");
-		task.setReference("");
-		task.setDescription("Volume [Volume2] rebalance is running");
-		//task.setDescription("Error: volume rebalance operation failed at fd 0000 [/export/test-song-volume/mydirectory/test-video.avi");
+		task.setType(RunningTask.TASK_TYPES.VOLUME_REBALANCE);
+		task.setReference("Volume2");
+		task.setTaskInfo( task.getTaskType(task.getType()) +  " is running in volume " + task.getReference());
 		task.setStatus(status);
 		runningTasks.add(task);
 
 		// MigrateDisk
 		task = new RunningTask();
 		task.setId("0003");
-		task.setType("MigrateDisk");
-		task.setReference("");
-		task.setDescription("Disk migration [Volume3/sda] is running");
+		task.setType(RunningTask.TASK_TYPES.MIGRATE_DISK);
+		task.setReference("Volume3:server1:sda1");  // Disk reference
+		task.setTaskInfo( task.getTaskType(task.getType()) +  " is running in disk " +  task.getReference() + "");
 		task.setStatus(status);
 		runningTasks.add(task);
 
 		// FormatDisk
 		task = new RunningTask();
 		task.setId("0004");
-		task.setType("FormatDisk");
-		task.setReference("");
-		task.setDescription("Volume [vol1] rebalance is running");
+		task.setType(RunningTask.TASK_TYPES.FORMAT_DISK);
+		task.setReference("Volume1:server1:sdb1");  // Disk reference
+		task.setTaskInfo( task.getTaskType(task.getType()) +  " " + task.getReference() );
 		status.setPercentageSupported(true);
 		status.getPercentCompleted(45);
 		task.setStatus(status);
 		runningTasks.add(task);
+		
 		return new RunningTaskListResponse(Status.STATUS_SUCCESS, runningTasks);
 	}
 
 	@SuppressWarnings("rawtypes")
-	public Response startTask(@FormParam("taskType") String taskType) {
-		String managerClassName = "com.gluster.storage.management.server.runningtasks.managers." + taskType + "Manager";
+	public Response startTask(@FormParam("taskType") RunningTask.TASK_TYPES taskType) {
+		String taskTypeStr =  StringUtil.removeSpaces( new RunningTask().getTaskType(taskType) );
+		String managerClassName = PKG + "." + taskTypeStr + MANAGER;
+
 		Class managerClass;
 		RunningTaskManager manager = null;
 		try {
@@ -121,7 +127,7 @@ public class RunningTaskResource {
 		RunningTaskListResponse tasks = rt.getRunningTasks();
 		List<RunningTask> runningTasks = tasks.getRunningTasks();
 		for( RunningTask x : runningTasks) {
-			System.out.println( x.getId() +  " : " + x.getType() +  " : " + x.getDescription() );
+			System.out.println( x.getId() +  " : " + x.getType() +  " : " + x.getTaskInfo() );
 		}
 	}
 }

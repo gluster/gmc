@@ -24,27 +24,35 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
+import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 
-/**
- *
- */
 public class GlusterUtil {
 	
 	private static final String HOSTNAME_PFX = "Hostname:";
 	private static final String UUID_PFX = "Uuid:";
 	private static final String STATE_PFX = "State:";
 	private static final String GLUSTER_SERVER_STATUS_ONLINE = "Connected";
+
+	private static final String VOLUME_NAME_PFX = "Volume Name:";
+	private static final String VOLUME_TYPE_PFX = "Type:";
+	private static final String VOLUME_STATUS_PFX = "Status:";
+	private static final String VOLUME_TRANSPORT_TYPE_PFX = "Transport-type:";
+	private static final String VOLUME_BRICKS_GROUP_PFX = "Bricks"; // Colon not used
+	private static final String VOLUME_OPTIONS_RECONFIG_PFX = "Options Reconfigured";
+
 	private static final ProcessUtil processUtil = new ProcessUtil();
 
 	/**
-	 * Extract value of given token from given line. It is assumed that the token, if present, will be of the following
-	 * form: <code>token: value</code>
+	 * Extract value of given token from given line. It is assumed that the
+	 * token, if present, will be of the following form:
+	 * <code>token: value</code>
 	 * 
 	 * @param line
 	 *            Line to be analyzed
@@ -74,11 +82,13 @@ public class GlusterUtil {
 				// Host and UUID is found, we should look for state
 				String state = extractToken(line, STATE_PFX);
 				if (state != null) {
-					server.setStatus(state.contains(GLUSTER_SERVER_STATUS_ONLINE) ? SERVER_STATUS.ONLINE
+					server.setStatus(state
+							.contains(GLUSTER_SERVER_STATUS_ONLINE) ? SERVER_STATUS.ONLINE
 							: SERVER_STATUS.OFFLINE);
-					// Completed populating current server. Add it to the list and reset all related variables.
+					// Completed populating current server. Add it to the list
+					// and reset all related variables.
 					glusterServers.add(server);
-					
+
 					foundHost = false;
 					foundUuid = false;
 					server = null;
@@ -107,11 +117,11 @@ public class GlusterUtil {
 	}
 
 	public List<String> getGlusterServerNames() {
-		String output = getPeerStatus();		
-		if(output == null) {
+		String output = getPeerStatus();
+		if (output == null) {
 			return null;
 		}
-		
+
 		List<String> glusterServerNames = new ArrayList<String>();
 		for (String line : output.split(CoreConstants.NEWLINE)) {
 			String hostName = extractToken(line, HOSTNAME_PFX);
@@ -124,7 +134,8 @@ public class GlusterUtil {
 
 	private String getPeerStatus() {
 		String output;
-		ProcessResult result = processUtil.executeCommand("gluster", "peer", "status");
+		ProcessResult result = processUtil.executeCommand("gluster", "peer",
+				"status");
 		if (!result.isSuccess()) {
 			output = null;
 		}
@@ -133,53 +144,57 @@ public class GlusterUtil {
 	}
 
 	public ProcessResult addServer(String serverName) {
-		return processUtil.executeCommand("gluster", "peer", "probe", serverName);
+		return processUtil.executeCommand("gluster", "peer", "probe",
+				serverName);
 	}
-	
 
 	public ProcessResult startVolume(String volumeName) {
-		return processUtil.executeCommand("gluster", "volume", "start", volumeName);
+		return processUtil.executeCommand("gluster", "volume", "start",
+				volumeName);
 	}
 
 	public ProcessResult stopVolume(String volumeName) {
-		return processUtil.executeCommand("gluster", "--mode=script", "volume", "stop", volumeName);
+		return processUtil.executeCommand("gluster", "--mode=script", "volume",
+				"stop", volumeName);
 	}
 
 	public ProcessResult createVolume(Volume volume, List<String> bricks) {
 		int count=1; // replica or stripe count
 		String volumeType = null;
-		VOLUME_TYPE volType = volume.getVolumeType(); 
-		if(volType == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
+		VOLUME_TYPE volType = volume.getVolumeType();
+		if (volType == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
 			volumeType = "replica";
 			count = 2;
-		} else if(volType == VOLUME_TYPE.DISTRIBUTED_STRIPE) {
+		} else if (volType == VOLUME_TYPE.DISTRIBUTED_STRIPE) {
 			volumeType = "stripe";
 			count = 4;
 		}
-		
+
 		String transportTypeStr = null;
 		TRANSPORT_TYPE transportType = volume.getTransportType();
-		transportTypeStr = (transportType == TRANSPORT_TYPE.ETHERNET) ? "tcp" : "rdma"; 
-		
+		transportTypeStr = (transportType == TRANSPORT_TYPE.ETHERNET) ? "tcp"
+				: "rdma";
+
 		List<String> command = new ArrayList<String>();
 		command.add("gluster");
 		command.add("volume");
 		command.add("create");
 		command.add(volume.getName());
-		if(volumeType != null) {
+		if (volumeType != null) {
 			command.add(volumeType);
 			command.add("" + count);
 		}
 		command.add("transport");
 		command.add(transportTypeStr);
 		command.addAll(bricks);
+
 		return processUtil.executeCommand(command);
 	}
-	
+
 	public ProcessResult setOption(List<String> command) {
 		return processUtil.executeCommand(command);
 	}
-	
+
 	public ProcessResult setVolumeAccessControl(Volume volume) {
 		List<String> command = new ArrayList<String>();
 		command.add("gluster");
@@ -190,9 +205,96 @@ public class GlusterUtil {
 		command.add(volume.getAccessControlList());
 		return setOption(command);
 	}
+
+	private String getVolumeInfo() {
+		ProcessResult result = new ProcessUtil().executeCommand("gluster", "volume", "info");
+		if (!result.isSuccess()) {
+			throw new GlusterRuntimeException("Command [gluster volume info] failed with error: ["
+					+ result.getExitValue() + "][" + result.getOutput() + "]");
+		}
+		return result.getOutput();
+	}
 	
+	public List<Volume> getAllVolumes() {
+		String volumeInfoText = getVolumeInfo();
+		
+		List<Volume> volumes = new ArrayList<Volume>();
+		boolean isBricksGroupFound = false;
+		boolean isOptionReconfigFound = false;
+		Volume volume = null;
+		
+		for (String line : volumeInfoText.split(CoreConstants.NEWLINE)) {
+			String volumeName = extractToken(line, VOLUME_NAME_PFX);
+			if (volumeName != null) {
+				if (volume != null) {
+					// add the previously read volume to volume list
+					volumes.add(volume);
+				}
+				
+				// prepare next volume to be read
+				volume = new Volume();
+				volume.setName(volumeName);
+				isBricksGroupFound = isOptionReconfigFound = false;
+				continue;
+			}
+
+			String volumeType = extractToken(line, VOLUME_TYPE_PFX);
+			if (volumeType != null) {
+				volume.setVolumeType((volumeType == "Distribute") ? VOLUME_TYPE.PLAIN_DISTRIBUTE
+						: VOLUME_TYPE.DISTRIBUTED_MIRROR); // TODO: for Stripe
+				continue;
+			}
+			
+			String volumeStatus = extractToken(line, VOLUME_STATUS_PFX);
+			if (volumeStatus != null) {
+				volume.setStatus(volumeStatus.equals("Started") ? VOLUME_STATUS.ONLINE : VOLUME_STATUS.OFFLINE);
+				continue;
+			}
+			
+			String transportType = extractToken(line, VOLUME_TRANSPORT_TYPE_PFX);
+			if (transportType != null) {
+				volume.setTransportType(transportType.equals("tcp") ? TRANSPORT_TYPE.ETHERNET
+						: TRANSPORT_TYPE.INFINIBAND);
+				continue;
+			}
+			
+			if (extractToken(line, VOLUME_BRICKS_GROUP_PFX) != null) {
+				isBricksGroupFound = true;
+				continue;
+			}
+			
+			if (isBricksGroupFound) {
+				if (line.matches("Brick[0-9]+:.*")) {
+					volume.addDisk(line.split(":")[2].trim().split("/")[2].trim()); // line: "Brick1: server1:/export/md0/volume-name"
+					continue;
+				} else {
+					isBricksGroupFound = false;
+				}
+			}
+			
+			if (extractToken(line, VOLUME_OPTIONS_RECONFIG_PFX) != null) {
+				isOptionReconfigFound = true;
+				continue;
+			}
+
+			if (isOptionReconfigFound) {
+				if(line.matches("^[^:]*:[^:]*$")) {
+					String[] parts = line.split(":");
+					volume.setOption(parts[0].trim(), parts[1].trim());
+				} else {
+					isOptionReconfigFound = false;
+				}
+			}
+		}
+		
+		if (volume != null)  {// Adding the last volume parsed
+			volumes.add(volume);
+		}
+		return volumes;
+	}
+
 	public static void main(String args[]) {
-		List<String> names = new GlusterUtil().getGlusterServerNames();
-		System.out.println(names);
+//		List<String> names = new GlusterUtil().getGlusterServerNames();
+//		System.out.println(names);
 	}
 }

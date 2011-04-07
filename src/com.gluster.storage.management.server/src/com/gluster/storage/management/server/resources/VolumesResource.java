@@ -42,14 +42,16 @@ import javax.ws.rs.core.MediaType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.gluster.storage.management.core.model.Disk;
-import com.gluster.storage.management.core.model.GenericResponse;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.response.GenericResponse;
+import com.gluster.storage.management.core.response.VolumeListResponse;
+import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 import com.gluster.storage.management.core.utils.GlusterUtil;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
 import com.gluster.storage.management.server.utils.ServerUtil;
+import com.sun.jersey.api.core.InjectParam;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Singleton
@@ -62,14 +64,28 @@ public class VolumesResource {
 	private static ServerUtil serverUtil;
 	
 	private final GlusterUtil glusterUtil = new GlusterUtil();
+	
+	@InjectParam
+	private VolumeOptionsDefaults volumeOptionsDefaults;
 
+	@GET 
+	@Produces(MediaType.TEXT_XML)
+	public VolumeListResponse getAllVolumes() {
+		try {
+			return new VolumeListResponse(Status.STATUS_SUCCESS, glusterUtil.getAllVolumes());
+		} catch(Exception e) {
+			// TODO: log the error
+			return new VolumeListResponse(new Status(Status.STATUS_CODE_FAILURE, e.getMessage()), null);
+		}
+	}
+	
 	@POST
 	@Consumes(MediaType.TEXT_XML)
 	@Produces(MediaType.TEXT_XML)
 	public GenericResponse<String> createVolume(Volume volume) {
 		//Create the directories for the volume
 		List<String> bricks = new ArrayList<String>();
-		for(Disk disk : volume.getDisks()) {
+		for(String disk : volume.getDisks()) {
 			
 			String brickNotation = getBrickNotation(volume, disk);
 			if (brickNotation != null) {
@@ -108,18 +124,20 @@ public class VolumesResource {
 	@GET
 	@Path(SUBRESOURCE_DEFAULT_OPTIONS)
 	@Produces(MediaType.TEXT_XML)
-	public VolumeOptionsDefaults getDefaultOptions() {
+	public VolumeOptionInfoListResponse getDefaultOptions() {
 		// TODO: Fetch all volume options with their default values from GlusterFS
 		// whenever such a CLI command is made available in GlusterFS
-		return new VolumeOptionsDefaults().getDefaults();
+		return new VolumeOptionInfoListResponse(Status.STATUS_SUCCESS, volumeOptionsDefaults.getDefaults());
 	}
 	
-	private String getBrickNotation(Volume vol, Disk disk) {
-		Status result  =  serverUtil.executeOnServer(true, disk.getServerName(), "python CreateVolumeExportDirectory.py " + disk + " " + vol.getName());
+	private String getBrickNotation(Volume vol, String disk) {
+		String serverName = disk.split(":")[0];
+		String exportDirectory = disk.split(":")[1];
+		Status result  =  serverUtil.executeOnServer(true, serverName, "python " + SCRIPT_NAME +" " + exportDirectory + " " + vol.getName());
 		
 		if(result.getCode() == 0) {	
 			String dirName = "/export/" + disk + "/" + vol.getName() ;
-			return disk.getServerName() + ":" + dirName;
+			return serverName + ":" + dirName;
 		} else {
 			return null;
 			// return result.getMessage();

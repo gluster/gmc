@@ -22,15 +22,21 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class RunningTask {
-
+	public enum TASK_TYPES { FORMAT_DISK, MIGRATE_DISK, VOLUME_REBALANCE };
+	public String[] TASK_TYPE_STR = {"Formating Disk", "Migrating Disk", "Volume Rebalance"};
+	
 	protected String id;
-	protected String type;       // FormatDisk, MigrateDisk, VolumeRebalance
-	protected Object reference;
-	protected String description;
+	protected TASK_TYPES type;       // FormatDisk, MigrateDisk, VolumeRebalance
+	protected String reference;      // Server: Server name, Volume: Volume name, Disk: disk name referred as "VolumeName:ServerName:DiskName"
+	protected String taskInfo;
 	protected RunningTaskStatus status; // TODO redefine
 	
 	public RunningTask() {
 		
+	}
+	
+	public String getTaskType(TASK_TYPES type) {
+		return TASK_TYPE_STR[type.ordinal()]; 
 	}
 	
 	public String getId() {
@@ -41,28 +47,28 @@ public class RunningTask {
 		this.id = id;
 	}
 	
-	public String getType() {
+	public TASK_TYPES getType() {
 		return type;
 	}
 	
-	public void setType(String type) {
+	public void setType(TASK_TYPES type) {
 		this.type = type;
 	}
 	
-	public Object getReference() {
+	public String getReference() {
 		return reference;
 	}
 	
-	public void setReference(Object reference) {
+	public void setReference(String reference) {
 		this.reference = reference;
 	}
 	
-	public String getDescription() {
-		return description;
+	public String getTaskInfo() {
+		return taskInfo;
 	}
 	
-	public void setDescription(String description) {
-		this.description = description;
+	public void setTaskInfo(String taskInfo) {
+		this.taskInfo = taskInfo;
 	}
 	
 	public RunningTaskStatus getStatus() {

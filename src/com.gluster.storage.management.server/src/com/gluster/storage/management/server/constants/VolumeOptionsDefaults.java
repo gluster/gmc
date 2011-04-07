@@ -23,25 +23,23 @@ package com.gluster.storage.management.server.constants;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
 
-@XmlRootElement
+@Component
 public class VolumeOptionsDefaults {
-	@XmlElementWrapper(name = "volumeOptions")
-	@XmlElement(name = "volumeOption", type = VolumeOptionInfo.class)
 	public List<VolumeOptionInfo> options;
-	
+
 	public VolumeOptionsDefaults() {
 	}
-	
-	public VolumeOptionsDefaults getDefaults() {
-		options = getVolumeOptionsInfo();
-		return this;
+
+	/**
+	 * @return list of volume option information objects
+	 */
+	public List<VolumeOptionInfo> getDefaults() {
+		return getVolumeOptionsInfo();
 	}
 
 	/**

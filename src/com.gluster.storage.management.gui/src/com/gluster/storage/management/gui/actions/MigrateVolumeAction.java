@@ -22,7 +22,7 @@ import org.eclipse.jface.action.IAction;
 
 public class MigrateVolumeAction extends AbstractActionDelegate {
 	@Override
-	public void run(IAction action) {
+	protected void performAction(IAction action) {
 		System.out.println("Running [" + this.getClass().getSimpleName() + "]");
 	}
 

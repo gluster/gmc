@@ -18,6 +18,7 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.dialogs;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jface.dialogs.Dialog;
@@ -47,11 +48,24 @@ public class SelectDisksDialog extends Dialog {
 	 * 
 	 * @param parentShell
 	 */
-	public SelectDisksDialog(Shell parentShell, List<Disk> allDisks, List<Disk> selectedDisks) {
+	public SelectDisksDialog(Shell parentShell, List<Disk> allDisks, List<String> selectedDisks) {
 		super(parentShell);
 		setShellStyle(getShellStyle() | SWT.RESIZE);
 		this.allDisks = allDisks;
-		this.selectedDisks = selectedDisks;
+		this.selectedDisks = getSelectedDisks(allDisks, selectedDisks);
+	}
+
+	private List<Disk> getSelectedDisks(List<Disk> allDisks, List<String> selectedDisks) {
+		List<Disk> disks = new ArrayList<Disk>();
+		for (String selectedDisk : selectedDisks) {
+			for (Disk disk : disks) {
+				String brick[] = selectedDisk.split(":");
+				if (disk.getServerName() == brick[0] && disk.getName() == brick[1]) {
+					disks.add(disk);
+				}
+			}
+		}
+		return disks;
 	}
 
 	/**
@@ -64,12 +78,14 @@ public class SelectDisksDialog extends Dialog {
 		Composite container = new Composite(parent, SWT.NONE);
 		GridLayout containerLayout = new GridLayout(2, false);
 		container.setLayout(containerLayout);
-		GridData containerLayoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
+		GridData containerLayoutData = new GridData(SWT.FILL, SWT.FILL, true,
+				true);
 		container.setLayoutData(containerLayoutData);
 
 		getShell().setText("Create Volume - Select Disks");
-		
-		disksPage = new CreateVolumeDisksPage(container, SWT.NONE, allDisks, selectedDisks);
+
+		disksPage = new CreateVolumeDisksPage(container, SWT.NONE, allDisks,
+				selectedDisks);
 
 		return container;
 	}
@@ -81,8 +97,10 @@ public class SelectDisksDialog extends Dialog {
 	 */
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
+		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL,
+				true);
+		createButton(parent, IDialogConstants.CANCEL_ID,
+				IDialogConstants.CANCEL_LABEL, false);
 	}
 
 	/**
@@ -100,14 +118,19 @@ public class SelectDisksDialog extends Dialog {
 
 	@Override
 	protected void okPressed() {
-		if (this.getSelectedDisks().size() == 0 ) {
-			MessageDialog.openError(getShell(), "Select Disk(s)", "Please select atlease one disk");
+		if (this.getSelectedDisks().size() == 0) {
+			MessageDialog.openError(getShell(), "Select Disk(s)",
+					"Please select atlease one disk");
 		} else {
 			super.okPressed();
 		}
 	}
-	
+
 	public List<Disk> getSelectedDisks() {
-		return disksPage.getChosenDisks(); 
+		return disksPage.getChosenDisks();
+	}
+	
+	public List<String> getSelectedBricks() {
+		return disksPage.getChosenBricks();
 	}
 }

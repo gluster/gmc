@@ -30,13 +30,13 @@ import javax.ws.rs.core.MediaType;
 
 import org.springframework.stereotype.Component;
 
-import com.gluster.storage.management.core.model.GenericResponse;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
-import com.gluster.storage.management.core.model.GlusterServerListResponse;
-import com.gluster.storage.management.core.model.GlusterServerResponse;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.response.GenericResponse;
+import com.gluster.storage.management.core.response.GlusterServerListResponse;
+import com.gluster.storage.management.core.response.GlusterServerResponse;
 import com.gluster.storage.management.core.utils.GlusterUtil;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.sun.jersey.spi.resource.Singleton;

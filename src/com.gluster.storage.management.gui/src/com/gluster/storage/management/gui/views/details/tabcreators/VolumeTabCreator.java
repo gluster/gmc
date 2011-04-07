@@ -34,6 +34,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Hyperlink;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
@@ -247,7 +248,7 @@ public class VolumeTabCreator implements TabCreator {
 
 	private void createVolumeDisksTab(Volume volume, TabFolder tabFolder, FormToolkit toolkit, IWorkbenchSite site) {
 		Composite volumeDisksTab = guiHelper.createTab(tabFolder, "Disks", IImageKeys.VOLUME);
-		DisksPage page = new DisksPage(volumeDisksTab, SWT.NONE, site, volume.getDisks());
+		DisksPage page = new DisksPage(volumeDisksTab, SWT.NONE, site, GlusterDataModelManager.getInstance().getReadyDisksOfVolume(volume));
 
 		volumeDisksTab.layout(); // IMP: lays out the form properly
 	}

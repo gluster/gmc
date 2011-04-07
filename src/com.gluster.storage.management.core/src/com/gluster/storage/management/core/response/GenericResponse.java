@@ -18,9 +18,11 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package com.gluster.storage.management.core.model;
+package com.gluster.storage.management.core.response;
 
 import javax.xml.bind.annotation.XmlRootElement;
+
+import com.gluster.storage.management.core.model.Status;
 
 @XmlRootElement(name = "response")
 public class GenericResponse<T> extends AbstractResponse {

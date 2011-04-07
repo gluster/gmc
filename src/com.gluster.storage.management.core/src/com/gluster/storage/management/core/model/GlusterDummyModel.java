@@ -174,24 +174,24 @@ public class GlusterDummyModel {
 	}
 
 	private void addDisksToVolumes() {
-		volume1.addDisk(s1da);
+		volume1.addDisk("server1:sda");
 
-		volume2.addDisk(s2da);
-		volume2.addDisk(s1db);
-		volume2.addDisk(s3da);
-		volume2.addDisk(s4da);
+		volume2.addDisk("server2:sda");
+		volume2.addDisk("server1:sdb");
+		volume2.addDisk("server3:sda");
+		volume2.addDisk("server4:sda");
 
-		volume3.addDisk(s2db);
-		volume3.addDisk(s4da);
-		volume3.addDisk(s5da);
+		volume3.addDisk("server2:sdb");
+		volume3.addDisk("server4:sda");
+		volume3.addDisk("server5:sda");
 
-		volume4.addDisk(s1da);
-		volume4.addDisk(s3da);
-		volume4.addDisk(s4da);
-		volume4.addDisk(s5db);
+		volume4.addDisk("server1:sda");
+		volume4.addDisk("server3:sda");
+		volume4.addDisk("server4:sda");
+		volume4.addDisk("server5:sdb");
 
-		volume5.addDisk(s2da);
-		volume5.addDisk(s5db);
+		volume5.addDisk("server2:sda");
+		volume5.addDisk("server5:sdb");
 	}
 
 	private void initializeGlusterServers(Cluster cluster) {
@@ -245,15 +245,35 @@ public class GlusterDummyModel {
 	public static List<LogMessage> getDummyLogMessages() {
 		return logMessages;
 	}
-
-	public List<Disk> getReadyDisksOfVolume(Volume volume) {
-		List<Disk> disks = new ArrayList<Disk>();
-		for (Disk disk : volume.getDisks()) {
-			if (disk.isReady()) {
-				disks.add(disk);
+	
+	public Disk getVolumeDisk(String volumeDisk) {
+		List<Disk> allDisks = getReadyDisksOfAllServers();
+		String brickInfo[] = volumeDisk.split(":");
+		for( Disk disk: allDisks) {
+			if (disk.getServerName() == brickInfo[0] && disk.getName() == brickInfo[1]) {
+				return disk;
 			}
 		}
-		return disks;
+		return null;
+	}
+	
+	public List<Disk> getReadyDisksOfVolume(Volume volume) {
+//		List<Disk> disks = new ArrayList<Disk>();
+//		for (Disk disk : volume.getDisks()) {
+//			if (disk.isReady()) {
+//				disks.add(disk);
+//			}
+//		}
+//		return disks;
+		Disk disk = null;
+		List<Disk> volumeDisks = new ArrayList<Disk>();
+		for (String volumeDisk : volume.getDisks() ) {
+			disk = getVolumeDisk(volumeDisk);
+			if (disk != null && disk.isReady()) {
+				volumeDisks.add(disk);
+			}
+		}
+		return volumeDisks;
 	}
 
 	public List<Disk> getReadyDisksOfAllVolumes() {

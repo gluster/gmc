@@ -1,4 +1,4 @@
-package com.gluster.storage.management.core.model;
+package com.gluster.storage.management.core.response;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,6 +6,9 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import com.gluster.storage.management.core.model.RunningTask;
+import com.gluster.storage.management.core.model.Status;
 
 @XmlRootElement(name = "response")
 public class RunningTaskListResponse extends AbstractResponse {

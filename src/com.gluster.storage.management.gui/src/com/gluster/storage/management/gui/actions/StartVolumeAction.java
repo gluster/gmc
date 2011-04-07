@@ -19,9 +19,7 @@
 package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
@@ -34,7 +32,7 @@ public class StartVolumeAction extends AbstractActionDelegate {
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 
 	@Override
-	public void run(final IAction action) {
+	protected void performAction(IAction action) {
 		if (volume.getStatus() == VOLUME_STATUS.ONLINE) {
 			return; // Volume already online. Don't do anything.
 		}
@@ -42,23 +40,13 @@ public class StartVolumeAction extends AbstractActionDelegate {
 		VolumesClient client = new VolumesClient(modelManager.getSecurityToken());
 		final Status status = client.startVolume(volume.getName());
 		final String actionDesc = action.getDescription();
-		final Display display = Display.getDefault();
-		display.asyncExec(new Runnable() {
-
-			@Override
-			public void run() {
-				if (status.isSuccess()) {
-					new MessageDialog(display.getActiveShell(), actionDesc, null, "Volume ["
-							+ volume.getName() + "] started successfully!", MessageDialog.INFORMATION,
-							new String[] { "OK" }, 0).open();
-					modelManager.updateVolumeStatus(volume, VOLUME_STATUS.ONLINE);
-				} else {
-					new MessageDialog(display.getActiveShell(), actionDesc, null, "Volume ["
-							+ volume.getName() + "] could not be started! Error: [" + status + "]",
-							MessageDialog.ERROR, new String[] { "OK" }, 0).open();
-				}
-			}
-		});
+		if (status.isSuccess()) {
+			showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] started successfully!");
+			modelManager.updateVolumeStatus(volume, VOLUME_STATUS.ONLINE);
+		} else {
+			showErrorDialog(actionDesc, "Volume [" + volume.getName() + "] could not be started! Error: ["
+					+ status + "]");
+		}
 	}
 
 	@Override

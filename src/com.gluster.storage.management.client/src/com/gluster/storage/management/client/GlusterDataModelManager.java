@@ -24,25 +24,24 @@ import java.util.Date;
 import java.util.List;
 
 import com.gluster.storage.management.core.model.Cluster;
+import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
-import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.Event;
+import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
-import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.LogMessage;
 import com.gluster.storage.management.core.model.NetworkInterface;
-import com.gluster.storage.management.core.model.RunningTask;
 import com.gluster.storage.management.core.model.Server;
-import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.model.RunningTaskStatus;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
+import com.gluster.storage.management.core.response.VolumeListResponse;
+import com.gluster.storage.management.client.VolumesClient;
 
 public class GlusterDataModelManager {
 	// private Server discoveredServer1, discoveredServer2, discoveredServer3, discoveredServer4, discoveredServer5;
@@ -105,22 +104,28 @@ public class GlusterDataModelManager {
 	}
 
 	public void initializeModel(String securityToken) {
+		model = new GlusterDataModel("Gluster Data Model");
 		setSecurityToken(securityToken);
 		
-		// Create the dummy data model for demo
-		model = new GlusterDataModel("Clusters");
-		Cluster cluster = new Cluster("Home", model);
-
+		Cluster cluster = new Cluster("Home",model);
+		VolumesClient volumeClient = new VolumesClient(securityToken);
+		
 		initializeGlusterServers(cluster);
-		initializeVolumes(cluster);
+		
+		// initializeVolumes(cluster);
+		VolumeListResponse response = volumeClient.getAllVolumes();
+		cluster.setVolumes( response.getVolumes());
+		
 		initializeAutoDiscoveredServers(cluster);
 		initializeDisks();
-		addDisksToVolumes();
-		addVolumeOptions();
+		// addDisksToVolumes();
+		// addVolumeOptions();
 
 		createDummyLogMessages();
 		
 		initializeRunningTasks(cluster);
+		
+		initializeAlerts(cluster);
 
 		model.addCluster(cluster);
 	}
@@ -201,24 +206,24 @@ public class GlusterDataModelManager {
 	}
 
 	private void addDisksToVolumes() {
-		volume1.addDisk(s1da);
+		volume1.addDisk("server1:sda");
 
-		volume2.addDisk(s2da);
-		volume2.addDisk(s1db);
-		volume2.addDisk(s3da);
-		volume2.addDisk(s4da);
+		volume2.addDisk("server2:sda");
+		volume2.addDisk("server1:sdb");
+		volume2.addDisk("server3:sda");
+		volume2.addDisk("server4:sda");
 
-		volume3.addDisk(s2db);
-		volume3.addDisk(s4da);
-		volume3.addDisk(s5da);
+		volume3.addDisk("server2:sdb");
+		volume3.addDisk("server4:sda");
+		volume3.addDisk("server5:sda");
 
-		volume4.addDisk(s1da);
-		volume4.addDisk(s3da);
-		volume4.addDisk(s4da);
-		volume4.addDisk(s5db);
+		volume4.addDisk("server1:sda");
+		volume4.addDisk("server3:sda");
+		volume4.addDisk("server4:sda");
+		volume4.addDisk("server5:sdb");
 
-		volume5.addDisk(s2da);
-		volume5.addDisk(s5db);
+		volume5.addDisk("server2:sda");
+		volume5.addDisk("server5:sdb");
 	}
 
 	private void initializeGlusterServers(Cluster cluster) {
@@ -247,6 +252,10 @@ public class GlusterDataModelManager {
 	public void initializeRunningTasks(Cluster cluster) {
 		cluster.setRunningTasks(new RunningTaskClient(securityToken).getRunningTasks());
 	}
+	
+	public void initializeAlerts(Cluster cluster) {
+		cluster.setAlerts(new AlertsClient(securityToken).getAllAlerts());
+	}
 
 	public List<LogMessage> createDummyLogMessages() {
 		addMessagesForDisk(logMessages, s1da);
@@ -264,20 +273,42 @@ public class GlusterDataModelManager {
 	public static List<LogMessage> getDummyLogMessages() {
 		return logMessages;
 	}
+	
+	public Disk getVolumeDisk(String volumeDisk) {
+		List<Disk> allDisks = getReadyDisksOfAllServers();
+		String brickInfo[] = volumeDisk.split(":");
+		for( Disk disk: allDisks) {
+			if (disk.getServerName() == brickInfo[0] && disk.getName() == brickInfo[1]) {
+				return disk;
+			}
+		}
+		return null;
+	}
 
 	public List<Disk> getReadyDisksOfVolume(Volume volume) {
+		/* TODO: review the logic
+		 
 		List<Disk> disks = new ArrayList<Disk>();
 		for (Disk disk : volume.getDisks()) {
 			if (disk.isReady()) {
 				disks.add(disk);
 			}
 		}
-		return disks;
+		*/
+		Disk disk = null;
+		List<Disk> volumeDisks = new ArrayList<Disk>();
+		for (String volumeDisk : volume.getDisks() ) {
+			disk = getVolumeDisk(volumeDisk);
+			if (disk != null && disk.isReady()) {
+				volumeDisks.add(disk);
+			}
+		}
+		return volumeDisks;
 	}
 
 	public List<Disk> getReadyDisksOfAllVolumes() {
 		List<Disk> disks = new ArrayList<Disk>();
-		for (Volume volume : ((Cluster) model.getChildren().get(0)).getVolumes()) {
+		for (Volume volume : model.getCluster().getVolumes()) {
 			disks.addAll(getReadyDisksOfVolume(volume));
 		}
 		return disks;
@@ -290,7 +321,7 @@ public class GlusterDataModelManager {
 	public List<Disk> getReadyDisksOfAllServersExcluding(List<Disk> excludeDisks) {
 		List<Disk> disks = new ArrayList<Disk>();
 
-		for (Server server : ((Cluster) model.getChildren().get(0)).getServers()) {
+		for (Server server : model.getCluster().getServers()) {
 			for (Disk disk : server.getDisks()) {
 				if (disk.isReady() && !excludeDisks.contains(disk)) {
 					disks.add(disk);
@@ -309,7 +340,7 @@ public class GlusterDataModelManager {
 	}
 
 	public void addGlusterServer(GlusterServer server) {
-		Cluster cluster = (Cluster)model.getChildren().get(0);
+		Cluster cluster = model.getCluster();
 		cluster.addServer(server);
 		
 		for(ClusterListener listener : listeners) {
@@ -318,7 +349,7 @@ public class GlusterDataModelManager {
 	}
 
 	public void removeDiscoveredServer(Server server) {
-		Cluster cluster = (Cluster)model.getChildren().get(0);
+		Cluster cluster = model.getCluster();
 		cluster.removeDiscoveredServer(server);
 		
 		for(ClusterListener listener : listeners) {
@@ -334,7 +365,7 @@ public class GlusterDataModelManager {
 	}
 	
 	public void addVolume(Volume volume) {
-		Cluster cluster = (Cluster)model.getChildren().get(0);
+		Cluster cluster = model.getCluster();
 		cluster.addVolume(volume);
 		
 		for(ClusterListener listener : listeners) {
