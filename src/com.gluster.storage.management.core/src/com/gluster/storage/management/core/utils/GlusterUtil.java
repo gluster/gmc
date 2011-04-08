@@ -324,7 +324,7 @@ public class GlusterUtil {
 			String volumeName = extractToken(line, VOLUME_NAME_PFX);
 			if (volumeName != null) {
 				if (volume != null) {
-					// add the previously read volume to volume list
+					
 					volumes.add(volume);
 				}
 
