@@ -1,6 +1,6 @@
 WAR_NAME="glustermc.war"
 TAR_NAME=${WAR_NAME}.tar
-SERVER_DIST_DIR="${WORKSPACE}/../../gluster-management-server/lastSuccessful"
+SERVER_DIST_DIR="${WORKSPACE}/../../gms-test1/lastSuccessful"
 
 prepare-dist-dir()
 {
