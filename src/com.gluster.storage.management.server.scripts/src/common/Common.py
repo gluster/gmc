@@ -32,3 +32,12 @@ def log(priority, message=None):
     else:
         syslog.syslog(logPriority, logMessage)
     return
+
+
+def stripEmptyLines(content):
+    ret = ""
+    for line in content.split("\n"):
+        if line.strip() != "":
+            ret += line
+    return ret
+

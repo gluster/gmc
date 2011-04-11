@@ -183,6 +183,76 @@ public class VolumeOptionsPage extends Composite {
 		return valueColumn.getColumn();
 	}
 
+	private class OptionValueEditingSupport extends EditingSupport {
+		private CellEditor cellEditor;
+
+		public OptionValueEditingSupport(ColumnViewer viewer) {
+			super(viewer);
+			cellEditor = new TextCellEditor((Composite) viewer.getControl());
+		}
+		
+		@Override
+		protected void setValue(final Object element, final Object value) {
+			final Entry<String, String> entry = (Entry<String, String>)element;
+			if(entry.getValue().equals(value)) {
+				// value is same as that present in the model. return without doing anything.
+				return;
+			}
+			
+			final Cursor oldCursor = getViewer().getControl().getCursor();
+			//getViewer().getControl().setCursor(new Cursor(Display.getDefault(), SWT.CURSOR_WAIT));
+			// value has changed. set volume option at back-end and update model accordingly 
+			BusyIndicator.showWhile(getDisplay(), new Runnable() {
+				
+				@Override
+				public void run() {
+					VolumesClient client = new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken());
+					Status status = client.setVolumeOption(volume.getName(), entry.getKey(), (String)value);
+					if(status.isSuccess()) {
+						volume.setOption(entry.getKey(), (String)value);
+					} else {
+						MessageDialog.openError(getShell(), "Set Volume Option", status.getMessage());
+					}
+					getViewer().update(entry, null);
+					//getViewer().refresh();
+					//getViewer().getControl().setCursor(oldCursor);
+				}
+			});
+		}
+		
+		@Override
+		protected Object getValue(Object element) {
+			return ((Entry<String, String>) element).getValue();
+		}
+		
+		@Override
+		protected CellEditor getCellEditor(Object element) {
+			return cellEditor;
+		}
+		
+		@Override
+		protected boolean canEdit(Object element) {
+			return true;
+		}
+	}
+
+	private TableColumn createValueColumn() {
+		TableViewerColumn valueColumn = new TableViewerColumn(tableViewer, SWT.NONE);
+		valueColumn.getColumn()
+				.setText(OPTIONS_TABLE_COLUMN_NAMES[OPTIONS_TABLE_COLUMN_INDICES.OPTION_VALUE.ordinal()]);
+		valueColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				return ((Entry<String, String>) element).getValue();
+			}
+		});
+		
+		// User can edit value of a volume option
+		valueColumn.setEditingSupport(new OptionValueEditingSupport(valueColumn.getViewer()));
+		
+		return valueColumn.getColumn();
+	}
+
 	private TableColumn createKeyColumn() {
 		TableViewerColumn keyColumn = new TableViewerColumn(tableViewer, SWT.NONE);
 		keyColumn.getColumn().setText(OPTIONS_TABLE_COLUMN_NAMES[OPTIONS_TABLE_COLUMN_INDICES.OPTION_KEY.ordinal()]);

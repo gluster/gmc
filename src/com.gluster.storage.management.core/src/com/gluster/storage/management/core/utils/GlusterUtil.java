@@ -202,7 +202,7 @@ public class GlusterUtil {
 		return command;
 	}
 
-	private Status createOptions(Volume volume) {
+	public Status createOptions(Volume volume) {
 		Map<String, String> options = volume.getOptions();
 		if (options != null) {
 			for (Entry<String, String> option : options.entrySet()) {

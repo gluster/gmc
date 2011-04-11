@@ -234,6 +234,7 @@ public class CreateVolumePage1 extends WizardPage {
 		new Label(container, SWT.NONE);
 		
 		btnNfs = new Button(container, SWT.CHECK);
+		btnNfs.setEnabled(false);
 		btnNfs.setSelection(true);
 		btnNfs.setText("NFS");
 		
@@ -251,7 +252,7 @@ public class CreateVolumePage1 extends WizardPage {
 		new Label(container, SWT.NONE);
 		Label lblAccessControlInfo = new Label(container, SWT.TOP);
 		lblAccessControlInfo.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
-		lblAccessControlInfo.setText("(Comma separated list of IP addresses)");
+		lblAccessControlInfo.setText("(Comma separated list of IP addresses/Hostname)");
 		
 		Label lblStartVolume = new Label(container, SWT.NONE);
 		lblStartVolume.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -270,9 +271,11 @@ public class CreateVolumePage1 extends WizardPage {
 		volume.setTransportType(TRANSPORT_TYPE.ETHERNET);
 		Set<NAS_PROTOCOL> nasProtocols = new HashSet<Volume.NAS_PROTOCOL>();
 		nasProtocols.add(NAS_PROTOCOL.GLUSTERFS);
-		if(btnNfs.getSelection()) {
-			nasProtocols.add(NAS_PROTOCOL.NFS);
-		}
+		nasProtocols.add(NAS_PROTOCOL.NFS);
+		
+//		if(btnNfs.getSelection()) {
+//			nasProtocols.add(NAS_PROTOCOL.NFS);
+//		}
 		
 		volume.setAccessControlList(txtAccessControl.getText());
 		

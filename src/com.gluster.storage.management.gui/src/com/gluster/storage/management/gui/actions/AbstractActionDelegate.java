@@ -73,7 +73,7 @@ public abstract class AbstractActionDelegate implements IWorkbenchWindowActionDe
 		this.window = window;
 	}
 	
-	private Shell getShell() {
+	protected Shell getShell() {
 		if(window == null) {
 			return Display.getDefault().getActiveShell();
 		}

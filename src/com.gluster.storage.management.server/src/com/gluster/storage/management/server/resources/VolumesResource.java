@@ -29,6 +29,7 @@ import static com.gluster.storage.management.core.constants.RESTConstants.SUBRES
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_OPTIONS;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -55,8 +56,9 @@ import com.sun.jersey.spi.resource.Singleton;
 @Singleton
 @Path(RESOURCE_PATH_VOLUMES)
 public class VolumesResource {
-	private static final String SCRIPT_NAME = "preVolumeCreate.py";
-	
+	private static final String PREPARE_BRICK_SCRIPT = "preVolumeCreate.py";
+	private static final String VOLUME_DIRECTORY_CLEANUP_SCRIPT = "cleanupVolumeDirectoryCreate.py";
+
 	@InjectParam
 	private static ServerUtil serverUtil;
 	private final GlusterUtil glusterUtil = new GlusterUtil();
@@ -79,24 +81,28 @@ public class VolumesResource {
 	@Consumes(MediaType.TEXT_XML)
 	@Produces(MediaType.TEXT_XML)
 	public Status createVolume(Volume volume) {
-		//Create the directories for the volume
-		List<String> bricks = new ArrayList<String>();
-		for(String disk : volume.getDisks()) {
-			
-			String brickNotation = prepareBrick(volume, disk);
-			if (brickNotation != null) {
-				bricks.add(brickNotation);
-			} else {
-				int failedIndex = volume.getDisks().indexOf(disk);
-				// TODO: Perform cleanup on all previously prepared bricks
-				// i.e. those disks with index < failedIndex
-				
-				return new Status(Status.STATUS_CODE_FAILURE, "Error while preparing disk [" + disk + "] for volume ["
-						+ volume.getName() + "]");
+		// Create the directories for the volume
+		List<String> disks = volume.getDisks();
+		Status result = createDirectory(disks, volume.getName());
+		if (result.isSuccess()) {
+			List<String> bricks = Arrays.asList(result.getMessage().split(", "));
+
+			result = glusterUtil.createVolume(volume, bricks);
+			if (!result.isSuccess()) {
+				// Perform cleanup on all nodes before returning
+				cleanupDirectory(disks, volume.getName(), disks.size());
+				return result;
 			}
 		}
-		
-		return glusterUtil.createVolume(volume, bricks);
+		// Only if volume creation is success, then call the volume set options
+		return glusterUtil.createOptions(volume);
+	}
+
+	@GET
+	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
+	@Produces(MediaType.TEXT_XML)
+	public Volume getVolume(@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName) {
+		return glusterUtil.getVolume(volumeName);
 	}
 
 	@GET
@@ -129,7 +135,7 @@ public class VolumesResource {
 			@FormParam(RESTConstants.FORM_PARAM_OPTION_VALUE) String value) {
 		return glusterUtil.setOption(volumeName, key, value);
 	}
-	
+
 	@PUT
 	@Path("{" + PATH_PARAM_VOLUME_NAME + " }/" + SUBRESOURCE_OPTIONS)
 	@Produces(MediaType.TEXT_XML)
@@ -145,19 +151,48 @@ public class VolumesResource {
 		// whenever such a CLI command is made available in GlusterFS
 		return new VolumeOptionInfoListResponse(Status.STATUS_SUCCESS, volumeOptionsDefaults.getDefaults());
 	}
-	
-	private String prepareBrick(Volume vol, String disk) {
+
+	private Status prepareBrick(String disk, String volumeName) {
 		String serverName = disk.split(":")[0];
 		String diskName = disk.split(":")[1];
-		Status result  =  (Status)serverUtil.executeOnServer(true, serverName, SCRIPT_NAME + " " + vol.getName() + " " + diskName, Status.class);
-		
-		if(result.isSuccess()) {
-			return result.getMessage();
-		} else {
-			return null;
-		}
+		return (Status) serverUtil.executeOnServer(true, serverName, PREPARE_BRICK_SCRIPT + " " + volumeName + " "
+				+ diskName, Status.class);
 	}
-	
+
+	@SuppressWarnings("null")
+	private Status createDirectory(List<String> disks, String volumeName) {
+		List<String> brickNotation = null;
+		for (int i = 0; i < disks.size(); i++) {
+			Status result = prepareBrick(disks.get(i), volumeName);
+			if (result.isSuccess()) {
+				brickNotation.add(result.getMessage());
+			} else {
+				cleanupDirectory(disks, volumeName, i);
+				return new Status(Status.STATUS_CODE_FAILURE, "Error while preparing disk [" + disks.get(i)
+						+ "] for volume [" + volumeName + "]");
+			}
+		}
+		return new Status(Status.STATUS_CODE_SUCCESS, brickNotation.toString());
+
+	}
+
+	private Status cleanupDirectory(List<String> disks, String volumeName, int maxIndex) {
+		String serverName, diskName, diskInfo[];
+		Status result;
+		for (int i = 0; i < maxIndex; i++) {
+			// TODO: Call to delete the volume directory
+			diskInfo = disks.get(i).split(":");
+			serverName = diskInfo[0];
+			diskName = diskInfo[1];
+			result = (Status) serverUtil.executeOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " " + volumeName + " "
+					+ diskName, Status.class);
+			if (!result.isSuccess()) {
+				return result;
+			}
+		}
+		return new Status(Status.STATUS_CODE_SUCCESS, "Directories cleanedup...");
+	}
+
 	public static void main(String[] args) {
 		VolumesResource vr = new VolumesResource();
 		VolumeListResponse response = vr.getAllVolumes();
