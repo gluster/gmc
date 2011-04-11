@@ -36,7 +36,7 @@ public class CreateVolumeAction extends AbstractActionDelegate {
 			public void run() {
 				CreateVolumeWizard wizard = new CreateVolumeWizard();
 				
-				WizardDialog dialog = new WizardDialog(window.getShell(), wizard);
+				WizardDialog dialog = new WizardDialog(getShell(), wizard);
 		        dialog.create();
 		        dialog.getShell().setSize(500, 550);	
 		        dialog.open();

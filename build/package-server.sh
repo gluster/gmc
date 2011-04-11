@@ -1,6 +1,6 @@
 WAR_NAME="glustermc.war"
 TAR_NAME=${WAR_NAME}.tar
-SERVER_DIST_DIR="${WORKSPACE}/../../gluster-management-server/lastSuccessful"
+SERVER_DIST_DIR="${WORKSPACE}/../../gms-test1/lastSuccessful"
 
 prepare-dist-dir()
 {
@@ -24,7 +24,7 @@ get-dist()
 	OS=${2}
 	WS=${3}
 
-	OUT_DIR="${WORKSPACE}/../../gluster-management-console/workspace/arch/${ARCH}/os/${OS}/ws/${WS}/buckminster.output/com.gluster.storage.management.gui.feature.webstart*.feature/glustermc"
+	OUT_DIR="${WORKSPACE}/../../gmc-test1/workspace/arch/${ARCH}/os/${OS}/ws/${WS}/buckminster.output/com.gluster.storage.management.gui.feature.webstart*.feature/glustermc"
 	NEW_DIR=${WAR_NAME}/${OS}.${WS}.${ARCH}
 	cp -R ${OUT_DIR} ${NEW_DIR}
 }

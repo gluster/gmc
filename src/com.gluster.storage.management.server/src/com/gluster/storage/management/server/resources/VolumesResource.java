@@ -94,6 +94,7 @@ public class VolumesResource {
 				return result;
 			}
 		}
+		// Only if volume creation is success, then call the volume set options
 		return glusterUtil.createOptions(volume);
 	}
 
