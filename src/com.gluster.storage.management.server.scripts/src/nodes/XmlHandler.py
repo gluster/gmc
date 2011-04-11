@@ -343,4 +343,4 @@ def test():
     networkInterfaces.appendChild(networkTag)
     print rs.toprettyxml()
 
-test()
+#test()
