@@ -52,7 +52,7 @@ def createDirectory(disk, volumeName):
         if rv["Stderr"]:
             error = Common.stripEmptyLines(rv["Stderr"])
             message += "Error: [%s]" % (error)
-            Common.log(syslog.LOG_ERR, "failed to create volume directory %s, %s" % (volumeDirectory, error)
+            Common.log(syslog.LOG_ERR, "failed to create volume directory %s, %s" % (volumeDirectory, error))
         rs.appendTagRoute("status.code", rv["Status"])
         rs.appendTagRoute("status.message", message)
         return rs.toprettyxml()
