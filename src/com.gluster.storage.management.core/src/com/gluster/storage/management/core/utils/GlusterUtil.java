@@ -178,11 +178,9 @@ public class GlusterUtil {
 		List<String> command = prepareVolumeCreateCommand(volume, bricks, count, volumeType, transportTypeStr);
 		ProcessResult result = processUtil.executeCommand(command);
 		if(!result.isSuccess()) {
-			// TODO: Perform cleanup on all nodes before returning
 			return new Status(result);
 		}
-		
-		return createOptions(volume);
+		return new Status(result);
 	}
 
 	private List<String> prepareVolumeCreateCommand(Volume volume, List<String> bricks, int count, String volumeType,
@@ -202,7 +200,7 @@ public class GlusterUtil {
 		return command;
 	}
 
-	private Status createOptions(Volume volume) {
+	public Status createOptions(Volume volume) {
 		Map<String, String> options = volume.getOptions();
 		if (options != null) {
 			for (Entry<String, String> option : options.entrySet()) {
