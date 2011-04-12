@@ -47,7 +47,7 @@ public class ValidationUtil {
 		return isValid;
 	}
 
-	public static boolean isValidIpQuad(String ipQuad) {
+	private static boolean isValidIpQuad(String ipQuad) {
 		Pattern pattern = Pattern.compile("([01]?\\d\\d?|2[0-4]\\d|25[0-5])");
 		return pattern.matcher(ipQuad).matches();
 	}

@@ -49,6 +49,7 @@ public class GlusterUtil {
 	private static final String VOLUME_TRANSPORT_TYPE_PFX = "Transport-type:";
 	private static final String VOLUME_BRICKS_GROUP_PFX = "Bricks";
 	private static final String VOLUME_OPTIONS_RECONFIG_PFX = "Options Reconfigured";
+	private static final String VOLUME_OPTION_AUTH_ALLOW = "auth.allow:";
 
 	private static final ProcessUtil processUtil = new ProcessUtil();
 
