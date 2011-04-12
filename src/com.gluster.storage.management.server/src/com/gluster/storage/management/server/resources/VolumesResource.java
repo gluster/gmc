@@ -105,13 +105,6 @@ public class VolumesResource {
 		return glusterUtil.getVolume(volumeName);
 	}
 
-	@GET
-	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
-	@Produces(MediaType.TEXT_XML)
-	public Volume getVolume(@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName) {
-		return glusterUtil.getVolume(volumeName);
-	}
-	
 	@PUT
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
 	@Produces(MediaType.TEXT_XML)

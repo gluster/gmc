@@ -34,7 +34,7 @@ public class ResetVolumeOptionsAction extends AbstractActionDelegate {
 		final Status status = resetVolumeOptions();
 		if (status.isSuccess()) {
 			showInfoDialog(actionDesc, "Volume options for [" + volume.getName() + "] reset successfully!");
-			modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
+			modelManager.resetVolumeOptions(volume);
 		} else {
 			showErrorDialog(actionDesc, "Volume options for [" + volume.getName() + "] could not be reset! Error: [" + status
 					+ "]");

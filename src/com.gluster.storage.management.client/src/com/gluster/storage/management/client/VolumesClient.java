@@ -68,7 +68,7 @@ public class VolumesClient extends AbstractClient {
 	}
 	
 	public Status resetVolumeOptions(String volume) {
-		return (Status)putRequest(volume, Status.class);
+		return (Status)putRequest(volume + "/" + RESTConstants.SUBRESOURCE_OPTIONS, Status.class);
 	}
 	
 	public VolumeListResponse getAllVolumes() {
@@ -80,9 +80,6 @@ public class VolumesClient extends AbstractClient {
 	}
 
 	public VolumeOptionInfoListResponse getVolumeOptionsDefaults() {
-		String responseStr = (String) fetchSubResource(RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS, String.class);
-		System.out.println(responseStr);
-
 		return ((VolumeOptionInfoListResponse) fetchSubResource(RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS,
 				VolumeOptionInfoListResponse.class));
 	}
