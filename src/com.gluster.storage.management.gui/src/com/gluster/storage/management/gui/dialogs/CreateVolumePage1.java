@@ -25,7 +25,6 @@ import java.util.Set;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.window.Window;
@@ -51,6 +50,7 @@ import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
+import com.gluster.storage.management.core.response.VolumeListResponse;
 
 public class CreateVolumePage1 extends WizardPage {
 	public static final String PAGE_NAME = "create.volume.page.1";
@@ -114,6 +114,10 @@ public class CreateVolumePage1 extends WizardPage {
 				setErrorMessage("Please enter Access Control");
 			}
 			
+			if(volume.getDisks().size() < 1) {
+				setPageComplete(false);
+				setErrorMessage("No disk found");
+			}
 
 			// acl validation
 			String[] aclList = accessControl.split(",");
@@ -286,6 +290,17 @@ public class CreateVolumePage1 extends WizardPage {
 		return btnStartVolume.getSelection();
 	}
 	
+	public Boolean isVolumeExist(String volumeName) {
+		List<Volume> volumes = GlusterDataModelManager.getInstance().getModel().getCluster().getVolumes();
+		for (Volume volume : volumes) {
+			if (volume.getName().equals(volumeName)) {
+				setErrorMessage("Volume name already exists.");
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	public Boolean isValidCreateVolumeForm() {
 		IStructuredSelection selection = (IStructuredSelection)typeComboViewer.getSelection();
 		if (selection.getFirstElement().equals(VOLUME_TYPE.DISTRIBUTED_MIRROR) && ((int)volume.getDisks().size()) % 2 != 0 ) {
@@ -295,6 +310,11 @@ public class CreateVolumePage1 extends WizardPage {
 			setErrorMessage("Stripe type volume requires disk in multiples of four");
 			return false;
 		}
+		
+		if(!isVolumeExist(txtName.getText())) {
+			return false;
+		}
+		
 		return true;
 	}
 }
