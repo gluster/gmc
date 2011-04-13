@@ -1,5 +1,9 @@
 package com.gluster.storage.management.gui.views;
 
+import java.util.Map;
+
+import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.layout.FillLayout;
@@ -17,13 +21,16 @@ import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.utils.NumberUtil;
+import com.gluster.storage.management.core.utils.ValidationUtil;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
 import com.gluster.storage.management.gui.utils.GUIHelper;
@@ -36,6 +43,8 @@ public class VolumeSummaryView extends ViewPart {
 	private Volume volume;
 	private CLabel lblStatusValue;
 	private DefaultClusterListener volumeChangedListener;
+	
+	private static final String VOLUME_OPTION_AUTH_ALLOW = "auth.allow";
 
 	@Override
 	public void createPartControl(Composite parent) {
@@ -44,12 +53,12 @@ public class VolumeSummaryView extends ViewPart {
 		}
 
 		createSections(parent);
-		
+
 		// Refresh the navigation tree whenever there is a change to the data model
 		volumeChangedListener = new DefaultClusterListener() {
 			@Override
 			public void volumeChanged(Volume volume, Event event) {
-				if(event.getEventType() == EVENT_TYPE.VOLUME_STATUS_CHANGED) {
+				if (event.getEventType() == EVENT_TYPE.VOLUME_STATUS_CHANGED) {
 					updateVolumeStatusLabel();
 					new GlusterToolbarManager(getSite().getWorkbenchWindow()).updateToolbar(volume);
 				}
@@ -57,8 +66,10 @@ public class VolumeSummaryView extends ViewPart {
 		};
 		GlusterDataModelManager.getInstance().addClusterListener(volumeChangedListener);
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.eclipse.ui.part.WorkbenchPart#dispose()
 	 */
 	@Override
@@ -131,12 +142,28 @@ public class VolumeSummaryView extends ViewPart {
 		final Hyperlink changeLink = toolkit.createHyperlink(section, "change", SWT.NONE);
 		changeLink.addHyperlinkListener(new HyperlinkAdapter() {
 
+			@SuppressWarnings("static-access")
 			private void finishEdit() {
-				// TODO: Update value to back-end
-				// TODO: Validation of entered text
-				volume.setAccessControlList(accessControlText.getText());
-				accessControlText.setEnabled(false);
-				changeLink.setText("change");
+
+				if (new ValidationUtil().isValidAccessControl(accessControlText.getText())) {
+					Status status = (new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken()))
+							.setVolumeOption(volume.getName(), VOLUME_OPTION_AUTH_ALLOW, accessControlText.getText());
+					if (status.isSuccess()) {
+						volume.setAccessControlList(accessControlText.getText());
+						accessControlText.setEnabled(false);
+						changeLink.setText("change");
+						MessageDialog.openInformation(Display.getDefault().getActiveShell(), "Access control",
+								status.getMessage());
+					} else {
+						MessageDialog.openError(Display.getDefault().getActiveShell(), "Access control",
+								status.getMessage());
+					}
+
+				} else {
+					MessageDialog.openError(Display.getDefault().getActiveShell(), "Access control",
+							"Invalid IP / Host name ");
+				}
+
 			}
 
 			private void startEdit() {
@@ -167,7 +194,8 @@ public class VolumeSummaryView extends ViewPart {
 		final Button nfsCheckBox = createCheckbox(nasProtocolsComposite, "NFS",
 				volume.getNASProtocols().contains(NAS_PROTOCOL.NFS));
 
-		createChangeLinkForNASProtocol(section, nfsCheckBox);
+		toolkit.createLabel(section, "", SWT.NONE); // dummy
+		// createChangeLinkForNASProtocol(section, nfsCheckBox);
 	}
 
 	private Button createCheckbox(Composite parent, String label, boolean selected) {

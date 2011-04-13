@@ -164,8 +164,7 @@ public class VolumesResource {
 		for (int i = 0; i < disks.size(); i++) {
 			response = prepareBrick(disks.get(i), volumeName);
 			if (response.getStatus().isSuccess()) {
-				String brick =  response.getStatus().getMessage().trim();
-				brick = brick.replace("\n", "");
+				String brick =  response.getStatus().getMessage().trim().toString().replace("\n", "");
 				brickNotation.add(disks.get(i).split(":")[0]+ ":" + brick);
 			} else {
 				Status status = cleanupDirectory(disks, volumeName, i + 1);
@@ -174,12 +173,19 @@ public class VolumesResource {
 				}
 				return response;
 			}
-//			glusterUtil.printObject(brickNotation); // TODO: debug code
 		}
-		response.getStatus().setMessage(brickNotation.toString());
+		response.getStatus().setMessage(constructBrickNotation(brickNotation));
 		return response;
 	}
 
+	private String constructBrickNotation(List<String> bricks) {
+		String brick = "";
+		for (String brickInfo : bricks) {
+			brick += brickInfo + " ";
+		}
+		return brick;
+	}
+	
 	private Status cleanupDirectory(List<String> disks, String volumeName, int maxIndex) {
 		String serverName, diskName, diskInfo[];
 		Status result;
