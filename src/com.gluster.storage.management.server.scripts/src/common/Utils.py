@@ -34,7 +34,7 @@ import urllib
 
 import Globals
 import Protocol
-
+from Common import *
 
 RUN_COMMAND_ERROR = -1024
 LOG_SYSLOG = 1
@@ -116,39 +116,6 @@ def openLog(fileName=None):
         sys.stderr.write("Failed to open file %s: %s\n" % (LOG_FILE_NAME, e))
         return False
     return True
-
-
-def log(priority, message=None):
-    global LOG_FILE_OBJ
-    global SYSLOG_REQUIRED
-
-    stack = inspect.stack()[1]
-    if stack[3] == "<module>":
-        prefix = "%s:%s:%s" % (stack[1], stack[2], stack[3])
-    else:
-        prefix = "%s:%s:%s()" % (stack[1], stack[2], stack[3])
-
-    if type(priority) == type("") or type(priority) == type(u""):
-        logPriority = syslog.LOG_INFO
-        logMessage = priority
-    else:
-        logPriority = priority
-        logMessage = message
-
-    if SYSLOG_REQUIRED:
-        syslog.syslog(logPriority, "[%s]: %s" % (prefix, logMessage))
-        return
-
-    fp = sys.stderr
-    if LOG_FILE_OBJ:
-        fp = LOG_FILE_OBJ
-
-    fp.write("[%s] %s [%s]: %s" % (str(datetime.now()), _getLogCode(logPriority), prefix, logMessage))
-    if logMessage[-1] != '\n':
-        fp.write("\n")
-    fp.flush()
-    return
-
 
 def trace(message):
     if message:

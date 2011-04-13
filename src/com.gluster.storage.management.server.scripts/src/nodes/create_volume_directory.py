@@ -45,6 +45,12 @@ def createDirectory(disk, volumeName):
 
     # creating volume directory under disk mount point
     volumeDirectory = "%s/%s" % (diskMountPoint, volumeName)
+    if os.path.exists(volumeDirectory):
+        Common.log(syslog.LOG_ERR, "Volume directory:%s already exists" % (volumeDirectory))
+        rs.appendTagRoute("status.code", "-2")
+        rs.appendTagRoute("status.message", "Volume directory already exists!")
+        return rs.toprettyxml()
+    
     if not os.path.exists(volumeDirectory):
         command = ["sudo", "mkdir", volumeDirectory]
         rv = Utils.runCommandFG(command, stdout=True, root=True)
@@ -53,6 +59,14 @@ def createDirectory(disk, volumeName):
             error = Common.stripEmptyLines(rv["Stderr"])
             message += "Error: [%s]" % (error)
             Common.log(syslog.LOG_ERR, "failed to create volume directory %s, %s" % (volumeDirectory, error))
+            rs.appendTagRoute("status.code", rv["Status"])
+            rs.appendTagRoute("status.message", message)
+            return rs.toprettyxml()
+            
+        if not rv["Status"]:
+            rv["Status"] = "0"
+        if rv["Status"] == "0":
+            message = volumeDirectory
         rs.appendTagRoute("status.code", rv["Status"])
         rs.appendTagRoute("status.message", message)
         return rs.toprettyxml()
@@ -67,4 +81,5 @@ def main():
     print createDirectory(disk, volumeName)
     sys.exit(0)
 
-main()
+if __name__ == "__main__":
+    main()
