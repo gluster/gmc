@@ -49,7 +49,7 @@ public class Volume extends Entity {
 		GLUSTERFS, NFS
 	};
 
-	private static final String OPTION_AUTH_ALLOW = "auth.allow:";
+	private static final String OPTION_AUTH_ALLOW = "auth.allow";
 
 	private static final String[] VOLUME_TYPE_STR = new String[] { "Plain Distribute", "Distributed Mirror",
 			"Distributed Stripe" };
