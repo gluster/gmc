@@ -62,7 +62,6 @@ public class CreateVolumePage1 extends WizardPage {
 	private Button btnNfs;
 	private Button btnStartVolume;
 	private Link linkCustomize;
-	private ValidationListener valListener = new ValidationListener();
 
 	/**
 	 * Create the wizard.
@@ -85,127 +84,102 @@ public class CreateVolumePage1 extends WizardPage {
 		return disks;
 	}
 
-	private class ValidationListener implements ModifyListener {
-		/* (non-Javadoc)
-		 * @see org.eclipse.swt.events.ModifyListener#modifyText(org.eclipse.swt.events.ModifyEvent)
-		 */
-		@Override
-		public void modifyText(ModifyEvent e) {
-			String volumeName = txtName.getText().trim();
-			String accessControl = txtAccessControl.getText().trim();
-			String volumeNameToken = "^[a-zA-Z][a-zA-Z0-9\\-]*";
-
-			
-			setErrorMessage(null);
-			setPageComplete(true);
-			
-			if(volumeName.length() == 0) {
-				setPageComplete(false);
-				setErrorMessage("Please enter Volume Name");
-			}
-			
-		    if (!volumeName.matches(volumeNameToken)) {
-		    	setPageComplete(false);
-		    	setErrorMessage("Please enter valid Volume Name");
-		    }
-		    
-			if(accessControl.length() == 0) {
-				setPageComplete(false);
-				setErrorMessage("Please enter Access Control");
-			}
-			
-			if(volume.getDisks().size() < 1) {
-				setPageComplete(false);
-				setErrorMessage("No disk found");
-			}
-
-			// acl validation
-			String[] aclList = accessControl.split(",");
-			for (String ip : aclList) {
-				if (!isValidIP(ip)) {
-					setPageComplete(false);
-					setErrorMessage("Please enter valid access control list");
-				} 
-			}
-			
-		}
-		
-		private Boolean isValidIP(String ip) {
-			// String pattern = "^.[0-9]{1,3}/..[0-9]{1,3}/..[0-9]{1,3}/..[0-9]{1,3}";
-			String pattern = "^.[0-9]{1,3}/.";
-			if (ip == "*") {
-				return true;
-			}
-			String[] ipQuads = ip.split(".");
-			for (String quad : ipQuads) {
-				if (!quad.matches(pattern)) {
-					return false;
-				}
-			}
-			return true;
-			
-		}
-	}
-	
 	/**
 	 * Create contents of the wizard.
 	 * @param parent
 	 */
 	public void createControl(Composite parent) {
-		
 		setPageComplete(false);
-		Composite container = new Composite(parent, SWT.NULL);
+		Composite container = createContainer(parent);
+		
+		createEmptyRow(container);
+		
+		createNameLabel(container);
+		createNameText(container);		
+		
+		createTypeLabel(container);
+		createTypeCombo(container);
+		
+		createTransportTypeLabel(container);
+		createTransportTypeValueLabel(container);
+		
+		createDisksLabel(container);
+		createDisksCustomizeLink(container);
+		
+		createNasProtocolLabel(container);
+		createNasProtocolCheckboxes(container);
+		
+		createAccessControlLabel(container);
+		createAccessControlText(container);
 
-		setControl(container);
-		GridLayout gl_container = new GridLayout(2, false);
-		gl_container.verticalSpacing = 10;
-		gl_container.marginHeight = 10;
-		gl_container.marginLeft = 20;
-		gl_container.horizontalSpacing = 10;
-		container.setLayout(gl_container);
+		createEmptyLabel(container);
+		createAccessControlInfoLabel(container);
 		
+		createStartVolumeLabel(container);
+		createStartVolumeCheckbox(container);
+	}
+
+	private void createStartVolumeCheckbox(Composite container) {
+		btnStartVolume = new Button(container, SWT.CHECK);
+		btnStartVolume.setSelection(true);
+	}
+
+	private void createStartVolumeLabel(Composite container) {
+		Label lblStartVolume = new Label(container, SWT.NONE);
+		lblStartVolume.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblStartVolume.setText("Start Volume: ");
+	}
+
+	private void createAccessControlInfoLabel(Composite container) {
+		Label lblAccessControlInfo = new Label(container, SWT.TOP);
+		lblAccessControlInfo.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
+		lblAccessControlInfo.setText("(Comma separated list of IP addresses/hostnames)");
+	}
+
+	private void createEmptyLabel(Composite container) {
 		new Label(container, SWT.NONE);
-		new Label(container, SWT.NONE);
-		
-		Label lblName = new Label(container, SWT.NONE);
-		lblName.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblName.setText("Name: ");
-		
-		txtName = new Text(container, SWT.BORDER);
-		GridData txtNameData = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
-		txtNameData.widthHint = 300;
-		txtName.setLayoutData(txtNameData);		
-		txtName.addModifyListener(valListener);		
-		
-		Label lblType = new Label(container, SWT.NONE);
-		lblType.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblType.setText("Type: ");
-		
-		typeComboViewer = new ComboViewer(container, SWT.READ_ONLY);
-		Combo typeCombo = typeComboViewer.getCombo();
-		GridData typeComboData = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
-		typeCombo.setLayoutData(typeComboData);
-		typeComboViewer.setContentProvider(new ArrayContentProvider());
-		typeComboViewer.setInput(Volume.VOLUME_TYPE.values());
-		typeCombo.select(VOLUME_TYPE.PLAIN_DISTRIBUTE.ordinal()); // default type = Plain Distribute
-		typeComboViewer.setLabelProvider(new LabelProvider() {
+	}
+
+	private void createAccessControlText(Composite container) {
+		txtAccessControl = new Text(container, SWT.BORDER);
+		txtAccessControl.setText("*");
+		GridData accessControlData = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
+		accessControlData.widthHint = 300;
+		txtAccessControl.setLayoutData(accessControlData);		
+		txtAccessControl.addModifyListener(new ModifyListener() {
 			@Override
-			public String getText(Object element) {
-				VOLUME_TYPE volumeType = (VOLUME_TYPE)element;
-				return Volume.getVolumeTypeStr(volumeType);
+			public void modifyText(ModifyEvent e) {
+				validateForm();
 			}
 		});
+	}
+
+	private void createAccessControlLabel(Composite container) {
+		Label lblAccessControl = new Label(container, SWT.NONE);
+		lblAccessControl.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblAccessControl.setText("Access Control: ");
+	}
+
+	private void createNasProtocolCheckboxes(Composite container) {
+		Button btnGluster = new Button(container, SWT.CHECK);
+		btnGluster.setEnabled(false);
+		btnGluster.setSelection(true);
+		btnGluster.setText("Gluster");
+		createEmptyLabel(container);
 		
-		Label lblTransportType = new Label(container, SWT.NONE);
-		lblTransportType.setText("Transport Type: ");
-		
-		Label lblEthernet = new Label(container, SWT.NONE);
-		lblEthernet.setText("Ethernet");
-		
-		Label lblDisks = new Label(container, SWT.RIGHT);
-		lblDisks.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblDisks.setText("Disks: ");
-		
+		btnNfs = new Button(container, SWT.CHECK);
+		btnNfs.setEnabled(false);
+		btnNfs.setSelection(true);
+		btnNfs.setText("NFS");
+	}
+
+	private void createNasProtocolLabel(Composite container) {
+		Label lblNasProtocol = new Label(container, SWT.RIGHT);
+		lblNasProtocol.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblNasProtocol.setText("NAS Protocol: ");
+	}
+
+	private void createDisksCustomizeLink(Composite container) {
 		linkCustomize = new Link(container, SWT.UNDERLINE_LINK);
 		linkCustomize.setText("All Disk(s) (<a>customize</a>)");
 		linkCustomize.addListener (SWT.Selection, new Listener () {
@@ -226,44 +200,82 @@ public class CreateVolumePage1 extends WizardPage {
 				});
 			}
 		});
-		
-		Label lblNasProtocol = new Label(container, SWT.RIGHT);
-		lblNasProtocol.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblNasProtocol.setText("NAS Protocol: ");
-		
-		Button btnGluster = new Button(container, SWT.CHECK);
-		btnGluster.setEnabled(false);
-		btnGluster.setSelection(true);
-		btnGluster.setText("Gluster");
-		new Label(container, SWT.NONE);
-		
-		btnNfs = new Button(container, SWT.CHECK);
-		btnNfs.setEnabled(false);
-		btnNfs.setSelection(true);
-		btnNfs.setText("NFS");
-		
-		Label lblAccessControl = new Label(container, SWT.NONE);
-		lblAccessControl.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblAccessControl.setText("Access Control: ");
-		
-		txtAccessControl = new Text(container, SWT.BORDER);
-		txtAccessControl.setText("*");
-		GridData accessControlData = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
-		accessControlData.widthHint = 300;
-		txtAccessControl.setLayoutData(accessControlData);		
-		txtAccessControl.addModifyListener(valListener);
+	}
 
-		new Label(container, SWT.NONE);
-		Label lblAccessControlInfo = new Label(container, SWT.TOP);
-		lblAccessControlInfo.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
-		lblAccessControlInfo.setText("(Comma separated list of IP addresses/Hostname)");
-		
-		Label lblStartVolume = new Label(container, SWT.NONE);
-		lblStartVolume.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblStartVolume.setText("Start Volume: ");
-		
-		btnStartVolume = new Button(container, SWT.CHECK);
-		btnStartVolume.setSelection(true);
+	private void createDisksLabel(Composite container) {
+		Label lblDisks = new Label(container, SWT.RIGHT);
+		lblDisks.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblDisks.setText("Disks: ");
+	}
+
+	private void createTransportTypeValueLabel(Composite container) {
+		Label lblEthernet = new Label(container, SWT.NONE);
+		lblEthernet.setText("Ethernet");
+	}
+
+	private void createTransportTypeLabel(Composite container) {
+		Label lblTransportType = new Label(container, SWT.NONE);
+		lblTransportType.setText("Transport Type: ");
+	}
+
+	private void createTypeCombo(Composite container) {
+		typeComboViewer = new ComboViewer(container, SWT.READ_ONLY);
+		Combo typeCombo = typeComboViewer.getCombo();
+		GridData typeComboData = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
+		typeCombo.setLayoutData(typeComboData);
+		typeComboViewer.setContentProvider(new ArrayContentProvider());
+		typeComboViewer.setInput(Volume.VOLUME_TYPE.values());
+		typeCombo.select(VOLUME_TYPE.PLAIN_DISTRIBUTE.ordinal()); // default type = Plain Distribute
+		typeComboViewer.setLabelProvider(new LabelProvider() {
+			@Override
+			public String getText(Object element) {
+				VOLUME_TYPE volumeType = (VOLUME_TYPE)element;
+				return Volume.getVolumeTypeStr(volumeType);
+			}
+		});
+	}
+
+	private void createTypeLabel(Composite container) {
+		Label lblType = new Label(container, SWT.NONE);
+		lblType.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblType.setText("Type: ");
+	}
+
+	private void createNameText(Composite container) {
+		txtName = new Text(container, SWT.BORDER);
+		GridData txtNameData = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
+		txtNameData.widthHint = 300;
+		txtName.setLayoutData(txtNameData);		
+		txtName.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				validateForm();
+			}
+		});
+	}
+
+	private void createNameLabel(Composite container) {
+		Label lblName = new Label(container, SWT.NONE);
+		lblName.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblName.setText("Name: ");
+	}
+
+	private void createEmptyRow(Composite container) {
+		createEmptyLabel(container);
+		createEmptyLabel(container);
+	}
+
+	private Composite createContainer(Composite parent) {
+		Composite container = new Composite(parent, SWT.NULL);
+		setControl(container);
+
+		GridLayout gl_container = new GridLayout(2, false);
+		gl_container.verticalSpacing = 10;
+		gl_container.marginHeight = 10;
+		gl_container.marginLeft = 20;
+		gl_container.horizontalSpacing = 10;
+		container.setLayout(gl_container);
+		return container;
 	}
 
 	public Volume getVolume() {
@@ -277,20 +289,16 @@ public class CreateVolumePage1 extends WizardPage {
 		nasProtocols.add(NAS_PROTOCOL.GLUSTERFS);
 		nasProtocols.add(NAS_PROTOCOL.NFS);
 		
-//		if(btnNfs.getSelection()) {
-//			nasProtocols.add(NAS_PROTOCOL.NFS);
-//		}
-		
 		volume.setAccessControlList(txtAccessControl.getText());
 		
 		return volume;
 	}
 	
-	public Boolean getStartVolumeRequest() {
+	public Boolean startVolumeAfterCreation() {
 		return btnStartVolume.getSelection();
 	}
 	
-	public Boolean isVolumeExist(String volumeName) {
+	public Boolean volumeExists(String volumeName) {
 		List<Volume> volumes = GlusterDataModelManager.getInstance().getModel().getCluster().getVolumes();
 		for (Volume volume : volumes) {
 			if (volume.getName().equals(volumeName)) {
@@ -301,20 +309,80 @@ public class CreateVolumePage1 extends WizardPage {
 		return true;
 	}
 	
-	public Boolean isValidCreateVolumeForm() {
-		IStructuredSelection selection = (IStructuredSelection)typeComboViewer.getSelection();
-		if (selection.getFirstElement().equals(VOLUME_TYPE.DISTRIBUTED_MIRROR) && ((int)volume.getDisks().size()) % 2 != 0 ) {
-			setErrorMessage("Mirror type volume requires disk in multiples of two");
-			return false;
-		} else if(selection.getFirstElement().equals(VOLUME_TYPE.DISTRIBUTED_STRIPE) && ((int)volume.getDisks().size()) % 4 != 0) {
-			setErrorMessage("Stripe type volume requires disk in multiples of four");
-			return false;
+	private Boolean isValidIP(String ip) {
+		// String pattern = "^.[0-9]{1,3}/..[0-9]{1,3}/..[0-9]{1,3}/..[0-9]{1,3}";
+		String pattern = "^.[0-9]{1,3}/.";
+		if (ip == "*") {
+			return true;
+		}
+		String[] ipQuads = ip.split(".");
+		for (String quad : ipQuads) {
+			if (!quad.matches(pattern)) {
+				return false;
+			}
+		}
+		return true;		
+	}
+
+	private void validateForm() {
+		clearErrors();
+		validateVolumeName();
+		validateAccessControl();
+		validateDisks();
+	}
+
+	private void validateDisks() {
+		int diskCount = volume.getDisks().size();
+		
+		if(diskCount  < 1) {
+			setError("At least one disk must be selected!");
 		}
 		
-		if(!isVolumeExist(txtName.getText())) {
-			return false;
+		String volumeType = (String)((IStructuredSelection)typeComboViewer.getSelection()).getFirstElement();
+		if (volumeType.equals(VOLUME_TYPE.DISTRIBUTED_MIRROR) && (diskCount % 2 != 0)) {
+			setError("Mirror type volume requires disks in multiples of two");
+		} else if(volumeType.equals(VOLUME_TYPE.DISTRIBUTED_STRIPE) && (diskCount % 4 != 0)) {
+			setError("Stripe type volume requires disks in multiples of four");
+		}
+	}
+
+	private void validateAccessControl() {
+		String accessControl = txtAccessControl.getText().trim();
+		if(accessControl.length() == 0) {
+			setError("Please enter Access Control");
+		}
+		// acl validation
+		String[] aclList = accessControl.split(",");
+		for (String ip : aclList) {
+			if (!isValidIP(ip)) {
+				setError("Please enter valid access control list");
+			} 
+		}
+	}
+
+	private void validateVolumeName() {
+		String volumeName = txtName.getText().trim();
+		String volumeNameToken = "^[a-zA-Z][a-zA-Z0-9\\-]*";
+		if(volumeName.length() == 0) {
+			setError("Please enter Volume Name");
 		}
 		
-		return true;
+		if (!volumeName.matches(volumeNameToken)) {
+			setError("Please enter valid Volume Name");
+		}
+		
+		if(!volumeExists(volumeName)) {
+			setError("Volume [" + volumeName + "] already exists!"); 
+		}
+	}
+
+	private void clearErrors() {
+		setErrorMessage(null);
+		setPageComplete(true);
+	}
+	
+	private void setError(String errorMsg) {
+		setPageComplete(false);
+		setErrorMessage(errorMsg);
 	}
 }

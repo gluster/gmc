@@ -24,14 +24,16 @@ import com.gluster.storage.management.core.utils.ProcessResult;
 
 @XmlRootElement(name = "status")
 public class Status {
+	// TODO: Convert the status codes to an enumeration
 	public static final int STATUS_CODE_SUCCESS = 0;
 	public static final int STATUS_CODE_FAILURE = 1;
-	public static final int STATUS_CODE_RUNNING = 2;
-	public static final int STATUS_CODE_PAUSE = 3;
-	public static final int STATUS_CODE_WARNING = 4;
+	public static final int STATUS_CODE_PART_SUCCESS = 2;
+	public static final int STATUS_CODE_RUNNING = 3;
+	public static final int STATUS_CODE_PAUSE = 4;
+	public static final int STATUS_CODE_WARNING = 5;
 	public static final Status STATUS_SUCCESS = new Status(STATUS_CODE_SUCCESS, "Success");
 	public static final Status STATUS_FAILURE = new Status(STATUS_CODE_FAILURE, "Failure");
-
+	
 	// public static final Status
 
 	private Integer code;
@@ -42,6 +44,10 @@ public class Status {
 
 	public boolean isSuccess() {
 		return code == STATUS_CODE_SUCCESS;
+	}
+	
+	public boolean isPartSuccess() {
+		return code == STATUS_CODE_PART_SUCCESS;
 	}
 
 	public Status(Integer code, String message) {
@@ -74,6 +80,6 @@ public class Status {
 
 	@Override
 	public String toString() {
-		return (isSuccess() ? "Success" : "Failure [" + getCode() + "]") + ": " + getMessage();
+		return isSuccess() ? "Success" : "[" + getCode() + "][" + getMessage() + "]";
 	}
 }

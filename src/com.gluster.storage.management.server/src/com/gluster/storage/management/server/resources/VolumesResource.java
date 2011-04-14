@@ -42,6 +42,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
@@ -82,21 +83,28 @@ public class VolumesResource {
 	@POST
 	@Consumes(MediaType.TEXT_XML)
 	@Produces(MediaType.TEXT_XML)
-	@SuppressWarnings("rawtypes")
 	public Status createVolume(Volume volume) {
 		// Create the directories for the volume
 		List<String> disks = volume.getDisks();
-		GenericResponse result = createDirectory(disks, volume.getName());
-		if (result.getStatus().isSuccess()) {
-			List<String> bricks = Arrays.asList(result.getStatus().getMessage().split(", "));
-			result.setStatus(glusterUtil.createVolume(volume, bricks));
-			if (result.getStatus().isSuccess()) {
-				result.setStatus(glusterUtil.createOptions(volume));
+		Status status = createDirectories(disks, volume.getName());
+		if (status.isSuccess()) {
+			List<String> bricks = Arrays.asList(status.getMessage().split(" "));
+			status = glusterUtil.createVolume(volume, bricks);
+			if (status.isSuccess()) {
+				Status optionsStatus = glusterUtil.createOptions(volume);
+				if(!optionsStatus.isSuccess()) {
+					status.setCode(Status.STATUS_CODE_PART_SUCCESS);
+					status.setMessage("Error while setting volume options: " + optionsStatus);
+				}
 			} else {
-				cleanupDirectory(disks, volume.getName(), disks.size());
+				Status cleanupStatus = cleanupDirectories(disks, volume.getName(), disks.size());
+				if(!cleanupStatus.isSuccess()) {
+					status.setMessage(status.getMessage() + CoreConstants.NEWLINE + "Cleanup errors: "
+							+ CoreConstants.NEWLINE + cleanupStatus);
+				}
 			}
 		}
-		return result.getStatus();
+		return status;
 	}
 
 	@GET
@@ -141,56 +149,57 @@ public class VolumesResource {
 	@Path(SUBRESOURCE_DEFAULT_OPTIONS)
 	@Produces(MediaType.TEXT_XML)
 	public VolumeOptionInfoListResponse getDefaultOptions() {
-		// TODO: Fetch all volume options with their default values from
-		// GlusterFS
+		// TODO: Fetch all volume options with their default values from GlusterFS
 		// whenever such a CLI command is made available in GlusterFS
 		return new VolumeOptionInfoListResponse(Status.STATUS_SUCCESS, volumeOptionsDefaults.getDefaults());
 	}
 
 	@SuppressWarnings("rawtypes")
-	private GenericResponse prepareBrick(String disk, String volumeName) {
-		System.out.println("Disk : " + disk);
-		String serverName = disk.split(":")[0];
-		String diskName = disk.split(":")[1];
-		return (GenericResponse) serverUtil.executeOnServer(true, serverName, PREPARE_BRICK_SCRIPT + " " + diskName
-				+ " " + volumeName, GenericResponse.class);
+	private Status prepareBrick(String serverName, String diskName, String volumeName) {
+		return (Status) ((GenericResponse) serverUtil.executeOnServer(true, serverName, PREPARE_BRICK_SCRIPT + " "
+				+ diskName + " " + volumeName, GenericResponse.class)).getStatus();
 	}
 
-	@SuppressWarnings({ "rawtypes" })
-	private GenericResponse createDirectory(List<String> disks, String volumeName) {
-		List<String> brickNotation = new ArrayList<String>();
-		GenericResponse response = new GenericResponse();
-
+	private Status createDirectories(List<String> disks, String volumeName) {
+		List<String> bricks = new ArrayList<String>();
+		Status status = null;
 		for (int i = 0; i < disks.size(); i++) {
-			response = prepareBrick(disks.get(i), volumeName);
-			if (response.getStatus().isSuccess()) {
-				String brick =  response.getStatus().getMessage().trim().toString().replace("\n", "");
-				brickNotation.add(disks.get(i).split(":")[0]+ ":" + brick);
+			String disk = disks.get(i);
+
+			String[] diskParts = disk.split(":"); 
+			String serverName = diskParts[0];
+			String diskName = diskParts[1];
+			
+			status = prepareBrick(serverName, diskName, volumeName);
+			if (status.isSuccess()) {
+				String brickDir =  status.getMessage().trim().replace(CoreConstants.NEWLINE, "");
+				bricks.add(serverName + ":" + brickDir);
 			} else {
-				Status status = cleanupDirectory(disks, volumeName, i + 1);
-				if (!status.isSuccess()) {
-					response.getStatus().setMessage(response.getStatus().getMessage() + "\n" + status.getMessage());
+				// Brick preparation failed. Cleanup directories already created and return failure status
+				Status cleanupStatus = cleanupDirectories(disks, volumeName, i + 1);
+				if (!cleanupStatus.isSuccess()) {
+					// append cleanup error to prepare brick error
+					status.setMessage(status.getMessage() + CoreConstants.NEWLINE + status.getMessage());
 				}
-				return response;
+				return status;
 			}
 		}
-		response.getStatus().setMessage(constructBrickNotation(brickNotation));
-		return response;
+		status.setMessage(bricksAsString(bricks));
+		return status;
 	}
 
-	private String constructBrickNotation(List<String> bricks) {
-		String brick = "";
+	private String bricksAsString(List<String> bricks) {
+		String bricksStr = "";
 		for (String brickInfo : bricks) {
-			brick += brickInfo + " ";
+			bricksStr += brickInfo + " ";
 		}
-		return brick;
+		return bricksStr.trim();
 	}
 	
-	private Status cleanupDirectory(List<String> disks, String volumeName, int maxIndex) {
+	private Status cleanupDirectories(List<String> disks, String volumeName, int maxIndex) {
 		String serverName, diskName, diskInfo[];
 		Status result;
 		for (int i = 0; i < maxIndex; i++) {
-			// TODO: Call to delete the volume directory
 			diskInfo = disks.get(i).split(":");
 			serverName = diskInfo[0];
 			diskName = diskInfo[1];
@@ -200,7 +209,7 @@ public class VolumesResource {
 				return result;
 			}
 		}
-		return new Status(Status.STATUS_CODE_SUCCESS, "Directories cleanedup...");
+		return new Status(Status.STATUS_CODE_SUCCESS, "Directories cleaned up successfully!");
 	}
 
 	public static void main(String[] args) {

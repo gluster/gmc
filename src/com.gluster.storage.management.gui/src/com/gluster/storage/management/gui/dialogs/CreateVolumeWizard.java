@@ -38,33 +38,46 @@ public class CreateVolumeWizard extends Wizard {
 	public void addPages() {
 		addPage(new CreateVolumePage1());
 	}
-
+	
 	@Override
 	public boolean performFinish() {
+		String dialogTitle = "Create Volume";
 		CreateVolumePage1 page = (CreateVolumePage1) getPage(CreateVolumePage1.PAGE_NAME);
-		if (!page.isValidCreateVolumeForm()) {
-			return false;
-		}
-		
+
 		Volume newVolume = page.getVolume();
 		GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 		VolumesClient volumesClient = new VolumesClient(modelManager.getSecurityToken());
 		Status status = volumesClient.createVolume(newVolume);
-		
+
 		if (status.isSuccess()) {
+			String message = "Volume created successfully!";
+			boolean warning = false;
 			newVolume.setStatus(VOLUME_STATUS.OFFLINE);
-			if (page.getStartVolumeRequest()) {
+			if (page.startVolumeAfterCreation()) {
 				Status volumeStartStatus = volumesClient.startVolume(newVolume.getName());
 				if (volumeStartStatus.isSuccess()) {
 					newVolume.setStatus(VOLUME_STATUS.ONLINE);
+					message = "Volume created and started successfully!";
+				} else {
+					message = "Volume created successfuly, but couldn't be started. Error: " + volumeStartStatus;
+					warning = true;
 				}
 			}
-			//update the model
-			modelManager.addVolume(newVolume);				
-			MessageDialog.openInformation(getShell(), "Create Volume", "Volume created successfully and configuration added!");
+			
+			// update the model
+			modelManager.addVolume(newVolume);
+			if (warning) {
+				MessageDialog.openWarning(getShell(), dialogTitle, message);
+			} else {
+				MessageDialog.openInformation(getShell(), dialogTitle, message);
+			}
 		} else {
-			MessageDialog.openError(getShell(), "Create Volume", "Volume creation failed! [" + status.getCode() + "]["
-					+ status.getMessage() + "]");
+			if (status.isPartSuccess()) {
+				MessageDialog.openWarning(getShell(), dialogTitle, "Volume created, but following error(s) occured: "
+						+ status);
+			} else {
+				MessageDialog.openError(getShell(), dialogTitle, "Volume creation failed! " + status);
+			}
 		}
 
 		return true;
