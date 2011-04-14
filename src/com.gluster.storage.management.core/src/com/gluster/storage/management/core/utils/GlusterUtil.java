@@ -295,9 +295,9 @@ public class GlusterUtil {
 	}
 	
 	private boolean readOption(Volume volume, String line) {
-		if (line.matches("^[^:]*:[^:]*$")) {
-			String[] parts = line.split(":");
-			volume.setOption(parts[0].trim(), parts[1].trim());
+		if (line.matches("^[^:]*:.*$")) {
+			int index = line.indexOf(':');
+			volume.setOption(line.substring(0, index).trim(), line.substring(index + 1, line.length()).trim());
 			return true;
 		}
 		return false;

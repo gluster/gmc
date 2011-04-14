@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Cluster;
@@ -392,6 +393,13 @@ public class GlusterDataModelManager {
 		volume.getOptions().clear();
 		for (ClusterListener listener : listeners) {
 			listener.volumeChanged(volume, new Event(EVENT_TYPE.VOLUME_OPTIONS_RESET, null));
+		}
+	}
+	
+	public void setVolumeOption(Volume volume, Entry<String, String> entry) {
+		volume.setOption(entry.getKey(), (String) entry.getValue());
+		for(ClusterListener listener : listeners) {
+			listener.volumeChanged(volume, new Event(EVENT_TYPE.VOLUME_OPTION_SET, entry));
 		}
 	}
 

@@ -26,12 +26,12 @@ public class OptionKeyEditingSupport extends EditingSupport {
 	private Volume volume;
 	private List<VolumeOptionInfo> defaults = GlusterDataModelManager.getInstance().getVolumeOptionsDefaults();
 	private String[] allowedKeys;
+	private ColumnViewer viewer;
 
 	public OptionKeyEditingSupport(ColumnViewer viewer, Volume volume) {
 		super(viewer);
 		this.volume = volume;
-		allowedKeys = getAllowedKeys();
-		this.cellEditor = new ComboBoxCellEditor((Composite) viewer.getControl(), allowedKeys);
+		this.viewer = viewer;
 	}
 
 	/**
@@ -66,7 +66,6 @@ public class OptionKeyEditingSupport extends EditingSupport {
 		getViewer().refresh();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	protected Object getValue(Object element) {
 		return cellEditor.getValue();
@@ -74,6 +73,8 @@ public class OptionKeyEditingSupport extends EditingSupport {
 
 	@Override
 	protected CellEditor getCellEditor(Object element) {
+		allowedKeys = getAllowedKeys();
+		cellEditor = new ComboBoxCellEditor((Composite) viewer.getControl(), allowedKeys);
 		return cellEditor;
 	}
 

@@ -66,6 +66,7 @@ public class VolumeOptionsPage extends Composite {
 	};
 
 	private static final String[] OPTIONS_TABLE_COLUMN_NAMES = new String[] { "Option Key", "Option Value" };
+	private Button addButton;
 
 	public VolumeOptionsPage(final Composite parent, int style, Volume volume) {
 		super(parent, style);
@@ -88,18 +89,22 @@ public class VolumeOptionsPage extends Composite {
 	}
 
 	private void createAddButton() {
-		Button addButton = toolkit.createButton(this, "&Add", SWT.FLAT);
+		addButton = toolkit.createButton(this, "&Add", SWT.FLAT);
 		addButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				// add an empty option to be filled up by user
 				volume.setOption("", "");
 				
 				tableViewer.refresh();
 				tableViewer.setSelection(new StructuredSelection(getEntry("")));
+				
+				// disable the add button till user fills up the new option
+				addButton.setEnabled(false);
 			}
 
-			private Entry getEntry(String key) {
-				for(Entry entry : volume.getOptions().entrySet()) {
+			private Entry<String, String> getEntry(String key) {
+				for(Entry<String, String> entry : volume.getOptions().entrySet()) {
 					if(entry.getKey().equals(key)) {
 						return entry;
 					}
@@ -135,6 +140,14 @@ public class VolumeOptionsPage extends Composite {
 				if(event.getEventType() == EVENT_TYPE.VOLUME_OPTIONS_RESET) {
 					if(!tableViewer.getControl().isDisposed()) {
 						tableViewer.refresh();
+					}
+				}
+				
+				if(event.getEventType() == EVENT_TYPE.VOLUME_OPTION_SET) {
+					Entry<String, String> eventEntry = (Entry<String, String>)event.getEventData();
+					if (eventEntry.getKey().equals(volume.getOptions().keySet().toArray()[volume.getOptions().size()-1])) {
+						// option has been set successfully by the user. re-enable the add button
+						addButton.setEnabled(true);
 					}
 				}
 			}

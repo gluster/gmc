@@ -3,6 +3,7 @@
  */
 package com.gluster.storage.management.gui.views.details;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -34,7 +35,7 @@ public class OptionValueEditingSupport extends EditingSupport {
 		this.volume = volume;
 		this.cellEditor = new TextCellEditor((Composite) viewer.getControl());
 	}
-
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void setValue(final Object element, final Object value) {
@@ -61,7 +62,8 @@ public class OptionValueEditingSupport extends EditingSupport {
 				VolumesClient client = new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken());
 				Status status = client.setVolumeOption(volume.getName(), entry.getKey(), (String) value);
 				if (status.isSuccess()) {
-					volume.setOption(entry.getKey(), (String) value);
+					entry.setValue((String)value);
+					GlusterDataModelManager.getInstance().setVolumeOption(volume, entry);
 				} else {
 					MessageDialog.openError(Display.getDefault().getActiveShell(), "Set Volume Option",
 							status.getMessage());
