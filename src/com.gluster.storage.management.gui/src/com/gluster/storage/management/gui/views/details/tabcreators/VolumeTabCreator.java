@@ -255,7 +255,7 @@ public class VolumeTabCreator implements TabCreator {
 
 	private void createVolumeOptionsTab(Volume volume, TabFolder tabFolder, FormToolkit toolkit) {
 		Composite volumeTab = guiHelper.createTab(tabFolder, "Options", IImageKeys.VOLUME);
-		VolumeOptionsPage page = new VolumeOptionsPage(volumeTab, SWT.NONE, volume);
+		//VolumeOptionsPage page = new VolumeOptionsPage(volumeTab, SWT.NONE, volume);
 
 		volumeTab.layout(); // IMP: lays out the form properly
 	}

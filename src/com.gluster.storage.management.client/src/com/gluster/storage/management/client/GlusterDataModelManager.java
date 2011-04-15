@@ -397,15 +397,23 @@ public class GlusterDataModelManager {
 	public List<VolumeOptionInfo> getVolumeOptionsDefaults() {
 		return volumeOptionsDefaults;
 	}
-	
-	public String getVolumeOptionDefaultValue(String optionKey) {
+
+	public VolumeOptionInfo getVolumeOptionInfo(String optionKey) {
 		for(VolumeOptionInfo info : volumeOptionsDefaults) {
 			if(info.getName().equals(optionKey)) {
-				return info.getDefaultValue();
+				return info;
 			}
 		}
 		throw new GlusterRuntimeException("Invalid option key [" + optionKey
-				+ "] passed to GlusterDataModelManager#getVolumeOptionDefaultValue");
+				+ "] passed to GlusterDataModelManager#getVolumeOptionInfo");
+	}
+	
+	public String getVolumeOptionDefaultValue(String optionKey) {
+		return getVolumeOptionInfo(optionKey).getDefaultValue();
+	}
+	
+	public String getVolumeOptionDesc(String optionKey) {
+		return getVolumeOptionInfo(optionKey).getDescription();
 	}
 
 	public void setAccessControlList(Volume volume, String accessControlList) {

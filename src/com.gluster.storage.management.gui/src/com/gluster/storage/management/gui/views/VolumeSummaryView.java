@@ -26,7 +26,6 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
-import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Event;
@@ -53,6 +52,7 @@ public class VolumeSummaryView extends ViewPart {
 	private Hyperlink changeLink;
 	private Text accessControlText;
 	private ControlDecoration errDecoration;
+	private Composite parent;
 	
 	@Override
 	public void createPartControl(Composite parent) {
@@ -60,15 +60,26 @@ public class VolumeSummaryView extends ViewPart {
 			volume = (Volume) guiHelper.getSelectedEntity(getSite(), Volume.class);
 		}
 
-		createSections(parent);
+		this.parent = parent;
+		createSections();
 
 		// Refresh the navigation tree whenever there is a change to the data model
 		volumeChangedListener = new DefaultClusterListener() {
+			@SuppressWarnings("unchecked")
 			@Override
 			public void volumeChanged(Volume volume, Event event) {
 				if (event.getEventType() == EVENT_TYPE.VOLUME_STATUS_CHANGED) {
 					updateVolumeStatusLabel();
 					new GlusterToolbarManager(getSite().getWorkbenchWindow()).updateToolbar(volume);
+				} else if (event.getEventType() == EVENT_TYPE.VOLUME_OPTION_SET) {
+					Entry<String, String> option = (Entry<String, String>)event.getEventData();
+					if (option.getKey().equals(Volume.OPTION_AUTH_ALLOW)) {
+						// access control option value has changed. update the text field with new value.
+						populateAccessControlText();
+					}
+				} else if (event.getEventType() == EVENT_TYPE.VOLUME_OPTIONS_RESET) {
+					// all volume options reset. populate access control text with default value.
+					populateAccessControlText();
 				}
 			}
 		};
@@ -86,7 +97,7 @@ public class VolumeSummaryView extends ViewPart {
 		GlusterDataModelManager.getInstance().removeClusterListener(volumeChangedListener);
 	}
 
-	private void createSections(Composite parent) {
+	private void createSections() {
 		form = guiHelper.setupForm(parent, toolkit, "Volume Properties [" + volume.getName() + "]");
 
 		createVolumePropertiesSection();
@@ -170,13 +181,14 @@ public class VolumeSummaryView extends ViewPart {
 		changeLink = toolkit.createHyperlink(section, "change", SWT.NONE);
 		changeLink.addHyperlinkListener(new HyperlinkAdapter() {
 
-			@SuppressWarnings("static-access")
 			private void finishEdit() {
 				saveAccessControlList();
 			}
 
 			private void startEdit() {
 				accessControlText.setEnabled(true);
+				accessControlText.setFocus();
+				accessControlText.selectAll();
 				changeLink.setText("update");
 			}
 
@@ -194,20 +206,23 @@ public class VolumeSummaryView extends ViewPart {
 	}
 
 	private void saveAccessControlList() {
-		String newACL = accessControlText.getText();
+		final String newACL = accessControlText.getText();
+		
+		guiHelper.setStatusMessage("Setting access control list to [" + newACL + "]...");
+		parent.update();
 		
 		if (!newACL.equals(volume.getAccessControlList()) && ValidationUtil.isValidAccessControl(newACL)) {
 			BusyIndicator.showWhile(Display.getDefault(), new Runnable() {				
 				@Override
 				public void run() {
 					Status status = (new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken()))
-					.setVolumeOption(volume.getName(), Volume.OPTION_AUTH_ALLOW, accessControlText.getText());
+					.setVolumeOption(volume.getName(), Volume.OPTION_AUTH_ALLOW, newACL);
 					
 					if (status.isSuccess()) {
 						accessControlText.setEnabled(false);
 						changeLink.setText("change");
 						
-						GlusterDataModelManager.getInstance().setAccessControlList(volume, accessControlText.getText());
+						GlusterDataModelManager.getInstance().setAccessControlList(volume, newACL);
 					} else {
 						MessageDialog.openError(Display.getDefault().getActiveShell(), "Access control",
 								status.getMessage());
@@ -218,6 +233,8 @@ public class VolumeSummaryView extends ViewPart {
 			MessageDialog.openError(Display.getDefault().getActiveShell(), "Access control",
 					"Invalid IP / Host name ");
 		}
+		guiHelper.clearStatusMessage();
+		parent.update();
 	}
 
 	private void addKeyListerForAccessControl() {

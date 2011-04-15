@@ -25,6 +25,7 @@ import java.util.List;
 import org.eclipse.core.databinding.observable.Realm;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
+import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
@@ -43,6 +44,7 @@ public class Application implements IApplication {
 	public static final String PLUGIN_ID = "com.gluster.storage.management.gui";
 	private static Application instance;
 	private List<IEntityListener> entityListeners = Collections.synchronizedList(new ArrayList<IEntityListener>());
+	private IStatusLineManager statusLineManager;
 
 	public Application() {
 		instance = this;
@@ -50,6 +52,14 @@ public class Application implements IApplication {
 
 	public static Application getApplication() {
 		return instance;
+	}
+
+	public IStatusLineManager getStatusLineManager() {
+		return statusLineManager;
+	}
+
+	public void setStatusLineManager(IStatusLineManager statusLineManager) {
+		this.statusLineManager = statusLineManager;
 	}
 
 	private boolean login() {

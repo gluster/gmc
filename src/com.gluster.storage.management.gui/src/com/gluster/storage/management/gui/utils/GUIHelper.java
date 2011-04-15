@@ -67,6 +67,7 @@ import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.progress.IProgressConstants;
 
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
+import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.views.NavigationView;
 
@@ -369,5 +370,13 @@ public class GUIHelper {
 			e.printStackTrace();
 			throw new GlusterRuntimeException("Could not open the progress view!", e);
 		}
+	}
+	
+	public void setStatusMessage(String message) {
+		Application.getApplication().getStatusLineManager().setMessage(message);
+	}
+	
+	public void clearStatusMessage() {
+		Application.getApplication().getStatusLineManager().setMessage(null);
 	}
 }

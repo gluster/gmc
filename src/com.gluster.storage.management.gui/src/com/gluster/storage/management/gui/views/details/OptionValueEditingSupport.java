@@ -3,7 +3,6 @@
  */
 package com.gluster.storage.management.gui.views.details;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -21,6 +20,7 @@ import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
+import com.gluster.storage.management.gui.utils.GUIHelper;
 
 /**
  * Editing support for the "value" column in volume options table viewer.
@@ -29,6 +29,7 @@ public class OptionValueEditingSupport extends EditingSupport {
 	private CellEditor cellEditor;
 	private Volume volume;
 	private List<VolumeOptionInfo> defaults = GlusterDataModelManager.getInstance().getVolumeOptionsDefaults();
+	private GUIHelper guiHelper = GUIHelper.getInstance();
 
 	public OptionValueEditingSupport(ColumnViewer viewer, Volume volume) {
 		super(viewer);
@@ -40,16 +41,22 @@ public class OptionValueEditingSupport extends EditingSupport {
 	@Override
 	protected void setValue(final Object element, final Object value) {
 		final Entry<String, String> entry = (Entry<String, String>) element;
+		final String optionKey = entry.getKey();
+		final String optionValue = (String)value;
+		final String oldValue = entry.getValue();
 
+		guiHelper.setStatusMessage("Setting option [" + optionKey + " = " + optionValue + "]...");
+		getViewer().getControl().update();
+		
 		// It is not allowed to change value to empty string
-		if(((String)value).isEmpty()) {
+		if(optionValue.isEmpty()) {
 			MessageDialog.openError(Display.getDefault().getActiveShell(), "Set Volume Option",
 					"Option value can't be empty! Please enter a valid value.");
 			cellEditor.setFocus();
 			return;
 		}
 
-		if (entry.getValue().equals(value)) {
+		if (oldValue.equals(optionValue)) {
 			// value is same as that present in the model. return without doing anything.
 			return;
 		}
@@ -71,6 +78,9 @@ public class OptionValueEditingSupport extends EditingSupport {
 				getViewer().update(entry, null);
 			}
 		});
+
+		guiHelper.clearStatusMessage();
+		getViewer().getControl().update();
 	}
 
 	/**

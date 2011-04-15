@@ -24,6 +24,7 @@ import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnLayoutData;
+import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
@@ -47,10 +48,12 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.VolumeOptionInfo;
 import com.gluster.storage.management.gui.VolumeOptionsTableLabelProvider;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
@@ -73,19 +76,18 @@ public class VolumeOptionsPage extends Composite {
 		super(parent, style);
 		
 		this.volume = volume;
+
 		toolkit.adapt(this);
 		toolkit.paintBordersFor(this);
 
 		setupPageLayout();
-		Text filterText = guiHelper.createFilterText(toolkit, this);
-		setupDiskTableViewer(filterText);
+		setupDiskTableViewer(guiHelper.createFilterText(toolkit, this));
 		
 		createAddButton();
 
 		tableViewer.setInput(volume.getOptions().entrySet());
 		
 		parent.layout(); // Important - this actually paints the table
-
 		registerListeners(parent);
 	}
 
@@ -144,6 +146,7 @@ public class VolumeOptionsPage extends Composite {
 		});
 		
 		clusterListener = new DefaultClusterListener() {
+			@SuppressWarnings("unchecked")
 			@Override
 			public void volumeChanged(Volume volume, Event event) {
 				super.volumeChanged(volume, event);
@@ -158,6 +161,14 @@ public class VolumeOptionsPage extends Composite {
 					if (eventEntry.getKey().equals(volume.getOptions().keySet().toArray()[volume.getOptions().size()-1])) {
 						// option has been set successfully by the user. re-enable the add button
 						addButton.setEnabled(true);
+					}
+					
+					if(tableViewer.getTable().getItemCount() < volume.getOptions().size()) {
+						// new volume set from outside this page. refresh the viewer.
+						tableViewer.refresh();
+					} else {
+						// existing volume option value changed. update that element.
+						tableViewer.update(eventEntry, null);
 					}
 				}
 			}
@@ -219,6 +230,15 @@ public class VolumeOptionsPage extends Composite {
 			public String getText(Object element) {
 				return ((Entry<String, String>) element).getKey();
 			}
+			
+			@SuppressWarnings("unchecked")
+			@Override
+			public String getToolTipText(Object element) {
+				VolumeOptionInfo optionInfo = GlusterDataModelManager.getInstance().getVolumeOptionInfo(
+						((Entry<String, String>) element).getKey());
+				return optionInfo.getDescription() + CoreConstants.NEWLINE + "Default value: "
+						+ optionInfo.getDefaultValue();
+			}
 		});
 		
 		// Editing support required when adding new key
@@ -245,6 +265,7 @@ public class VolumeOptionsPage extends Composite {
 	private void setupDiskTableViewer(final Text filterText) {
 		Composite tableViewerComposite = createTableViewerComposite();
 		createDiskTableViewer(tableViewerComposite);
+		ColumnViewerToolTipSupport.enableFor(tableViewer);
 		// Create a case insensitive filter for the table viewer using the filter text field
 		guiHelper.createFilter(tableViewer, filterText, false);
 	}
