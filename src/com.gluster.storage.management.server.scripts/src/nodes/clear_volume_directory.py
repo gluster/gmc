@@ -56,6 +56,12 @@ def clearVolumeDirectory(disk, volumeName):
         rs.appendTagRoute("status.message", message)
         return rs.toprettyxml()
 
+    if not rv["Status"]:
+        rv["Status"] = "0"
+        rs.appendTagRoute("status.code", rv["Status"])
+        rs.appendTagRoute("status.message", message)
+        return rs.toprettyxml()
+
 def main():
     if len(sys.argv) != 3:
         print >> sys.stderr, "usage: %s <disk name> <volume name>" % sys.argv[0]
@@ -66,4 +72,5 @@ def main():
     print clearVolumeDirectory(disk, volumeName)
     sys.exit(0)
 
-main()
+if __name__ == "__main__":
+    main()
