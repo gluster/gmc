@@ -18,7 +18,7 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package com.gluster.storage.management.core.utils;
+package com.gluster.storage.management.server.utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +34,8 @@ import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
+import com.gluster.storage.management.core.utils.ProcessResult;
+import com.gluster.storage.management.core.utils.ProcessUtil;
 
 public class GlusterUtil {
 	private static final String glusterFSminVersion = "3.1";
@@ -280,7 +282,24 @@ public class GlusterUtil {
 	private boolean readBrick(Volume volume, String line) {
 		if (line.matches("Brick[0-9]+:.*")) {
 			// line: "Brick1: server1:/export/md0/volume-name"
-			volume.addDisk(line.split(":")[2].trim().split("/")[2].trim());
+			String[] brickParts = line.split(":");
+			String serverName = brickParts[1].trim();
+			String brickDir = brickParts[2].trim();
+			// brick directory should be of the form /export/<diskname>/volume-name
+			try {
+				volume.addDisk(serverName + ":" + brickDir.split("/")[2].trim());
+			} catch(ArrayIndexOutOfBoundsException e) {
+				// brick directory of a different form, most probably created manually
+				// connect to the server and get disk for the brick directory
+				Status status = new ServerUtil().getDiskForDir(serverName, brickDir);
+				if(status.isSuccess()) {
+					volume.addDisk(serverName + ":" + status.getMessage());
+				} else {
+					// Couldn't fetch disk for the brick directory. Log error and add "unknown" as disk name.
+					System.out.println("Couldn't fetch disk name for brick [" + serverName + ":" + brickDir + "]");
+					volume.addDisk(serverName + ":unknown");
+				}
+			}
 			return true;
 		}
 		return false;

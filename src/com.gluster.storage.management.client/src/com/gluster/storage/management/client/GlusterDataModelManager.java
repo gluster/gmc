@@ -118,13 +118,10 @@ public class GlusterDataModelManager {
 		setSecurityToken(securityToken);
 
 		Cluster cluster = new Cluster("Home", model);
-		VolumesClient volumeClient = new VolumesClient(securityToken);
 
 		initializeGlusterServers(cluster);
-
-		// initializeVolumes(cluster);
-		VolumeListResponse response = volumeClient.getAllVolumes();
-		cluster.setVolumes(response.getVolumes());
+		initializeVolumes(cluster);
+		
 
 		initializeAutoDiscoveredServers(cluster);
 		initializeDisks();
@@ -167,26 +164,12 @@ public class GlusterDataModelManager {
 	}
 
 	private void initializeVolumes(Cluster cluster) {
-		List<Volume> volumes = new ArrayList<Volume>();
-
-		volume1 = addVolume(volumes, "Volume1", cluster, VOLUME_TYPE.PLAIN_DISTRIBUTE, TRANSPORT_TYPE.ETHERNET,
-				VOLUME_STATUS.ONLINE);
-
-		volume2 = addVolume(volumes, "Volume2", cluster, VOLUME_TYPE.PLAIN_DISTRIBUTE, TRANSPORT_TYPE.ETHERNET,
-				VOLUME_STATUS.ONLINE);
-
-		volume3 = addVolume(volumes, "Volume3", cluster, VOLUME_TYPE.DISTRIBUTED_MIRROR, TRANSPORT_TYPE.ETHERNET,
-				VOLUME_STATUS.OFFLINE);
-		volume3.setReplicaCount(2);
-
-		volume4 = addVolume(volumes, "Volume4", cluster, VOLUME_TYPE.PLAIN_DISTRIBUTE, TRANSPORT_TYPE.ETHERNET,
-				VOLUME_STATUS.ONLINE);
-
-		volume5 = addVolume(volumes, "Volume5", cluster, VOLUME_TYPE.DISTRIBUTED_STRIPE, TRANSPORT_TYPE.INFINIBAND,
-				VOLUME_STATUS.OFFLINE);
-		volume5.setStripeCount(3);
-
-		cluster.setVolumes(volumes);
+		VolumesClient volumeClient = new VolumesClient(securityToken);
+		VolumeListResponse response = volumeClient.getAllVolumes();
+		if(!response.getStatus().isSuccess()) {
+			throw new GlusterRuntimeException("Error fetching volume list: [" + response.getStatus() + "]");
+		}
+		cluster.setVolumes(response.getVolumes());
 	}
 
 	private void initializeDisks() {

@@ -37,8 +37,8 @@ import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
 import com.gluster.storage.management.core.response.GlusterServerResponse;
-import com.gluster.storage.management.core.utils.GlusterUtil;
 import com.gluster.storage.management.core.utils.ProcessResult;
+import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Component
