@@ -33,7 +33,6 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.EntityGroup;
-import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.RunningTask;
 import com.gluster.storage.management.core.model.Volume;
@@ -96,8 +95,7 @@ public class VolumesSummaryView extends ViewPart {
 	}
 
 	private void addAlertLabel(Composite section, Alert alert) {
-		if (alert.getType() == Alert.ALERT_TYPES.DISK_USAGE_ALERT
-				|| alert.getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_DISKS_ALERT) {
+		if (alert.getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_DISKS_ALERT) {
 			CLabel lblAlert = new CLabel(section, SWT.NONE);
 			lblAlert.setImage((alert.getType() == Alert.ALERT_TYPES.DISK_USAGE_ALERT) ? guiHelper
 					.getImage(IImageKeys.LOW_DISK_SPACE) : guiHelper.getImage(IImageKeys.DISK_OFFLINE));
