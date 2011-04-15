@@ -1,5 +1,6 @@
 package com.gluster.storage.management.gui.views;
 
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jface.dialogs.ErrorDialog;
@@ -22,6 +23,8 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.model.Alert;
+import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
@@ -38,13 +41,13 @@ import com.gluster.storage.management.gui.utils.GUIHelper;
 public class VolumeSummaryView extends ViewPart {
 	public static final String ID = VolumeSummaryView.class.getName();
 	private static final GUIHelper guiHelper = GUIHelper.getInstance();
+	private static final String VOLUME_OPTION_AUTH_ALLOW = "auth.allow";
+
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	private ScrolledForm form;
 	private Volume volume;
 	private CLabel lblStatusValue;
 	private DefaultClusterListener volumeChangedListener;
-	
-	private static final String VOLUME_OPTION_AUTH_ALLOW = "auth.allow";
 
 	@Override
 	public void createPartControl(Composite parent) {
@@ -89,8 +92,22 @@ public class VolumeSummaryView extends ViewPart {
 	}
 
 	private void createVolumeAlertsSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Alerts", null, 3, false);
-		toolkit.createLabel(section, "Volume related alerts will be displayed here");
+		Composite section = guiHelper.createSection(form, toolkit, "Alerts", null, 1, false);
+		List<Alert> alerts = GlusterDataModelManager.getInstance().getModel().getCluster().getAlerts();
+
+		for (int i = 0; i < alerts.size(); i++) {
+			if (alerts.get(i).getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_DISKS_ALERT
+					&& alerts.get(i).getReference().split(":")[0].trim().equals(volume.getName())) {
+				addAlertLabel(section, alerts.get(i));
+			}
+		}
+	}
+
+	private void addAlertLabel(Composite section, Alert alert) {
+		CLabel lblAlert = new CLabel(section, SWT.NONE);
+		lblAlert.setImage(guiHelper.getImage(IImageKeys.DISK_OFFLINE));
+		lblAlert.setText(alert.getMessage());
+		lblAlert.redraw();
 	}
 
 	private void createVolumeMountingInfoSection() {

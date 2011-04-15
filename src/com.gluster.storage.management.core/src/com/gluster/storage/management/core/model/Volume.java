@@ -71,9 +71,10 @@ public class Volume extends Entity {
 	public Volume() {
 	}
 
-	// GlusterFS export is always enabled
+	// GlusterFS and NFS export is always enabled
+	// Note: logic needs to make NFS optional
 	private Set<NAS_PROTOCOL> nasProtocols = new LinkedHashSet<NAS_PROTOCOL>(
-			Arrays.asList(new NAS_PROTOCOL[] { NAS_PROTOCOL.GLUSTERFS }));
+			Arrays.asList(new NAS_PROTOCOL[] { NAS_PROTOCOL.GLUSTERFS, NAS_PROTOCOL.NFS }));
 
 	private String accessControlList = "*";
 

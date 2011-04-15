@@ -99,9 +99,9 @@ public class VolumesSummaryView extends ViewPart {
 		if (alert.getType() == Alert.ALERT_TYPES.DISK_USAGE_ALERT
 				|| alert.getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_DISKS_ALERT) {
 			CLabel lblAlert = new CLabel(section, SWT.NONE);
-			lblAlert.setText(alert.getMessage());
 			lblAlert.setImage((alert.getType() == Alert.ALERT_TYPES.DISK_USAGE_ALERT) ? guiHelper
 					.getImage(IImageKeys.LOW_DISK_SPACE) : guiHelper.getImage(IImageKeys.DISK_OFFLINE));
+			lblAlert.setText(alert.getMessage());
 			lblAlert.redraw();
 		}
 	}

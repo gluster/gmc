@@ -50,8 +50,8 @@ import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
-import com.gluster.storage.management.core.utils.GlusterUtil;
 import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
+import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.ServerUtil;
 import com.sun.jersey.api.core.InjectParam;
 import com.sun.jersey.spi.resource.Singleton;
@@ -76,6 +76,7 @@ public class VolumesResource {
 			return new VolumeListResponse(Status.STATUS_SUCCESS, glusterUtil.getAllVolumes());
 		} catch (Exception e) {
 			// TODO: log the error
+			e.printStackTrace();
 			return new VolumeListResponse(new Status(Status.STATUS_CODE_FAILURE, e.getMessage()), null);
 		}
 	}

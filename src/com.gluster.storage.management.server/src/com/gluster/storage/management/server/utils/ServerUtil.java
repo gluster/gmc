@@ -39,6 +39,7 @@ import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.ProcessUtil;
 
@@ -49,6 +50,7 @@ public class ServerUtil {
 
 	private static final String SCRIPT_DIR = "scripts";
 	private static final String SCRIPT_COMMAND = "python";
+	private static final String REMOTE_SCRIPT_GET_DISK_FOR_DIR = "get_disk_for_dir.py";
 
 	public ProcessResult executeGlusterScript(boolean runInForeground, String scriptName, List<String> arguments) {
 		List<String> command = new ArrayList<String>();
@@ -132,5 +134,14 @@ public class ServerUtil {
 	public static void main(String args[]) {
 		// CreateVolumeExportDirectory.py md0 testvol
 		System.out.println(new ServerUtil().executeOnServer(true, "localhost", "python CreateVolumeExportDirectory.py md0 testvol", Status.class));
+	}
+
+	/**
+	 * @param serverName Server on which the directory is present
+	 * @param brickDir Directory whose disk is to be fetched
+	 * @return Status object containing the disk name, or error message in case the remote script fails.
+	 */
+	public Status getDiskForDir(String serverName, String brickDir) {
+		return (Status) executeOnServer(true, serverName, REMOTE_SCRIPT_GET_DISK_FOR_DIR + " " + brickDir, Status.class);
 	}
 }
