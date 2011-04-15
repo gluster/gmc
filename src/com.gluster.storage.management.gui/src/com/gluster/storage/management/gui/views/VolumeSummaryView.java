@@ -1,12 +1,15 @@
 package com.gluster.storage.management.gui.views;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
 
-import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
@@ -23,8 +26,8 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Alert;
-import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
@@ -41,14 +44,16 @@ import com.gluster.storage.management.gui.utils.GUIHelper;
 public class VolumeSummaryView extends ViewPart {
 	public static final String ID = VolumeSummaryView.class.getName();
 	private static final GUIHelper guiHelper = GUIHelper.getInstance();
-	private static final String VOLUME_OPTION_AUTH_ALLOW = "auth.allow";
 
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	private ScrolledForm form;
 	private Volume volume;
 	private CLabel lblStatusValue;
 	private DefaultClusterListener volumeChangedListener;
-
+	private Hyperlink changeLink;
+	private Text accessControlText;
+	private ControlDecoration errDecoration;
+	
 	@Override
 	public void createPartControl(Composite parent) {
 		if (volume == null) {
@@ -149,38 +154,25 @@ public class VolumeSummaryView extends ViewPart {
 
 	private void createAccessControlField(Composite section) {
 		toolkit.createLabel(section, "Access Control: ", SWT.NONE);
-		Text accessControlText = toolkit.createText(section, volume.getAccessControlList());
+		accessControlText = toolkit.createText(section, volume.getAccessControlList());
+		populateAccessControlText();
+		addKeyListerForAccessControl();
 		accessControlText.setLayoutData(createDefaultLayoutData());
 		accessControlText.setEnabled(false);
-		createChangeLinkForAccessControl(section, accessControlText);
+		createChangeLinkForAccessControl(section);
+		
+		// error decoration used while validating the access control text
+		errDecoration = guiHelper.createErrorDecoration(accessControlText);
+		errDecoration.hide();
 	}
 
-	private void createChangeLinkForAccessControl(Composite section, final Text accessControlText) {
-		final Hyperlink changeLink = toolkit.createHyperlink(section, "change", SWT.NONE);
+	private void createChangeLinkForAccessControl(Composite section) {
+		changeLink = toolkit.createHyperlink(section, "change", SWT.NONE);
 		changeLink.addHyperlinkListener(new HyperlinkAdapter() {
 
 			@SuppressWarnings("static-access")
 			private void finishEdit() {
-
-				if (new ValidationUtil().isValidAccessControl(accessControlText.getText())) {
-					Status status = (new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken()))
-							.setVolumeOption(volume.getName(), VOLUME_OPTION_AUTH_ALLOW, accessControlText.getText());
-					if (status.isSuccess()) {
-						volume.setAccessControlList(accessControlText.getText());
-						accessControlText.setEnabled(false);
-						changeLink.setText("change");
-						MessageDialog.openInformation(Display.getDefault().getActiveShell(), "Access control",
-								status.getMessage());
-					} else {
-						MessageDialog.openError(Display.getDefault().getActiveShell(), "Access control",
-								status.getMessage());
-					}
-
-				} else {
-					MessageDialog.openError(Display.getDefault().getActiveShell(), "Access control",
-							"Invalid IP / Host name ");
-				}
-
+				saveAccessControlList();
 			}
 
 			private void startEdit() {
@@ -199,6 +191,64 @@ public class VolumeSummaryView extends ViewPart {
 				}
 			}
 		});
+	}
+
+	private void saveAccessControlList() {
+		String newACL = accessControlText.getText();
+		
+		if (!newACL.equals(volume.getAccessControlList()) && ValidationUtil.isValidAccessControl(newACL)) {
+			BusyIndicator.showWhile(Display.getDefault(), new Runnable() {				
+				@Override
+				public void run() {
+					Status status = (new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken()))
+					.setVolumeOption(volume.getName(), Volume.OPTION_AUTH_ALLOW, accessControlText.getText());
+					
+					if (status.isSuccess()) {
+						accessControlText.setEnabled(false);
+						changeLink.setText("change");
+						
+						GlusterDataModelManager.getInstance().setAccessControlList(volume, accessControlText.getText());
+					} else {
+						MessageDialog.openError(Display.getDefault().getActiveShell(), "Access control",
+								status.getMessage());
+					}
+				}
+			});
+		} else {
+			MessageDialog.openError(Display.getDefault().getActiveShell(), "Access control",
+					"Invalid IP / Host name ");
+		}
+	}
+
+	private void addKeyListerForAccessControl() {
+		accessControlText.addKeyListener(new KeyAdapter() {
+			public void keyReleased(KeyEvent key) {
+				switch (key.keyCode) {
+				case SWT.ESC:
+					// Reset to default
+					populateAccessControlText();
+					changeLink.setText("change");
+					accessControlText.setEnabled(false);
+					break;
+				case 13:
+					// User has pressed enter. Save the new value
+					saveAccessControlList();
+					break;
+				}
+				
+				validateAccessControlList();
+			}
+		});
+	}
+
+	private void populateAccessControlText() {
+		String accessControlList = volume.getAccessControlList();
+		if(accessControlList == null) {
+			// if not set, show default value
+			accessControlList = GlusterDataModelManager.getInstance().getVolumeOptionDefaultValue(
+					Volume.OPTION_AUTH_ALLOW);
+		}
+		accessControlText.setText(accessControlList);
 	}
 
 	private void createNASProtocolField(Composite section) {
@@ -223,8 +273,8 @@ public class VolumeSummaryView extends ViewPart {
 	}
 
 	private void createChangeLinkForNASProtocol(Composite section, final Button nfsCheckBox) {
-		final Hyperlink changeLink = toolkit.createHyperlink(section, "change", SWT.NONE);
-		changeLink.addHyperlinkListener(new HyperlinkAdapter() {
+		final Hyperlink nasChangeLink = toolkit.createHyperlink(section, "change", SWT.NONE);
+		nasChangeLink.addHyperlinkListener(new HyperlinkAdapter() {
 
 			private void finishEdit() {
 				// TODO: Update value to back-end
@@ -234,12 +284,12 @@ public class VolumeSummaryView extends ViewPart {
 					volume.disableNFS();
 				}
 				nfsCheckBox.setEnabled(false);
-				changeLink.setText("change");
+				nasChangeLink.setText("change");
 			}
 
 			private void startEdit() {
 				nfsCheckBox.setEnabled(true);
-				changeLink.setText("update");
+				nasChangeLink.setText("update");
 			}
 
 			@Override
@@ -311,5 +361,21 @@ public class VolumeSummaryView extends ViewPart {
 	@Override
 	public void setFocus() {
 		form.setFocus();
+	}
+
+	private void validateAccessControlList() {
+		errDecoration.hide();
+		
+		if (accessControlText.getText().length() == 0) {
+			errDecoration.setDescriptionText("Access control list cannot be empty!");
+			errDecoration.show();
+			return;
+		}
+		
+		if(!ValidationUtil.isValidAccessControl(accessControlText.getText())) {
+			errDecoration
+					.setDescriptionText("Access control list must be a comma separated list of IP addresses/Host names. Please enter a valid value!");
+			errDecoration.show();
+		}
 	}
 }

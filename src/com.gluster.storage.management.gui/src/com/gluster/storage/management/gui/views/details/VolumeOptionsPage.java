@@ -60,6 +60,7 @@ public class VolumeOptionsPage extends Composite {
 	private TableViewer tableViewer;
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 	private Volume volume;
+	private DefaultClusterListener clusterListener;
 
 	public enum OPTIONS_TABLE_COLUMN_INDICES {
 		OPTION_KEY, OPTION_VALUE
@@ -86,6 +87,14 @@ public class VolumeOptionsPage extends Composite {
 		parent.layout(); // Important - this actually paints the table
 
 		registerListeners(parent);
+	}
+
+	/**
+	 * @return
+	 */
+	private DefaultClusterListener createClusterListener() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	private void createAddButton() {
@@ -117,6 +126,7 @@ public class VolumeOptionsPage extends Composite {
 	private void registerListeners(final Composite parent) {
 		addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
+				GlusterDataModelManager.getInstance().removeClusterListener(clusterListener);
 				toolkit.dispose();
 			}
 		});
@@ -133,7 +143,7 @@ public class VolumeOptionsPage extends Composite {
 			}
 		});
 		
-		GlusterDataModelManager.getInstance().addClusterListener(new DefaultClusterListener() {
+		clusterListener = new DefaultClusterListener() {
 			@Override
 			public void volumeChanged(Volume volume, Event event) {
 				super.volumeChanged(volume, event);
@@ -151,8 +161,8 @@ public class VolumeOptionsPage extends Composite {
 					}
 				}
 			}
-		});
-
+		};
+		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
 	}
 
 	private void setupPageLayout() {
