@@ -14,7 +14,7 @@ public class Alert {
 
 	protected String id;
 	protected ALERT_TYPES type;
-	protected String reference;
+	protected String reference; // [for server- "Server", for Disk- "Server:disk", for volume- "Volume:Server:disk"]
 	protected String message;
 
 	public String getAlertType(ALERT_TYPES alertType) {
