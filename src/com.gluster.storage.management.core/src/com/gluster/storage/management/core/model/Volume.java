@@ -49,7 +49,7 @@ public class Volume extends Entity {
 		GLUSTERFS, NFS
 	};
 
-	private static final String OPTION_AUTH_ALLOW = "auth.allow";
+	public static final String OPTION_AUTH_ALLOW = "auth.allow";
 
 	private static final String[] VOLUME_TYPE_STR = new String[] { "Plain Distribute", "Distributed Mirror",
 			"Distributed Stripe" };
@@ -73,8 +73,8 @@ public class Volume extends Entity {
 
 	// GlusterFS and NFS export is always enabled
 	// Note: logic needs to make NFS optional
-	private Set<NAS_PROTOCOL> nasProtocols = new LinkedHashSet<NAS_PROTOCOL>(
-			Arrays.asList(new NAS_PROTOCOL[] { NAS_PROTOCOL.GLUSTERFS, NAS_PROTOCOL.NFS }));
+	private Set<NAS_PROTOCOL> nasProtocols = new LinkedHashSet<NAS_PROTOCOL>(Arrays.asList(new NAS_PROTOCOL[] {
+			NAS_PROTOCOL.GLUSTERFS, NAS_PROTOCOL.NFS }));
 
 	private String accessControlList = "*";
 
