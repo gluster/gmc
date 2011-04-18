@@ -56,9 +56,10 @@ public class VolumeLogsPage extends Composite {
 	private static final String[] LOG_TABLE_COLUMN_NAMES = new String[] { "Date", "Time", "Disk", "Severity", "Message" };
 
 	/**
-	 * Create the composite.
+	 * Create the volume logs page
 	 * @param parent
 	 * @param style
+	 * @param volume Volume for which the logs page is to be created	
 	 */
 	public VolumeLogsPage(Composite parent, int style, Volume volume) {
 		super(parent, style);
@@ -70,80 +71,39 @@ public class VolumeLogsPage extends Composite {
 		toolkit.adapt(this);
 		toolkit.paintBordersFor(this);
 		
-		setLayout(new GridLayout(1, false));
-		GridData layoutData = new GridData();
-		layoutData.grabExcessHorizontalSpace = true;
-		layoutData.grabExcessVerticalSpace = true;
-		//layoutData.verticalIndent = 10;
-		setLayoutData(layoutData);
+		configureLayout();
 		
 		Composite composite = toolkit.createComposite(this, SWT.NONE);
 		toolkit.paintBordersFor(composite);
 		
-		Label lblScanLast = toolkit.createLabel(composite, "Scan last", SWT.NONE);
-		lblScanLast.setBounds(0, 15, 80, 20);
+		createLineCountLabel(composite);
+		createLineCountText(composite);
 		
-		text = toolkit.createText(composite, "100", SWT.NONE);
-		text.setBounds(85, 15, 60, 20);
+		createDiskLabel(composite);
+		createDisksCombo(composite);
 		
-		Label lblMessagesAndFilter = toolkit.createLabel(composite, "messages, and filter on disk", SWT.NONE);
-		lblMessagesAndFilter.setBounds(160, 15, 200, 20);
+		createSeverityLabel(composite);
+		createSeverityCombo(composite);
 		
-		Combo combo = new Combo(composite, SWT.NONE);
-		combo.setBounds(365, 15, 100, 20);
-		combo.setItems(new String[] {"ALL", "sda", "sdb", "sdc", "sdd"});
-		toolkit.adapt(combo);
-		toolkit.paintBordersFor(combo);
-		combo.select(0);
+		createFromDateLabel(composite);
+		createFromDateField(composite);
+		createFromTimeField(composite);
 		
-		Label lblSeverity = toolkit.createLabel(composite, "Severity", SWT.NONE);
-		lblSeverity.setBounds(480, 15, 70, 20);
+		createToDateLabel(composite);
+		createToDateField(composite);
+		createToTimeField(composite);
 		
-		Combo combo_1 = new Combo(composite, SWT.NONE);
-		combo_1.setBounds(555, 15, 110, 20);
-		combo_1.setItems(new String[] {"ALL", "SEVERE", "WARNING", "DEBUG", "INFO"});
-		toolkit.adapt(combo_1);
-		toolkit.paintBordersFor(combo_1);
-		combo_1.select(1);
+		createSearchButton(composite);
 		
-		Label lblFrom = toolkit.createLabel(composite, "from", SWT.NONE);
-		lblFrom.setBounds(0, 60, 40, 20);
+		createSeparator(composite);
 		
-		DateTime dateTime = new DateTime(composite, SWT.BORDER | SWT.DROP_DOWN);
-		dateTime.setBounds(45, 60, 120, 20);
-		toolkit.adapt(dateTime);
-		toolkit.paintBordersFor(dateTime);
+		createFilterLabel(composite);
+		createFilterText(composite);
 
-		DateTime dateTime_1 = new DateTime(composite, SWT.BORDER | SWT.TIME);
-		dateTime_1.setBounds(171, 60, 120, 20);
-		toolkit.adapt(dateTime_1);
-		toolkit.paintBordersFor(dateTime_1);
-		
-		Label lblTo = toolkit.createLabel(composite, "To", SWT.NONE);
-		lblTo.setBounds(329, 60, 26, 20);
-		
-		DateTime dateTime_2 = new DateTime(composite, SWT.BORDER | SWT.DROP_DOWN);
-		dateTime_2.setBounds(355, 60, 120, 20);
-		toolkit.adapt(dateTime_2);
-		toolkit.paintBordersFor(dateTime_2);
-		
-		DateTime dateTime_3 = new DateTime(composite, SWT.BORDER | SWT.TIME);
-		dateTime_3.setBounds(480, 60, 120, 20);
-		toolkit.adapt(dateTime_3);
-		toolkit.paintBordersFor(dateTime_3);
-		
-		Button btngo = toolkit.createButton(composite, "&Go", SWT.NONE);
-		btngo.setBounds(605, 55, 60, 30);
-		
-		Label separator = toolkit.createLabel(composite, "", SWT.SEPARATOR | SWT.HORIZONTAL | SWT.FILL);
-		separator.setBounds(0, 95, 680, 2);
-		
-		Label lblFilterString = toolkit.createLabel(composite, "Filter String", SWT.LEFT);
-		lblFilterString.setBounds(0, 105, 85, 20);
+		createLogTableViewer();
+	}
 
-		text = guiHelper.createFilterText(toolkit, composite);
-		text.setBounds(90, 105, 250, 20);
-
+	private void createLogTableViewer() {
 		Composite tableViewerComposite = createTableViewerComposite();
 		
 		TableViewer tableViewer = new TableViewer(tableViewerComposite, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
@@ -153,6 +113,111 @@ public class VolumeLogsPage extends Composite {
 		setupLogsTable(tableViewerComposite, tableViewer.getTable());
 		guiHelper.createFilter(tableViewer, text, false);
 		tableViewer.setInput(GlusterDummyModel.getDummyLogMessages().toArray());
+	}
+
+	private void createFilterText(Composite composite) {
+		text = guiHelper.createFilterText(toolkit, composite);
+		text.setBounds(90, 105, 250, 20);
+	}
+
+	private void createFilterLabel(Composite composite) {
+		Label lblFilterString = toolkit.createLabel(composite, "Filter String", SWT.LEFT);
+		lblFilterString.setBounds(0, 105, 85, 20);
+	}
+
+	private void createSeparator(Composite composite) {
+		Label separator = toolkit.createLabel(composite, "", SWT.SEPARATOR | SWT.HORIZONTAL | SWT.FILL);
+		separator.setBounds(0, 95, 680, 2);
+	}
+
+	private void createSearchButton(Composite composite) {
+		Button btngo = toolkit.createButton(composite, "&Go", SWT.NONE);
+		btngo.setBounds(605, 55, 60, 30);
+	}
+
+	private void createToTimeField(Composite composite) {
+		DateTime toTime = new DateTime(composite, SWT.BORDER | SWT.TIME);
+		toTime.setBounds(480, 60, 120, 20);
+		toolkit.adapt(toTime);
+		toolkit.paintBordersFor(toTime);
+	}
+
+	private void createToDateField(Composite composite) {
+		DateTime toDate = new DateTime(composite, SWT.BORDER | SWT.DROP_DOWN);
+		toDate.setBounds(355, 60, 120, 20);
+		toolkit.adapt(toDate);
+		toolkit.paintBordersFor(toDate);
+	}
+
+	private void createToDateLabel(Composite composite) {
+		Label lblTo = toolkit.createLabel(composite, "To", SWT.NONE);
+		lblTo.setBounds(329, 60, 26, 20);
+	}
+
+	private void createFromTimeField(Composite composite) {
+		DateTime fromTime = new DateTime(composite, SWT.BORDER | SWT.TIME);
+		fromTime.setBounds(171, 60, 120, 20);
+		toolkit.adapt(fromTime);
+		toolkit.paintBordersFor(fromTime);
+	}
+
+	private void createFromDateField(Composite composite) {
+		DateTime fromDate = new DateTime(composite, SWT.BORDER | SWT.DROP_DOWN);
+		fromDate.setBounds(45, 60, 120, 20);
+		toolkit.adapt(fromDate);
+		toolkit.paintBordersFor(fromDate);
+	}
+
+	private void createFromDateLabel(Composite composite) {
+		Label lblFrom = toolkit.createLabel(composite, "from", SWT.NONE);
+		lblFrom.setBounds(0, 60, 40, 20);
+	}
+
+	private void createSeverityCombo(Composite composite) {
+		Combo severityCombo = new Combo(composite, SWT.NONE);
+		severityCombo.setBounds(555, 15, 110, 20);
+		severityCombo.setItems(new String[] {"ALL", "SEVERE", "WARNING", "DEBUG", "INFO"});
+		toolkit.adapt(severityCombo);
+		toolkit.paintBordersFor(severityCombo);
+		severityCombo.select(1);
+	}
+
+	private void createSeverityLabel(Composite composite) {
+		Label lblSeverity = toolkit.createLabel(composite, "Severity", SWT.NONE);
+		lblSeverity.setBounds(480, 15, 70, 20);
+	}
+
+	private void createDisksCombo(Composite composite) {
+		Combo disksCombo = new Combo(composite, SWT.NONE);
+		disksCombo.setBounds(365, 15, 100, 20);
+		disksCombo.setItems(new String[] {"ALL", "sda", "sdb", "sdc", "sdd"});
+		toolkit.adapt(disksCombo);
+		toolkit.paintBordersFor(disksCombo);
+		disksCombo.select(0);
+	}
+
+	private void createDiskLabel(Composite composite) {
+		Label lblMessagesAndFilter = toolkit.createLabel(composite, "messages, and filter on disk", SWT.NONE);
+		lblMessagesAndFilter.setBounds(160, 15, 200, 20);
+	}
+
+	private void createLineCountText(Composite composite) {
+		text = toolkit.createText(composite, "100", SWT.NONE);
+		text.setBounds(85, 15, 60, 20);
+	}
+
+	private void createLineCountLabel(Composite composite) {
+		Label lblScanLast = toolkit.createLabel(composite, "Scan last", SWT.NONE);
+		lblScanLast.setBounds(0, 15, 80, 20);
+	}
+
+	private void configureLayout() {
+		setLayout(new GridLayout(1, false));
+		GridData layoutData = new GridData();
+		layoutData.grabExcessHorizontalSpace = true;
+		layoutData.grabExcessVerticalSpace = true;
+		//layoutData.verticalIndent = 10;
+		setLayoutData(layoutData);
 	}
 	
 	private Composite createTableViewerComposite() {
