@@ -1,6 +1,5 @@
 package com.gluster.storage.management.core.utils;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ValidationUtil {
@@ -23,7 +22,16 @@ public class ValidationUtil {
 			isValid = false;
 		}
 
-		for (int i = 0; i < ipAddress.length && isValid; i++) {
+		int iterator=ipAddress.length-1;
+		
+		if (ipAddress.length <= 4 && ipAddress[ipAddress.length - 1].equals("*")) {
+			iterator = ipAddress.length - 2;
+		} else if (ipAddress.length < 4 || ipAddress.length > 4 ){
+			isValid = false;
+			iterator = ipAddress.length - 1;
+		}
+
+		for (int i = 0; i <= iterator && isValid; i++) {
 			if (ipAddress[i].equals("*")) {
 				isValid = (i == ipAddress.length - 1) ? isValid : false;
 			} else {
@@ -40,7 +48,9 @@ public class ValidationUtil {
 		if (ip.equals("0.0.0.0") || ip.equals("255.255.255.255")) { // Invalidate the special ip's
 			isValid = false;
 		}
-
+		if (ipAddress.length < 4) {
+			isValid = false;
+		}
 		for (int i = 0; i < ipAddress.length && isValid; i++) {
 			isValid = isValidIpQuad(ipAddress[i]);
 		}
@@ -60,9 +70,11 @@ public class ValidationUtil {
 
 	public static void main(String[] argv) {
 		String ip = "0.0.0.0";
-		System.out.println("Is valid ip (" + ip + ")? " + isValidIp(ip));
-		String hostName = "Selvam-sd.com";
-		System.out.println(isValidHostName(hostName));
+		// System.out.println("Is valid ip (" + ip + ")? " + isValidIp(ip));
+		String hostName = "myhost.q";
+		// System.out.println(isValidHostName(hostName));
+		// System.out.println(isValidHostName(hostName));
+		System.out.println(isValidAccessControl(hostName));
 	}
 
 }

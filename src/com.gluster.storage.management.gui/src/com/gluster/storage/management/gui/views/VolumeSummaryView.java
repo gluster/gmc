@@ -211,17 +211,20 @@ public class VolumeSummaryView extends ViewPart {
 		guiHelper.setStatusMessage("Setting access control list to [" + newACL + "]...");
 		parent.update();
 		
-		if (!newACL.equals(volume.getAccessControlList()) && ValidationUtil.isValidAccessControl(newACL)) {
-			BusyIndicator.showWhile(Display.getDefault(), new Runnable() {				
+		if (newACL.equals(volume.getAccessControlList())) {
+			accessControlText.setEnabled(false);
+			changeLink.setText("change");
+		} else if (ValidationUtil.isValidAccessControl(newACL)) {
+			BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
 				@Override
 				public void run() {
 					Status status = (new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken()))
-					.setVolumeOption(volume.getName(), Volume.OPTION_AUTH_ALLOW, newACL);
-					
+							.setVolumeOption(volume.getName(), Volume.OPTION_AUTH_ALLOW, newACL);
+
 					if (status.isSuccess()) {
 						accessControlText.setEnabled(false);
 						changeLink.setText("change");
-						
+
 						GlusterDataModelManager.getInstance().setAccessControlList(volume, newACL);
 					} else {
 						MessageDialog.openError(Display.getDefault().getActiveShell(), "Access control",
@@ -230,8 +233,7 @@ public class VolumeSummaryView extends ViewPart {
 				}
 			});
 		} else {
-			MessageDialog.openError(Display.getDefault().getActiveShell(), "Access control",
-					"Invalid IP / Host name ");
+			MessageDialog.openError(Display.getDefault().getActiveShell(), "Access control", "Invalid IP / Host name ");
 		}
 		guiHelper.clearStatusMessage();
 		parent.update();
