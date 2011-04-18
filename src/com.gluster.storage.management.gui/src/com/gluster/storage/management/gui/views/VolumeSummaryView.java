@@ -158,14 +158,16 @@ public class VolumeSummaryView extends ViewPart {
 
 	private GridData createDefaultLayoutData() {
 		GridData layoutData = new GridData();
-		layoutData.minimumWidth = 150;
-		layoutData.widthHint = 150;
+		layoutData.minimumWidth = 300;
+		layoutData.widthHint = 300;
 		return layoutData;
 	}
+	
 
 	private void createAccessControlField(Composite section) {
 		toolkit.createLabel(section, "Access Control: ", SWT.NONE);
 		accessControlText = toolkit.createText(section, volume.getAccessControlList());
+	
 		populateAccessControlText();
 		addKeyListerForAccessControl();
 		accessControlText.setLayoutData(createDefaultLayoutData());
@@ -175,6 +177,15 @@ public class VolumeSummaryView extends ViewPart {
 		// error decoration used while validating the access control text
 		errDecoration = guiHelper.createErrorDecoration(accessControlText);
 		errDecoration.hide();
+		createAccessControlInfoLabel(section); // info text
+	}
+	
+	private void createAccessControlInfoLabel(Composite section) {
+		toolkit.createLabel(section, "", SWT.NONE);
+		Label accessControlInfoLabel = toolkit.createLabel(section, "(Comma separated list of IP addresses/hostnames)");
+		GridData data = new GridData(SWT.LEFT, SWT.CENTER, true, false);
+		data.horizontalSpan = 2;
+		accessControlInfoLabel.setLayoutData(data);
 	}
 
 	private void createChangeLinkForAccessControl(Composite section) {
