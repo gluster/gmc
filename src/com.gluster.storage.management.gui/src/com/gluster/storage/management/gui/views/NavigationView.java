@@ -90,13 +90,7 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 			@Override
 			public void volumeChanged(Volume volume, Event event) {
 				super.volumeChanged(volume, event);
-				selectEntity(volume); // this makes sure that the toolbar buttons get updated accoring to new status
-			}
-			
-			@Override
-			public void volumeCreated(Volume volume) {
-				super.volumeCreated(volume);
-				selectEntity(volume);
+				selectEntity(volume); // this makes sure that the toolbar buttons get updated according to new status
 			}
 		});
 	}

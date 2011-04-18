@@ -288,7 +288,7 @@ public class GlusterDataModelManager {
 		List<Disk> allDisks = getReadyDisksOfAllServers();
 		String brickInfo[] = volumeDisk.split(":");
 		for (Disk disk : allDisks) {
-			if (disk.getServerName() == brickInfo[0] && disk.getName() == brickInfo[1]) {
+			if (disk.getServerName().equals(brickInfo[0]) && disk.getName().equals(brickInfo[1])) {
 				return disk;
 			}
 		}

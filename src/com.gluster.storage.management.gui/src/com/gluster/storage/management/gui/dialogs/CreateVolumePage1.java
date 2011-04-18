@@ -50,7 +50,7 @@ import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
-import com.gluster.storage.management.core.response.VolumeListResponse;
+import com.gluster.storage.management.core.utils.ValidationUtil;
 
 public class CreateVolumePage1 extends WizardPage {
 	public static final String PAGE_NAME = "create.volume.page.1";
@@ -309,21 +309,6 @@ public class CreateVolumePage1 extends WizardPage {
 		return true;
 	}
 	
-	private Boolean isValidIP(String ip) {
-		// String pattern = "^.[0-9]{1,3}/..[0-9]{1,3}/..[0-9]{1,3}/..[0-9]{1,3}";
-		String pattern = "^.[0-9]{1,3}/.";
-		if (ip == "*") {
-			return true;
-		}
-		String[] ipQuads = ip.split(".");
-		for (String quad : ipQuads) {
-			if (!quad.matches(pattern)) {
-				return false;
-			}
-		}
-		return true;		
-	}
-
 	private void validateForm() {
 		clearErrors();
 		validateVolumeName();
@@ -337,26 +322,25 @@ public class CreateVolumePage1 extends WizardPage {
 		if(diskCount  < 1) {
 			setError("At least one disk must be selected!");
 		}
-		
-		String volumeType = (String)((IStructuredSelection)typeComboViewer.getSelection()).getFirstElement();
-		if (volumeType.equals(VOLUME_TYPE.DISTRIBUTED_MIRROR) && (diskCount % 2 != 0)) {
+
+		String volumeType = Volume.getVolumeTypeStr((VOLUME_TYPE) ((IStructuredSelection) typeComboViewer
+				.getSelection()).getFirstElement());
+		if (volumeType.equals(Volume.getVolumeTypeStr(VOLUME_TYPE.DISTRIBUTED_MIRROR)) && (diskCount % 2 != 0)) {
 			setError("Mirror type volume requires disks in multiples of two");
-		} else if(volumeType.equals(VOLUME_TYPE.DISTRIBUTED_STRIPE) && (diskCount % 4 != 0)) {
+		} else if (volumeType.equals(Volume.getVolumeTypeStr(VOLUME_TYPE.DISTRIBUTED_STRIPE)) && (diskCount % 4 != 0)) {
 			setError("Stripe type volume requires disks in multiples of four");
 		}
 	}
-
+	
 	private void validateAccessControl() {
 		String accessControl = txtAccessControl.getText().trim();
-		if(accessControl.length() == 0) {
+		if (accessControl.length() == 0) {
 			setError("Please enter Access Control");
+			return;
 		}
-		// acl validation
-		String[] aclList = accessControl.split(",");
-		for (String ip : aclList) {
-			if (!isValidIP(ip)) {
-				setError("Please enter valid access control list");
-			} 
+		
+		if (!ValidationUtil.isValidAccessControl(accessControl)) {
+			setError("Access control list must be a comma separated list of IP addresses/Host names. Please enter a valid value!");
 		}
 	}
 
