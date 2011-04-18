@@ -52,6 +52,7 @@ public class OptionKeyEditingSupport extends EditingSupport {
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void setValue(final Object element, final Object value) {
+		Entry<String, String> oldEntry = (Entry<String, String>)element;
 		Integer newValue = (Integer)value;
 		String newKey = allowedKeys[newValue];
 		
@@ -61,7 +62,7 @@ public class OptionKeyEditingSupport extends EditingSupport {
 		}
 
 		// value has changed. set volume option at back-end and update model accordingly
-		volume.getOptions().remove("");
+		volume.getOptions().remove(oldEntry.getKey());
 		volume.setOption(newKey, "");
 		getViewer().refresh();
 	}
