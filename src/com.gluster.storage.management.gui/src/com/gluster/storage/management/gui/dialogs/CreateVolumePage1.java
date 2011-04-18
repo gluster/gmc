@@ -323,11 +323,11 @@ public class CreateVolumePage1 extends WizardPage {
 			setError("At least one disk must be selected!");
 		}
 
-		String volumeType = Volume.getVolumeTypeStr((VOLUME_TYPE) ((IStructuredSelection) typeComboViewer
-				.getSelection()).getFirstElement());
-		if (volumeType.equals(Volume.getVolumeTypeStr(VOLUME_TYPE.DISTRIBUTED_MIRROR)) && (diskCount % 2 != 0)) {
+		VOLUME_TYPE volumeType = (VOLUME_TYPE) ((IStructuredSelection) typeComboViewer
+				.getSelection()).getFirstElement();
+		if (volumeType == VOLUME_TYPE.DISTRIBUTED_MIRROR && diskCount % 2 != 0) {
 			setError("Mirror type volume requires disks in multiples of two");
-		} else if (volumeType.equals(Volume.getVolumeTypeStr(VOLUME_TYPE.DISTRIBUTED_STRIPE)) && (diskCount % 4 != 0)) {
+		} else if (volumeType == VOLUME_TYPE.DISTRIBUTED_STRIPE && diskCount % 4 != 0) {
 			setError("Stripe type volume requires disks in multiples of four");
 		}
 	}
