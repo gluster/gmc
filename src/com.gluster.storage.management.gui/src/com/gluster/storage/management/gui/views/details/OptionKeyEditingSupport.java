@@ -4,6 +4,7 @@
 package com.gluster.storage.management.gui.views.details;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -71,7 +72,12 @@ public class OptionKeyEditingSupport extends EditingSupport {
 
 	@Override
 	protected Object getValue(Object element) {
-		return cellEditor.getValue();
+		Entry<String, String> entryBeingAdded = getEntryBeingAdded();
+		if(entryBeingAdded == null) {
+			return cellEditor.getValue();
+		}
+		
+		return getIndexOfEntry(entryBeingAdded);
 	}
 
 	@Override
@@ -79,6 +85,29 @@ public class OptionKeyEditingSupport extends EditingSupport {
 		allowedKeys = getAllowedKeys();
 		cellEditor = new ComboBoxCellEditor((Composite) viewer.getControl(), allowedKeys);
 		return cellEditor;
+	}
+
+	private int getIndexOfEntry(Entry<String, String> entryBeingAdded) {
+		for(int index = 0; index < allowedKeys.length; index++) {
+			if(allowedKeys[index].equals(entryBeingAdded.getKey())) {
+				return index;
+			}
+		}
+		return -1;
+	}
+
+	private Entry<String, String> getEntryBeingAdded() {
+		Entry<String, String> entryBeingAdded = null;
+		Iterator<Entry<String, String>> iter = volume.getOptions().entrySet().iterator();
+		while(iter.hasNext()) {
+			Entry<String, String> nextEntry = iter.next();
+			if(!iter.hasNext() && nextEntry.getValue().isEmpty()) {
+				// it's the LAST entry, and it's value is empty.
+				// means this is a new row being added in the table viewer.
+				entryBeingAdded = nextEntry;
+			}
+		}
+		return entryBeingAdded;
 	}
 
 	@SuppressWarnings("unchecked")

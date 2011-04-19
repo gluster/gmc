@@ -91,14 +91,6 @@ public class VolumeOptionsPage extends Composite {
 		registerListeners(parent);
 	}
 
-	/**
-	 * @return
-	 */
-	private DefaultClusterListener createClusterListener() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	private void createAddButton() {
 		addButton = toolkit.createButton(this, "&Add", SWT.FLAT);
 		addButton.addSelectionListener(new SelectionAdapter() {
@@ -210,6 +202,7 @@ public class VolumeOptionsPage extends Composite {
 		valueColumn.getColumn()
 				.setText(OPTIONS_TABLE_COLUMN_NAMES[OPTIONS_TABLE_COLUMN_INDICES.OPTION_VALUE.ordinal()]);
 		valueColumn.setLabelProvider(new ColumnLabelProvider() {
+			@SuppressWarnings("unchecked")
 			@Override
 			public String getText(Object element) {
 				return ((Entry<String, String>) element).getValue();
@@ -226,6 +219,7 @@ public class VolumeOptionsPage extends Composite {
 		TableViewerColumn keyColumn = new TableViewerColumn(tableViewer, SWT.NONE);
 		keyColumn.getColumn().setText(OPTIONS_TABLE_COLUMN_NAMES[OPTIONS_TABLE_COLUMN_INDICES.OPTION_KEY.ordinal()]);
 		keyColumn.setLabelProvider(new ColumnLabelProvider() {
+			@SuppressWarnings("unchecked")
 			@Override
 			public String getText(Object element) {
 				return ((Entry<String, String>) element).getKey();
@@ -234,8 +228,12 @@ public class VolumeOptionsPage extends Composite {
 			@SuppressWarnings("unchecked")
 			@Override
 			public String getToolTipText(Object element) {
-				VolumeOptionInfo optionInfo = GlusterDataModelManager.getInstance().getVolumeOptionInfo(
-						((Entry<String, String>) element).getKey());
+				String key = ((Entry<String, String>) element).getKey();
+				if(key.isEmpty()) {
+					return "Click to select a volume option key";
+				}
+				
+				VolumeOptionInfo optionInfo = GlusterDataModelManager.getInstance().getVolumeOptionInfo(key);
 				return optionInfo.getDescription() + CoreConstants.NEWLINE + "Default value: "
 						+ optionInfo.getDefaultValue();
 			}
