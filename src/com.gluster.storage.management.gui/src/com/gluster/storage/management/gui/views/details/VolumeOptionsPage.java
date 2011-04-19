@@ -36,6 +36,8 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -71,6 +73,7 @@ public class VolumeOptionsPage extends Composite {
 
 	private static final String[] OPTIONS_TABLE_COLUMN_NAMES = new String[] { "Option Key", "Option Value" };
 	private Button addButton;
+	private TableViewerColumn keyColumn;
 
 	public VolumeOptionsPage(final Composite parent, int style, Volume volume) {
 		super(parent, style);
@@ -101,6 +104,7 @@ public class VolumeOptionsPage extends Composite {
 				
 				tableViewer.refresh();
 				tableViewer.setSelection(new StructuredSelection(getEntry("")));
+				keyColumn.getViewer().editElement(getEntry(""), 0); // edit newly created entry				
 				
 				// disable the add button till user fills up the new option
 				addButton.setEnabled(false);
@@ -216,7 +220,7 @@ public class VolumeOptionsPage extends Composite {
 	}
 
 	private TableColumn createKeyColumn() {
-		TableViewerColumn keyColumn = new TableViewerColumn(tableViewer, SWT.NONE);
+		keyColumn = new TableViewerColumn(tableViewer, SWT.NONE);
 		keyColumn.getColumn().setText(OPTIONS_TABLE_COLUMN_NAMES[OPTIONS_TABLE_COLUMN_INDICES.OPTION_KEY.ordinal()]);
 		keyColumn.setLabelProvider(new ColumnLabelProvider() {
 			@SuppressWarnings("unchecked")

@@ -13,6 +13,7 @@ import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.ComboBoxCellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
@@ -77,13 +78,18 @@ public class OptionKeyEditingSupport extends EditingSupport {
 			return cellEditor.getValue();
 		}
 		
+		if(entryBeingAdded.getKey().isEmpty()) {
+			// editing just about to start. set first element as default.
+			return 0;
+		}
+		
 		return getIndexOfEntry(entryBeingAdded);
 	}
 
 	@Override
 	protected CellEditor getCellEditor(Object element) {
 		allowedKeys = getAllowedKeys();
-		cellEditor = new ComboBoxCellEditor((Composite) viewer.getControl(), allowedKeys);
+		cellEditor = new ComboBoxCellEditor((Composite) viewer.getControl(), allowedKeys, SWT.READ_ONLY);
 		return cellEditor;
 	}
 
