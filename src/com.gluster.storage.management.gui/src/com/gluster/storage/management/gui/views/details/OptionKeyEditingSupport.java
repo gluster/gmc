@@ -42,7 +42,9 @@ public class OptionKeyEditingSupport extends EditingSupport {
 		Map<String, String> volumeOptions = volume.getOptions();
 		for(VolumeOptionInfo optionInfo : defaults) {
 			String optionName = optionInfo.getName();
-			if(!volumeOptions.containsKey(optionName)) {
+			if(!volumeOptions.containsKey(optionName) || volumeOptions.get(optionName).isEmpty()) {
+				// key not set => available for setting
+				// value not set => this is the row being edited
 				keys.add(optionName);
 			}
 		}
@@ -61,7 +63,7 @@ public class OptionKeyEditingSupport extends EditingSupport {
 			return;
 		}
 
-		// value has changed. set volume option at back-end and update model accordingly
+		// value has changed. set new value and refresh the viewer.
 		volume.getOptions().remove(oldEntry.getKey());
 		volume.setOption(newKey, "");
 		getViewer().refresh();
