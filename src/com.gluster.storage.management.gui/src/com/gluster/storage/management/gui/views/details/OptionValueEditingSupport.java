@@ -45,9 +45,6 @@ public class OptionValueEditingSupport extends EditingSupport {
 		final String optionValue = (String)value;
 		final String oldValue = entry.getValue();
 
-		guiHelper.setStatusMessage("Setting option [" + optionKey + " = " + optionValue + "]...");
-		getViewer().getControl().update();
-		
 		// It is not allowed to change value to empty string
 		if(optionValue.isEmpty()) {
 			MessageDialog.openError(Display.getDefault().getActiveShell(), "Set Volume Option",
@@ -62,6 +59,9 @@ public class OptionValueEditingSupport extends EditingSupport {
 		}
 		
 		// value has changed. set volume option at back-end and update model accordingly
+		guiHelper.setStatusMessage("Setting option [" + optionKey + " = " + optionValue + "]...");
+		getViewer().getControl().update();
+		
 		BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
 
 			@Override
