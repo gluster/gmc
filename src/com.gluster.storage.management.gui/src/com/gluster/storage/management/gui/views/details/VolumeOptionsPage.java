@@ -147,6 +147,20 @@ public class VolumeOptionsPage extends Composite {
 			}
 		});
 		
+		parent.addDisposeListener(new DisposeListener() {
+			
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				if(!addButton.isEnabled()) {
+					// user has selected key, but not added value. Since this is not a valid entry,
+					// remove the last option (without value) from the volume
+					Entry<String, String> entryBeingAdded = keyEditingSupport.getEntryBeingAdded();
+					volume.getOptions().remove(entryBeingAdded.getKey());
+				}
+			}
+		});
+
+		
 		clusterListener = new DefaultClusterListener() {
 			@SuppressWarnings("unchecked")
 			@Override
