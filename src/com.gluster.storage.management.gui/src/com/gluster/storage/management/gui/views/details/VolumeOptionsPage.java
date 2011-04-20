@@ -85,7 +85,7 @@ public class VolumeOptionsPage extends Composite {
 		toolkit.paintBordersFor(this);
 
 		setupPageLayout();
-		setupDiskTableViewer(guiHelper.createFilterText(toolkit, this));
+		setupOptionsTableViewer(guiHelper.createFilterText(toolkit, this));
 		
 		createAddButton();
 
@@ -180,7 +180,7 @@ public class VolumeOptionsPage extends Composite {
 		setLayout(layout);
 	}
 
-	private void setupDiskTable(Composite parent) {
+	private void setupOptionsTable(Composite parent) {
 		Table table = tableViewer.getTable();
 		table.setHeaderVisible(true);
 		table.setLinesVisible(false);
@@ -251,12 +251,13 @@ public class VolumeOptionsPage extends Composite {
 		return keyColumn.getColumn();
 	}
 
-	private void createDiskTableViewer(Composite parent) {
+	private void createOptionsTableViewer(Composite parent) {
 		tableViewer = new TableViewer(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.SINGLE);
 		tableViewer.setLabelProvider(new VolumeOptionsTableLabelProvider());
 		tableViewer.setContentProvider(new ArrayContentProvider());
+		tableViewer.getTable().setLinesVisible(true);
 
-		setupDiskTable(parent);
+		setupOptionsTable(parent);
 	}
 
 	private Composite createTableViewerComposite() {
@@ -266,23 +267,15 @@ public class VolumeOptionsPage extends Composite {
 		return tableViewerComposite;
 	}
 
-	private void setupDiskTableViewer(final Text filterText) {
+	private void setupOptionsTableViewer(final Text filterText) {
 		Composite tableViewerComposite = createTableViewerComposite();
-		createDiskTableViewer(tableViewerComposite);
+		createOptionsTableViewer(tableViewerComposite);
 		ColumnViewerToolTipSupport.enableFor(tableViewer);
 		// Create a case insensitive filter for the table viewer using the filter text field
 		guiHelper.createFilter(tableViewer, filterText, false);
 	}
 
-	/**
-	 * Sets properties for alignment and weight of given column of given table
-	 * 
-	 * @param table
-	 * @param columnIndex
-	 * @param alignment
-	 * @param weight
-	 */
-	public void setColumnProperties(Table table, OPTIONS_TABLE_COLUMN_INDICES columnIndex, int alignment, int weight) {
+	private void setColumnProperties(Table table, OPTIONS_TABLE_COLUMN_INDICES columnIndex, int alignment, int weight) {
 		TableColumn column = table.getColumn(columnIndex.ordinal());
 		column.setAlignment(alignment);
 
