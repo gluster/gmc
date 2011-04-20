@@ -20,6 +20,7 @@ package com.gluster.storage.management.gui.views.details;
 
 import java.util.Map.Entry;
 
+import org.apache.commons.lang.WordUtils;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -238,7 +239,8 @@ public class VolumeOptionsPage extends Composite {
 				}
 				
 				VolumeOptionInfo optionInfo = GlusterDataModelManager.getInstance().getVolumeOptionInfo(key);
-				return optionInfo.getDescription() + CoreConstants.NEWLINE + "Default value: "
+				// Wrap the description before adding to tooltip so that long descriptions are displayed properly 
+				return WordUtils.wrap(optionInfo.getDescription(), 60) + CoreConstants.NEWLINE + "Default value: "
 						+ optionInfo.getDefaultValue();
 			}
 		});
