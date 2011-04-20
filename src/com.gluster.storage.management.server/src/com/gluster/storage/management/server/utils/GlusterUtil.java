@@ -48,11 +48,13 @@ public class GlusterUtil {
 	private static final String VOLUME_NAME_PFX = "Volume Name:";
 	private static final String VOLUME_TYPE_PFX = "Type:";
 	private static final String VOLUME_STATUS_PFX = "Status:";
+	private static final String VOLUME_NUMBER_OF_BRICKS = "Number of Bricks:";
 	private static final String VOLUME_TRANSPORT_TYPE_PFX = "Transport-type:";
 	private static final String VOLUME_BRICKS_GROUP_PFX = "Bricks";
 	private static final String VOLUME_OPTIONS_RECONFIG_PFX = "Options Reconfigured";
 	private static final String VOLUME_OPTION_AUTH_ALLOW = "auth.allow:";
-
+	private static final String VOLUME_TYPE_DISTRIBUTE = "Distribute";
+	private static final String VOLUME_TYPE_REPLICATE = "Replicate";
 	private static final ProcessUtil processUtil = new ProcessUtil();
 
 	/**
@@ -168,23 +170,22 @@ public class GlusterUtil {
 		VOLUME_TYPE volType = volume.getVolumeType();
 		if (volType == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
 			volumeType = "replica";
-			count = 2;
+			count = volume.getReplicaCount();
 		} else if (volType == VOLUME_TYPE.DISTRIBUTED_STRIPE) {
 			volumeType = "stripe";
-			count = 4;
+			count = volume.getStripeCount();
 		}
 
 		String transportTypeStr = null;
 		TRANSPORT_TYPE transportType = volume.getTransportType();
 		transportTypeStr = (transportType == TRANSPORT_TYPE.ETHERNET) ? "tcp" : "rdma";
-
 		List<String> command = prepareVolumeCreateCommand(volume, bricks, count, volumeType, transportTypeStr);
 		ProcessResult result = processUtil.executeCommand(command);
-		if(!result.isSuccess()) {
+		if (!result.isSuccess()) {
 			// TODO: Perform cleanup on all nodes before returning
 			return new Status(result);
 		}
-		
+
 		return createOptions(volume);
 	}
 
@@ -235,7 +236,7 @@ public class GlusterUtil {
 	public Status deleteVolume(String volumeName) {
 		return new Status(processUtil.executeCommand("gluster", "--mode=script", "volume", "delete", volumeName));
 	}
-	
+
 	private String getVolumeInfo(String volumeName) {
 		ProcessResult result = new ProcessUtil().executeCommand("gluster", "volume", "info", volumeName);
 		if (!result.isSuccess()) {
@@ -253,17 +254,38 @@ public class GlusterUtil {
 		}
 		return result.getOutput();
 	}
-	
+
 	private boolean readVolumeType(Volume volume, String line) {
 		String volumeType = extractToken(line, VOLUME_TYPE_PFX);
 		if (volumeType != null) {
-			volume.setVolumeType((volumeType.equals("Distribute")) ? VOLUME_TYPE.PLAIN_DISTRIBUTE
-					: VOLUME_TYPE.DISTRIBUTED_MIRROR); // TODO: for Stripe
+			if (volumeType.equals(VOLUME_TYPE_DISTRIBUTE)) {
+				volume.setVolumeType(VOLUME_TYPE.PLAIN_DISTRIBUTE);
+			} else if (volumeType.equals(VOLUME_TYPE_REPLICATE)) {
+				volume.setVolumeType(VOLUME_TYPE.DISTRIBUTED_MIRROR);
+				volume.setReplicaCount(Volume.DEFAULT_REPLICA_COUNT);
+			} else {
+				volume.setVolumeType(VOLUME_TYPE.DISTRIBUTED_STRIPE);
+				volume.setStripeCount(Volume.DEFAULT_STRIPE_COUNT);
+			}
 			return true;
 		}
 		return false;
 	}
-	
+
+	private void readReplicaOrStripeCount(Volume volume, String line) {
+		if (extractToken(line, "x") != null) {
+			// expected formated of line is "Number of Bricks: 3 x 2 = 6"
+			int count = Integer.parseInt(line.split("x")[1].split("=")[0].trim());
+			if (volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_STRIPE) {
+				volume.setStripeCount(count);
+			} else if (volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
+				volume.setReplicaCount(count);
+				volume.setStripeCount(0);
+			} 
+		}
+		return;
+	}
+
 	private boolean readVolumeStatus(Volume volume, String line) {
 		String volumeStatus = extractToken(line, VOLUME_STATUS_PFX);
 		if (volumeStatus != null) {
@@ -272,17 +294,16 @@ public class GlusterUtil {
 		}
 		return false;
 	}
-	
+
 	private boolean readTransportType(Volume volume, String line) {
 		String transportType = extractToken(line, VOLUME_TRANSPORT_TYPE_PFX);
 		if (transportType != null) {
-			volume.setTransportType(transportType.equals("tcp") ? TRANSPORT_TYPE.ETHERNET
-					: TRANSPORT_TYPE.INFINIBAND);
+			volume.setTransportType(transportType.equals("tcp") ? TRANSPORT_TYPE.ETHERNET : TRANSPORT_TYPE.INFINIBAND);
 			return true;
 		}
 		return false;
 	}
-	
+
 	private boolean readBrick(Volume volume, String line) {
 		if (line.matches("Brick[0-9]+:.*")) {
 			// line: "Brick1: server1:/export/md0/volume-name"
@@ -292,11 +313,11 @@ public class GlusterUtil {
 			// brick directory should be of the form /export/<diskname>/volume-name
 			try {
 				volume.addDisk(serverName + ":" + brickDir.split("/")[2].trim());
-			} catch(ArrayIndexOutOfBoundsException e) {
+			} catch (ArrayIndexOutOfBoundsException e) {
 				// brick directory of a different form, most probably created manually
 				// connect to the server and get disk for the brick directory
 				Status status = new ServerUtil().getDiskForDir(serverName, brickDir);
-				if(status.isSuccess()) {
+				if (status.isSuccess()) {
 					volume.addDisk(serverName + ":" + status.getMessage());
 				} else {
 					// Couldn't fetch disk for the brick directory. Log error and add "unknown" as disk name.
@@ -308,15 +329,15 @@ public class GlusterUtil {
 		}
 		return false;
 	}
-	
+
 	private boolean readBrickGroup(String line) {
-		return extractToken(line, VOLUME_BRICKS_GROUP_PFX) != null;			
+		return extractToken(line, VOLUME_BRICKS_GROUP_PFX) != null;
 	}
-	
+
 	private boolean readOptionReconfigGroup(String line) {
 		return extractToken(line, VOLUME_OPTIONS_RECONFIG_PFX) != null;
 	}
-	
+
 	private boolean readOption(Volume volume, String line) {
 		if (line.matches("^[^:]*:.*$")) {
 			int index = line.indexOf(':');
@@ -328,7 +349,7 @@ public class GlusterUtil {
 
 	public Volume getVolume(String volumeName) {
 		List<Volume> volumes = parseVolumeInfo(getVolumeInfo(volumeName));
-		if(volumes.size() > 0) {
+		if (volumes.size() > 0) {
 			return volumes.get(0);
 		}
 		return null;
@@ -348,7 +369,6 @@ public class GlusterUtil {
 			String volumeName = extractToken(line, VOLUME_NAME_PFX);
 			if (volumeName != null) {
 				if (volume != null) {
-					
 					volumes.add(volume);
 				}
 
@@ -361,11 +381,13 @@ public class GlusterUtil {
 
 			if (readVolumeType(volume, line))
 				continue;
+			if (extractToken(line, VOLUME_NUMBER_OF_BRICKS) != null) {
+				readReplicaOrStripeCount(volume, line);
+			}
 			if (readVolumeStatus(volume, line))
 				continue;
-			if(readTransportType(volume, line))
+			if (readTransportType(volume, line))
 				continue;
-			
 			if (readBrickGroup(line)) {
 				isBricksGroupFound = true;
 				continue;
@@ -385,7 +407,7 @@ public class GlusterUtil {
 			}
 
 			if (isOptionReconfigFound) {
-				if(readOption(volume, line)) {
+				if (readOption(volume, line)) {
 					continue;
 				} else {
 					isOptionReconfigFound = false;
@@ -399,8 +421,23 @@ public class GlusterUtil {
 		return volumes;
 	}
 
+	public Status addBricks(String volumeName, List<String> bricks) {
+		List<String> command = new ArrayList<String>();
+		command.add("gluster");
+		command.add("volume");
+		command.add("add-brick");
+		command.add(volumeName);
+		command.addAll(bricks);
+		return new Status(processUtil.executeCommand(command));
+	}
+
 	public static void main(String args[]) {
 		// List<String> names = new GlusterUtil().getGlusterServerNames();
 		// System.out.println(names);
+		List<String> disks = new ArrayList<String>();
+		disks.add("server1:sda");
+		disks.add("server1:sdb");
+		Status status = new GlusterUtil().addBricks("Volume3", disks);
+		System.out.println(status);
 	}
 }

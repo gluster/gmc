@@ -24,12 +24,14 @@ import static com.gluster.storage.management.core.constants.RESTConstants.FORM_P
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_START;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_STOP;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_VOLUME_NAME;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DELETE_OPTION;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DISKS;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DISK_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_LINE_COUNT;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_VOLUME_NAME;
-import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DELETE_OPTION;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_VOLUMES;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS;
+import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DISKS;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_LOGS;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_OPTIONS;
 
@@ -218,17 +220,20 @@ public class VolumesResource {
 			String[] diskParts = disk.split(":");
 			String serverName = diskParts[0];
 			String diskName = diskParts[1];
-
-			status = prepareBrick(serverName, diskName, volumeName);
+			try {
+				status = prepareBrick(serverName, diskName, volumeName);
+			} catch (Exception e) {
+				status = new Status(e);
+			}
 			if (status.isSuccess()) {
-				String brickDir = status.getMessage().trim().replace(CoreConstants.NEWLINE, "");
+				String brickDir = status.getMessage().trim();
 				bricks.add(serverName + ":" + brickDir);
 			} else {
 				// Brick preparation failed. Cleanup directories already created and return failure status
 				Status cleanupStatus = cleanupDirectories(disks, volumeName, i + 1);
 				if (!cleanupStatus.isSuccess()) {
 					// append cleanup error to prepare brick error
-					status.setMessage(status.getMessage() + CoreConstants.NEWLINE + status.getMessage());
+					status.setMessage(status.getMessage() + CoreConstants.NEWLINE + cleanupStatus.getMessage());
 				}
 				return status;
 			}
@@ -237,6 +242,7 @@ public class VolumesResource {
 		return status;
 	}
 
+	//TODO Can be removed and use StringUtil.ListToString(List<String> list, String delimiter)
 	private String bricksAsString(List<String> bricks) {
 		String bricksStr = "";
 		for (String brickInfo : bricks) {
@@ -245,6 +251,7 @@ public class VolumesResource {
 		return bricksStr.trim();
 	}
 
+	@SuppressWarnings("rawtypes")
 	private Status cleanupDirectories(List<String> disks, String volumeName, int maxIndex) {
 		String serverName, diskName, diskInfo[];
 		Status result;
@@ -252,8 +259,8 @@ public class VolumesResource {
 			diskInfo = disks.get(i).split(":");
 			serverName = diskInfo[0];
 			diskName = diskInfo[1];
-			result = (Status) serverUtil.executeOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
-					+ diskName + " " + volumeName, Status.class);
+			result = ((GenericResponse) serverUtil.executeOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
+					+ diskName + " " + volumeName, GenericResponse.class)).getStatus();
 			if (!result.isSuccess()) {
 				return result;
 			}
@@ -309,6 +316,26 @@ public class VolumesResource {
 		}
 
 		return new LogMessageListResponse(Status.STATUS_SUCCESS, logMessages);
+	}
+	
+	@POST
+	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_DISKS)
+	public Status addDisks(@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName, @FormParam(QUERY_PARAM_DISKS) String disks) {
+		
+		List<String> diskList = Arrays.asList( disks.split(",") ); // Convert from comma separated sting (query parameter) to list
+		Status status = createDirectories(diskList, volumeName);
+		if (status.isSuccess()) {
+			List<String> bricks = Arrays.asList(status.getMessage().split(" "));
+			status = glusterUtil.addBricks(volumeName, bricks);
+			if (!status.isSuccess()) {
+				Status cleanupStatus = cleanupDirectories(diskList, volumeName, diskList.size());
+				if (!cleanupStatus.isSuccess()) {
+					// append cleanup error to prepare brick error
+					status.setMessage(status.getMessage() + CoreConstants.NEWLINE + cleanupStatus.getMessage());
+				}
+			}
+		} 
+		return status;
 	}
 
 	public static void main(String[] args) throws ClassNotFoundException {

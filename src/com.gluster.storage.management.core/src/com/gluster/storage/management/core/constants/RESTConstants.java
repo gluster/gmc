@@ -29,6 +29,7 @@ public class RESTConstants {
 	public static final String SUBRESOURCE_DEFAULT_OPTIONS = "defaultoptions";
 	public static final String SUBRESOURCE_OPTIONS = "options";
 	public static final String SUBRESOURCE_LOGS = "logs";
+	public static final String SUBRESOURCE_DISKS = "disks";
 	
 	
 	public static final String FORM_PARAM_OPERATION = "operation";
@@ -41,6 +42,7 @@ public class RESTConstants {
 	public static final String FORM_PARAM_DELETE_OPTION = "value";
 	
 	public static final String QUERY_PARAM_DISK_NAME = "diskName";
+	public static final String QUERY_PARAM_DISKS = "disks";
 	public static final String QUERY_PARAM_LINE_COUNT = "lineCount";
 	public static final String QUERY_PARAM_VOLUME_NAME = "volumeName";
 	public static final String QUERY_PARAM_DELETE_OPTION = "deleteOption";

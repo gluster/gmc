@@ -49,6 +49,10 @@ public class Volume extends Entity {
 		GLUSTERFS, NFS
 	};
 
+	
+	public static final int DEFAULT_REPLICA_COUNT = 2;
+	public static final int DEFAULT_STRIPE_COUNT = 4;
+	
 	public static final String OPTION_AUTH_ALLOW = "auth.allow";
 
 	private static final String[] VOLUME_TYPE_STR = new String[] { "Plain Distribute", "Distributed Mirror",
@@ -104,9 +108,9 @@ public class Volume extends Entity {
 		// TODO find a way to get the replica / strip count
 		if (volumeType == VOLUME_TYPE.DISTRIBUTED_STRIPE) {
 			setReplicaCount(0);
-			setStripeCount(3);
+			setStripeCount(DEFAULT_STRIPE_COUNT);
 		} else if (volumeType == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
-			setReplicaCount(2);
+			setReplicaCount(DEFAULT_REPLICA_COUNT);
 			setStripeCount(0);
 		} else {
 			setReplicaCount(0);
