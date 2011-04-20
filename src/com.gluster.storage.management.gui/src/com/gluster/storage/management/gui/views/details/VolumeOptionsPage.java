@@ -37,8 +37,6 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -75,6 +73,7 @@ public class VolumeOptionsPage extends Composite {
 	private static final String[] OPTIONS_TABLE_COLUMN_NAMES = new String[] { "Option Key", "Option Value" };
 	private Button addButton;
 	private TableViewerColumn keyColumn;
+	private OptionKeyEditingSupport keyEditingSupport;
 
 	public VolumeOptionsPage(final Composite parent, int style, Volume volume) {
 		super(parent, style);
@@ -125,6 +124,12 @@ public class VolumeOptionsPage extends Composite {
 	private void registerListeners(final Composite parent) {
 		addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
+				if(!addButton.isEnabled()) {
+					// user has selected key, but not added value. Since this is not a valid entry,
+					// remove the last option (without value) from the volume
+					volume.getOptions().remove(keyEditingSupport.getEntryBeingAdded().getKey());
+				}
+
 				GlusterDataModelManager.getInstance().removeClusterListener(clusterListener);
 				toolkit.dispose();
 			}
@@ -246,7 +251,8 @@ public class VolumeOptionsPage extends Composite {
 		});
 		
 		// Editing support required when adding new key
-		keyColumn.setEditingSupport(new OptionKeyEditingSupport(keyColumn.getViewer(), volume));
+		keyEditingSupport = new OptionKeyEditingSupport(keyColumn.getViewer(), volume);
+		keyColumn.setEditingSupport(keyEditingSupport);
 		
 		return keyColumn.getColumn();
 	}

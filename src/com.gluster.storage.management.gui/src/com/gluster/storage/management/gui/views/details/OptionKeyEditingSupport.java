@@ -102,7 +102,7 @@ public class OptionKeyEditingSupport extends EditingSupport {
 		return -1;
 	}
 
-	private Entry<String, String> getEntryBeingAdded() {
+	protected Entry<String, String> getEntryBeingAdded() {
 		Entry<String, String> entryBeingAdded = null;
 		Iterator<Entry<String, String>> iter = volume.getOptions().entrySet().iterator();
 		while(iter.hasNext()) {
