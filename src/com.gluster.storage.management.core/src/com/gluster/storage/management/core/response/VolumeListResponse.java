@@ -30,10 +30,6 @@ public class VolumeListResponse extends AbstractResponse {
 		return this.volumes;
 	}
 
-	/**
-	 * @param volumes
-	 *            volumes to set
-	 */
 	public void setVolumes(List<Volume> volumes) {
 		this.volumes = volumes;
 	}
