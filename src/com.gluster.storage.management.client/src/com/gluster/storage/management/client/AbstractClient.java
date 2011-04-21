@@ -19,12 +19,12 @@ public abstract class AbstractClient {
 	protected WebResource resource;
 	private String securityToken;
 	private String authHeader;
-	
+
 	public AbstractClient() {
 		URI baseURI = new ClientUtil().getServerBaseURI();
 		resource = Client.create(new DefaultClientConfig()).resource(baseURI).path(getResourceName());
 	}
-	
+
 	public AbstractClient(String securityToken) {
 		this();
 		setSecurityToken(securityToken);
@@ -93,8 +93,11 @@ public abstract class AbstractClient {
 
 	/**
 	 * Submits given Form using POST method to the resource and returns the object received as response
-	 * @param responseClass Class of the object expected as response
-	 * @param form Form to be submitted
+	 * 
+	 * @param responseClass
+	 *            Class of the object expected as response
+	 * @param form
+	 *            Form to be submitted
 	 * @return Object of given class received as response
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -105,9 +108,13 @@ public abstract class AbstractClient {
 
 	/**
 	 * Submits given Form using POST method to the given sub-resource and returns the object received as response
-	 * @param subResourceName Name of the sub-resource to which the request is to be posted
-	 * @param responseClass Class of the object expected as response
-	 * @param form Form to be submitted
+	 * 
+	 * @param subResourceName
+	 *            Name of the sub-resource to which the request is to be posted
+	 * @param responseClass
+	 *            Class of the object expected as response
+	 * @param form
+	 *            Form to be submitted
 	 * @return Object of given class received as response
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -118,9 +125,13 @@ public abstract class AbstractClient {
 
 	/**
 	 * Submits given Form using PUT method to the given sub-resource and returns the object received as response
-	 * @param subResourceName Name of the sub-resource to which the request is to be posted
-	 * @param responseClass Class of the object expected as response
-	 * @param form Form to be submitted
+	 * 
+	 * @param subResourceName
+	 *            Name of the sub-resource to which the request is to be posted
+	 * @param responseClass
+	 *            Class of the object expected as response
+	 * @param form
+	 *            Form to be submitted
 	 * @return Object of given class received as response
 	 */
 	protected Object putRequest(String subResourceName, Class responseClass, Form form) {
@@ -130,8 +141,11 @@ public abstract class AbstractClient {
 
 	/**
 	 * Submits given Form using PUT method to the given sub-resource and returns the object received as response
-	 * @param subResourceName Name of the sub-resource to which the request is to be posted
-	 * @param responseClass Class of the object expected as response
+	 * 
+	 * @param subResourceName
+	 *            Name of the sub-resource to which the request is to be posted
+	 * @param responseClass
+	 *            Class of the object expected as response
 	 * @return Object of given class received as response
 	 */
 	protected Object putRequest(String subResourceName, Class responseClass) {
@@ -141,14 +155,29 @@ public abstract class AbstractClient {
 
 	/**
 	 * Submits given object to the resource and returns the object received as response
-	 * @param responseClass Class of the object expected as response
-	 * @param requestObject the Object to be submitted
+	 * 
+	 * @param responseClass
+	 *            Class of the object expected as response
+	 * @param requestObject
+	 *            the Object to be submitted
 	 * @return Object of given class received as response
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Object postObject(Class responseClass, Object requestObject) {
 		return resource.type(MediaType.TEXT_XML).header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML)
 				.post(responseClass, requestObject);
+	}
+
+	@SuppressWarnings("unchecked")
+	protected Object deleteResource(Class responseClass, Form form) {
+		return resource.header(HTTP_HEADER_AUTH, authHeader).delete(responseClass);
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected Object deleteSubResource(String subResourceName, Class responseClass, String volumeName,
+			String deleteOption) {
+		return resource.path(subResourceName).queryParam("volumeName", volumeName)
+				.queryParam("deleteOption", deleteOption).header(HTTP_HEADER_AUTH, authHeader).delete(responseClass);
 	}
 
 	public abstract String getResourceName();
@@ -161,7 +190,8 @@ public abstract class AbstractClient {
 	}
 
 	/**
-	 * @param securityToken the securityToken to set
+	 * @param securityToken
+	 *            the securityToken to set
 	 */
 	protected void setSecurityToken(String securityToken) {
 		this.securityToken = securityToken;
