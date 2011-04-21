@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -40,6 +41,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
@@ -54,6 +56,7 @@ import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
 import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.ServerUtil;
 import com.sun.jersey.api.core.InjectParam;
+import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Singleton
@@ -61,6 +64,7 @@ import com.sun.jersey.spi.resource.Singleton;
 public class VolumesResource {
 	private static final String PREPARE_BRICK_SCRIPT = "create_volume_directory.py";
 	private static final String VOLUME_DIRECTORY_CLEANUP_SCRIPT = "clear_volume_directory.py";
+	private static final String POST_VOLUME_DELETE_SCRIPT = "post_volume_delete.py";
 
 	@InjectParam
 	private static ServerUtil serverUtil;
@@ -93,13 +97,13 @@ public class VolumesResource {
 			status = glusterUtil.createVolume(volume, bricks);
 			if (status.isSuccess()) {
 				Status optionsStatus = glusterUtil.createOptions(volume);
-				if(!optionsStatus.isSuccess()) {
+				if (!optionsStatus.isSuccess()) {
 					status.setCode(Status.STATUS_CODE_PART_SUCCESS);
 					status.setMessage("Error while setting volume options: " + optionsStatus);
 				}
 			} else {
 				Status cleanupStatus = cleanupDirectories(disks, volume.getName(), disks.size());
-				if(!cleanupStatus.isSuccess()) {
+				if (!cleanupStatus.isSuccess()) {
 					status.setMessage(status.getMessage() + CoreConstants.NEWLINE + "Cleanup errors: "
 							+ CoreConstants.NEWLINE + cleanupStatus);
 				}
@@ -128,6 +132,41 @@ public class VolumesResource {
 			return glusterUtil.stopVolume(volumeName);
 		}
 		return new Status(Status.STATUS_CODE_FAILURE, "Invalid operation code [" + operation + "]");
+	}
+
+	@DELETE
+	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
+	@Produces(MediaType.TEXT_XML)
+	public Status deleteVolume(@QueryParam("volumeName") String volumeName, @QueryParam("deleteOption") int deleteOption) {
+		Volume volume = glusterUtil.getVolume(volumeName);
+		Status status = glusterUtil.deleteVolume(volumeName);
+
+		if (status.isSuccess()) {
+			List<String> disks = volume.getDisks();
+			Status postDeleteStatus = postDelete(volumeName, disks, deleteOption);
+
+			if (!postDeleteStatus.isSuccess()) {
+				status.setCode(Status.STATUS_CODE_PART_SUCCESS);
+				status.setMessage("Error while post deletion operation: " + postDeleteStatus);
+			}
+		}
+		return status;
+	}
+
+	private Status postDelete(String volumeName, List<String> disks, int deleteFlag) {
+		String serverName, diskName, diskInfo[];
+		Status result;
+		for (int i = 0; i < disks.size(); i++) {
+			diskInfo = disks.get(i).split(":");
+			serverName = diskInfo[0];
+			diskName = diskInfo[1];
+			result = (Status) serverUtil.executeOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
+					+ diskName + " " + volumeName + " " + deleteFlag, Status.class);
+			if (!result.isSuccess()) {
+				return result;
+			}
+		}
+		return new Status(Status.STATUS_CODE_SUCCESS, "Post volume delete operation successfully initiated");
 	}
 
 	@POST
@@ -167,13 +206,13 @@ public class VolumesResource {
 		for (int i = 0; i < disks.size(); i++) {
 			String disk = disks.get(i);
 
-			String[] diskParts = disk.split(":"); 
+			String[] diskParts = disk.split(":");
 			String serverName = diskParts[0];
 			String diskName = diskParts[1];
-			
+
 			status = prepareBrick(serverName, diskName, volumeName);
 			if (status.isSuccess()) {
-				String brickDir =  status.getMessage().trim().replace(CoreConstants.NEWLINE, "");
+				String brickDir = status.getMessage().trim().replace(CoreConstants.NEWLINE, "");
 				bricks.add(serverName + ":" + brickDir);
 			} else {
 				// Brick preparation failed. Cleanup directories already created and return failure status
@@ -196,7 +235,7 @@ public class VolumesResource {
 		}
 		return bricksStr.trim();
 	}
-	
+
 	private Status cleanupDirectories(List<String> disks, String volumeName, int maxIndex) {
 		String serverName, diskName, diskInfo[];
 		Status result;
@@ -213,13 +252,13 @@ public class VolumesResource {
 		return new Status(Status.STATUS_CODE_SUCCESS, "Directories cleaned up successfully!");
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws ClassNotFoundException {
 		VolumesResource vr = new VolumesResource();
-//		VolumeListResponse response = vr.getAllVolumes();
-//		for (Volume volume : response.getVolumes()) {
-//			System.out.println("\nName:" + volume.getName() + "\nType: " + volume.getVolumeTypeStr() + "\nStatus: "
-//					+ volume.getStatusStr());
-//		}
+		// VolumeListResponse response = vr.getAllVolumes();
+		// for (Volume volume : response.getVolumes()) {
+		// System.out.println("\nName:" + volume.getName() + "\nType: " + volume.getVolumeTypeStr() + "\nStatus: "
+		// + volume.getStatusStr());
+		// }
 		Volume volume = new Volume();
 		volume.setName("vol3");
 		volume.setTransportType(TRANSPORT_TYPE.ETHERNET);
@@ -227,7 +266,13 @@ public class VolumesResource {
 		disks.add("192.168.1.210:sdb");
 		volume.addDisks(disks);
 		volume.setAccessControlList("192.168.*");
-		Status status = vr.createVolume(volume);
-		System.out.println(status.getMessage());
+		// Status status = vr.createVolume(volume);
+		// System.out.println(status.getMessage());
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_VOLUME_NAME, volume.getName());
+		form.add(RESTConstants.FORM_PARAM_DELETE_OPTION, 1);
+		Status status = vr.deleteVolume("Vol2", 1);
+		System.out.println("Code : " + status.getCode());
+		System.out.println("Message " + status.getMessage());
 	}
 }
