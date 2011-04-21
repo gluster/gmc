@@ -20,12 +20,9 @@
  */
 package com.gluster.storage.management.client;
 
-import java.util.List;
-
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.model.VolumeOptionInfo;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 import com.sun.jersey.api.representation.Form;
@@ -77,6 +74,10 @@ public class VolumesClient extends AbstractClient {
 	
 	public Volume getVolume(String volumeName) {
 		return (Volume) fetchSubResource(volumeName, Volume.class);
+	}
+	
+	public Status deleteVolume(Volume volume, String deleteOption) {
+		return (Status) deleteSubResource(volume.getName(), Status.class, volume.getName(), deleteOption);
 	}
 
 	public VolumeOptionInfoListResponse getVolumeOptionsDefaults() {

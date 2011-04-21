@@ -54,6 +54,10 @@ public class Cluster extends Entity {
 		discoveredServers.remove(server);
 	}
 
+	public void deleteVolume(Volume volume) {
+		volumes.remove(volume);		
+	}
+	
 	public void setServers(List<GlusterServer> servers) {
 		this.servers = servers;
 		children.add(new EntityGroup<GlusterServer>("Servers", GlusterServer.class, this, servers));

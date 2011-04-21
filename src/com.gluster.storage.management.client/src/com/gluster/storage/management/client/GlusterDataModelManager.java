@@ -120,7 +120,6 @@ public class GlusterDataModelManager {
 
 		initializeGlusterServers(cluster);
 		initializeVolumes(cluster);
-		
 
 		initializeAutoDiscoveredServers(cluster);
 		initializeDisks();
@@ -138,8 +137,9 @@ public class GlusterDataModelManager {
 
 	private void initializeVolumeOptionsDefaults() {
 		VolumeOptionInfoListResponse response = new VolumesClient(getSecurityToken()).getVolumeOptionsDefaults();
-		if(!response.getStatus().isSuccess()) {
-			throw new GlusterRuntimeException("Error fetching volume option defaults: [" + response.getStatus().getMessage() + "]"); 
+		if (!response.getStatus().isSuccess()) {
+			throw new GlusterRuntimeException("Error fetching volume option defaults: ["
+					+ response.getStatus().getMessage() + "]");
 		}
 		this.volumeOptionsDefaults = response.getOptions();
 	}
@@ -165,7 +165,7 @@ public class GlusterDataModelManager {
 	private void initializeVolumes(Cluster cluster) {
 		VolumesClient volumeClient = new VolumesClient(securityToken);
 		VolumeListResponse response = volumeClient.getAllVolumes();
-		if(!response.getStatus().isSuccess()) {
+		if (!response.getStatus().isSuccess()) {
 			throw new GlusterRuntimeException("Error fetching volume list: [" + response.getStatus() + "]");
 		}
 		cluster.setVolumes(response.getVolumes());
@@ -299,8 +299,8 @@ public class GlusterDataModelManager {
 		/*
 		 * TODO: review the logic
 		 * 
-		 * List<Disk> disks = new ArrayList<Disk>(); for (Disk disk :
-		 * volume.getDisks()) { if (disk.isReady()) { disks.add(disk); } }
+		 * List<Disk> disks = new ArrayList<Disk>(); for (Disk disk : volume.getDisks()) { if (disk.isReady()) {
+		 * disks.add(disk); } }
 		 */
 		Disk disk = null;
 		List<Disk> volumeDisks = new ArrayList<Disk>();
@@ -364,23 +364,32 @@ public class GlusterDataModelManager {
 		}
 	}
 
+	public void deleteVolume(Volume volume) {
+		Cluster cluster = model.getCluster();
+		cluster.deleteVolume(volume);
+
+		for (ClusterListener listener : listeners) {
+			listener.volumeDeleted(volume);
+		}
+	}
+
 	public void updateVolumeStatus(Volume volume, VOLUME_STATUS newStatus) {
 		volume.setStatus(newStatus);
 		for (ClusterListener listener : listeners) {
 			listener.volumeChanged(volume, new Event(EVENT_TYPE.VOLUME_STATUS_CHANGED, newStatus));
 		}
 	}
-	
+
 	public void resetVolumeOptions(Volume volume) {
 		volume.getOptions().clear();
 		for (ClusterListener listener : listeners) {
 			listener.volumeChanged(volume, new Event(EVENT_TYPE.VOLUME_OPTIONS_RESET, null));
 		}
 	}
-	
+
 	public void setVolumeOption(Volume volume, Entry<String, String> entry) {
 		volume.setOption(entry.getKey(), (String) entry.getValue());
-		for(ClusterListener listener : listeners) {
+		for (ClusterListener listener : listeners) {
 			listener.volumeChanged(volume, new Event(EVENT_TYPE.VOLUME_OPTION_SET, entry));
 		}
 	}
@@ -393,25 +402,25 @@ public class GlusterDataModelManager {
 			listener.volumeCreated(volume);
 		}
 	}
-	
+
 	public List<VolumeOptionInfo> getVolumeOptionsDefaults() {
 		return volumeOptionsDefaults;
 	}
 
 	public VolumeOptionInfo getVolumeOptionInfo(String optionKey) {
-		for(VolumeOptionInfo info : volumeOptionsDefaults) {
-			if(info.getName().equals(optionKey)) {
+		for (VolumeOptionInfo info : volumeOptionsDefaults) {
+			if (info.getName().equals(optionKey)) {
 				return info;
 			}
 		}
 		throw new GlusterRuntimeException("Invalid option key [" + optionKey
 				+ "] passed to GlusterDataModelManager#getVolumeOptionInfo");
 	}
-	
+
 	public String getVolumeOptionDefaultValue(String optionKey) {
 		return getVolumeOptionInfo(optionKey).getDefaultValue();
 	}
-	
+
 	public String getVolumeOptionDesc(String optionKey) {
 		return getVolumeOptionInfo(optionKey).getDescription();
 	}
@@ -420,13 +429,14 @@ public class GlusterDataModelManager {
 		volume.setAccessControlList(accessControlList);
 		setVolumeOption(volume, getOptionEntry(volume, Volume.OPTION_AUTH_ALLOW));
 	}
-	
+
 	private Entry<String, String> getOptionEntry(Volume volume, String optionKey) {
-		for(Entry entry : volume.getOptions().entrySet()) {
-			if(entry.getKey().equals(optionKey)) {
+		for (Entry entry : volume.getOptions().entrySet()) {
+			if (entry.getKey().equals(optionKey)) {
 				return entry;
 			}
 		}
-		throw new GlusterRuntimeException("Couldn't find entry for option [" + optionKey + "] on volume [" + volume.getName());
+		throw new GlusterRuntimeException("Couldn't find entry for option [" + optionKey + "] on volume ["
+				+ volume.getName());
 	}
 }

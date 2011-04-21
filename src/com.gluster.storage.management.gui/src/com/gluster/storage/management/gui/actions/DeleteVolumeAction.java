@@ -19,15 +19,76 @@
 package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.viewers.ISelection;
+
+import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
+import com.gluster.storage.management.gui.IImageKeys;
+import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public class DeleteVolumeAction extends AbstractActionDelegate {
+	private Volume volume;
+	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+
 	@Override
 	protected void performAction(IAction action) {
-		System.out.println("Running [" + this.getClass().getSimpleName() + "]");
+		final String actionDesc = action.getDescription();
+
+		String warningMessage;
+		if (volume.getStatus() == VOLUME_STATUS.OFFLINE) {
+			warningMessage = "Are you sure to delete the Volume[" + volume.getName() + "] ?";
+		} else {
+			warningMessage = "Volume [" + volume.getName() + "] is running, \nAre you sure to continue?";
+		}
+
+		Integer deleteOption = new MessageDialog(getShell(), "Gluster Storage Platform", GUIHelper.getInstance().getImage(
+				IImageKeys.SERVER), warningMessage, MessageDialog.INFORMATION, new String[] { "Cancel",
+				"Delete volume and it's data", "Delete volume, keep back-up of data" }, 2).open();
+		if (deleteOption == 0) {
+			return;
+		}
+
+		VolumesClient client = new VolumesClient(modelManager.getSecurityToken());
+
+		Status status;
+		if (volume.getStatus() == VOLUME_STATUS.ONLINE) { // To stop the volume service, if running
+			status = client.stopVolume(volume.getName());
+			if (!status.isSuccess()) {
+				showErrorDialog(actionDesc, "Volume [" + volume.getName() + "] could not be stopped! Error: [" + status.getMessage()
+						+ "]");
+				return;
+			}
+		}
+
+		status = client.deleteVolume(volume, deleteOption.toString());
+		if (status.isSuccess()) {
+			showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] deleted successfully!");
+			modelManager.deleteVolume(volume);
+		} else {
+			if (status.isPartSuccess()) {
+				showWarningDialog(actionDesc, "Volume deleted, but following error(s) occured: " + status.getMessage());
+				modelManager.deleteVolume(volume);
+			} else {
+				showErrorDialog(actionDesc, "Volume [" + volume.getName() + "] could not be deleted! Error: [" + status.getMessage()
+						+ "]");
+			}
+		}
 	}
 
 	@Override
 	public void dispose() {
 		System.out.println("Disposing [" + this.getClass().getSimpleName() + "]");
+	}
+
+	@Override
+	public void selectionChanged(IAction action, ISelection selection) {
+		super.selectionChanged(action, selection);
+		if (selectedEntity instanceof Volume) {
+			volume = (Volume) selectedEntity;
+		}
 	}
 }
