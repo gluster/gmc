@@ -33,6 +33,8 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -65,6 +67,7 @@ public class VolumeOptionsPage extends Composite {
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 	private Volume volume;
 	private DefaultClusterListener clusterListener;
+	private Text filterText;
 
 	public enum OPTIONS_TABLE_COLUMN_INDICES {
 		OPTION_KEY, OPTION_VALUE
@@ -84,7 +87,8 @@ public class VolumeOptionsPage extends Composite {
 		toolkit.paintBordersFor(this);
 
 		setupPageLayout();
-		setupOptionsTableViewer(guiHelper.createFilterText(toolkit, this));
+		filterText = guiHelper.createFilterText(toolkit, this);
+		setupOptionsTableViewer(filterText);
 		
 		createAddButton();
 
@@ -106,8 +110,9 @@ public class VolumeOptionsPage extends Composite {
 				tableViewer.setSelection(new StructuredSelection(getEntry("")));
 				keyColumn.getViewer().editElement(getEntry(""), 0); // edit newly created entry				
 				
-				// disable the add button till user fills up the new option
+				// disable the add button AND search filter textbox till user fills up the new option
 				addButton.setEnabled(false);
+				filterText.setEnabled(false);
 			}
 
 			private Entry<String, String> getEntry(String key) {
@@ -117,6 +122,18 @@ public class VolumeOptionsPage extends Composite {
 					}
 				}
 				return null;
+			}
+		});
+		
+		// Make sure that add button is enabled only when search filter textbox is empty
+		filterText.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				if(filterText.getText().length() > 0) {
+					addButton.setEnabled(false);
+				} else {
+					addButton.setEnabled(true);
+				}
 			}
 		});
 	}
@@ -175,8 +192,9 @@ public class VolumeOptionsPage extends Composite {
 				if(event.getEventType() == EVENT_TYPE.VOLUME_OPTION_SET) {
 					Entry<String, String> eventEntry = (Entry<String, String>)event.getEventData();
 					if (eventEntry.getKey().equals(volume.getOptions().keySet().toArray()[volume.getOptions().size()-1])) {
-						// option has been set successfully by the user. re-enable the add button
+						// option has been set successfully by the user. re-enable the add button and search filter textbox
 						addButton.setEnabled(true);
+						filterText.setEnabled(true);
 					}
 					
 					if(tableViewer.getTable().getItemCount() < volume.getOptions().size()) {
