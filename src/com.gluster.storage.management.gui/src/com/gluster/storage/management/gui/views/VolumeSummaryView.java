@@ -10,6 +10,8 @@ import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
@@ -53,7 +55,9 @@ public class VolumeSummaryView extends ViewPart {
 	private Text accessControlText;
 	private ControlDecoration errDecoration;
 	private Composite parent;
-	
+	private static final String ARIAL_FONT = "Arial";
+	private static final String COURIER_FONT = "Courier";
+
 	@Override
 	public void createPartControl(Composite parent) {
 		if (volume == null) {
@@ -72,7 +76,7 @@ public class VolumeSummaryView extends ViewPart {
 					updateVolumeStatusLabel();
 					new GlusterToolbarManager(getSite().getWorkbenchWindow()).updateToolbar(volume);
 				} else if (event.getEventType() == EVENT_TYPE.VOLUME_OPTION_SET) {
-					Entry<String, String> option = (Entry<String, String>)event.getEventData();
+					Entry<String, String> option = (Entry<String, String>) event.getEventData();
 					if (option.getKey().equals(Volume.OPTION_AUTH_ALLOW)) {
 						// access control option value has changed. update the text field with new value.
 						populateAccessControlText();
@@ -126,9 +130,49 @@ public class VolumeSummaryView extends ViewPart {
 		lblAlert.redraw();
 	}
 
+	private Label setLabelStyle(Label label, String fontName, int size, int style) {
+		Font font = new Font(Display.getCurrent(), new FontData(fontName, size, style));
+		label.setFont(font);
+		return label;
+	}
+
 	private void createVolumeMountingInfoSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Mounting Information", null, 3, false);
-		toolkit.createLabel(section, "Information about mounting the\nvolume will be printed here");
+		String glusterFs = "GlusterFS:";
+		String nfs = "NFS:";
+		String glusterFsSyntax = "mount -t glusterfs <SERVER-NAME>:/<VOLUME-NAME> <MOUNT-POINT>";
+		String nfsSyntax = "mount -t nfs <SERVER-NAME>:/nfs/<VOLUME-NAME> <MOUNT-POINT>";
+		String info = "<SERVER-NAME> - Any server name in the storage cloud";
+		String volumeName = volume.getName().trim();
+		String serverName = volume.getDisks().get(0).split(":")[0].trim(); // disk if the form of: "server:disk"
+
+		Composite section = guiHelper.createSection(form, toolkit, "Mounting Information", null, 2, false);
+
+		Label lbl = toolkit.createLabel(section, "Syntax");
+		final int defaultFontSize = lbl.getFont().getFontData()[0].getHeight();
+		setLabelStyle(lbl, ARIAL_FONT, defaultFontSize, SWT.ITALIC | SWT.BOLD);
+		toolkit.createLabel(section, "");
+
+		setLabelStyle(toolkit.createLabel(section, glusterFs), ARIAL_FONT, defaultFontSize, SWT.NORMAL);
+		setLabelStyle(toolkit.createLabel(section, glusterFsSyntax, SWT.NONE), COURIER_FONT, 10, SWT.NONE);
+
+		// TODO: Check required if nfs is optional
+		setLabelStyle(toolkit.createLabel(section, nfs), ARIAL_FONT, defaultFontSize, SWT.NORMAL);
+		setLabelStyle(toolkit.createLabel(section, nfsSyntax, SWT.NONE), COURIER_FONT, 10, SWT.NONE);
+
+		toolkit.createLabel(section, "");
+		setLabelStyle(toolkit.createLabel(section, info), ARIAL_FONT, (defaultFontSize - 1), SWT.NONE);
+
+		setLabelStyle(toolkit.createLabel(section, "Example:"), ARIAL_FONT, defaultFontSize, SWT.ITALIC | SWT.BOLD);
+		toolkit.createLabel(section, "");
+
+		setLabelStyle(toolkit.createLabel(section, glusterFs), ARIAL_FONT, defaultFontSize, SWT.NORMAL);
+		setLabelStyle(toolkit.createLabel(section, "#mount -t glusterfs " + serverName + ":/" + volumeName + " /mnt"),
+				COURIER_FONT, 10, SWT.NONE);
+
+		// TODO: Check required if nfs is optional
+		setLabelStyle(toolkit.createLabel(section, nfs), ARIAL_FONT, defaultFontSize, SWT.NORMAL);
+		setLabelStyle(toolkit.createLabel(section, "#mount -t nfs " + serverName + ":/" + volumeName + " /mnt"),
+				COURIER_FONT, 10, SWT.NONE);
 	}
 
 	/**
@@ -162,24 +206,23 @@ public class VolumeSummaryView extends ViewPart {
 		layoutData.widthHint = 300;
 		return layoutData;
 	}
-	
 
 	private void createAccessControlField(Composite section) {
 		toolkit.createLabel(section, "Access Control: ", SWT.NONE);
 		accessControlText = toolkit.createText(section, volume.getAccessControlList());
-	
+
 		populateAccessControlText();
 		addKeyListerForAccessControl();
 		accessControlText.setLayoutData(createDefaultLayoutData());
 		accessControlText.setEnabled(false);
 		createChangeLinkForAccessControl(section);
-		
+
 		// error decoration used while validating the access control text
 		errDecoration = guiHelper.createErrorDecoration(accessControlText);
 		errDecoration.hide();
 		createAccessControlInfoLabel(section); // info text
 	}
-	
+
 	private void createAccessControlInfoLabel(Composite section) {
 		toolkit.createLabel(section, "", SWT.NONE);
 		Label accessControlInfoLabel = toolkit.createLabel(section, "(Comma separated list of IP addresses/hostnames)");
@@ -218,10 +261,10 @@ public class VolumeSummaryView extends ViewPart {
 
 	private void saveAccessControlList() {
 		final String newACL = accessControlText.getText();
-		
+
 		guiHelper.setStatusMessage("Setting access control list to [" + newACL + "]...");
 		parent.update();
-		
+
 		if (newACL.equals(volume.getAccessControlList())) {
 			accessControlText.setEnabled(false);
 			changeLink.setText("change");
@@ -265,7 +308,7 @@ public class VolumeSummaryView extends ViewPart {
 					saveAccessControlList();
 					break;
 				}
-				
+
 				validateAccessControlList();
 			}
 		});
@@ -273,7 +316,7 @@ public class VolumeSummaryView extends ViewPart {
 
 	private void populateAccessControlText() {
 		String accessControlList = volume.getAccessControlList();
-		if(accessControlList == null) {
+		if (accessControlList == null) {
 			// if not set, show default value
 			accessControlList = GlusterDataModelManager.getInstance().getVolumeOptionDefaultValue(
 					Volume.OPTION_AUTH_ALLOW);
@@ -395,14 +438,14 @@ public class VolumeSummaryView extends ViewPart {
 
 	private void validateAccessControlList() {
 		errDecoration.hide();
-		
+
 		if (accessControlText.getText().length() == 0) {
 			errDecoration.setDescriptionText("Access control list cannot be empty!");
 			errDecoration.show();
 			return;
 		}
-		
-		if(!ValidationUtil.isValidAccessControl(accessControlText.getText())) {
+
+		if (!ValidationUtil.isValidAccessControl(accessControlText.getText())) {
 			errDecoration
 					.setDescriptionText("Access control list must be a comma separated list of IP addresses/Host names. Please enter a valid value!");
 			errDecoration.show();
