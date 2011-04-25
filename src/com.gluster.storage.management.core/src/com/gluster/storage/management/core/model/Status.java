@@ -59,6 +59,11 @@ public class Status {
 		this.code = result.getExitValue();
 		this.message = result.getOutput();
 	}
+	
+	public Status(Exception e) {
+		this.code = STATUS_CODE_FAILURE;
+		this.message = e.getMessage();
+	}
 
 	@XmlElement(name = "code", type = Integer.class)
 	public Integer getCode() {

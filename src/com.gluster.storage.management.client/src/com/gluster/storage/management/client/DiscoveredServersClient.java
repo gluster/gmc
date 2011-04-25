@@ -41,6 +41,7 @@ public class DiscoveredServersClient extends AbstractClient {
 		return RESOURCE_NAME;
 	}
 
+	@SuppressWarnings("rawtypes")
 	private Object getDiscoveredServers(Boolean getDetails, Class responseClass) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.putSingle("details", getDetails.toString());
@@ -48,10 +49,12 @@ public class DiscoveredServersClient extends AbstractClient {
 		return ((Response) fetchResource(queryParams, responseClass)).getData();
 	}
 
+	@SuppressWarnings("unchecked")
 	public List<String> getDiscoveredServerNames() {
 		return (List<String>) getDiscoveredServers(Boolean.FALSE, StringListResponse.class);
 	}
 
+	@SuppressWarnings("unchecked")
 	public List<Server> getDiscoveredServerDetails() {
 		return (List<Server>) getDiscoveredServers(Boolean.TRUE, ServerListResponse.class);
 	}

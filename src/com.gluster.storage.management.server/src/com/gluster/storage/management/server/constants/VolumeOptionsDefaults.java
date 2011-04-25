@@ -100,9 +100,9 @@ public class VolumeOptionsDefaults {
 		volumeOptionsInfo.add(new VolumeOptionInfo("diagnostics.dump-fd-stats",
 				"Statistics related to file-operations would be tracked inside GlusterFS data-structures.", "off"));
 		volumeOptionsInfo.add(new VolumeOptionInfo("diagnostics.brick-log-level",
-				"Changes the log-level of the bricks (servers).", "NORMAL"));
+				"Changes the log-level of the bricks (servers).", "INFO"));
 		volumeOptionsInfo.add(new VolumeOptionInfo("diagnostics.client-log-level",
-				"Changes the log-level of the clients.", "NORMAL"));
+				"Changes the log-level of the clients.", "INFO"));
 		volumeOptionsInfo.add(new VolumeOptionInfo("nfs.enable-ino32",
 				"Use this option from the CLI to make Gluster NFS return 32-bit inode numbers instead of 64-bit.",
 				"off"));

@@ -39,7 +39,6 @@ import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.ProcessUtil;
 
@@ -75,6 +74,7 @@ public class ServerUtil {
 	 * @param expectedClass Class of the object expected from script execution 
 	 * @return Response from remote execution of the command
 	 */
+	@SuppressWarnings("rawtypes")
 	public Object executeOnServer(boolean runInForeground, String serverName, String commandWithArgs, Class expectedClass) {
 		StringBuffer output = new StringBuffer();
 		try {
@@ -114,6 +114,7 @@ public class ServerUtil {
 	 *            class Status. If that also fails, a status object with exception message is created and returned.
 	 * @return Object of given expected class, or a status object in case first unmarshalling fails.
 	 */
+	@SuppressWarnings("rawtypes")
 	private Object unmarshal(Class expectedClass, String input, boolean tryStatusOnFailure) {
 		try {
 			// create JAXB context and instantiate marshaller

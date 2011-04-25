@@ -20,14 +20,24 @@ package com.gluster.storage.management.core.model;
 
 import java.util.Date;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import com.gluster.storage.management.core.utils.StringUtil;
 
+@XmlRootElement
 public class LogMessage implements Filterable {
 	private Date timestamp;
 	private Disk disk;
 	private String severity;
 	private String message;
 
+	public LogMessage() {
+	}
+	
+	public LogMessage(String logMessage) {
+		// TODO: Parse the log message and extract fields 
+	}
+	
 	public Date getTimestamp() {
 		return timestamp;
 	}

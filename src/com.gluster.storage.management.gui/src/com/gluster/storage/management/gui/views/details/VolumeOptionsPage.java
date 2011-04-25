@@ -20,6 +20,7 @@ package com.gluster.storage.management.gui.views.details;
 
 import java.util.Map.Entry;
 
+import org.apache.commons.lang.WordUtils;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -32,12 +33,12 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -66,6 +67,7 @@ public class VolumeOptionsPage extends Composite {
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 	private Volume volume;
 	private DefaultClusterListener clusterListener;
+	private Text filterText;
 
 	public enum OPTIONS_TABLE_COLUMN_INDICES {
 		OPTION_KEY, OPTION_VALUE
@@ -74,6 +76,7 @@ public class VolumeOptionsPage extends Composite {
 	private static final String[] OPTIONS_TABLE_COLUMN_NAMES = new String[] { "Option Key", "Option Value" };
 	private Button addButton;
 	private TableViewerColumn keyColumn;
+	private OptionKeyEditingSupport keyEditingSupport;
 
 	public VolumeOptionsPage(final Composite parent, int style, Volume volume) {
 		super(parent, style);
@@ -84,7 +87,8 @@ public class VolumeOptionsPage extends Composite {
 		toolkit.paintBordersFor(this);
 
 		setupPageLayout();
-		setupDiskTableViewer(guiHelper.createFilterText(toolkit, this));
+		filterText = guiHelper.createFilterText(toolkit, this);
+		setupOptionsTableViewer(filterText);
 		
 		createAddButton();
 
@@ -106,8 +110,9 @@ public class VolumeOptionsPage extends Composite {
 				tableViewer.setSelection(new StructuredSelection(getEntry("")));
 				keyColumn.getViewer().editElement(getEntry(""), 0); // edit newly created entry				
 				
-				// disable the add button till user fills up the new option
+				// disable the add button AND search filter textbox till user fills up the new option
 				addButton.setEnabled(false);
+				filterText.setEnabled(false);
 			}
 
 			private Entry<String, String> getEntry(String key) {
@@ -119,11 +124,29 @@ public class VolumeOptionsPage extends Composite {
 				return null;
 			}
 		});
+		
+		// Make sure that add button is enabled only when search filter textbox is empty
+		filterText.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				if(filterText.getText().length() > 0) {
+					addButton.setEnabled(false);
+				} else {
+					addButton.setEnabled(true);
+				}
+			}
+		});
 	}
 
 	private void registerListeners(final Composite parent) {
 		addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
+				if(!addButton.isEnabled()) {
+					// user has selected key, but not added value. Since this is not a valid entry,
+					// remove the last option (without value) from the volume
+					volume.getOptions().remove(keyEditingSupport.getEntryBeingAdded().getKey());
+				}
+
 				GlusterDataModelManager.getInstance().removeClusterListener(clusterListener);
 				toolkit.dispose();
 			}
@@ -141,6 +164,20 @@ public class VolumeOptionsPage extends Composite {
 			}
 		});
 		
+		parent.addDisposeListener(new DisposeListener() {
+			
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				if(!addButton.isEnabled()) {
+					// user has selected key, but not added value. Since this is not a valid entry,
+					// remove the last option (without value) from the volume
+					Entry<String, String> entryBeingAdded = keyEditingSupport.getEntryBeingAdded();
+					volume.getOptions().remove(entryBeingAdded.getKey());
+				}
+			}
+		});
+
+		
 		clusterListener = new DefaultClusterListener() {
 			@SuppressWarnings("unchecked")
 			@Override
@@ -155,8 +192,9 @@ public class VolumeOptionsPage extends Composite {
 				if(event.getEventType() == EVENT_TYPE.VOLUME_OPTION_SET) {
 					Entry<String, String> eventEntry = (Entry<String, String>)event.getEventData();
 					if (eventEntry.getKey().equals(volume.getOptions().keySet().toArray()[volume.getOptions().size()-1])) {
-						// option has been set successfully by the user. re-enable the add button
+						// option has been set successfully by the user. re-enable the add button and search filter textbox
 						addButton.setEnabled(true);
+						filterText.setEnabled(true);
 					}
 					
 					if(tableViewer.getTable().getItemCount() < volume.getOptions().size()) {
@@ -179,7 +217,7 @@ public class VolumeOptionsPage extends Composite {
 		setLayout(layout);
 	}
 
-	private void setupDiskTable(Composite parent) {
+	private void setupOptionsTable(Composite parent) {
 		Table table = tableViewer.getTable();
 		table.setHeaderVisible(true);
 		table.setLinesVisible(false);
@@ -238,23 +276,26 @@ public class VolumeOptionsPage extends Composite {
 				}
 				
 				VolumeOptionInfo optionInfo = GlusterDataModelManager.getInstance().getVolumeOptionInfo(key);
-				return optionInfo.getDescription() + CoreConstants.NEWLINE + "Default value: "
+				// Wrap the description before adding to tooltip so that long descriptions are displayed properly 
+				return WordUtils.wrap(optionInfo.getDescription(), 60) + CoreConstants.NEWLINE + "Default value: "
 						+ optionInfo.getDefaultValue();
 			}
 		});
 		
 		// Editing support required when adding new key
-		keyColumn.setEditingSupport(new OptionKeyEditingSupport(keyColumn.getViewer(), volume));
+		keyEditingSupport = new OptionKeyEditingSupport(keyColumn.getViewer(), volume);
+		keyColumn.setEditingSupport(keyEditingSupport);
 		
 		return keyColumn.getColumn();
 	}
 
-	private void createDiskTableViewer(Composite parent) {
+	private void createOptionsTableViewer(Composite parent) {
 		tableViewer = new TableViewer(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.SINGLE);
 		tableViewer.setLabelProvider(new VolumeOptionsTableLabelProvider());
 		tableViewer.setContentProvider(new ArrayContentProvider());
+		tableViewer.getTable().setLinesVisible(true);
 
-		setupDiskTable(parent);
+		setupOptionsTable(parent);
 	}
 
 	private Composite createTableViewerComposite() {
@@ -264,23 +305,15 @@ public class VolumeOptionsPage extends Composite {
 		return tableViewerComposite;
 	}
 
-	private void setupDiskTableViewer(final Text filterText) {
+	private void setupOptionsTableViewer(final Text filterText) {
 		Composite tableViewerComposite = createTableViewerComposite();
-		createDiskTableViewer(tableViewerComposite);
+		createOptionsTableViewer(tableViewerComposite);
 		ColumnViewerToolTipSupport.enableFor(tableViewer);
 		// Create a case insensitive filter for the table viewer using the filter text field
 		guiHelper.createFilter(tableViewer, filterText, false);
 	}
 
-	/**
-	 * Sets properties for alignment and weight of given column of given table
-	 * 
-	 * @param table
-	 * @param columnIndex
-	 * @param alignment
-	 * @param weight
-	 */
-	public void setColumnProperties(Table table, OPTIONS_TABLE_COLUMN_INDICES columnIndex, int alignment, int weight) {
+	private void setColumnProperties(Table table, OPTIONS_TABLE_COLUMN_INDICES columnIndex, int alignment, int weight) {
 		TableColumn column = table.getColumn(columnIndex.ordinal());
 		column.setAlignment(alignment);
 
