@@ -232,6 +232,10 @@ public class GlusterUtil {
 		return new Status(processUtil.executeCommand(command));
 	}
 
+	public Status deleteVolume(String volumeName) {
+		return new Status(processUtil.executeCommand("gluster", "--mode=script", "volume", "delete", volumeName));
+	}
+	
 	private String getVolumeInfo(String volumeName) {
 		ProcessResult result = new ProcessUtil().executeCommand("gluster", "volume", "info", volumeName);
 		if (!result.isSuccess()) {
