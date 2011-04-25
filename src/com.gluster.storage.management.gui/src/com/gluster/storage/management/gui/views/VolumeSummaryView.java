@@ -55,7 +55,6 @@ public class VolumeSummaryView extends ViewPart {
 	private Text accessControlText;
 	private ControlDecoration errDecoration;
 	private Composite parent;
-	private static final String ARIAL_FONT = "Arial";
 	private static final String COURIER_FONT = "Courier";
 
 	@Override
@@ -137,7 +136,7 @@ public class VolumeSummaryView extends ViewPart {
 	}
 
 	private void createVolumeMountingInfoSection() {
-		String glusterFs = "GlusterFS:";
+		String glusterFs = "Gluster:";
 		String nfs = "NFS:";
 		String glusterFsSyntax = "mount -t glusterfs <SERVER-NAME>:/<VOLUME-NAME> <MOUNT-POINT>";
 		String nfsSyntax = "mount -t nfs <SERVER-NAME>:/nfs/<VOLUME-NAME> <MOUNT-POINT>";
@@ -149,28 +148,30 @@ public class VolumeSummaryView extends ViewPart {
 
 		Label lbl = toolkit.createLabel(section, "Syntax");
 		final int defaultFontSize = lbl.getFont().getFontData()[0].getHeight();
-		setLabelStyle(lbl, ARIAL_FONT, defaultFontSize, SWT.ITALIC | SWT.BOLD);
+		final String defaultFontName = lbl.getFont().getFontData()[0].name;
+		
+		setLabelStyle(lbl, defaultFontName, defaultFontSize, SWT.BOLD);
 		toolkit.createLabel(section, "");
 
-		setLabelStyle(toolkit.createLabel(section, glusterFs), ARIAL_FONT, defaultFontSize, SWT.NORMAL);
+		setLabelStyle(toolkit.createLabel(section, glusterFs), defaultFontName, defaultFontSize, SWT.NORMAL);
 		setLabelStyle(toolkit.createLabel(section, glusterFsSyntax, SWT.NONE), COURIER_FONT, 10, SWT.NONE);
 
 		// TODO: Check required if nfs is optional
-		setLabelStyle(toolkit.createLabel(section, nfs), ARIAL_FONT, defaultFontSize, SWT.NORMAL);
+		setLabelStyle(toolkit.createLabel(section, nfs), defaultFontName, defaultFontSize, SWT.NORMAL);
 		setLabelStyle(toolkit.createLabel(section, nfsSyntax, SWT.NONE), COURIER_FONT, 10, SWT.NONE);
 
 		toolkit.createLabel(section, "");
-		setLabelStyle(toolkit.createLabel(section, info), ARIAL_FONT, (defaultFontSize - 1), SWT.NONE);
+		setLabelStyle(toolkit.createLabel(section, info), defaultFontName, (defaultFontSize - 1), SWT.NONE);
 
-		setLabelStyle(toolkit.createLabel(section, "Example:"), ARIAL_FONT, defaultFontSize, SWT.ITALIC | SWT.BOLD);
+		setLabelStyle(toolkit.createLabel(section, "Example"), defaultFontName, defaultFontSize, SWT.BOLD);
 		toolkit.createLabel(section, "");
 
-		setLabelStyle(toolkit.createLabel(section, glusterFs), ARIAL_FONT, defaultFontSize, SWT.NORMAL);
+		setLabelStyle(toolkit.createLabel(section, glusterFs), defaultFontName, defaultFontSize, SWT.NORMAL);
 		setLabelStyle(toolkit.createLabel(section, "#mount -t glusterfs " + serverName + ":/" + volumeName + " /mnt"),
 				COURIER_FONT, 10, SWT.NONE);
 
 		// TODO: Check required if nfs is optional
-		setLabelStyle(toolkit.createLabel(section, nfs), ARIAL_FONT, defaultFontSize, SWT.NORMAL);
+		setLabelStyle(toolkit.createLabel(section, nfs), defaultFontName, defaultFontSize, SWT.NORMAL);
 		setLabelStyle(toolkit.createLabel(section, "#mount -t nfs " + serverName + ":/" + volumeName + " /mnt"),
 				COURIER_FONT, 10, SWT.NONE);
 	}
