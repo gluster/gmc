@@ -42,11 +42,11 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 		if (volume.getStatus() == VOLUME_STATUS.OFFLINE) {
 			warningMessage = "Are you sure to delete the Volume[" + volume.getName() + "] ?";
 		} else {
-			warningMessage = "Volume [" + volume.getName() + "] is running, \nAre you sure to continue?";
+			warningMessage = "Volume [" + volume.getName() + "] is online, \nAre you sure to continue?";
 		}
 
-		Integer deleteOption = new MessageDialog(getShell(), "Gluster Storage Platform", GUIHelper.getInstance().getImage(
-				IImageKeys.SERVER), warningMessage, MessageDialog.INFORMATION, new String[] { "Cancel",
+		Integer deleteOption = new MessageDialog(getShell(), "Delete Volume", GUIHelper.getInstance().getImage(
+				IImageKeys.VOLUME), warningMessage, MessageDialog.QUESTION, new String[] { "Cancel",
 				"Delete volume and it's data", "Delete volume, keep back-up of data" }, 2).open();
 		if (deleteOption == 0) {
 			return;
@@ -58,7 +58,7 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 		if (volume.getStatus() == VOLUME_STATUS.ONLINE) { // To stop the volume service, if running
 			status = client.stopVolume(volume.getName());
 			if (!status.isSuccess()) {
-				showErrorDialog(actionDesc, "Volume [" + volume.getName() + "] could not be stopped! Error: [" + status.getMessage()
+				showErrorDialog(actionDesc, "Volume [" + volume.getName() + "] could not be stopped! Error: [" + status
 						+ "]");
 				return;
 			}
@@ -70,11 +70,11 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 			modelManager.deleteVolume(volume);
 		} else {
 			if (status.isPartSuccess()) {
-				showWarningDialog(actionDesc, "Volume deleted, but following error(s) occured: " + status.getMessage());
+				showWarningDialog(actionDesc, "Volume deleted, but following error(s) occured: " + status);
 				modelManager.deleteVolume(volume);
 			} else {
-				showErrorDialog(actionDesc, "Volume [" + volume.getName() + "] could not be deleted! Error: [" + status.getMessage()
-						+ "]");
+				showErrorDialog(actionDesc,
+						"Volume [" + volume.getName() + "] could not be deleted! Error: [" + status + "]");
 			}
 		}
 	}

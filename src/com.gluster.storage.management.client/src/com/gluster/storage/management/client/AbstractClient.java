@@ -6,6 +6,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.gluster.storage.management.client.utils.ClientUtil;
+import com.gluster.storage.management.core.constants.RESTConstants;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
@@ -176,8 +177,9 @@ public abstract class AbstractClient {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Object deleteSubResource(String subResourceName, Class responseClass, String volumeName,
 			String deleteOption) {
-		return resource.path(subResourceName).queryParam("volumeName", volumeName)
-				.queryParam("deleteOption", deleteOption).header(HTTP_HEADER_AUTH, authHeader).delete(responseClass);
+		return resource.path(subResourceName).queryParam(RESTConstants.QUERY_PARAM_VOLUME_NAME, volumeName)
+				.queryParam(RESTConstants.QUERY_PARAM_DELETE_OPTION, deleteOption).header(HTTP_HEADER_AUTH, authHeader)
+				.delete(responseClass);
 	}
 
 	public abstract String getResourceName();

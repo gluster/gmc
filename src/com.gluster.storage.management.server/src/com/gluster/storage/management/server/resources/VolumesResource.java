@@ -26,6 +26,8 @@ import static com.gluster.storage.management.core.constants.RESTConstants.FORM_P
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_VOLUME_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DISK_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_LINE_COUNT;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_VOLUME_NAME;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DELETE_OPTION;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_VOLUMES;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_LOGS;
@@ -143,7 +145,8 @@ public class VolumesResource {
 	@DELETE
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
 	@Produces(MediaType.TEXT_XML)
-	public Status deleteVolume(@QueryParam("volumeName") String volumeName, @QueryParam("deleteOption") int deleteOption) {
+	public Status deleteVolume(@QueryParam(QUERY_PARAM_VOLUME_NAME) String volumeName,
+			@QueryParam(QUERY_PARAM_DELETE_OPTION) int deleteOption) {
 		Volume volume = glusterUtil.getVolume(volumeName);
 		Status status = glusterUtil.deleteVolume(volumeName);
 
@@ -257,38 +260,38 @@ public class VolumesResource {
 		}
 		return new Status(Status.STATUS_CODE_SUCCESS, "Directories cleaned up successfully!");
 	}
-	
+
 	private List<LogMessage> getDiskLogs(String volumeName, String diskName, Integer lineCount)
 			throws GlusterRuntimeException {
-		String[] diskParts = diskName.split(":"); 
+		String[] diskParts = diskName.split(":");
 		String server = diskParts[0];
 		String disk = diskParts[1];
-				
+
 		// Usage: get_volume_disk_log.py <volumeName> <diskName> <lineCount>
 		Status logStatus = (Status) serverUtil.executeOnServer(true, server, VOLUME_DISK_LOG_SCRIPT + " " + volumeName
 				+ " " + disk + " " + lineCount, Status.class);
-		if(!logStatus.isSuccess()) {
+		if (!logStatus.isSuccess()) {
 			throw new GlusterRuntimeException(logStatus.toString());
 		}
-		
+
 		return extractLogMessages(logStatus.getMessage());
 	}
 
 	private List<LogMessage> extractLogMessages(String logContent) {
 		List<LogMessage> logMessages = new ArrayList<LogMessage>();
-		for(String logMessage : logContent.split(CoreConstants.NEWLINE)) {
+		for (String logMessage : logContent.split(CoreConstants.NEWLINE)) {
 			logMessages.add(new LogMessage(logMessage));
 		}
-		
+
 		return logMessages;
 	}
-	
+
 	@GET
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_LOGS)
 	public LogMessageListResponse getLogs(@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName,
 			@QueryParam(QUERY_PARAM_DISK_NAME) String diskName, @QueryParam(QUERY_PARAM_LINE_COUNT) Integer lineCount) {
 		List<LogMessage> logMessages = null;
-		
+
 		try {
 			if (diskName == null || diskName.isEmpty()) {
 				logMessages = new ArrayList<LogMessage>();
@@ -304,7 +307,7 @@ public class VolumesResource {
 		} catch (Exception e) {
 			return new LogMessageListResponse(new Status(e), null);
 		}
-		
+
 		return new LogMessageListResponse(Status.STATUS_SUCCESS, logMessages);
 	}
 
@@ -325,7 +328,7 @@ public class VolumesResource {
 		// Status status = vr.createVolume(volume);
 		// System.out.println(status.getMessage());
 		Form form = new Form();
-		form.add(RESTConstants.FORM_PARAM_VOLUME_NAME, volume.getName());
+		form.add("volumeName", volume.getName());
 		form.add(RESTConstants.FORM_PARAM_DELETE_OPTION, 1);
 		Status status = vr.deleteVolume("Vol2", 1);
 		System.out.println("Code : " + status.getCode());

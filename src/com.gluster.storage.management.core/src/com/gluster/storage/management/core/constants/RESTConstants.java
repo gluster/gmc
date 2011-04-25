@@ -35,7 +35,6 @@ public class RESTConstants {
 	public static final String FORM_PARAM_VALUE_START = "start";
 	public static final String FORM_PARAM_VALUE_STOP = "stop";
 	public static final String FORM_PARAM_OPTION_KEY = "key";
-	public static final String FORM_PARAM_VOLUME_NAME = "volumeName";
 	public static final String FORM_PARAM_OPTION_VALUE = "value";
 	
 	public static final String PATH_PARAM_VOLUME_NAME = "volumeName";
@@ -43,6 +42,8 @@ public class RESTConstants {
 	
 	public static final String QUERY_PARAM_DISK_NAME = "diskName";
 	public static final String QUERY_PARAM_LINE_COUNT = "lineCount";
+	public static final String QUERY_PARAM_VOLUME_NAME = "volumeName";
+	public static final String QUERY_PARAM_DELETE_OPTION = "deleteOption";
 
 	// Running tasks resource
 	public static final String RESOURCE_PATH_RUNNING_TASKS = "/cluster/runningtasks";
