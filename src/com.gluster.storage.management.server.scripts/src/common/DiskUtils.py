@@ -175,6 +175,40 @@ def getDiskList(diskDeviceList=None):
         diskList.append(disk)
     return diskList
 
+def readFsTab(fsTabFile=Globals.FSTAB_FILE):
+    try:
+        fsTabfp = open(fsTabFile)
+    except IOError, e:
+        Utils.log("readFsTab(): " + str(e))
+        return None
+    
+    fsTabEntryList = []
+    for line in fsTabfp:
+        tokens = line.strip().split()
+        if not tokens or tokens[0].startswith('#'):
+            continue
+        fsTabEntry = {}
+        fsTabEntry["Device"] = None
+        fsTabEntry["MountPoint"] = None
+        fsTabEntry["FsType"] = None
+        fsTabEntry["Options"] = None
+        fsTabEntry["DumpOption"] = 0
+        fsTabEntry["fsckOrder"] = 0
+        try:
+            fsTabEntry["Device"] = tokens[0]
+            fsTabEntry["MountPoint"] = tokens[1]
+            fsTabEntry["FsType"] = tokens[2]
+            fsTabEntry["Options"] = tokens[3]
+            fsTabEntry["DumpOption"] = tokens[4]
+            fsTabEntry["fsckOrder"] = tokens[5]
+        except IndexError:
+            pass
+        if fsTabEntry["Device"] and fsTabEntry["MountPoint"] and fsTabEntry["FsType"] and fsTabEntry["Options"]:
+            fsTabEntryList.append(fsTabEntry)
+            
+    fsTabfp.close()
+    return fsTabEntryList
+        
 
 def getMountPointByUuid(partitionUuid):
     # check uuid in etc/fstab
