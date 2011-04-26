@@ -244,7 +244,7 @@ public class GlusterDataModelManager {
 	private void addMessages(List<LogMessage> messages, Disk disk, String severity, int count) {
 		for (int i = 1; i <= count; i++) {
 			String message = severity + "message" + i;
-			messages.add(new LogMessage(new Date(), disk, severity, message));
+			messages.add(new LogMessage(new Date(), disk.getQualifiedName(), severity, message));
 		}
 	}
 
