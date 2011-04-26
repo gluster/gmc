@@ -39,8 +39,6 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -193,7 +191,7 @@ public class VolumeOptionsPage extends Composite {
 				
 				if(event.getEventType() == EVENT_TYPE.VOLUME_OPTION_SET) {
 					Entry<String, String> eventEntry = (Entry<String, String>)event.getEventData();
-					if (eventEntry.getKey().equals(volume.getOptions().keySet().toArray()[volume.getOptions().size()-1])) {
+					if (isNewOption(volume, eventEntry.getKey())) {
 						// option has been set successfully by the user. re-enable the add button and search filter textbox
 						addButton.setEnabled(true);
 						filterText.setEnabled(true);
@@ -207,6 +205,17 @@ public class VolumeOptionsPage extends Composite {
 						tableViewer.update(eventEntry, null);
 					}
 				}
+			}
+
+			private boolean isNewOption(Volume volume, String optionKey) {
+				if(filterText.getText().length() > 0) {
+					// user has been filtering the contents. adding new option is allowed only when contents are NOT
+					// filtered. Thus it's impossible that this is a newly added option
+					return false;
+				}
+				
+				// if this is the last option in the volume options, it must be the new option
+				return optionKey.equals(volume.getOptions().keySet().toArray()[volume.getOptions().size()-1]);
 			}
 		};
 		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
