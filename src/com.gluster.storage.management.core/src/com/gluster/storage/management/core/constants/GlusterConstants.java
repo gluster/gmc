@@ -16,35 +16,20 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.core.utils;
+package com.gluster.storage.management.core.constants;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class StringUtil {
-	public static boolean filterString(String sourceString, String filterString, boolean caseSensitive) {
-		return caseSensitive ? sourceString.contains(filterString) : sourceString.toLowerCase().contains(
-				filterString.toLowerCase());
-	}
+import com.gluster.storage.management.core.utils.StringUtil;
 
-	public static String removeSpaces(String str) {
-		return str.replaceAll("\\s+", "");
-	}
+/**
+ *
+ */
+public class GlusterConstants {
+	public enum VOLUME_LOG_LEVELS {
+		EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG, TRACE
+	};
 
-	public static String ListToString(List<String> list, String delimiter) {
-		StringBuilder output = new StringBuilder();
-		for(String element : list) {
-			output.append(element).append(delimiter);
-		}
-		String outputStr = output.toString();
-		return outputStr.substring(0, outputStr.length() - (delimiter.length()+1));
-	}
-	
-	public static <T extends Enum<T>> List<String> enumToArray(T[] values) {
-		List<String> enumAsArray = new ArrayList<String>();
-		for(T value : values) {
-			enumAsArray.add(value.toString());
-		}
-		return enumAsArray;
-	}
+	public static final List<String> VOLUME_LOG_LEVELS_ARR = StringUtil.enumToArray(VOLUME_LOG_LEVELS.values());
+
 }

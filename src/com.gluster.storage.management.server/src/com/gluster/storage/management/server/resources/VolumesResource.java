@@ -27,7 +27,10 @@ import static com.gluster.storage.management.core.constants.RESTConstants.PATH_P
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DELETE_OPTION;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DISKS;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DISK_NAME;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_FROM_TIMESTAMP;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_LINE_COUNT;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_LOG_SEVERITY;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_TO_TIMESTAMP;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_VOLUME_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_VOLUMES;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS;
@@ -37,6 +40,9 @@ import static com.gluster.storage.management.core.constants.RESTConstants.SUBRES
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -62,6 +68,7 @@ import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.LogMessageListResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
+import com.gluster.storage.management.core.utils.DateUtil;
 import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
 import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.ServerUtil;
@@ -280,10 +287,18 @@ public class VolumesResource {
 		String logFilePath = logDir + CoreConstants.FILE_SEPARATOR + logFileName;
 
 		// Usage: get_volume_disk_log.py <volumeName> <diskName> <lineCount>
-		LogMessageListResponse response = ((LogMessageListResponse) serverUtil.executeOnServer(true, serverName, VOLUME_BRICK_LOG_SCRIPT
-				+ " " + logFilePath + " " + lineCount, LogMessageListResponse.class));
-		Status status = response.getStatus();
-		if (!response.getStatus().isSuccess()) {
+		Object responseObj = serverUtil.executeOnServer(true, serverName, VOLUME_BRICK_LOG_SCRIPT
+				+ " " + logFilePath + " " + lineCount, LogMessageListResponse.class);
+		Status status = null;
+		LogMessageListResponse response = null;
+		if(responseObj instanceof LogMessageListResponse) {
+			response = (LogMessageListResponse)responseObj;
+			status = response.getStatus();
+		} else {
+			status = (Status)responseObj;
+		}
+		
+		if (!status.isSuccess()) {
 			throw new GlusterRuntimeException(status.toString());
 		}
 
@@ -300,17 +315,16 @@ public class VolumesResource {
 	@GET
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_LOGS)
 	public LogMessageListResponse getLogs(@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName,
-			@QueryParam(QUERY_PARAM_DISK_NAME) String diskName, @QueryParam(QUERY_PARAM_LINE_COUNT) Integer lineCount) {
+			@QueryParam(QUERY_PARAM_DISK_NAME) String diskName, @QueryParam(QUERY_PARAM_LOG_SEVERITY) String severity,
+			@QueryParam(QUERY_PARAM_FROM_TIMESTAMP) String fromTimestamp,
+			@QueryParam(QUERY_PARAM_TO_TIMESTAMP) String toTimestamp,
+			@QueryParam(QUERY_PARAM_LINE_COUNT) Integer lineCount) {
 		List<LogMessage> logMessages = null;
 
 		try {
 			Volume volume = getVolume(volumeName);
 			if (diskName == null || diskName.isEmpty()) {
-				logMessages = new ArrayList<LogMessage>();
-				// fetch logs for every brick of the volume
-				for (String brick : volume.getBricks()) {
-					logMessages.addAll(getBrickLogs(volume, brick, lineCount));
-				}
+				logMessages = getLogsForAllBricks(volume, lineCount);
 			} else {
 				// fetch logs for given brick of the volume
 				logMessages = getBrickLogs(volume, getBrickForDisk(volume, diskName), lineCount);
@@ -318,8 +332,69 @@ public class VolumesResource {
 		} catch (Exception e) {
 			return new LogMessageListResponse(new Status(e), null);
 		}
-
+		
+		filterLogsBySeverity(logMessages, severity);
+		filterLogsByTime(logMessages, fromTimestamp, toTimestamp);		
 		return new LogMessageListResponse(Status.STATUS_SUCCESS, logMessages);
+	}
+
+	private void filterLogsByTime(List<LogMessage> logMessages, String fromTimestamp, String toTimestamp) {
+		Date fromTime = null, toTime = null;
+		
+		if(fromTimestamp != null && !fromTimestamp.isEmpty()) {
+			fromTime = DateUtil.stringToDate(fromTimestamp);
+		}
+		
+		if(toTimestamp != null && !toTimestamp.isEmpty()) {
+			toTime = DateUtil.stringToDate(toTimestamp);
+		}
+
+		List<LogMessage> messagesToRemove = new ArrayList<LogMessage>();
+		for(LogMessage logMessage : logMessages) {
+			Date logTimestamp = logMessage.getTimestamp();
+			if(fromTime != null && logTimestamp.before(fromTime)) {
+				messagesToRemove.add(logMessage);
+				continue;
+			}
+			
+			if(toTime != null && logTimestamp.after(toTime)) {
+				messagesToRemove.add(logMessage);
+			}
+		}
+		logMessages.removeAll(messagesToRemove);
+	}
+
+	private void filterLogsBySeverity(List<LogMessage> logMessages, String severity) {
+		if(severity == null || severity.isEmpty()) {
+			return;
+		}
+		
+		List<LogMessage> messagesToRemove = new ArrayList<LogMessage>();
+		for(LogMessage logMessage : logMessages) {
+			if(!logMessage.getSeverity().equals(severity)) {
+				messagesToRemove.add(logMessage);
+			}
+		}
+		logMessages.removeAll(messagesToRemove);
+	}
+
+	private List<LogMessage> getLogsForAllBricks(Volume volume, Integer lineCount) {
+		List<LogMessage> logMessages;
+		logMessages = new ArrayList<LogMessage>();
+		// fetch logs for every brick of the volume
+		for (String brick : volume.getBricks()) {
+			logMessages.addAll(getBrickLogs(volume, brick, lineCount));
+		}
+		
+		// Sort the log messages based on log timestamp
+		Collections.sort(logMessages, new Comparator<LogMessage>() {
+			@Override
+			public int compare(LogMessage message1, LogMessage message2) {
+				return message1.getTimestamp().compareTo(message2.getTimestamp());
+			}
+		});
+		
+		return logMessages;
 	}
 	
 	@POST

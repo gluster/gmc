@@ -18,6 +18,8 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.views.details;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -46,6 +48,9 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.constants.GlusterConstants;
+import com.gluster.storage.management.core.constants.GlusterConstants.VOLUME_LOG_LEVELS;
 import com.gluster.storage.management.core.model.LogMessage;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
@@ -67,6 +72,14 @@ public class VolumeLogsPage extends Composite {
 
 	private static final String[] LOG_TABLE_COLUMN_NAMES = new String[] { "Date", "Time", "Disk", "Severity", "Message" };
 	private TableViewer tableViewer;
+	private Combo disksCombo;
+	private Combo severityCombo;
+	private DateTime fromDate;
+	private DateTime fromTime;
+	private DateTime toDate;
+	private DateTime toTime;
+	private Button fromCheckbox;
+	private Button toCheckbox;
 
 	/**
 	 * Create the volume logs page
@@ -103,10 +116,12 @@ public class VolumeLogsPage extends Composite {
 		createFromDateLabel(composite);
 		createFromDateField(composite);
 		createFromTimeField(composite);
+		createFromCheckbox(composite);
 		
 		createToDateLabel(composite);
 		createToDateField(composite);
 		createToTimeField(composite);
+		createToCheckbox(composite);
 		
 		createSearchButton(composite);
 		
@@ -146,12 +161,29 @@ public class VolumeLogsPage extends Composite {
 
 	private void createSearchButton(Composite composite) {
 		Button btnGo = toolkit.createButton(composite, "&Go", SWT.NONE);
-		btnGo.setBounds(605, 55, 60, 30);
+		btnGo.setBounds(615, 55, 50, 30);
 		btnGo.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				VolumesClient client = new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken());
-				LogMessageListResponse response = client.getLogs(volume.getName(), Integer.parseInt(lineCountText.getText()));
+
+				Date fromTimestamp = null;
+				Date toTimestamp = null;
+				
+				if(fromCheckbox.getSelection()) {
+					fromTimestamp = extractTimestamp(fromDate, fromTime);
+				}
+				
+				if(toCheckbox.getSelection()) {
+					toTimestamp = extractTimestamp(toDate, toTime);
+				}
+				
+				if (!validateTimeRange(fromTimestamp, toTimestamp)) {
+					return;
+				}
+				
+				LogMessageListResponse response = client.getLogs(volume.getName(), disksCombo.getText(),
+						severityCombo.getText(), fromTimestamp, toTimestamp, Integer.parseInt(lineCountText.getText()));
 				Status status = response.getStatus();
 				if(status.isSuccess()) {
 					List<LogMessage> logMessages = response.getLogMessages();
@@ -165,51 +197,120 @@ public class VolumeLogsPage extends Composite {
 		});
 	}
 
+	protected boolean validateTimeRange(Date fromTimestamp, Date toTimestamp) {
+		if(fromTimestamp == null && toTimestamp == null) {
+			// no time range selected. nothing to validate.
+			return true;
+		}
+		
+		Calendar calendar = Calendar.getInstance();
+		Date now = calendar.getTime();
+		if(fromTimestamp != null && fromTimestamp.after(now)) {
+			MessageDialog.openError(getShell(), "Volume Logs", "From time can't be greater than current time!");
+			return false;
+		}
+		
+		if(toTimestamp != null) {
+			if (toTimestamp.after(now)) {
+				MessageDialog.openError(getShell(), "Volume Logs", "To time can't be greater than current time!");
+				return false;
+			}
+			
+			if(fromTimestamp.after(toTimestamp)) {
+				MessageDialog.openError(getShell(), "Volume Logs", "From time can't be greater than To time!");
+				return false;
+			}
+		}
+		
+		return true;
+	}
+
+	private void createToCheckbox(Composite composite) {
+		toCheckbox = toolkit.createButton(composite, null, SWT.CHECK);
+		toCheckbox.setBounds(320, 60, 15, 20);
+		toCheckbox.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if (toCheckbox.getSelection()) {
+					toDate.setEnabled(true);
+					toTime.setEnabled(true);
+				} else {
+					toDate.setEnabled(false);
+					toTime.setEnabled(false);
+				}
+			}
+		});
+	}
+
 	private void createToTimeField(Composite composite) {
-		DateTime toTime = new DateTime(composite, SWT.BORDER | SWT.TIME);
-		toTime.setBounds(480, 60, 120, 20);
+		toTime = new DateTime(composite, SWT.BORDER | SWT.TIME);
+		toTime.setBounds(490, 60, 120, 20);
+		toTime.setEnabled(false);
 		toolkit.adapt(toTime);
 		toolkit.paintBordersFor(toTime);
 	}
 
 	private void createToDateField(Composite composite) {
-		DateTime toDate = new DateTime(composite, SWT.BORDER | SWT.DROP_DOWN);
-		toDate.setBounds(355, 60, 120, 20);
+		toDate = new DateTime(composite, SWT.BORDER | SWT.DROP_DOWN);
+		toDate.setBounds(365, 60, 120, 20);
+		toDate.setEnabled(false);
 		toolkit.adapt(toDate);
 		toolkit.paintBordersFor(toDate);
 	}
 
 	private void createToDateLabel(Composite composite) {
 		Label lblTo = toolkit.createLabel(composite, "To", SWT.NONE);
-		lblTo.setBounds(329, 60, 26, 20);
+		lblTo.setBounds(340, 60, 25, 20);
+	}
+
+	private void createFromCheckbox(Composite composite) {
+		fromCheckbox = toolkit.createButton(composite, null, SWT.CHECK);
+		fromCheckbox.setBounds(0, 60, 15, 20);
+		fromCheckbox.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if (fromCheckbox.getSelection()) {
+					fromDate.setEnabled(true);
+					fromTime.setEnabled(true);
+				} else {
+					fromDate.setEnabled(false);
+					fromTime.setEnabled(false);
+				}
+			}
+		});
 	}
 
 	private void createFromTimeField(Composite composite) {
-		DateTime fromTime = new DateTime(composite, SWT.BORDER | SWT.TIME);
-		fromTime.setBounds(171, 60, 120, 20);
+		fromTime = new DateTime(composite, SWT.BORDER | SWT.TIME);
+		fromTime.setBounds(190, 60, 120, 20);
+		fromTime.setEnabled(false);
 		toolkit.adapt(fromTime);
 		toolkit.paintBordersFor(fromTime);
 	}
 
 	private void createFromDateField(Composite composite) {
-		DateTime fromDate = new DateTime(composite, SWT.BORDER | SWT.DROP_DOWN);
-		fromDate.setBounds(45, 60, 120, 20);
+		fromDate = new DateTime(composite, SWT.BORDER | SWT.DROP_DOWN);
+		fromDate.setBounds(60, 60, 120, 20);
+		fromDate.setEnabled(false);
 		toolkit.adapt(fromDate);
 		toolkit.paintBordersFor(fromDate);
 	}
 
 	private void createFromDateLabel(Composite composite) {
 		Label lblFrom = toolkit.createLabel(composite, "from", SWT.NONE);
-		lblFrom.setBounds(0, 60, 40, 20);
+		lblFrom.setBounds(20, 60, 40, 20);
 	}
 
 	private void createSeverityCombo(Composite composite) {
-		Combo severityCombo = new Combo(composite, SWT.NONE);
+		severityCombo = new Combo(composite, SWT.READ_ONLY);
 		severityCombo.setBounds(555, 15, 110, 20);
-		severityCombo.setItems(new String[] {"ALL", "SEVERE", "WARNING", "DEBUG", "INFO"});
+		
+		severityCombo.setItems(GlusterConstants.VOLUME_LOG_LEVELS_ARR.toArray(new String[0]));
+		severityCombo.select(VOLUME_LOG_LEVELS.ERROR.ordinal());
+		severityCombo.add(CoreConstants.ALL, 0);
+		
 		toolkit.adapt(severityCombo);
 		toolkit.paintBordersFor(severityCombo);
-		severityCombo.select(1);
 	}
 
 	private void createSeverityLabel(Composite composite) {
@@ -218,9 +319,10 @@ public class VolumeLogsPage extends Composite {
 	}
 
 	private void createDisksCombo(Composite composite) {
-		Combo disksCombo = new Combo(composite, SWT.NONE);
+		disksCombo = new Combo(composite, SWT.READ_ONLY);
 		disksCombo.setBounds(365, 15, 100, 20);
-		disksCombo.setItems(new String[] {"ALL", "sda", "sdb", "sdc", "sdd"});
+		disksCombo.setItems(volume.getDisks().toArray(new String[0]));
+		disksCombo.add(CoreConstants.ALL, 0);
 		toolkit.adapt(disksCombo);
 		toolkit.paintBordersFor(disksCombo);
 		disksCombo.select(0);
@@ -287,5 +389,18 @@ public class VolumeLogsPage extends Composite {
 
 		TableColumnLayout tableColumnLayout = (TableColumnLayout) table.getParent().getLayout();
 		tableColumnLayout.setColumnData(column, new ColumnWeightData(weight));
+	}
+
+	private Date extractTimestamp(DateTime date, DateTime time) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setLenient(false);
+		calendar.set(Calendar.DAY_OF_MONTH, date.getDay());
+		// in Calendar class, month starts with zero i.e. Jan = 0
+		calendar.set(Calendar.MONTH, date.getMonth());
+		calendar.set(Calendar.YEAR, date.getYear());
+		calendar.set(Calendar.HOUR_OF_DAY, time.getHours());
+		calendar.set(Calendar.MINUTE, time.getMinutes());
+		calendar.set(Calendar.SECOND, time.getSeconds());
+		return calendar.getTime();
 	}
 }

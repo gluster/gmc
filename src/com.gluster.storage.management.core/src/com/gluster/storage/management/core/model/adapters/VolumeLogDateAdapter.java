@@ -19,35 +19,35 @@
 
 package com.gluster.storage.management.core.model.adapters;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.xml.bind.annotation.adapters.XmlAdapter;
+
+import com.gluster.storage.management.core.utils.DateUtil;
 
 /**
  * Adapter class used for converting timestamp from Gluster volume log files to Date object.
  */
 public class VolumeLogDateAdapter extends XmlAdapter<String, Date> {
 	private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
-	private SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
 
 	/* (non-Javadoc)
 	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#unmarshal(java.lang.Object)
 	 */
 	@Override
-	public Date unmarshal(String input) throws Exception {
+	public Date unmarshal(String input) {
 		input = input.trim();
 		if(input.length() > DATE_FORMAT.length()) {
 			input = input.substring(0, DATE_FORMAT.length());
 		}
-		return dateFormatter.parse(input);
+		return DateUtil.stringToDate(input, DATE_FORMAT);
 	}
 
 	/* (non-Javadoc)
 	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#marshal(java.lang.Object)
 	 */
 	@Override
-	public String marshal(Date input) throws Exception {
-		return dateFormatter.format(input);
+	public String marshal(Date input) {
+		return DateUtil.dateToString(input, DATE_FORMAT);
 	}
 }

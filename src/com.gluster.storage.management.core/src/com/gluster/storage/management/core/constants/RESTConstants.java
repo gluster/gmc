@@ -46,6 +46,9 @@ public class RESTConstants {
 	public static final String QUERY_PARAM_LINE_COUNT = "lineCount";
 	public static final String QUERY_PARAM_VOLUME_NAME = "volumeName";
 	public static final String QUERY_PARAM_DELETE_OPTION = "deleteOption";
+	public static final String QUERY_PARAM_LOG_SEVERITY = "severity";
+	public static final String QUERY_PARAM_FROM_TIMESTAMP = "fromTimestamp";
+	public static final String QUERY_PARAM_TO_TIMESTAMP = "toTimestamp";
 
 	// Running tasks resource
 	public static final String RESOURCE_PATH_RUNNING_TASKS = "/cluster/runningtasks";

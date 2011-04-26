@@ -20,12 +20,13 @@
  */
 package com.gluster.storage.management.client;
 
-
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-
 import javax.ws.rs.core.MultivaluedMap;
 
+import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
@@ -34,13 +35,13 @@ import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.response.LogMessageListResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
+import com.gluster.storage.management.core.utils.DateUtil;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.StringUtil;
 import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class VolumesClient extends AbstractClient {
-
 	public VolumesClient(String securityToken) {
 		super(securityToken);
 	}
@@ -110,13 +111,55 @@ public class VolumesClient extends AbstractClient {
 		return (Status) postRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
 	}
 
-	public LogMessageListResponse getLogs(String volumeName, int lineCount) {
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-		queryParams.add(RESTConstants.QUERY_PARAM_LINE_COUNT, "" + lineCount);
-		// TODO: Add other filte criteria as query parameters
+	/**
+	 * Fetches volume logs for the given volume based on given filter criteria
+	 * 
+	 * @param volumeName
+	 *            Name of volume whose logs are to be fetched
+	 * @param diskName
+	 *            Name of the disk whose logs are to be fetched. Pass ALL to fetch log messages from all disks of the
+	 *            volume.
+	 * @param severity
+	 *            Log severity {@link GlusterConstants#VOLUME_LOG_LEVELS_ARR}. Pass ALL to fetch log messages of all
+	 *            severity levels.
+	 * @param fromTimestamp
+	 *            From timestamp. Pass null if this filter is not required.
+	 * @param toTimestamp
+	 *            To timestamp. Pass null if this filter is not required.
+	 * @param messageCount
+	 *            Number of most recent log messages to be fetched (from each disk)
+	 * @return Log Message List response received from the Gluster Management Server.
+	 */
+	public LogMessageListResponse getLogs(String volumeName, String diskName, String severity, Date fromTimestamp, Date toTimestamp, int messageCount) {
+		MultivaluedMap<String, String> queryParams = prepareGetLogQueryParams(diskName, severity, fromTimestamp,
+				toTimestamp, messageCount);
+
 		return (LogMessageListResponse) fetchSubResource(volumeName + "/" + RESTConstants.SUBRESOURCE_LOGS,
 				queryParams, LogMessageListResponse.class);
+	}
 
+	private MultivaluedMap<String, String> prepareGetLogQueryParams(String diskName, String severity,
+			Date fromTimestamp, Date toTimestamp, int messageCount) {
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+		queryParams.add(RESTConstants.QUERY_PARAM_LINE_COUNT, "" + messageCount);
+		if(!diskName.equals(CoreConstants.ALL)) {
+			queryParams.add(RESTConstants.QUERY_PARAM_DISK_NAME, diskName);
+		}
+		
+		if (!severity.equals(CoreConstants.ALL)) {
+			queryParams.add(RESTConstants.QUERY_PARAM_LOG_SEVERITY, severity);
+		}
+		
+		if (fromTimestamp != null) {
+			queryParams.add(RESTConstants.QUERY_PARAM_FROM_TIMESTAMP,
+					DateUtil.dateToString(fromTimestamp, CoreConstants.DATE_WITH_TIME_FORMAT));
+		}
+
+		if (toTimestamp != null) {
+			queryParams.add(RESTConstants.QUERY_PARAM_TO_TIMESTAMP,
+					DateUtil.dateToString(toTimestamp, CoreConstants.DATE_WITH_TIME_FORMAT));
+		}
+		return queryParams;
 	}
 
 	public static void main(String[] args) {

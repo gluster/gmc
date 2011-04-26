@@ -180,13 +180,8 @@ public class GlusterDataModelManager {
 		s2dc = new Disk(server2, "sdc", 200d, -1d, DISK_STATUS.UNINITIALIZED);
 		s2dd = new Disk(server2, "sdd", 200d, 124.89, DISK_STATUS.READY);
 
-		s3da = new Disk(server3, "NA", -1d, -1d, DISK_STATUS.OFFLINE); // disk
-																		// name
-																		// unavailable
-																		// since
-																		// server
-																		// is
-																		// offline
+		// disk name unavailable since server is offline
+		s3da = new Disk(server3, "NA", -1d, -1d, DISK_STATUS.OFFLINE); 
 
 		s4da = new Disk(server4, "sda", 100d, 85.39, DISK_STATUS.READY);
 
