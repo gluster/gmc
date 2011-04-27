@@ -94,6 +94,7 @@ public abstract class AbstractDisksPage extends Composite implements IEntityList
 		setupPageLayout();
 		Text filterText = guiHelper.createFilterText(toolkit, this);
 		setupDiskTableViewer(createTableViewerComposite(), filterText);
+		site.setSelectionProvider(tableViewer);
 
 		tableViewer.setInput(disks);
 		setupStatusCellEditor(); // creates hyperlinks for "unitialized" disks
@@ -231,7 +232,7 @@ public abstract class AbstractDisksPage extends Composite implements IEntityList
 	}
 
 	private TableViewer createDiskTableViewer(Composite parent) {
-		tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
+		tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI );
 
 		tableViewer.setLabelProvider(getTableLabelProvider());
 		tableViewer.setContentProvider(new ArrayContentProvider());
