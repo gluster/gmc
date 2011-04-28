@@ -58,9 +58,9 @@ public class SelectDisksDialog extends Dialog {
 	private List<Disk> getSelectedDisks(List<Disk> allDisks, List<String> selectedDisks) {
 		List<Disk> disks = new ArrayList<Disk>();
 		for (String selectedDisk : selectedDisks) {
-			for (Disk disk : disks) {
+			for (Disk disk : allDisks) {
 				String brick[] = selectedDisk.split(":");
-				if (disk.getServerName() == brick[0] && disk.getName() == brick[1]) {
+				if (disk.getServerName().equals(brick[0]) && disk.getName().equals(brick[1])) {
 					disks.add(disk);
 				}
 			}
