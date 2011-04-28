@@ -20,7 +20,11 @@
  */
 package com.gluster.storage.management.client;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.gluster.storage.management.core.constants.RESTConstants;
+import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.response.VolumeListResponse;
@@ -84,6 +88,12 @@ public class VolumesClient extends AbstractClient {
 		return ((VolumeOptionInfoListResponse) fetchSubResource(RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS,
 				VolumeOptionInfoListResponse.class));
 	}
+	
+	public Status addDisks(String volumeName, String disks) {
+		Form form = new Form();
+		form.add(RESTConstants.QUERY_PARAM_DISKS, disks);
+		return (Status) postRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
+	}
 
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();
@@ -105,8 +115,11 @@ public class VolumesClient extends AbstractClient {
 //			for (VolumeOptionInfo option : client.getVolumeOptionsDefaults()) {
 //				System.out.println(option.getName() + "-" + option.getDescription() + "-" + option.getDefaultValue());
 //			}
-			System.out.println(client.getVolume("Volume3").getOptions());
-			System.out.println(client.setVolumeOption("Volume3", "network.frame-timeout", "600").getMessage());
+//			System.out.println(client.getVolume("Volume3").getOptions());
+//			System.out.println(client.setVolumeOption("Volume3", "network.frame-timeout", "600").getMessage());
+			
+			Status status = client.addDisks("Volume3", "server1:sda, server1:sdb, server1:sdc");
+			System.out.println(status.getMessage());
 		}
 	}
 }
