@@ -257,6 +257,11 @@
             id="com.gluster.storage.management.gui.commands.RemoveDisk"
             name="Remove Disk">
       </command>
+      <command
+            description="Add Disk"
+            id="com.gluster.storage.management.gui.commands.AddDisk"
+            name="Add Disk">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.bindings">
@@ -497,11 +502,11 @@
                style="push"
                toolbarPath="Normal"
                tooltip="Migrate Disk">
-            <enablement>
-               <objectClass
-                     name="com.gluster.storage.management.core.model.Disk">
-               </objectClass>
-            </enablement>
+               <enablement>
+                   <objectClass
+                         name="com.gluster.storage.management.core.model.Disk">
+                   </objectClass>
+               </enablement>
          </action>
          <action
                allowLabelUpdate="false"
@@ -597,7 +602,23 @@
                state="false"
                style="push"
                toolbarPath="Normal"
-               tooltip="Remove Disk">
+               tooltip="Remove Disk from Volume">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.AddDiskAction"
+               definitionId="com.gluster.storage.management.gui.commands.AddDisk"
+               icon="icons/disk.png"
+               id="com.gluster.storage.management.gui.actions.AddDiskAction"
+               label="&amp;Add Disk"
+               menubarPath="com.gluster.storage.management.gui.menu.volume/volume"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Add Disk to Volume">
          </action>
          <menu
                id="com.gluster.storage.management.gui.menu.volume"

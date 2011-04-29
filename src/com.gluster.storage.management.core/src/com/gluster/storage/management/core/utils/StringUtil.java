@@ -18,15 +18,24 @@
  *******************************************************************************/
 package com.gluster.storage.management.core.utils;
 
+import java.util.List;
+
 public class StringUtil {
-	public static boolean filterString(String sourceString,
-			String filterString, boolean caseSensitive) {
-		return caseSensitive ? sourceString.contains(filterString)
-				: sourceString.toLowerCase().contains(
-						filterString.toLowerCase());
+	public static boolean filterString(String sourceString, String filterString, boolean caseSensitive) {
+		return caseSensitive ? sourceString.contains(filterString) : sourceString.toLowerCase().contains(
+				filterString.toLowerCase());
 	}
-	
+
 	public static String removeSpaces(String str) {
 		return str.replaceAll("\\s+", "");
+	}
+
+	public static String ListToString(List<String> list, String delimiter) {
+		StringBuilder output = new StringBuilder();
+		for(String element : list) {
+			output.append(element).append(delimiter);
+		}
+		String outputStr = output.toString();
+		return outputStr.substring(0, outputStr.length() - (delimiter.length()+1));
 	}
 }

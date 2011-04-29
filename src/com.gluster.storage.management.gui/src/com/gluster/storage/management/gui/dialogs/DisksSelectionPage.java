@@ -19,7 +19,6 @@
 package com.gluster.storage.management.gui.dialogs;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.jface.viewers.ITableLabelProvider;
@@ -48,7 +47,7 @@ import com.richclientgui.toolbox.duallists.IRemovableContentProvider;
 import com.richclientgui.toolbox.duallists.RemovableContentProvider;
 import com.richclientgui.toolbox.duallists.TableColumnData;
 
-public class CreateVolumeDisksPage extends Composite {
+public class DisksSelectionPage extends Composite {
 	private enum DISK_TABLE_COLUMN_INDICES {
 		SERVER, DISK, SPACE, SPACE_USED
 	}
@@ -67,12 +66,16 @@ public class CreateVolumeDisksPage extends Composite {
 
 	private Button btnDown;
 
-	public CreateVolumeDisksPage(final Composite parent, int style, List<Disk> allDisks, List<Disk> selectedDisks) {
+	public DisksSelectionPage(final Composite parent, int style, List<Disk> allDisks, List<Disk> selectedDisks) {
 		super(parent, style);
 
 		createPage(allDisks, selectedDisks);
 
 		parent.layout();
+	}
+	
+	public void addDiskSelectionListener(ListContentChangedListener<Disk> listener) {
+		dualTableViewer.addChosenListChangedSelectionListener(listener);
 	}
 
 	private TableLabelProviderAdapter getDiskLabelProvider() {
