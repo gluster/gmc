@@ -82,13 +82,15 @@ def clearVolumeDirectory(disk, volumeName, option):
         return rs.toprettyxml()
 
 def main():
-    if len(sys.argv) != 4:
+    if len(sys.argv) < 3 or len(sys.argv) > 4:
         print >> sys.stderr, "usage: %s <disk name> <volume name> <option>" % sys.argv[0]
         sys.exit(-1)
 
     disk = sys.argv[1]
     volumeName = sys.argv[2]
-    option = sys.argv[3]
+    option = 0
+    if len(sys.argv) > 3:
+        option = sys.argv[3]
     print clearVolumeDirectory(disk, volumeName, option)
     sys.exit(0)
 
