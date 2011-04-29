@@ -215,6 +215,15 @@ public abstract class AbstractClient {
 				.delete(responseClass);
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	protected Object deleteSubResource(String subResourceName, Class responseClass, String volumeName, String disks,
+			String deleteOption) {
+		return resource.path(subResourceName).queryParam(RESTConstants.QUERY_PARAM_VOLUME_NAME, volumeName)
+				.queryParam(RESTConstants.QUERY_PARAM_DISKS, disks)
+				.queryParam(RESTConstants.QUERY_PARAM_DELETE_OPTION, deleteOption).header("Authorization", authHeader)
+				.delete(responseClass);
+	}
+
 	public abstract String getResourceName();
 
 	/**
