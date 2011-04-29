@@ -18,6 +18,9 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.views.details;
 
+import java.util.List;
+
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnWeightData;
@@ -25,6 +28,8 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -39,8 +44,12 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
-import com.gluster.storage.management.core.model.GlusterDummyModel;
+import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.model.LogMessage;
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.response.LogMessageListResponse;
 import com.gluster.storage.management.gui.VolumeLogTableLabelProvider;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
@@ -48,12 +57,16 @@ public class VolumeLogsPage extends Composite {
 
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	private final GUIHelper guiHelper = GUIHelper.getInstance();
-	private Text text;
+	private Text filterText;
+	private Text lineCountText;
+	private Volume volume;
+	
 	public enum LOG_TABLE_COLUMN_INDICES {
 		DATE, TIME, DISK, SEVERITY, MESSAGE
 	};
 
 	private static final String[] LOG_TABLE_COLUMN_NAMES = new String[] { "Date", "Time", "Disk", "Severity", "Message" };
+	private TableViewer tableViewer;
 
 	/**
 	 * Create the volume logs page
@@ -63,6 +76,8 @@ public class VolumeLogsPage extends Composite {
 	 */
 	public VolumeLogsPage(Composite parent, int style, Volume volume) {
 		super(parent, style);
+		this.volume = volume;
+		
 		addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
 				toolkit.dispose();
@@ -106,18 +121,17 @@ public class VolumeLogsPage extends Composite {
 	private void createLogTableViewer() {
 		Composite tableViewerComposite = createTableViewerComposite();
 		
-		TableViewer tableViewer = new TableViewer(tableViewerComposite, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
+		tableViewer = new TableViewer(tableViewerComposite, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
 		tableViewer.setLabelProvider(new VolumeLogTableLabelProvider());
 		tableViewer.setContentProvider(new ArrayContentProvider());
 
 		setupLogsTable(tableViewerComposite, tableViewer.getTable());
-		guiHelper.createFilter(tableViewer, text, false);
-		tableViewer.setInput(GlusterDummyModel.getDummyLogMessages().toArray());
+		guiHelper.createFilter(tableViewer, filterText, false);
 	}
 
 	private void createFilterText(Composite composite) {
-		text = guiHelper.createFilterText(toolkit, composite);
-		text.setBounds(90, 105, 250, 20);
+		filterText = guiHelper.createFilterText(toolkit, composite);
+		filterText.setBounds(90, 105, 250, 20);
 	}
 
 	private void createFilterLabel(Composite composite) {
@@ -131,8 +145,24 @@ public class VolumeLogsPage extends Composite {
 	}
 
 	private void createSearchButton(Composite composite) {
-		Button btngo = toolkit.createButton(composite, "&Go", SWT.NONE);
-		btngo.setBounds(605, 55, 60, 30);
+		Button btnGo = toolkit.createButton(composite, "&Go", SWT.NONE);
+		btnGo.setBounds(605, 55, 60, 30);
+		btnGo.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				VolumesClient client = new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken());
+				LogMessageListResponse response = client.getLogs(volume.getName(), Integer.parseInt(lineCountText.getText()));
+				Status status = response.getStatus();
+				if(status.isSuccess()) {
+					List<LogMessage> logMessages = response.getLogMessages();
+					tableViewer.setInput(logMessages.toArray(new LogMessage[0]));
+					tableViewer.refresh();
+				} else {
+					MessageDialog.openError(getShell(), "Volume Logs", "Error while fetching volume logs: [" + status
+							+ "]");
+				}
+			}
+		});
 	}
 
 	private void createToTimeField(Composite composite) {
@@ -202,8 +232,8 @@ public class VolumeLogsPage extends Composite {
 	}
 
 	private void createLineCountText(Composite composite) {
-		text = toolkit.createText(composite, "100", SWT.NONE);
-		text.setBounds(85, 15, 60, 20);
+		lineCountText = toolkit.createText(composite, "100", SWT.NONE);
+		lineCountText.setBounds(85, 15, 60, 20);
 	}
 
 	private void createLineCountLabel(Composite composite) {

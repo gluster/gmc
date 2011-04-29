@@ -20,12 +20,16 @@
  */
 package com.gluster.storage.management.client;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.response.LogMessageListResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 import com.sun.jersey.api.representation.Form;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class VolumesClient extends AbstractClient {
 
@@ -83,6 +87,14 @@ public class VolumesClient extends AbstractClient {
 	public VolumeOptionInfoListResponse getVolumeOptionsDefaults() {
 		return ((VolumeOptionInfoListResponse) fetchSubResource(RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS,
 				VolumeOptionInfoListResponse.class));
+	}
+	
+	public LogMessageListResponse getLogs(String volumeName, int lineCount) {
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+		queryParams.add(RESTConstants.QUERY_PARAM_LINE_COUNT, "" + lineCount);
+		// TODO: Add other filte criteria as query parameters
+		return (LogMessageListResponse) fetchSubResource(volumeName + "/" + RESTConstants.SUBRESOURCE_LOGS,
+				queryParams, LogMessageListResponse.class);
 	}
 
 	public static void main(String[] args) {
