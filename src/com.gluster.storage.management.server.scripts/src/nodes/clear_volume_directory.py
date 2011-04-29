@@ -23,8 +23,9 @@ from XmlHandler import ResponseXml
 import DiskUtils
 import Utils
 import Common
+from optparse import OptionParser
 
-def clearVolumeDirectory(disk, volumeName, option):
+def clearVolumeDirectory(disk, volumeName, todelete):
 
     # Retrieving disk uuid
     diskUuid = DiskUtils.getUuidByDiskPartition(DiskUtils.getDevice(disk))
@@ -58,7 +59,7 @@ def clearVolumeDirectory(disk, volumeName, option):
         rs.appendTagRoute("status.message", message)
         return rs.toprettyxml()
 
-    if "1" == option:
+    if not todelete:
         rv["Status"] = "0"
         rs.appendTagRoute("status.code", rv["Status"])
         rs.appendTagRoute("status.message", message)
@@ -82,16 +83,17 @@ def clearVolumeDirectory(disk, volumeName, option):
         return rs.toprettyxml()
 
 def main():
-    if len(sys.argv) < 3 or len(sys.argv) > 4:
-        print >> sys.stderr, "usage: %s <disk name> <volume name> <option>" % sys.argv[0]
+    parser = OptionParser()
+    parser.add_option("-d", "--delete", dest="deletedir", action="store_true", default=False, help="force delete")
+    (options, args) = parser.parse_args()
+
+    if len(args) != 2:
+        print >> sys.stderr, "usage: %s <disk name> <volume name> [-d/--delete]" % sys.argv[0]
         sys.exit(-1)
 
-    disk = sys.argv[1]
-    volumeName = sys.argv[2]
-    option = 0
-    if len(sys.argv) > 3:
-        option = sys.argv[3]
-    print clearVolumeDirectory(disk, volumeName, option)
+    disk = args[0]
+    volumeName = args[1]
+    print clearVolumeDirectory(disk, volumeName, options.deletedir)
     sys.exit(0)
 
 if __name__ == "__main__":
