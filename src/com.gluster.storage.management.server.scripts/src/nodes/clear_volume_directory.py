@@ -18,12 +18,13 @@
 import os
 import sys
 import syslog
+import time
 from XmlHandler import ResponseXml
 import DiskUtils
 import Utils
 import Common
 
-def clearVolumeDirectory(disk, volumeName):
+def clearVolumeDirectory(disk, volumeName, option):
 
     # Retrieving disk uuid
     diskUuid = DiskUtils.getUuidByDiskPartition(DiskUtils.getDevice(disk))
@@ -45,13 +46,31 @@ def clearVolumeDirectory(disk, volumeName):
 
     # clear volume directory from the disk
     volumeDirectory = "%s/%s" % (diskMountPoint, volumeName)
-    command = ["sudo", "rm", "-fr", volumeDirectory]
+    newVolumeDirectoryName = "%s_%s" % (volumeDirectory, time.time())
+    command = ["sudo", "mv", "-f", volumeDirectory, newVolumeDirectoryName]
     rv = Utils.runCommandFG(command, stdout=True, root=True)
     message = Common.stripEmptyLines(rv["Stdout"])
     if rv["Stderr"]:
         error = Common.stripEmptyLines(rv["Stderr"])
         message += "Error: [%s]" % (error)
-        Common.log(syslog.LOG_ERR, "failed to clear volume directory %s, %s" % (volumeDirectory, error))
+        Common.log(syslog.LOG_ERR, "failed to rename volume directory %s, %s" % (volumeDirectory, error))
+        rs.appendTagRoute("status.code", rv["Status"])
+        rs.appendTagRoute("status.message", message)
+        return rs.toprettyxml()
+
+    if "1" == option:
+        rv["Status"] = "0"
+        rs.appendTagRoute("status.code", rv["Status"])
+        rs.appendTagRoute("status.message", message)
+        return rs.toprettyxml()
+
+    command = ["sudo", "rm", "-fr", newVolumeDirectoryName]
+    rv = Utils.runCommandFG(command, stdout=True, root=True)
+    message = Common.stripEmptyLines(rv["Stdout"])
+    if rv["Stderr"]:
+        error = Common.stripEmptyLines(rv["Stderr"])
+        message += "Error: [%s]" % (error)
+        Common.log(syslog.LOG_ERR, "failed to clear volume directory %s, %s" % (newVolumeDirectoryName, error))
         rs.appendTagRoute("status.code", rv["Status"])
         rs.appendTagRoute("status.message", message)
         return rs.toprettyxml()
@@ -63,14 +82,16 @@ def clearVolumeDirectory(disk, volumeName):
         return rs.toprettyxml()
 
 def main():
-    if len(sys.argv) != 3:
-        print >> sys.stderr, "usage: %s <disk name> <volume name>" % sys.argv[0]
+    if len(sys.argv) != 4:
+        print >> sys.stderr, "usage: %s <disk name> <volume name> <option>" % sys.argv[0]
         sys.exit(-1)
 
     disk = sys.argv[1]
     volumeName = sys.argv[2]
-    print clearVolumeDirectory(disk, volumeName)
+    option = sys.argv[3]
+    print clearVolumeDirectory(disk, volumeName, option)
     sys.exit(0)
 
 if __name__ == "__main__":
     main()
+
