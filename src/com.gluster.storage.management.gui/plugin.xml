@@ -497,6 +497,11 @@
                style="push"
                toolbarPath="Normal"
                tooltip="Migrate Disk">
+               <enablement>
+                   <objectClass
+                         name="com.gluster.storage.management.core.model.Disk">
+                   </objectClass>
+               </enablement>
          </action>
          <action
                allowLabelUpdate="false"

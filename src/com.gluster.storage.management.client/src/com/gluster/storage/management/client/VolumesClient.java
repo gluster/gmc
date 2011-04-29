@@ -20,14 +20,22 @@
  */
 package com.gluster.storage.management.client;
 
+
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.gluster.storage.management.core.constants.RESTConstants;
+import com.gluster.storage.management.core.model.Disk;
+import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.response.LogMessageListResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
+import com.gluster.storage.management.core.utils.GlusterCoreUtil;
+import com.gluster.storage.management.core.utils.StringUtil;
 import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
@@ -88,6 +96,13 @@ public class VolumesClient extends AbstractClient {
 		return ((VolumeOptionInfoListResponse) fetchSubResource(RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS,
 				VolumeOptionInfoListResponse.class));
 	}
+	
+	public Status addDisks(String volumeName, List<Disk> diskList) {
+		String disks = StringUtil.ListToString( GlusterCoreUtil.getQualifiedDiskNames(diskList), ",");
+		Form form = new Form();
+		form.add(RESTConstants.QUERY_PARAM_DISKS, disks);
+		return (Status) postRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
+	}
 
 	public Status addDisks(String volumeName, String disks) {
 		Form form = new Form();
@@ -108,27 +123,32 @@ public class VolumesClient extends AbstractClient {
 		UsersClient usersClient = new UsersClient();
 		if (usersClient.authenticate("gluster", "gluster").isSuccess()) {
 			VolumesClient client = new VolumesClient(usersClient.getSecurityToken());
-			// List<Disk> disks = new ArrayList<Disk>();
-			// Disk diskElement = new Disk();
-			// diskElement.setName("sda1");
-			// diskElement.setStatus(DISK_STATUS.READY);
-			// disks.add(diskElement);
-			// diskElement.setName("sda2");
-			// diskElement.setStatus(DISK_STATUS.READY);
-			// disks.add(diskElement);
-			//
-			// Volume vol = new Volume("vol1", null, Volume.VOLUME_TYPE.PLAIN_DISTRIBUTE,
-			// Volume.TRANSPORT_TYPE.ETHERNET,
-			// Volume.VOLUME_STATUS.ONLINE);
-			// // vol.setDisks(disks);
-			// System.out.println(client.createVolume(vol));
-			// for (VolumeOptionInfo option : client.getVolumeOptionsDefaults()) {
-			// System.out.println(option.getName() + "-" + option.getDescription() + "-" + option.getDefaultValue());
-			// }
-			// System.out.println(client.getVolume("Volume3").getOptions());
-			// System.out.println(client.setVolumeOption("Volume3", "network.frame-timeout", "600").getMessage());
-
-			Status status = client.addDisks("Volume3", "server1:sda, server1:sdb, server1:sdc");
+//			List<Disk> disks = new ArrayList<Disk>();
+//			Disk diskElement = new Disk();
+//			diskElement.setName("sda1");
+//			diskElement.setStatus(DISK_STATUS.READY);
+//			disks.add(diskElement);
+//			diskElement.setName("sda2");
+//			diskElement.setStatus(DISK_STATUS.READY);
+//			disks.add(diskElement);
+//
+//			Volume vol = new Volume("vol1", null, Volume.VOLUME_TYPE.PLAIN_DISTRIBUTE, Volume.TRANSPORT_TYPE.ETHERNET,
+//					Volume.VOLUME_STATUS.ONLINE);
+//			// vol.setDisks(disks);
+//			System.out.println(client.createVolume(vol));
+//			for (VolumeOptionInfo option : client.getVolumeOptionsDefaults()) {
+//				System.out.println(option.getName() + "-" + option.getDescription() + "-" + option.getDefaultValue());
+//			}
+//			System.out.println(client.getVolume("Volume3").getOptions());
+//			System.out.println(client.setVolumeOption("Volume3", "network.frame-timeout", "600").getMessage());
+			List<Disk> disks = new ArrayList<Disk>(); 
+			Disk disk = new Disk();
+			disk.setServerName("server1");
+			disk.setName("sda");
+			disk.setStatus(DISK_STATUS.READY);
+			disks.add(disk);
+			
+			Status status = client.addDisks("Volume3", disks);
 			System.out.println(status.getMessage());
 		}
 	}

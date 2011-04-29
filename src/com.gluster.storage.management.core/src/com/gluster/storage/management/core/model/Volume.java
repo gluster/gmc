@@ -51,8 +51,8 @@ public class Volume extends Entity {
 
 	
 	public static final int DEFAULT_REPLICA_COUNT = 2;
-	public static final int DEFAULT_STRIPE_COUNT = 2;
-	
+	public static final int DEFAULT_STRIPE_COUNT = 4;
+
 	public static final String OPTION_AUTH_ALLOW = "auth.allow";
 
 	private static final String[] VOLUME_TYPE_STR = new String[] { "Plain Distribute", "Distributed Mirror",

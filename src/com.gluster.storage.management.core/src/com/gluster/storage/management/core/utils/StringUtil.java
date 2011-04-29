@@ -32,12 +32,10 @@ public class StringUtil {
 
 	public static String ListToString(List<String> list, String delimiter) {
 		StringBuilder output = new StringBuilder();
-		for (int i = 0; i < list.size(); i++) {
-			output.append(list.get(i));
-			if (i < (list.size()-1) ) {
-				output.append(delimiter);
-			}
+		for(String element : list) {
+			output.append(element).append(delimiter);
 		}
-		return output.toString();
+		String outputStr = output.toString();
+		return outputStr.substring(0, outputStr.length() - (delimiter.length()+1));
 	}
 }

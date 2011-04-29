@@ -31,6 +31,8 @@ import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
+import com.richclientgui.toolbox.duallists.DualListComposite.ListContentChangedListener;
+import com.richclientgui.toolbox.duallists.IRemovableContentProvider;
 
 /**
  * @author root
@@ -40,7 +42,8 @@ public class AddDiskPage extends WizardPage {
 	private List<Disk> availableDisks = new ArrayList<Disk>();
 	private List<Disk> selectedDisks = new ArrayList<Disk>();
 	private Volume volume = null;
-	private CreateVolumeDisksPage page = null;
+	private DisksSelectionPage page = null;
+
 
 	public static final String PAGE_NAME = "add.disk.volume.page";
 
@@ -59,28 +62,51 @@ public class AddDiskPage extends WizardPage {
 			description += "(Disk selection should be multiples of " + volume.getStripeCount() + ")";
 		}
 		setDescription(description);
-		
+
 		availableDisks = getAvailableDisks(volume);
+		
+		setPageComplete(false);
+		setErrorMessage("Please select disks to be added to the volume.");
 	}
 
+	
+	private boolean  isDiskUsed(Volume volume, Disk disk){
+		for (String volumeDisk : volume.getDisks()) { // expected form of volumeDisk is "server:diskName"
+			if ( disk.getQualifiedName().equals(volumeDisk)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	protected List<Disk> getAvailableDisks(Volume volume) {
 		List<Disk> availableDisks = new ArrayList<Disk>();
-		boolean isDiskAlreadyUsedInTheVolume = false;
 		for (Disk disk : GlusterDataModelManager.getInstance().getReadyDisksOfAllServers()) {
-			isDiskAlreadyUsedInTheVolume = false;
-			for (String volumeDisk : volume.getDisks()) { // volumeDisk of the form "server:diskName"
-				if (disk.getServerName().equals(volumeDisk.split(":")[0])
-						&& disk.getName().equals(volumeDisk.split(":")[1])) {
-					isDiskAlreadyUsedInTheVolume = true;
-					break;
-				}
-			}
-			if (!isDiskAlreadyUsedInTheVolume) {
+			if ( ! isDiskUsed(volume, disk) ) {
 				availableDisks.add(disk);
 			}
 		}
 		return availableDisks;
 	}
+
+
+	public List<Disk> getChosenDisks( ) {
+		return page.getChosenDisks();
+	}
+	
+	private boolean isValidDiskSelection(int diskCount) {
+		if ( diskCount == 0) {
+			return false;
+		}
+		switch (volume.getVolumeType()) {
+		case DISTRIBUTED_MIRROR:
+			return (diskCount % volume.getReplicaCount() == 0);
+		case DISTRIBUTED_STRIPE:
+			return (diskCount % volume.getStripeCount() == 0);
+		}
+		return true;
+	}
+
 
 	/*
 	 * (non-Javadoc)
@@ -90,12 +116,50 @@ public class AddDiskPage extends WizardPage {
 	@Override
 	public void createControl(Composite parent) {
 		getShell().setText("Add Disk");
-		List<Disk> configuredDisks = new ArrayList<Disk>(); // or volume.getDisks();
-		page = new CreateVolumeDisksPage(parent, SWT.NONE, availableDisks, configuredDisks);
+		List<Disk> chosenDisks = new ArrayList<Disk>(); // or volume.getDisks();
+		
+		page = new DisksSelectionPage(parent, SWT.NONE, availableDisks, chosenDisks);
+		page.addDiskSelectionListener(new ListContentChangedListener<Disk>() {
+			@Override
+			public void listContentChanged(IRemovableContentProvider<Disk> contentProvider) {
+				List<Disk> newChosenDisks = page.getChosenDisks();
+				
+				// validate chosen disks
+				if(isValidDiskSelection(newChosenDisks.size())) {
+					clearError();
+				} else {
+					setError();
+				}
+			}
+		});
 		setControl(page);
 	}
 
-	public CreateVolumeDisksPage getDialogPage() {
+	private void setError() {
+		String errorMessage = null;
+		if ( volume.getVolumeType() == VOLUME_TYPE.PLAIN_DISTRIBUTE) {
+			errorMessage = "Please select at least one disk!";
+		} else if( volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
+			errorMessage = "Please select disks in multiples of " + volume.getReplicaCount();
+		} else {
+			errorMessage = "Please select disks in multiples of " + volume.getStripeCount();
+		}
+
+		setPageComplete(false);
+		setErrorMessage(errorMessage);
+	}
+
+	private void clearError() {
+		setErrorMessage(null);
+		setPageComplete(true);
+	}
+
+	public DisksSelectionPage getDialogPage() {
 		return this.page;
 	}
+	
+	public void setPageComplete() {
+		
+	}
+
 }

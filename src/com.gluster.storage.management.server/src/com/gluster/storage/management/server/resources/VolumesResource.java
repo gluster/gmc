@@ -226,7 +226,7 @@ public class VolumesResource {
 				status = new Status(e);
 			}
 			if (status.isSuccess()) {
-				String brickDir = status.getMessage().trim().replace(CoreConstants.NEWLINE, "");
+				String brickDir = status.getMessage().trim();
 				bricks.add(serverName + ":" + brickDir);
 			} else {
 				// Brick preparation failed. Cleanup directories already created and return failure status
@@ -330,7 +330,8 @@ public class VolumesResource {
 		Status status = createDirectories(diskList, volumeName);
 		if (status.isSuccess()) {
 			List<String> bricks = Arrays.asList(status.getMessage().split(" "));
-			status = glusterUtil.addDisks(volumeName, bricks);
+			status = glusterUtil.addBricks(volumeName, bricks);
+
 			if (!status.isSuccess()) {
 				Status cleanupStatus = cleanupDirectories(diskList, volumeName, diskList.size());
 				if (!cleanupStatus.isSuccess()) {
