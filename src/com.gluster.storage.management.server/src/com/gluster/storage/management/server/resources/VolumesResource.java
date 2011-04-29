@@ -24,10 +24,10 @@ import static com.gluster.storage.management.core.constants.RESTConstants.FORM_P
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_START;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_STOP;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_VOLUME_NAME;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DELETE_OPTION;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DISK_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_LINE_COUNT;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_VOLUME_NAME;
-import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DELETE_OPTION;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_VOLUMES;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_LOGS;
@@ -72,7 +72,7 @@ import com.sun.jersey.spi.resource.Singleton;
 public class VolumesResource {
 	private static final String PREPARE_BRICK_SCRIPT = "create_volume_directory.py";
 	private static final String VOLUME_DIRECTORY_CLEANUP_SCRIPT = "clear_volume_directory.py";
-	private static final String VOLUME_DISK_LOG_SCRIPT = "get_volume_disk_log.py";
+	private static final String VOLUME_BRICK_LOG_SCRIPT = "get_volume_brick_log.py";
 
 	@InjectParam
 	private static ServerUtil serverUtil;
@@ -261,28 +261,32 @@ public class VolumesResource {
 		return new Status(Status.STATUS_CODE_SUCCESS, "Directories cleaned up successfully!");
 	}
 
-	private List<LogMessage> getDiskLogs(String volumeName, String diskName, Integer lineCount)
+	private List<LogMessage> getBrickLogs(Volume volume, String brickName, Integer lineCount)
 			throws GlusterRuntimeException {
-		String[] diskParts = diskName.split(":");
-		String server = diskParts[0];
-		String disk = diskParts[1];
+		// brick name format is <serverName>:<brickDirectory>
+		String[] brickParts = brickName.split(":");
+		String serverName = brickParts[0];
+		String brickDir = brickParts[1];
+		
+		String logDir = glusterUtil.getLogLocation(volume.getName(), brickName);
+		String logFileName = glusterUtil.getLogFileNameForBrickDir(brickDir);
+		String logFilePath = logDir + CoreConstants.FILE_SEPARATOR + logFileName;
 
 		// Usage: get_volume_disk_log.py <volumeName> <diskName> <lineCount>
-		Status logStatus = (Status) serverUtil.executeOnServer(true, server, VOLUME_DISK_LOG_SCRIPT + " " + volumeName
-				+ " " + disk + " " + lineCount, Status.class);
-		if (!logStatus.isSuccess()) {
-			throw new GlusterRuntimeException(logStatus.toString());
+		LogMessageListResponse response = ((LogMessageListResponse) serverUtil.executeOnServer(true, serverName, VOLUME_BRICK_LOG_SCRIPT
+				+ " " + logFilePath + " " + lineCount, LogMessageListResponse.class));
+		Status status = response.getStatus();
+		if (!response.getStatus().isSuccess()) {
+			throw new GlusterRuntimeException(status.toString());
 		}
 
-		return extractLogMessages(logStatus.getMessage());
-	}
-
-	private List<LogMessage> extractLogMessages(String logContent) {
-		List<LogMessage> logMessages = new ArrayList<LogMessage>();
-		for (String logMessage : logContent.split(CoreConstants.NEWLINE)) {
-			logMessages.add(new LogMessage(logMessage));
+		// populate disk and trim other fields
+		List<LogMessage> logMessages = response.getLogMessages();
+		for(LogMessage logMessage : logMessages) {
+			logMessage.setDisk(getDiskForBrick(volume, brickName));
+			logMessage.setMessage(logMessage.getMessage().trim());
+			logMessage.setSeverity(logMessage.getSeverity().trim());
 		}
-
 		return logMessages;
 	}
 
@@ -293,22 +297,32 @@ public class VolumesResource {
 		List<LogMessage> logMessages = null;
 
 		try {
+			Volume volume = getVolume(volumeName);
 			if (diskName == null || diskName.isEmpty()) {
 				logMessages = new ArrayList<LogMessage>();
 				// fetch logs for every brick of the volume
-				Volume volume = getVolume(volumeName);
-				for (String volumeDisk : volume.getDisks()) {
-					logMessages.addAll(getDiskLogs(volumeName, volumeDisk, lineCount));
+				for (String brick : volume.getBricks()) {
+					logMessages.addAll(getBrickLogs(volume, brick, lineCount));
 				}
 			} else {
 				// fetch logs for given brick of the volume
-				logMessages = getDiskLogs(volumeName, diskName, lineCount);
+				logMessages = getBrickLogs(volume, getBrickForDisk(volume, diskName), lineCount);
 			}
 		} catch (Exception e) {
 			return new LogMessageListResponse(new Status(e), null);
 		}
 
 		return new LogMessageListResponse(Status.STATUS_SUCCESS, logMessages);
+	}
+
+	private String getBrickForDisk(Volume volume, String diskName) {
+		int index = volume.getDisks().indexOf(diskName);
+		return volume.getBricks().get(index);
+	}
+
+	private String getDiskForBrick(Volume volume, String brickName) {
+		int index = volume.getBricks().indexOf(brickName);
+		return volume.getDisks().get(index);
 	}
 
 	public static void main(String[] args) throws ClassNotFoundException {

@@ -93,8 +93,6 @@ public class ServerUtil {
 			}
 
 			connection.close();
-			System.out.println("The ouput string is : " + output.toString());
-			
 			return unmarshal(expectedClass, output.toString(), expectedClass != Status.class);
 		} catch(Exception e) {
 			// any other exception means unexpected error. return status with error from exception.
