@@ -34,9 +34,11 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Cluster;
-import com.gluster.storage.management.core.model.Entity;
+import com.gluster.storage.management.core.model.EntityGroup;
+import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
+import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.gui.IImageKeys;
@@ -54,7 +56,7 @@ public class ClusterSummaryView extends ViewPart {
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	private ScrolledForm form;
 	private Cluster cluster;
-	private Entity entity;
+	private GlusterDataModel model = GlusterDataModelManager.getInstance().getModel();
 
 	/*
 	 * (non-Javadoc)
@@ -64,8 +66,7 @@ public class ClusterSummaryView extends ViewPart {
 	@Override
 	public void createPartControl(Composite parent) {
 		if (cluster == null) {
-			// cluster = (Cluster)guiHelper.getSelectedEntity(getSite(), Cluster.class);
-			cluster = (Cluster) GlusterDataModelManager.getInstance().getModel().getChildren().get(0);
+			cluster = model.getCluster();
 		}
 
 		createSections(parent);
@@ -143,17 +144,12 @@ public class ClusterSummaryView extends ViewPart {
 		imageHyperlink.addHyperlinkListener(new HyperlinkAdapter() {
 			@Override
 			public void linkActivated(HyperlinkEvent e) {
-				// TODO Open the "discovered servers" view programmatically"
-				IHandlerService hs = (IHandlerService) getSite().getService(IHandlerService.class);
-				try {
-					hs.executeCommand(IActionConstants.COMMAND_ADD_SERVER, null);
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
+				// Open the "discovered servers" view by selecting the corresponding entity in the navigation view
+				EntityGroup<Server> autoDiscoveredServersEntityGroup = GlusterDataModelManager.getInstance().getModel()
+						.getCluster().getAutoDiscoveredServersEntityGroup();
 
-				NavigationView clusterView = (NavigationView) guiHelper
-						.getView(IActionConstants.VIEW_DISCOVERED_SERVER);
-				clusterView.selectEntity((entity));
+				NavigationView navigationView = (NavigationView) guiHelper.getView(NavigationView.ID);
+				navigationView.selectEntity(autoDiscoveredServersEntityGroup);
 			}
 		});
 	}

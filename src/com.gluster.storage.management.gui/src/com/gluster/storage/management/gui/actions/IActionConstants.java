@@ -33,5 +33,4 @@ public interface IActionConstants {
 	
 	public static final String COMMAND_CREATE_VOLUME = "com.gluster.storage.management.gui.commands.CreateVolume";
 	public static final String COMMAND_ADD_SERVER = "com.gluster.storage.management.gui.commands.AddServer";
-	public static final String VIEW_DISCOVERED_SERVER = "com.gluster.storage.management.gui.views.DiscoveredServerView";
 }
