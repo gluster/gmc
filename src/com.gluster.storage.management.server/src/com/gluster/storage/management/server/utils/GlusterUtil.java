@@ -52,6 +52,7 @@ public class GlusterUtil {
 	private static final String VOLUME_BRICKS_GROUP_PFX = "Bricks";
 	private static final String VOLUME_OPTIONS_RECONFIG_PFX = "Options Reconfigured";
 	private static final String VOLUME_OPTION_AUTH_ALLOW = "auth.allow:";
+	private static final String VOLUME_LOG_LOCATION_PFX = "log file location:";
 
 	private static final ProcessUtil processUtil = new ProcessUtil();
 
@@ -289,24 +290,30 @@ public class GlusterUtil {
 			String[] brickParts = line.split(":");
 			String serverName = brickParts[1].trim();
 			String brickDir = brickParts[2].trim();
-			// brick directory should be of the form /export/<diskname>/volume-name
-			try {
-				volume.addDisk(serverName + ":" + brickDir.split("/")[2].trim());
-			} catch(ArrayIndexOutOfBoundsException e) {
-				// brick directory of a different form, most probably created manually
-				// connect to the server and get disk for the brick directory
-				Status status = new ServerUtil().getDiskForDir(serverName, brickDir);
-				if(status.isSuccess()) {
-					volume.addDisk(serverName + ":" + status.getMessage());
-				} else {
-					// Couldn't fetch disk for the brick directory. Log error and add "unknown" as disk name.
-					System.out.println("Couldn't fetch disk name for brick [" + serverName + ":" + brickDir + "]");
-					volume.addDisk(serverName + ":unknown");
-				}
-			}
+			
+			volume.addBrick(serverName + ":" + brickDir);			
+			detectAndAddDiskToVolume(volume, serverName, brickDir);
 			return true;
 		}
 		return false;
+	}
+
+	private void detectAndAddDiskToVolume(Volume volume, String serverName, String brickDir) {
+		// brick directory should be of the form /export/<diskname>/volume-name
+		try {
+			volume.addDisk(serverName + ":" + brickDir.split("/")[2].trim());
+		} catch(ArrayIndexOutOfBoundsException e) {
+			// brick directory of a different form, most probably created manually
+			// connect to the server and get disk for the brick directory
+			Status status = new ServerUtil().getDiskForDir(serverName, brickDir);
+			if(status.isSuccess()) {
+				volume.addDisk(serverName + ":" + status.getMessage());
+			} else {
+				// Couldn't fetch disk for the brick directory. Log error and add "unknown" as disk name.
+				System.out.println("Couldn't fetch disk name for brick [" + serverName + ":" + brickDir + "]");
+				volume.addDisk(serverName + ":unknown");
+			}
+		}
 	}
 	
 	private boolean readBrickGroup(String line) {
@@ -397,6 +404,31 @@ public class GlusterUtil {
 			volumes.add(volume);
 		}
 		return volumes;
+	}
+
+	public String getLogLocation(String volumeName, String brickName) {
+		ProcessResult result = new ProcessUtil().executeCommand("gluster", "volume", "log", "locate", volumeName,
+				brickName);
+		if (!result.isSuccess()) {
+			throw new GlusterRuntimeException("Command [gluster volume info] failed with error: ["
+					+ result.getExitValue() + "][" + result.getOutput() + "]");
+		}
+		String output = result.getOutput();
+		if (output.startsWith(VOLUME_LOG_LOCATION_PFX)) {
+			return output.substring(VOLUME_LOG_LOCATION_PFX.length()).trim();
+		}
+
+		throw new GlusterRuntimeException("Couldn't parse output of [volume log locate] command. [" + output
+				+ "] doesn't start with prefix [" + VOLUME_LOG_LOCATION_PFX + "]");
+	}
+
+	public String getLogFileNameForBrickDir(String brickDir) {
+		String logFileName = brickDir;
+		if(logFileName.startsWith(CoreConstants.FILE_SEPARATOR)) {
+			logFileName = logFileName.replaceFirst(CoreConstants.FILE_SEPARATOR, "");
+		}
+		logFileName = logFileName.replaceAll(CoreConstants.FILE_SEPARATOR, "-") + ".log";
+		return logFileName;
 	}
 
 	public static void main(String args[]) {

@@ -20,14 +20,17 @@ package com.gluster.storage.management.core.model;
 
 import java.util.Date;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import com.gluster.storage.management.core.model.adapters.VolumeLogDateAdapter;
 import com.gluster.storage.management.core.utils.StringUtil;
 
 @XmlRootElement
 public class LogMessage implements Filterable {
 	private Date timestamp;
-	private Disk disk;
+	private String disk;
 	private String severity;
 	private String message;
 
@@ -38,6 +41,8 @@ public class LogMessage implements Filterable {
 		// TODO: Parse the log message and extract fields 
 	}
 	
+	@XmlElement(name = "timestamp", required = true)
+	@XmlJavaTypeAdapter(VolumeLogDateAdapter.class)
 	public Date getTimestamp() {
 		return timestamp;
 	}
@@ -46,11 +51,11 @@ public class LogMessage implements Filterable {
 		this.timestamp = timestamp;
 	}
 
-	public Disk getDisk() {
+	public String getDisk() {
 		return disk;
 	}
 
-	public void setDisk(Disk disk) {
+	public void setDisk(String disk) {
 		this.disk = disk;
 	}
 
@@ -70,7 +75,7 @@ public class LogMessage implements Filterable {
 		this.message = message;
 	}
 
-	public LogMessage(Date timestamp, Disk disk, String severity, String message) {
+	public LogMessage(Date timestamp, String disk, String severity, String message) {
 		setTimestamp(timestamp);
 		setDisk(disk);
 		setSeverity(severity);
@@ -79,7 +84,7 @@ public class LogMessage implements Filterable {
 
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
-		return StringUtil.filterString(getSeverity() + getTimestamp() + getDisk().getServerName()
-				+ getDisk().getQualifiedName() + getMessage(), filterString, caseSensitive);
+		return StringUtil.filterString(getSeverity() + getTimestamp() + getDisk() + getMessage(), filterString,
+				caseSensitive);
 	}
 }

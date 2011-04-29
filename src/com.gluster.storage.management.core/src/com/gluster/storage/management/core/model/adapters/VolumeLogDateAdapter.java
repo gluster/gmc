@@ -16,20 +16,38 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.core.utils;
 
-import java.text.DateFormat;
+package com.gluster.storage.management.core.model.adapters;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class DateUtil {
-	public static final String formatDate(Date inputDate) {
-		DateFormat formatter = new SimpleDateFormat("MM/dd/yyyy");
-		return formatter.format(inputDate);
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+
+/**
+ * Adapter class used for converting timestamp from Gluster volume log files to Date object.
+ */
+public class VolumeLogDateAdapter extends XmlAdapter<String, Date> {
+	private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
+	private SimpleDateFormat dateFormatter = new SimpleDateFormat(DATE_FORMAT);
+
+	/* (non-Javadoc)
+	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#unmarshal(java.lang.Object)
+	 */
+	@Override
+	public Date unmarshal(String input) throws Exception {
+		input = input.trim();
+		if(input.length() > DATE_FORMAT.length()) {
+			input = input.substring(0, DATE_FORMAT.length());
+		}
+		return dateFormatter.parse(input);
 	}
-	
-	public static final String formatTime(Date inputDate) {
-		DateFormat formatter = new SimpleDateFormat("HH:mm:ss.SSS");
-		return formatter.format(inputDate);
+
+	/* (non-Javadoc)
+	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#marshal(java.lang.Object)
+	 */
+	@Override
+	public String marshal(Date input) throws Exception {
+		return dateFormatter.format(input);
 	}
 }
