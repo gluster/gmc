@@ -25,18 +25,24 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.forms.events.HyperlinkAdapter;
+import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ImageHyperlink;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
+import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Cluster;
+import com.gluster.storage.management.core.model.EntityGroup;
+import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
+import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.gui.IImageKeys;
+import com.gluster.storage.management.gui.actions.IActionConstants;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.views.details.tabcreators.PieChartViewerComposite;
 
@@ -50,6 +56,7 @@ public class ClusterSummaryView extends ViewPart {
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	private ScrolledForm form;
 	private Cluster cluster;
+	private GlusterDataModel model = GlusterDataModelManager.getInstance().getModel();
 
 	/*
 	 * (non-Javadoc)
@@ -59,10 +66,9 @@ public class ClusterSummaryView extends ViewPart {
 	@Override
 	public void createPartControl(Composite parent) {
 		if (cluster == null) {
-			//cluster = (Cluster)guiHelper.getSelectedEntity(getSite(), Cluster.class);
-			cluster = (Cluster)GlusterDataModelManager.getInstance().getModel().getChildren().get(0);
+			cluster = model.getCluster();
 		}
-		
+
 		createSections(parent);
 	}
 
@@ -75,7 +81,7 @@ public class ClusterSummaryView extends ViewPart {
 		}
 		return count;
 	}
-	
+
 	private int getServerCountByStatus(Cluster cluster, SERVER_STATUS status) {
 		int count = 0;
 		for (GlusterServer server : cluster.getServers()) {
@@ -105,12 +111,13 @@ public class ClusterSummaryView extends ViewPart {
 
 	private void createStatusChart(FormToolkit toolkit, Composite section, Double[] values) {
 		String[] categories = new String[] { "Online", "Offline" };
-		PieChartViewerComposite chartViewerComposite = new PieChartViewerComposite(section, SWT.NONE, categories, values);
+		PieChartViewerComposite chartViewerComposite = new PieChartViewerComposite(section, SWT.NONE, categories,
+				values);
 
 		GridData data = new GridData(SWT.FILL, SWT.FILL, true, true);
 		data.widthHint = 250;
 		data.heightHint = 250;
-		chartViewerComposite.setLayoutData(data);	
+		chartViewerComposite.setLayoutData(data);
 	}
 
 	private void createActionsSection() {
@@ -120,14 +127,30 @@ public class ClusterSummaryView extends ViewPart {
 		imageHyperlink.setText("Create Volume");
 		imageHyperlink.setImage(guiHelper.getImage(IImageKeys.CREATE_VOLUME_BIG));
 		imageHyperlink.addHyperlinkListener(new HyperlinkAdapter() {
-			// TODO: Override appropriate method and handle hyperlink event
+			@Override
+			public void linkActivated(HyperlinkEvent e) {
+				IHandlerService hs = (IHandlerService) getSite().getService(IHandlerService.class);
+				try {
+					hs.executeCommand(IActionConstants.COMMAND_CREATE_VOLUME, null);
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
 		});
 
 		imageHyperlink = toolkit.createImageHyperlink(section, SWT.NONE);
 		imageHyperlink.setText("Add Server(s)");
 		imageHyperlink.setImage(guiHelper.getImage(IImageKeys.ADD_SERVER_BIG));
 		imageHyperlink.addHyperlinkListener(new HyperlinkAdapter() {
-			// TODO: Override appropriate method and handle hyperlink event
+			@Override
+			public void linkActivated(HyperlinkEvent e) {
+				// Open the "discovered servers" view by selecting the corresponding entity in the navigation view
+				EntityGroup<Server> autoDiscoveredServersEntityGroup = GlusterDataModelManager.getInstance().getModel()
+						.getCluster().getAutoDiscoveredServersEntityGroup();
+
+				NavigationView navigationView = (NavigationView) guiHelper.getView(NavigationView.ID);
+				navigationView.selectEntity(autoDiscoveredServersEntityGroup);
+			}
 		});
 	}
 

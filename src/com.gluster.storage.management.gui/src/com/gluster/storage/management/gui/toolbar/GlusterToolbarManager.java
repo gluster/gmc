@@ -30,7 +30,7 @@ import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.gui.actions.IActionSetIDs;
+import com.gluster.storage.management.gui.actions.IActionConstants;
 
 public class GlusterToolbarManager implements ToolbarManager {
 	private enum ENTITY_TYPE {
@@ -53,13 +53,13 @@ public class GlusterToolbarManager implements ToolbarManager {
 
 	private Map<ENTITY_TYPE, String> createActionSetMap() {
 		Map<ENTITY_TYPE, String> actionSetMap = new HashMap<GlusterToolbarManager.ENTITY_TYPE, String>();
-		actionSetMap.put(ENTITY_TYPE.CLUSTER, IActionSetIDs.ACTION_SET_CLUSTER);
-		actionSetMap.put(ENTITY_TYPE.VOLUMES, IActionSetIDs.ACTION_SET_VOLUMES);
-		actionSetMap.put(ENTITY_TYPE.VOLUME, IActionSetIDs.ACTION_SET_VOLUME);
-		actionSetMap.put(ENTITY_TYPE.GLUSTER_SERVERS, IActionSetIDs.ACTION_SET_GLUSTER_SERVERS);
-		actionSetMap.put(ENTITY_TYPE.GLUSTER_SERVER, IActionSetIDs.ACTION_SET_GLUSTER_SERVER);
-		actionSetMap.put(ENTITY_TYPE.DISCOVERED_SERVERS, IActionSetIDs.ACTION_SET_DISCOVERED_SERVERS);
-		actionSetMap.put(ENTITY_TYPE.DISCOVERED_SERVER, IActionSetIDs.ACTION_SET_DISCOVERED_SERVER);
+		actionSetMap.put(ENTITY_TYPE.CLUSTER, IActionConstants.ACTION_SET_CLUSTER);
+		actionSetMap.put(ENTITY_TYPE.VOLUMES, IActionConstants.ACTION_SET_VOLUMES);
+		actionSetMap.put(ENTITY_TYPE.VOLUME, IActionConstants.ACTION_SET_VOLUME);
+		actionSetMap.put(ENTITY_TYPE.GLUSTER_SERVERS, IActionConstants.ACTION_SET_GLUSTER_SERVERS);
+		actionSetMap.put(ENTITY_TYPE.GLUSTER_SERVER, IActionConstants.ACTION_SET_GLUSTER_SERVER);
+		actionSetMap.put(ENTITY_TYPE.DISCOVERED_SERVERS, IActionConstants.ACTION_SET_DISCOVERED_SERVERS);
+		actionSetMap.put(ENTITY_TYPE.DISCOVERED_SERVER, IActionConstants.ACTION_SET_DISCOVERED_SERVER);
 
 		return actionSetMap;
 	}

@@ -18,7 +18,9 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.utils;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
@@ -55,7 +57,9 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchSite;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
@@ -67,6 +71,8 @@ import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.progress.IProgressConstants;
 
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
+import com.gluster.storage.management.core.model.Disk;
+import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.views.NavigationView;
@@ -251,6 +257,10 @@ public class GUIHelper {
 		}
 		return null;
 	}
+	
+	public IWorkbenchPart getActiveView() {
+		return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart();
+	}
 
 	public ControlDecoration createErrorDecoration(Control control) {
 		ControlDecoration passwordErrorDecoration = new ControlDecoration(control, SWT.LEFT | SWT.TOP);
@@ -349,7 +359,11 @@ public class GUIHelper {
 	 * @return The selected object of given type if found, else null
 	 */
 	public Object getSelectedEntity(IWorkbenchSite site, Class expectedType) {
-		ISelection selection = site.getWorkbenchWindow().getSelectionService().getSelection(NavigationView.ID);
+		return getSelectedEntity(site.getWorkbenchWindow(), expectedType);
+	}
+	
+	public Object getSelectedEntity(IWorkbenchWindow window, Class expectedType) {
+		ISelection selection = window.getSelectionService().getSelection(NavigationView.ID);
 		if (selection instanceof IStructuredSelection) {
 			Iterator<Object> iter = ((IStructuredSelection) selection).iterator();
 			while (iter.hasNext()) {
@@ -361,6 +375,7 @@ public class GUIHelper {
 		}
 		return null;
 	}
+
 	
 	public void showProgressView() {
 		try {

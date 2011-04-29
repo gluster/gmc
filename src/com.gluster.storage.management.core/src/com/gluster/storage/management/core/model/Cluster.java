@@ -71,6 +71,15 @@ public class Cluster extends Entity {
 		this.discoveredServers = autoDiscoveredServers;
 		children.add(new EntityGroup<Server>("Discovered Servers", Server.class, this, autoDiscoveredServers));
 	}
+	
+	public EntityGroup<Server> getAutoDiscoveredServersEntityGroup() {
+		for(Entity entity : getChildren()) {
+			if(entity instanceof EntityGroup && ((EntityGroup)entity).getEntityType() == Server.class) {
+				return (EntityGroup<Server>)entity;
+			}
+		}
+		return null;
+	}
 
 	public List<Volume> getVolumes() {
 		return volumes;

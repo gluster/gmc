@@ -18,7 +18,7 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.actions;
 
-public interface IActionSetIDs {
+public interface IActionConstants {
 	public static final String ACTION_SET_CLUSTER = "com.gluster.storage.management.gui.actionsets.gluster";
 	public static final String ACTION_SET_VOLUMES = "com.gluster.storage.management.gui.actionsets.volumes";
 	public static final String ACTION_SET_VOLUME = "com.gluster.storage.management.gui.actionsets.volume";
@@ -30,4 +30,7 @@ public interface IActionSetIDs {
 	public static final String ACTION_SET_DISCOVERED_SERVER = "com.gluster.storage.management.gui.actionsets.serverdiscovered";
 	
 	public static final String ACTION_SET_EDIT = "com.gluster.storage.management.gui.actionsets.edit";
+	
+	public static final String COMMAND_CREATE_VOLUME = "com.gluster.storage.management.gui.commands.CreateVolume";
+	public static final String COMMAND_ADD_SERVER = "com.gluster.storage.management.gui.commands.AddServer";
 }
