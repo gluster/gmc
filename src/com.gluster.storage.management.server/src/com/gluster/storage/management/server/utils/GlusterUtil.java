@@ -184,7 +184,7 @@ public class GlusterUtil {
 		List<String> command = prepareVolumeCreateCommand(volume, bricks, count, volumeType, transportTypeStr);
 		ProcessResult result = processUtil.executeCommand(command);
 		if (!result.isSuccess()) {
-			// TODO: Perform cleanup on all nodes before returning
+			// Perform cleanup on all nodes before returning
 			return new Status(result);
 		}
 
@@ -474,6 +474,17 @@ public class GlusterUtil {
 		return new Status(processUtil.executeCommand("gluster", "volume", "replace-brick", volumeName, diskFrom, diskTo, operation));
 	}
 	
+	public Status removeBricks(String volumeName, List<String> bricks) {
+		List<String> command = new ArrayList<String>();
+		command.add("gluster");
+		command.add("volume");
+		command.add("remove-brick");
+		command.add(volumeName);
+		command.addAll(bricks);
+		return new Status(processUtil.executeCommand(command));
+	}
+
+
 	public static void main(String args[]) {
 		// List<String> names = new GlusterUtil().getGlusterServerNames();
 		// System.out.println(names);

@@ -189,6 +189,30 @@ public class VolumesResource {
 		return status;
 	}
 
+	@DELETE
+	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_DISKS)
+	@Produces(MediaType.TEXT_XML)
+	public Status removeBricks(@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName,
+			@QueryParam(QUERY_PARAM_DISKS) String disks, @QueryParam(QUERY_PARAM_DELETE_OPTION) String deleteOption) {
+		List<String> bricks = Arrays.asList(disks.split(",")); // Convert from comma separated string (query parameter)
+		List<String> volumeBrick = new ArrayList<String>();
+		for (String brickInfo : bricks) {
+			String diskInfo[] = brickInfo.split(":");
+			volumeBrick.add(getBrickForDisk(getVolume(volumeName), diskInfo[1]));
+		}
+
+		Status status = glusterUtil.removeBricks(volumeName, volumeBrick);
+
+		if (status.isSuccess()) {
+			Status cleanupStatus = cleanupDirectories(bricks, volumeName, bricks.size(), deleteOption);
+			if (!cleanupStatus.isSuccess()) {
+				// append cleanup error to prepare brick error
+				status.setMessage(status.getMessage() + CoreConstants.NEWLINE + cleanupStatus.getMessage());
+			}
+		}
+		return status;
+	}
+
 	private Status postDelete(String volumeName, List<String> disks, String deleteFlag) {
 		String serverName, diskName, diskInfo[];
 		Status result;

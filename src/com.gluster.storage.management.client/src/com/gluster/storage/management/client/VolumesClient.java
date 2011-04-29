@@ -23,6 +23,7 @@ package com.gluster.storage.management.client;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
@@ -141,6 +142,11 @@ public class VolumesClient extends AbstractClient {
 	
 	public void downloadLogs(String volumeName) {
 		downloadSubResource((volumeName) + "/" + RESTConstants.SUBRESOURCE_LOGS + "/" + RESTConstants.SUBRESOURCE_DOWNLOAD);
+	}
+	
+	public Status removeBricks(String volumeName, List<Disk> diskList, String deleteOption) {
+		String disks = StringUtil.ListToString( GlusterCoreUtil.getQualifiedDiskNames(diskList), ",");
+		return (Status) deleteSubResource(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, volumeName, disks, deleteOption);
 	}
 
 	private MultivaluedMap<String, String> prepareGetLogQueryParams(String diskName, String severity,
