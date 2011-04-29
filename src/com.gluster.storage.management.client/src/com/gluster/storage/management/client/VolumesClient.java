@@ -20,16 +20,16 @@
  */
 package com.gluster.storage.management.client;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.ws.rs.core.MultivaluedMap;
 
 import com.gluster.storage.management.core.constants.RESTConstants;
-import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.response.LogMessageListResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 import com.sun.jersey.api.representation.Form;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class VolumesClient extends AbstractClient {
 
@@ -45,14 +45,14 @@ public class VolumesClient extends AbstractClient {
 	public Status createVolume(Volume volume) {
 		return (Status) postObject(Status.class, volume);
 	}
-	
+
 	private Status performOperation(String volumeName, String operation) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_OPERATION, operation);
-		
-		return (Status)putRequest(volumeName, Status.class, form);
+
+		return (Status) putRequest(volumeName, Status.class, form);
 	}
-	
+
 	public Status startVolume(String volumeName) {
 		return performOperation(volumeName, RESTConstants.FORM_PARAM_VALUE_START);
 	}
@@ -60,26 +60,26 @@ public class VolumesClient extends AbstractClient {
 	public Status stopVolume(String volumeName) {
 		return performOperation(volumeName, RESTConstants.FORM_PARAM_VALUE_STOP);
 	}
-	
+
 	public Status setVolumeOption(String volume, String key, String value) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_OPTION_KEY, key);
 		form.add(RESTConstants.FORM_PARAM_OPTION_VALUE, value);
-		return (Status)postRequest(volume + "/" + RESTConstants.SUBRESOURCE_OPTIONS, Status.class, form);
+		return (Status) postRequest(volume + "/" + RESTConstants.SUBRESOURCE_OPTIONS, Status.class, form);
 	}
-	
+
 	public Status resetVolumeOptions(String volume) {
-		return (Status)putRequest(volume + "/" + RESTConstants.SUBRESOURCE_OPTIONS, Status.class);
+		return (Status) putRequest(volume + "/" + RESTConstants.SUBRESOURCE_OPTIONS, Status.class);
 	}
-	
+
 	public VolumeListResponse getAllVolumes() {
 		return (VolumeListResponse) fetchResource(VolumeListResponse.class);
 	}
-	
+
 	public Volume getVolume(String volumeName) {
 		return (Volume) fetchSubResource(volumeName, Volume.class);
 	}
-	
+
 	public Status deleteVolume(Volume volume, String deleteOption) {
 		return (Status) deleteSubResource(volume.getName(), Status.class, volume.getName(), deleteOption);
 	}
@@ -88,36 +88,46 @@ public class VolumesClient extends AbstractClient {
 		return ((VolumeOptionInfoListResponse) fetchSubResource(RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS,
 				VolumeOptionInfoListResponse.class));
 	}
-	
+
 	public Status addDisks(String volumeName, String disks) {
 		Form form = new Form();
 		form.add(RESTConstants.QUERY_PARAM_DISKS, disks);
 		return (Status) postRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
 	}
 
+	public LogMessageListResponse getLogs(String volumeName, int lineCount) {
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+		queryParams.add(RESTConstants.QUERY_PARAM_LINE_COUNT, "" + lineCount);
+		// TODO: Add other filte criteria as query parameters
+		return (LogMessageListResponse) fetchSubResource(volumeName + "/" + RESTConstants.SUBRESOURCE_LOGS,
+				queryParams, LogMessageListResponse.class);
+
+	}
+
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();
 		if (usersClient.authenticate("gluster", "gluster").isSuccess()) {
 			VolumesClient client = new VolumesClient(usersClient.getSecurityToken());
-//			List<Disk> disks = new ArrayList<Disk>();
-//			Disk diskElement = new Disk();
-//			diskElement.setName("sda1");
-//			diskElement.setStatus(DISK_STATUS.READY);
-//			disks.add(diskElement);
-//			diskElement.setName("sda2");
-//			diskElement.setStatus(DISK_STATUS.READY);
-//			disks.add(diskElement);
-//
-//			Volume vol = new Volume("vol1", null, Volume.VOLUME_TYPE.PLAIN_DISTRIBUTE, Volume.TRANSPORT_TYPE.ETHERNET,
-//					Volume.VOLUME_STATUS.ONLINE);
-//			// vol.setDisks(disks);
-//			System.out.println(client.createVolume(vol));
-//			for (VolumeOptionInfo option : client.getVolumeOptionsDefaults()) {
-//				System.out.println(option.getName() + "-" + option.getDescription() + "-" + option.getDefaultValue());
-//			}
-//			System.out.println(client.getVolume("Volume3").getOptions());
-//			System.out.println(client.setVolumeOption("Volume3", "network.frame-timeout", "600").getMessage());
-			
+			// List<Disk> disks = new ArrayList<Disk>();
+			// Disk diskElement = new Disk();
+			// diskElement.setName("sda1");
+			// diskElement.setStatus(DISK_STATUS.READY);
+			// disks.add(diskElement);
+			// diskElement.setName("sda2");
+			// diskElement.setStatus(DISK_STATUS.READY);
+			// disks.add(diskElement);
+			//
+			// Volume vol = new Volume("vol1", null, Volume.VOLUME_TYPE.PLAIN_DISTRIBUTE,
+			// Volume.TRANSPORT_TYPE.ETHERNET,
+			// Volume.VOLUME_STATUS.ONLINE);
+			// // vol.setDisks(disks);
+			// System.out.println(client.createVolume(vol));
+			// for (VolumeOptionInfo option : client.getVolumeOptionsDefaults()) {
+			// System.out.println(option.getName() + "-" + option.getDescription() + "-" + option.getDefaultValue());
+			// }
+			// System.out.println(client.getVolume("Volume3").getOptions());
+			// System.out.println(client.setVolumeOption("Volume3", "network.frame-timeout", "600").getMessage());
+
 			Status status = client.addDisks("Volume3", "server1:sda, server1:sdb, server1:sdc");
 			System.out.println(status.getMessage());
 		}

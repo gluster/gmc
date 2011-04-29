@@ -93,6 +93,24 @@ public abstract class AbstractClient {
 	}
 
 	/**
+	 * Fetches the resource whose name is arrived at by appending the "subResourceName" parameter to the default
+	 * resource (the one returned by {@link AbstractClient#getResourceName()})
+	 * 
+	 * @param subResourceName
+	 *            Name of the sub-resource
+	 * @param queryParams
+	 *            Query parameters to be sent for the GET request
+	 * @param responseClass
+	 *            Expected class of the response
+	 * @return Object of responseClass received as a result of the GET request on the sub-resource
+	 */
+	@SuppressWarnings("rawtypes")
+	protected Object fetchSubResource(String subResourceName, MultivaluedMap<String, String> queryParams,
+			Class responseClass) {
+		return fetchResource(resource.path(subResourceName), queryParams, responseClass);
+	}
+
+	/**
 	 * Submits given Form using POST method to the resource and returns the object received as response
 	 * 
 	 * @param responseClass
