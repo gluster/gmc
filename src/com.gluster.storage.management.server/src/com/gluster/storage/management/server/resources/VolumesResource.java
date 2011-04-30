@@ -119,7 +119,7 @@ public class VolumesResource {
 					status.setMessage("Error while setting volume options: " + optionsStatus);
 				}
 			} else {
-				Status cleanupStatus = cleanupDirectories(disks, volume.getName(), disks.size());
+				Status cleanupStatus = cleanupDirectories(disks, volume.getName(), disks.size(), "-d"); // delete permanently
 				if (!cleanupStatus.isSuccess()) {
 					status.setMessage(status.getMessage() + CoreConstants.NEWLINE + "Cleanup errors: "
 							+ CoreConstants.NEWLINE + cleanupStatus);
@@ -155,7 +155,7 @@ public class VolumesResource {
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
 	@Produces(MediaType.TEXT_XML)
 	public Status deleteVolume(@QueryParam(QUERY_PARAM_VOLUME_NAME) String volumeName,
-			@QueryParam(QUERY_PARAM_DELETE_OPTION) int deleteOption) {
+			@QueryParam(QUERY_PARAM_DELETE_OPTION) String deleteOption) {
 		Volume volume = glusterUtil.getVolume(volumeName);
 		Status status = glusterUtil.deleteVolume(volumeName);
 
@@ -171,7 +171,7 @@ public class VolumesResource {
 		return status;
 	}
 
-	private Status postDelete(String volumeName, List<String> disks, int deleteFlag) {
+	private Status postDelete(String volumeName, List<String> disks, String deleteFlag) {
 		String serverName, diskName, diskInfo[];
 		Status result;
 		for (int i = 0; i < disks.size(); i++) {
@@ -237,7 +237,7 @@ public class VolumesResource {
 				bricks.add(serverName + ":" + brickDir);
 			} else {
 				// Brick preparation failed. Cleanup directories already created and return failure status
-				Status cleanupStatus = cleanupDirectories(disks, volumeName, i + 1);
+				Status cleanupStatus = cleanupDirectories(disks, volumeName, i + 1, "-d"); // delete permanently
 				if (!cleanupStatus.isSuccess()) {
 					// append cleanup error to prepare brick error
 					status.setMessage(status.getMessage() + CoreConstants.NEWLINE + cleanupStatus.getMessage());
@@ -259,7 +259,7 @@ public class VolumesResource {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private Status cleanupDirectories(List<String> disks, String volumeName, int maxIndex) {
+	private Status cleanupDirectories(List<String> disks, String volumeName, int maxIndex, String deleteFlag) {
 		String serverName, diskName, diskInfo[];
 		Status result;
 		for (int i = 0; i < maxIndex; i++) {
@@ -267,7 +267,7 @@ public class VolumesResource {
 			serverName = diskInfo[0];
 			diskName = diskInfo[1];
 			result = ((GenericResponse) serverUtil.executeOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
-					+ diskName + " " + volumeName, GenericResponse.class)).getStatus();
+					+ diskName + " " + volumeName + " " + deleteFlag, GenericResponse.class)).getStatus();
 			if (!result.isSuccess()) {
 				return result;
 			}
@@ -408,7 +408,7 @@ public class VolumesResource {
 			status = glusterUtil.addBricks(volumeName, bricks);
 
 			if (!status.isSuccess()) {
-				Status cleanupStatus = cleanupDirectories(diskList, volumeName, diskList.size());
+				Status cleanupStatus = cleanupDirectories(diskList, volumeName, diskList.size(), "-d"); // Remove the directories if created
 				if (!cleanupStatus.isSuccess()) {
 					// append cleanup error to prepare brick error
 					status.setMessage(status.getMessage() + CoreConstants.NEWLINE + cleanupStatus.getMessage());
@@ -447,7 +447,7 @@ public class VolumesResource {
 		Form form = new Form();
 		form.add("volumeName", volume.getName());
 		form.add(RESTConstants.FORM_PARAM_DELETE_OPTION, 1);
-		Status status = vr.deleteVolume("Vol2", 1);
+		Status status = vr.deleteVolume("Vol2", "1");
 		System.out.println("Code : " + status.getCode());
 		System.out.println("Message " + status.getMessage());
 	}
