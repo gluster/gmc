@@ -8,6 +8,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import com.gluster.storage.management.client.utils.ClientUtil;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.representation.Form;
@@ -46,6 +47,16 @@ public abstract class AbstractClient {
 	private Object fetchResource(WebResource res, MultivaluedMap<String, String> queryParams, Class responseClass) {
 		return res.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML)
 				.get(responseClass);
+	}
+	
+	private Object downloadResource(WebResource res, MultivaluedMap<String, String> queryParams, Class responseClass) {
+		return res.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML)
+				.get(responseClass);
+	}
+	
+	protected Object downloadResource(WebResource res) {
+		ClientResponse response = res.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_OCTET_STREAM).get(ClientResponse.class);
+		return response;
 	}
 
 	/**
@@ -92,6 +103,10 @@ public abstract class AbstractClient {
 		return fetchResource(resource.path(subResourceName), NO_PARAMS, responseClass);
 	}
 
+	protected Object downloadSubResource(String subResourceName) {
+		return downloadResource(resource.path(subResourceName));
+	}
+
 	/**
 	 * Fetches the resource whose name is arrived at by appending the "subResourceName" parameter to the default
 	 * resource (the one returned by {@link AbstractClient#getResourceName()})
@@ -109,7 +124,7 @@ public abstract class AbstractClient {
 			Class responseClass) {
 		return fetchResource(resource.path(subResourceName), queryParams, responseClass);
 	}
-
+	
 	/**
 	 * Submits given Form using POST method to the resource and returns the object received as response
 	 * 

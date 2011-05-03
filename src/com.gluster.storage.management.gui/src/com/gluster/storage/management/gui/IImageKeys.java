@@ -24,6 +24,8 @@ public interface IImageKeys {
 	public static final String SERVERS = "icons/servers.png";
 	public static final String VOLUME = "icons/volume.png";
 	public static final String SERVER = "icons/server.png";
+	public static final String SERVER_WARNING = "icons/server-warning.png";
+	public static final String MEMORY = "icons/memory.png";
 	public static final String GSN = "icons/gsn.png";
 	public static final String SETTINGS = "icons/settings.png";
 	public static final String ADD = "icons/plus-white.png";

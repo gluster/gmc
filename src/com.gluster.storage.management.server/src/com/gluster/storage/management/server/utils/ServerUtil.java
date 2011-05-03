@@ -22,6 +22,7 @@ package com.gluster.storage.management.server.utils;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
@@ -38,7 +39,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.ProcessUtil;
 
@@ -71,33 +74,56 @@ public class ServerUtil {
 	 * @param runInForeground
 	 * @param serverName
 	 * @param commandWithArgs
-	 * @param expectedClass Class of the object expected from script execution 
-	 * @return Response from remote execution of the command
+	 * @param expectedClass
+	 *            Class of the object expected from script execution
+	 * @return Object of the expected class from remote execution of the command. In case the remote execution fails
+	 *         ungracefully, an object of class {@link Status} will be returned.
 	 */
 	@SuppressWarnings("rawtypes")
-	public Object executeOnServer(boolean runInForeground, String serverName, String commandWithArgs, Class expectedClass) {
-		StringBuffer output = new StringBuffer();
+	public Object executeOnServer(boolean runInForeground, String serverName, String commandWithArgs,
+			Class expectedClass) {
+		try {
+			String output = executeOnServer(serverName, commandWithArgs);
+
+			// In case the script execution exits ungracefully, the agent would return a GenericResponse.
+			// hence pass last argument as true to try GenericResponse unmarshalling in such cases.
+			Object response = unmarshal(expectedClass, output, expectedClass != GenericResponse.class);
+			if (expectedClass != GenericResponse.class && response instanceof GenericResponse) {
+				// expected class was not GenericResponse, but that's what we got. This means the
+				// script failed ungracefully. Extract and return the status object from the response
+				return ((GenericResponse) response).getStatus();
+			}
+			return response;
+		} catch (Exception e) {
+			// any other exception means unexpected error. return status with error from exception.
+			return new Status(e);
+		}
+	}
+
+	private String executeOnServer(String serverName, String commandWithArgs) {
 		try {
 			InetAddress address = InetAddress.getByName(serverName);
 			Socket connection = new Socket(address, 50000);
 
 			PrintWriter writer = new PrintWriter(connection.getOutputStream(), true);
-			BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
+			InputStream inputStream = connection.getInputStream();
 
 			writer.println(commandWithArgs);
 			writer.println(); // empty line means end of request
 
-			String line;
-			while (!(line = reader.readLine()).trim().isEmpty()) {
-				output.append(line + CoreConstants.NEWLINE);
-			}
-
+			int available = inputStream.available();
+			byte[] responseData = new byte[available];
+			inputStream.read(responseData);
 			connection.close();
-			return unmarshal(expectedClass, output.toString(), expectedClass != Status.class);
-		} catch(Exception e) {
-			// any other exception means unexpected error. return status with error from exception.
-			return new Status(Status.STATUS_CODE_FAILURE, "Error during remote execution: [" + e.getMessage() + "]");
+
+			return new String(responseData, "UTF-8");
+		} catch (Exception e) {
+			throw new GlusterRuntimeException("Error during remote execution: [" + e.getMessage() + "]");
 		}
+	}
+	
+	public String getFileFromServer(String serverName, String fileName) {
+		return executeOnServer(serverName, "get_file " + fileName); 
 	}
 
 	/**
@@ -107,22 +133,23 @@ public class ServerUtil {
 	 *            Class whose object is expected
 	 * @param input
 	 *            Input string
-	 * @param tryStatusOnFailure
+	 * @param tryGenericResponseOnFailure
 	 *            If true, and if the unmarshalling fails for given class, another unmarshalling will be attempted with
-	 *            class Status. If that also fails, a status object with exception message is created and returned.
+	 *            class {@link GenericResponse}. If this also fails, a status object with exception message is created
+	 *            and returned.
 	 * @return Object of given expected class, or a status object in case first unmarshalling fails.
 	 */
 	@SuppressWarnings("rawtypes")
-	private Object unmarshal(Class expectedClass, String input, boolean tryStatusOnFailure) {
+	private Object unmarshal(Class expectedClass, String input, boolean tryGenericResponseOnFailure) {
 		try {
 			// create JAXB context and instantiate marshaller
 			JAXBContext context = JAXBContext.newInstance(expectedClass);
 			Unmarshaller um = context.createUnmarshaller();
 			return um.unmarshal(new ByteArrayInputStream(input.getBytes()));
 		} catch (JAXBException e) {
-			if(tryStatusOnFailure) {
-				// unmarshalling failed. try to unmarshal a Status object
-				return unmarshal(Status.class, input, false);
+			if(tryGenericResponseOnFailure) {
+				// unmarshalling failed. try to unmarshal a GenericResponse object
+				return unmarshal(GenericResponse.class, input, false);
 			}
 			
 			return new Status(Status.STATUS_CODE_FAILURE, "Error during unmarshalling string [" + input
@@ -130,9 +157,9 @@ public class ServerUtil {
 		}
 	}
 
-	public static void main(String args[]) {
+	public static void main(String args[]) throws Exception {
 		// CreateVolumeExportDirectory.py md0 testvol
-		System.out.println(new ServerUtil().executeOnServer(true, "localhost", "python CreateVolumeExportDirectory.py md0 testvol", Status.class));
+		System.out.println(new ServerUtil().getFileFromServer("localhost", "/tmp/python/PeerAgent.py"));
 	}
 
 	/**

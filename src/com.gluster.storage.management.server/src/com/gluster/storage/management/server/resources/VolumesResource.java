@@ -31,6 +31,7 @@ import static com.gluster.storage.management.core.constants.RESTConstants.PATH_P
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DELETE_OPTION;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DISKS;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DISK_NAME;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DOWNLOAD;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_FROM_TIMESTAMP;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_LINE_COUNT;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_LOG_SEVERITY;
@@ -39,15 +40,22 @@ import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_VOLUMES;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DISKS;
+import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DOWNLOAD;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_LOGS;
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_OPTIONS;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -59,7 +67,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.RESTConstants;
@@ -73,6 +84,8 @@ import com.gluster.storage.management.core.response.LogMessageListResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 import com.gluster.storage.management.core.utils.DateUtil;
+import com.gluster.storage.management.core.utils.FileUtil;
+import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
 import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.ServerUtil;
@@ -279,7 +292,7 @@ public class VolumesResource {
 		}
 		return new Status(Status.STATUS_CODE_SUCCESS, "Directories cleaned up successfully!");
 	}
-
+	
 	private List<LogMessage> getBrickLogs(Volume volume, String brickName, Integer lineCount)
 			throws GlusterRuntimeException {
 		// brick name format is <serverName>:<brickDirectory>
@@ -316,6 +329,61 @@ public class VolumesResource {
 		}
 		return logMessages;
 	}
+	
+	@GET
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	@Path("{" + PATH_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_LOGS + "/" + SUBRESOURCE_DOWNLOAD)
+	public StreamingOutput getLogs(@PathParam(PATH_PARAM_VOLUME_NAME) final String volumeName) {
+		return new StreamingOutput() {
+			
+			@Override
+			public void write(OutputStream output) throws IOException, WebApplicationException {
+				Volume volume = getVolume(volumeName);
+				try {
+					String archiveFileName = downloadLogs(volume);
+					FileInputStream inputStream = new FileInputStream(archiveFileName);
+					int size = inputStream.available();
+					byte[] data = new byte[size];
+					inputStream.read(data);
+					inputStream.close();
+					output.write(data);
+				} catch (Exception e) {
+					e.printStackTrace();
+					throw new GlusterRuntimeException("Exception while downloading/archiving volume log files!", e);
+				}
+			}
+		};
+	}
+
+	private String downloadLogs(Volume volume) {
+		FileUtil fileUtil = new FileUtil();
+		
+		// create temporary directory
+		File tempDir = fileUtil.createTempDir();
+		String tempDirPath = tempDir.getPath();
+		
+		for(String brickName : volume.getBricks()) {
+			// brick name format is <serverName>:<brickDirectory>
+			String[] brickParts = brickName.split(":");
+			String serverName = brickParts[0];
+			String brickDir = brickParts[1];
+			
+			String logDir = glusterUtil.getLogLocation(volume.getName(), brickName);
+			String logFileName = glusterUtil.getLogFileNameForBrickDir(brickDir);
+			String logFilePath = logDir + CoreConstants.FILE_SEPARATOR + logFileName;
+
+			String logContents = serverUtil.getFileFromServer(serverName, logFilePath);
+			fileUtil.createTextFile(tempDirPath + CoreConstants.FILE_SEPARATOR + logFileName, logContents);
+		}
+		
+		String gzipPath = fileUtil.getTempDirName() + CoreConstants.FILE_SEPARATOR + volume.getName() + "-logs.tar.gz";
+		new ProcessUtil().executeCommand("tar", "czvf", gzipPath, tempDirPath);
+		
+		// delete the temp directory
+		fileUtil.recursiveDelete(tempDir);
+		
+		return gzipPath;
+	}
 
 	@GET
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_LOGS)
@@ -323,7 +391,8 @@ public class VolumesResource {
 			@QueryParam(QUERY_PARAM_DISK_NAME) String diskName, @QueryParam(QUERY_PARAM_LOG_SEVERITY) String severity,
 			@QueryParam(QUERY_PARAM_FROM_TIMESTAMP) String fromTimestamp,
 			@QueryParam(QUERY_PARAM_TO_TIMESTAMP) String toTimestamp,
-			@QueryParam(QUERY_PARAM_LINE_COUNT) Integer lineCount) {
+			@QueryParam(QUERY_PARAM_LINE_COUNT) Integer lineCount,
+			@QueryParam(QUERY_PARAM_DOWNLOAD) Boolean download) {
 		List<LogMessage> logMessages = null;
 
 		try {

@@ -57,6 +57,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 
+import com.gluster.storage.management.gui.utils.GlusterChartPalette;
+
 /**
  * 
  */
@@ -122,17 +124,19 @@ public final class PieChartViewerComposite extends Composite implements
 		ChartWithoutAxes pieChart = ChartWithoutAxesImpl.create();
 
 		// Plot
-		pieChart.setSeriesThickness(2);
+		pieChart.setSeriesThickness(10);
 		pieChart.setDimension(ChartDimension.TWO_DIMENSIONAL_WITH_DEPTH_LITERAL);
 		pieChart.getBlock().setBackground(ColorDefinitionImpl.WHITE());
 		Plot p = pieChart.getPlot();
+		
 		p.getClientArea().setBackground(null);
 		p.getClientArea().getOutline().setVisible(false);
 		p.getOutline().setVisible(false);
 
 		// Legend
 		Legend lg = pieChart.getLegend();
-		lg.getText().getFont().setSize(8);
+		lg.setMaxPercent(0.7);
+		lg.getText().getFont().setSize(9);
 		lg.setBackground(null);
 		lg.getOutline().setVisible(false);
 		lg.setVisible(true);
@@ -151,15 +155,18 @@ public final class PieChartViewerComposite extends Composite implements
 
 		SeriesDefinition sd = SeriesDefinitionImpl.create();
 		pieChart.getSeriesDefinitions().add(sd);
+		sd.setSeriesPalette(new GlusterChartPalette());
 		sd.getSeriesPalette().shift(0);
 		sd.getSeries().add(seCategory);
 
 		// Orthogonal Series
 		PieSeries sePie = (PieSeries) PieSeriesImpl.create();
+		sePie.setRatio(0.60);
 		sePie.setDataSet(seriesOneValues);
-		sePie.setSeriesIdentifier("Cities");//$NON-NLS-1$
-		sePie.getTitle().setVisible(false);
-		sePie.setExplosion(2);
+		sePie.setSeriesIdentifier("Chart");//$NON-NLS-1$
+		sePie.getTitle().setVisible(false); // no title
+		sePie.getLabel().setVisible(false); // no label (values)
+		sePie.setExplosion(0); // no gap between the pie slices
 
 		SeriesDefinition seriesDefinition = SeriesDefinitionImpl.create();
 		seriesDefinition.getQuery().setDefinition("query.definition");//$NON-NLS-1$
