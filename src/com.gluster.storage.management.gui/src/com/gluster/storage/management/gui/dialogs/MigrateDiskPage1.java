@@ -36,9 +36,8 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
-
+import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Disk;
-import com.gluster.storage.management.core.model.GlusterDummyModel;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.TableLabelProviderAdapter;
@@ -46,14 +45,20 @@ import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public class MigrateDiskPage1 extends WizardPage {
 	private static final String PAGE_NAME = "migrate.disk.page.1";
+
 	private enum DISK_TABLE_COLUMN_INDICES {
 		SERVER, DISK, SPACE, SPACE_IN_USE
 	}
+
 	private static final String[] DISK_TABLE_COLUMN_NAMES = { "Server", "Disk", "Space (GB)", "Used Space (GB)" };
 
 	private Volume volume;
 	private Disk fromDisk;
 	private static final GUIHelper guiHelper = GUIHelper.getInstance();
+
+	private TableViewer tableViewerTo;
+
+	private TableViewer tableViewerFrom;
 
 	private ITableLabelProvider getDiskLabelProvider() {
 		return new TableLabelProviderAdapter() {
@@ -67,13 +72,14 @@ public class MigrateDiskPage1 extends WizardPage {
 				Disk disk = (Disk) element;
 				return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? disk.getServerName()
 						: columnIndex == DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? disk.getName()
-						: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? NumberUtil.formatNumber(disk.getSpace())
-						: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal() ? NumberUtil.formatNumber(disk.getSpaceInUse()) 
-						: "Invalid");
+								: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? NumberUtil
+										.formatNumber(disk.getSpace())
+										: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal() ? NumberUtil
+												.formatNumber(disk.getSpaceInUse()) : "Invalid");
 			}
 		};
 	}
-	
+
 	private void setupDiskTable(Composite parent, Table table) {
 		table.setHeaderVisible(true);
 		table.setLinesVisible(false);
@@ -103,7 +109,6 @@ public class MigrateDiskPage1 extends WizardPage {
 		tableColumnLayout.setColumnData(column, new ColumnWeightData(weight));
 	}
 
-
 	/**
 	 * Create the wizard.
 	 */
@@ -112,11 +117,31 @@ public class MigrateDiskPage1 extends WizardPage {
 		this.volume = volume;
 		this.fromDisk = disk;
 		setTitle("Migrate Disk [" + volume.getName() + "]");
-//		setDescription("Migrate data from one disk to another for the chosen Volume. " +
-//				"This will copy all data present in the \"from disk\" of the volume " +
-//				"to \"to disk\", remove \"from disk\" from the volume, and " +
-//				"add \"to disk\" to the volume");
-		setDescription("Migrate volume data from \"From Disk\" to \"To Disk\"");
+		// setDescription("Migrate data from one disk to another for the chosen Volume. " +
+		// "This will copy all data present in the \"from disk\" of the volume " +
+		// "to \"to disk\", remove \"from disk\" from the volume, and " +
+		// "add \"to disk\" to the volume");
+		setPageDescription(null, null);
+		setPageComplete(false);
+	}
+
+	private void setPageDescription(String source, String target) {
+		if (source == null || source == "") {
+			source = "From Disk";
+		}
+		if (target == null || target == "") {
+			target = "To Disk";
+		}
+		setDescription("Migrate volume data from \"" + source + "\" to \"" + target + "\"");
+	}
+
+	private Disk getSelectedDisk(TableViewer tableViewer) {
+		TableItem[] selectedItems = tableViewer.getTable().getSelection();
+		Disk selectedDisk = null;
+		for (TableItem item : selectedItems) {
+			selectedDisk = (Disk) item.getData();
+		}
+		return selectedDisk;
 	}
 
 	private void setupPageLayout(Composite container) {
@@ -128,12 +153,20 @@ public class MigrateDiskPage1 extends WizardPage {
 		layout.marginRight = 10;
 		container.setLayout(layout);
 	}
-	
+
 	private Composite createTableViewerComposite(Composite parent) {
 		Composite tableViewerComposite = new Composite(parent, SWT.NONE);
 		tableViewerComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
 		tableViewerComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		return tableViewerComposite;
+	}
+
+	public Disk getSourceDisk() {
+		return getSelectedDisk(tableViewerFrom);
+	}
+
+	public Disk getTargetDisk() {
+		return getSelectedDisk(tableViewerTo);
 	}
 
 	/**
@@ -164,40 +197,42 @@ public class MigrateDiskPage1 extends WizardPage {
 		
 		ITableLabelProvider diskLabelProvider = getDiskLabelProvider();
 
-		GlusterDummyModel glusterDummyModel = GlusterDummyModel.getInstance();
-		List<Disk> fromDisks = glusterDummyModel.getReadyDisksOfVolume(volume);		
-		List<Disk> toDisks = glusterDummyModel.getReadyDisksOfAllServersExcluding( glusterDummyModel.getReadyDisksOfVolume(volume));
+		GlusterDataModelManager glusterDataModelManager = GlusterDataModelManager.getInstance();
+		List<Disk> fromDisks = glusterDataModelManager.getReadyDisksOfVolume(volume);
+		List<Disk> toDisks = glusterDataModelManager.getReadyDisksOfAllServersExcluding( glusterDataModelManager.getReadyDisksOfVolume(volume));
 		
-		TableViewer tableViewerFrom = createTableViewer(container, diskLabelProvider, fromDisks, txtFilterFrom);
+		tableViewerFrom = createTableViewer(container, diskLabelProvider, fromDisks, txtFilterFrom);
+		
 		if(fromDisk != null) {
 			setFromDisk(tableViewerFrom, fromDisk);
 		}
-		
-		createTableViewer(container, diskLabelProvider, toDisks, txtFilterTo);
+		tableViewerTo = createTableViewer(container, diskLabelProvider, toDisks, txtFilterTo);
 	}
-	
+
 	private void setFromDisk(TableViewer tableViewer, Disk diskToSelect) {
 		Table table = tableViewer.getTable();
-		for(int i = 0 ; i < table.getItemCount(); i++) {
+		for (int i = 0; i < table.getItemCount(); i++) {
 			TableItem item = table.getItem(i);
-			if(item.getData() == diskToSelect) {
+			if (item.getData() == diskToSelect) {
 				table.select(i);
 				return;
 			}
 		}
 	}
-	
-	private TableViewer createTableViewer(Composite container, ITableLabelProvider diskLabelProvider, List<Disk> fromDisks, Text txtFilterText) {
+
+	private TableViewer createTableViewer(Composite container, ITableLabelProvider diskLabelProvider,
+			List<Disk> fromDisks, Text txtFilterText) {
 		Composite tableViewerComposite = createTableViewerComposite(container);
-		
+
 		TableViewer tableViewer = new TableViewer(tableViewerComposite, SWT.SINGLE);
 		tableViewer.setContentProvider(new ArrayContentProvider());
 		tableViewer.setLabelProvider(diskLabelProvider);
-		
+
 		setupDiskTable(tableViewerComposite, tableViewer.getTable());
 		guiHelper.createFilter(tableViewer, txtFilterText, false);
-		
+
 		tableViewer.setInput(fromDisks.toArray());
 		return tableViewer;
-	}	
+	}
+
 }

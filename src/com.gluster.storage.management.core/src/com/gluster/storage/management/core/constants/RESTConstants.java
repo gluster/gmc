@@ -35,8 +35,12 @@ public class RESTConstants {
 	public static final String FORM_PARAM_OPERATION = "operation";
 	public static final String FORM_PARAM_VALUE_START = "start";
 	public static final String FORM_PARAM_VALUE_STOP = "stop";
+	public static final String FORM_PARAM_VALUE_PAUSE = "pause";
+	public static final String FORM_PARAM_VALUE_STATUS = "status";
 	public static final String FORM_PARAM_OPTION_KEY = "key";
 	public static final String FORM_PARAM_OPTION_VALUE = "value";
+	public static final String FORM_PARAM_VALUE_SOURCE = "source";
+	public static final String FORM_PARAM_VALUE_TARGET = "target";
 	
 	public static final String PATH_PARAM_VOLUME_NAME = "volumeName";
 	public static final String FORM_PARAM_DELETE_OPTION = "value";

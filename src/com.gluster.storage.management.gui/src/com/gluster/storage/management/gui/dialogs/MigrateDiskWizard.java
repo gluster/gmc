@@ -20,12 +20,15 @@ package com.gluster.storage.management.gui.dialogs;
 
 import org.eclipse.jface.wizard.Wizard;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Volume;
 
 public class MigrateDiskWizard extends Wizard {
 	private Volume volume;
 	private Disk disk;
+	private MigrateDiskPage1 page;
 
 	public MigrateDiskWizard(Volume volume, Disk disk) {
 		setWindowTitle("Gluster Management Console - Migrate Disk [" + volume.getName() + "]");
@@ -36,13 +39,20 @@ public class MigrateDiskWizard extends Wizard {
 
 	@Override
 	public void addPages() {
-		addPage(new MigrateDiskPage1(volume, disk));
+		page = new MigrateDiskPage1(volume, disk);
+		addPage(page);
 	}
 
 	@Override
 	public boolean performFinish() {
-		System.out.println("Triggered Disk Migration!");
-		// TODO: Add code to migrate disk
+
+		Disk sourceDisk = page.getSourceDisk();
+		Disk targetDisk = page.getTargetDisk();
+		// TODO add custom confirm dialog
+		
+		VolumesClient volumesClient = new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken());
+		volumesClient.startMigration(volume.getName(), sourceDisk.getQualifiedName(), targetDisk.getQualifiedName());
+		
 		return true;
 	}
 }

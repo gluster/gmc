@@ -32,6 +32,7 @@ import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.response.LogMessageListResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
@@ -162,6 +163,43 @@ public class VolumesClient extends AbstractClient {
 		return queryParams;
 	}
 
+	public Status startMigration( String volumeName, String diskFrom, String diskTo) {
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_VALUE_SOURCE, diskFrom);
+		form.add(RESTConstants.FORM_PARAM_VALUE_TARGET, diskTo);
+		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_START);
+		
+		return (Status) putRequest( volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
+	}
+	
+	public Status stopMigration(String volumeName, String diskFrom, String diskTo) {
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_VALUE_SOURCE, diskFrom);
+		form.add(RESTConstants.FORM_PARAM_VALUE_TARGET, diskTo);
+		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_STOP);
+		
+		return (Status) putRequest( volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
+	}
+	
+	public Status pauseMigration(String volumeName, String diskFrom, String diskTo) {
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_VALUE_SOURCE, diskFrom);
+		form.add(RESTConstants.FORM_PARAM_VALUE_TARGET, diskTo);
+		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_PAUSE);
+		
+		return (Status) putRequest( volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
+	}
+	
+	public Status statusMigration(String volumeName, String diskFrom, String diskTo) {
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_VALUE_SOURCE, diskFrom);
+		form.add(RESTConstants.FORM_PARAM_VALUE_TARGET, diskTo);
+		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_STATUS);
+		
+		return (Status) putRequest( volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
+	}
+	
+	
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();
 		if (usersClient.authenticate("gluster", "gluster").isSuccess()) {

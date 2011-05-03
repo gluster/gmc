@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
@@ -468,8 +469,11 @@ public class GlusterUtil {
 		logFileName = logFileName.replaceAll(CoreConstants.FILE_SEPARATOR, "-") + ".log";
 		return logFileName;
 	}
-
-
+	
+	public Status migrateDisk( String volumeName, String diskFrom, String diskTo, String operation ) {
+		return new Status(processUtil.executeCommand("gluster", "volume", "replace-brick", volumeName, diskFrom, diskTo, operation));
+	}
+	
 	public static void main(String args[]) {
 		// List<String> names = new GlusterUtil().getGlusterServerNames();
 		// System.out.println(names);
@@ -479,4 +483,6 @@ public class GlusterUtil {
 		Status status = new GlusterUtil().addBricks("Volume3", disks);
 		System.out.println(status);
 	}
+
+	
 }
