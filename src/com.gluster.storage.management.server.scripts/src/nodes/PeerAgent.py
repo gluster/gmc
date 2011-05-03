@@ -74,11 +74,10 @@ def executeCommand(command):
     rv = Utils.runCommandFG(command, stdout=True, root=True)
     statusCode = rv["Status"]
     if statusCode != 0:
+        output = "output: [" + stripEmptyLines(rv["Stdout"]) + "] error: [" + stripEmptyLines(rv["Stderr"]) + "]";
         rs = ResponseXml()
-        rs.appendTagRoute("status", statusCode);
-        rs.appendTagRoute("output", stripEmptyLines(rv["Stdout"]))
-        rs.appendTagRoute("message", stripEmptyLines(rv["Stderr"]))
-        print rs.toprettyxml()
+        rs.appendTagRoute("status.code", statusCode);
+        rs.appendTagRoute("status.message", output);
         return rs.toprettyxml()
     else:
         return rv["Stdout"]

@@ -56,6 +56,7 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 	public void postWindowCreate() {
 		super.postWindowCreate();
 		guiHelper.centerShellInScreen(getWindowConfigurer().getWindow().getShell());
+		getWindowConfigurer().getWindow().getShell().setMaximized(true);
 		Application.getApplication().setStatusLineManager(
 				getWindowConfigurer().getActionBarConfigurer().getStatusLineManager());
 	}	

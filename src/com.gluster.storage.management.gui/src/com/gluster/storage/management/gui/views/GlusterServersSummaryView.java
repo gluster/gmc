@@ -94,9 +94,9 @@ public class GlusterServersSummaryView extends ViewPart {
 		String[] categories = new String[] { "Online", "Offline" };
 		PieChartViewerComposite chartViewerComposite = new PieChartViewerComposite(section, SWT.NONE, categories, values);
 
-		GridData data = new GridData(SWT.FILL, SWT.FILL, true, true);
-		data.widthHint = 250;
-		data.heightHint = 250;
+		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
+		data.widthHint = 300;
+		data.heightHint = 150;
 		chartViewerComposite.setLayoutData(data);	
 	}
 

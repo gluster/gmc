@@ -29,6 +29,7 @@ public class RESTConstants {
 	public static final String SUBRESOURCE_DEFAULT_OPTIONS = "defaultoptions";
 	public static final String SUBRESOURCE_OPTIONS = "options";
 	public static final String SUBRESOURCE_LOGS = "logs";
+	public static final String SUBRESOURCE_DOWNLOAD = "download";
 	public static final String SUBRESOURCE_DISKS = "disks";
 	
 	
@@ -53,6 +54,7 @@ public class RESTConstants {
 	public static final String QUERY_PARAM_LOG_SEVERITY = "severity";
 	public static final String QUERY_PARAM_FROM_TIMESTAMP = "fromTimestamp";
 	public static final String QUERY_PARAM_TO_TIMESTAMP = "toTimestamp";
+	public static final String QUERY_PARAM_DOWNLOAD = "download";
 
 	// Running tasks resource
 	public static final String RESOURCE_PATH_RUNNING_TASKS = "/cluster/runningtasks";

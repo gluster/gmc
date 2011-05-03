@@ -102,6 +102,15 @@ public class Server extends Entity {
 	public double getDiskSpaceInUse() {
 		return diskSpaceInUse;
 	}
+	
+	/**
+	 * Total disk space in use is automatically calculated, and hence this method should never be called. It is required
+	 * only to make sure that the element "diskSpaceInUse" gets added to the XML tag when jersey converts the server
+	 * object to XML for sending to client.
+	 */
+	public void setDiskSpaceInUse(double diskSpaceInUse) {
+		this.diskSpaceInUse = diskSpaceInUse;
+	}
 
 	@XmlElementWrapper(name = "networkInterfaces")
 	@XmlElement(name = "networkInterface", type = NetworkInterface.class)
