@@ -20,10 +20,15 @@
  */
 package com.gluster.storage.management.gui.views;
 
+import java.util.List;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.FormToolkit;
@@ -33,14 +38,19 @@ import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Cluster;
+import com.gluster.storage.management.core.model.Disk;
+import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
+import com.gluster.storage.management.core.model.RunningTask;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
+import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.actions.IActionConstants;
 import com.gluster.storage.management.gui.utils.GUIHelper;
@@ -97,27 +107,98 @@ public class ClusterSummaryView extends ViewPart {
 
 		Double[] values = new Double[] { Double.valueOf(getVolumeCountByStatus(cluster, VOLUME_STATUS.ONLINE)),
 				Double.valueOf(getVolumeCountByStatus(cluster, VOLUME_STATUS.OFFLINE)) };
-		createStatusChart(toolkit, section, values);
+		createDiskSpaceChart(toolkit, section, values);
 	}
 
 	private void createServersSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Servers", null, 1, false);
+		Composite section = guiHelper.createSection(form, toolkit, "Servers", null, 2, false);
 
-		Double[] values = new Double[] { Double.valueOf(getServerCountByStatus(cluster, SERVER_STATUS.ONLINE)),
-				Double.valueOf(getServerCountByStatus(cluster, SERVER_STATUS.OFFLINE)) };
-
-		createStatusChart(toolkit, section, values);
+		int onlineServerCount = getServerCountByStatus(cluster, SERVER_STATUS.ONLINE);
+		int offlineServerCount = getServerCountByStatus(cluster, SERVER_STATUS.OFFLINE);
+		
+		toolkit.createLabel(section, "Online : ");
+		Label label = toolkit.createLabel(section, "" + onlineServerCount);
+		label.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
+		
+		toolkit.createLabel(section, "Offline : ");
+		label = toolkit.createLabel(section, "" + offlineServerCount);
+		label.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
+	}
+	
+	private void createDiskSpaceSection() {
+		Composite section = guiHelper.createSection(form, toolkit, "Disk Space", null, 3, false);
+		
+		double totalDiskSpace = cluster.getTotalDiskSpace();
+		double diskSpaceInUse = cluster.getDiskSpaceInUse();
+		Double[] values = new Double[] { diskSpaceInUse, totalDiskSpace - diskSpaceInUse };
+		createDiskSpaceChart(toolkit, section, values);
 	}
 
-	private void createStatusChart(FormToolkit toolkit, Composite section, Double[] values) {
-		String[] categories = new String[] { "Online", "Offline" };
+	private int getDiskCountByStatus(Cluster cluster, DISK_STATUS status) {
+		int diskCount = 0;
+		for(GlusterServer server : cluster.getServers()) {
+			for(Disk disk : server.getDisks()) {
+				if(disk.getStatus() == status) {
+					diskCount++;
+				}
+			}
+		}
+		return diskCount;
+	}
+
+	private int getDiskCount(Cluster cluster) {
+		int diskCount = 0;
+		for(GlusterServer server : cluster.getServers()) {
+			diskCount += server.getDisks().size();
+		}
+		return diskCount;
+	}
+
+	private void createDiskSpaceChart(FormToolkit toolkit, Composite section, Double[] values) {
+		String[] categories = new String[] { "Used Space: " + NumberUtil.formatNumber(values[0]) + " GB",
+				"Free Space: " + NumberUtil.formatNumber(values[1]) + " GB"};
 		PieChartViewerComposite chartViewerComposite = new PieChartViewerComposite(section, SWT.NONE, categories,
 				values);
 
-		GridData data = new GridData(SWT.FILL, SWT.FILL, true, true);
-		data.widthHint = 250;
-		data.heightHint = 250;
+		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
+		data.widthHint = 400;
+		data.heightHint = 150;
+		data.verticalAlignment = SWT.CENTER;
 		chartViewerComposite.setLayoutData(data);
+	}
+
+	private void createAlertsSection() {
+		Composite section = guiHelper.createSection(form, toolkit, "Alerts", null, 1, false);
+		List<Alert> alerts = GlusterDataModelManager.getInstance().getModel().getCluster().getAlerts();
+
+		for (Alert alert : alerts) {
+				addAlertLabel(section, alert);
+		}
+	}
+	
+	private void addAlertLabel(Composite section, Alert alert) {
+		CLabel lblAlert = new CLabel(section, SWT.FLAT);
+		Image alertImage = null;
+		switch (alert.getType()) {
+		case OFFLINE_VOLUME_DISKS_ALERT:
+			alertImage = guiHelper.getImage(IImageKeys.DISK_OFFLINE);
+			break;
+		case DISK_USAGE_ALERT:
+			alertImage = guiHelper.getImage(IImageKeys.DISK);
+			break;
+		case OFFLINE_SERVERS_ALERT:
+			alertImage = guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
+			break;
+		case MEMORY_USAGE_ALERT:
+			alertImage = guiHelper.getImage(IImageKeys.MEMORY);
+			break;
+		case CPU_USAGE_ALERT:
+			alertImage = guiHelper.getImage(IImageKeys.SERVER_WARNING);
+			break;
+		}
+		lblAlert.setImage(alertImage);
+		lblAlert.setText(alert.getMessage());
+		lblAlert.redraw();
 	}
 
 	private void createActionsSection() {
@@ -157,13 +238,58 @@ public class ClusterSummaryView extends ViewPart {
 	private void createSections(Composite parent) {
 		form = guiHelper.setupForm(parent, toolkit, "Cluster Summary");
 
-		createVolumesSection();
 		createServersSection();
+		createDiskSpaceSection();
+		createCPUUsageSection();
+		//createMemoryUsageSection();
 		createActionsSection();
+		createAlertsSection();
+		createRunningTasksSection();
 
 		parent.layout(); // IMP: lays out the form properly
 	}
 
+	private void createMemoryUsageSection() {
+		Composite section = guiHelper.createSection(form, toolkit, "Memory Usage (aggregated)", null, 1, false);
+		toolkit.createLabel(section, "Historical Memory Usage graph aggregated across all servers will be displayed here.");
+	}
+
+	private void createCPUUsageSection() {
+		Composite section = guiHelper.createSection(form, toolkit, "CPU Usage (aggregated)", null, 1, false);
+		toolkit.createLabel(section, "Historical CPU Usage graph aggregated across all servers will be displayed here.");
+	}
+
+	private void createRunningTasksSection() {
+		Composite section = guiHelper.createSection(form, toolkit, "Running Tasks", null, 1, false);
+
+		List<RunningTask> runningTasks = cluster.getRunningTasks();
+
+		for (RunningTask task : runningTasks) {
+			addRunningTaskLabel(section, task);
+		}
+	}
+
+	private void addRunningTaskLabel(Composite section, RunningTask task) {
+		// Task related to Volumes context
+		CLabel lblAlert = new CLabel(section, SWT.NONE);
+		lblAlert.setText(task.getTaskInfo());
+		
+		Image taskImage = null;
+		switch(task.getType()) {
+		case DISK_FORMAT:
+			taskImage = guiHelper.getImage(IImageKeys.DISK);
+			break;
+		case DISK_MIGRATE:
+			taskImage = guiHelper.getImage(IImageKeys.DISK_MIGRATE);
+			break;
+		case VOLUME_REBALANCE:
+			taskImage = guiHelper.getImage(IImageKeys.VOLUME_REBALANCE);
+			break;
+		}
+		lblAlert.setImage(taskImage);
+		lblAlert.redraw();
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 

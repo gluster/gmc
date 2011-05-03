@@ -157,9 +157,9 @@ public class VolumesSummaryView extends ViewPart {
 		PieChartViewerComposite chartViewerComposite = new PieChartViewerComposite(section, SWT.NONE, categories,
 				values);
 
-		GridData data = new GridData(SWT.FILL, SWT.FILL, true, true);
-		data.widthHint = 250;
-		data.heightHint = 250;
+		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
+		data.widthHint = 300;
+		data.heightHint = 150;
 		chartViewerComposite.setLayoutData(data);
 	}
 

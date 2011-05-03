@@ -123,4 +123,20 @@ public class Cluster extends Entity {
 	public void addAlert(Alert alert) {
 		this.alerts.add(alert);
 	}
+	
+	public double getTotalDiskSpace() {
+		double totalDiskSpace = 0;
+		for(GlusterServer server : getServers()) {
+			totalDiskSpace += server.getTotalDiskSpace();
+		}
+		return totalDiskSpace;
+	}
+	
+	public double getDiskSpaceInUse() {
+		double diskSpaceInUse = 0;
+		for(GlusterServer server : getServers()) {
+			diskSpaceInUse += server.getDiskSpaceInUse();
+		}
+		return diskSpaceInUse;
+	}
 }

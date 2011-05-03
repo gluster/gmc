@@ -74,11 +74,10 @@ def executeCommand(command):
     rv = Utils.runCommandFG(command, stdout=True, root=True)
     statusCode = rv["Status"]
     if statusCode != 0:
+        output = "output: [" + stripEmptyLines(rv["Stdout"]) + "] error: [" + stripEmptyLines(rv["Stderr"]) + "]";
         rs = ResponseXml()
-        rs.appendTagRoute("status", statusCode);
-        rs.appendTagRoute("output", stripEmptyLines(rv["Stdout"]))
-        rs.appendTagRoute("message", stripEmptyLines(rv["Stderr"]))
-        print rs.toprettyxml()
+        rs.appendTagRoute("status.code", statusCode);
+        rs.appendTagRoute("status.message", output);
         return rs.toprettyxml()
     else:
         return rv["Stdout"]
@@ -182,12 +181,27 @@ def main():
         try:
             requestString = Socket.readPacket(clientInputStream)
             Utils.log('__DEBUG__ Received %s' % repr(requestString))
-            responseString = executeCommand(requestString)
-            if responseString:
-                Socket.writePacket(clientOutputStream, responseString)
+            requestParts = requestString.split(None, 3)
+                
+            if "get_file" == requestParts[0]:
+                if len(requestParts) != 2:
+                    rs = ResponseXml()
+                    rs.appendTagRoute("status.code", "-1")
+                    rs.appendTagRoute("status.message", "File path not passed")
+                    Socket.writePacket(clientOutputStream, rs.toprettyxml())
+                else:
+                    filePath = requestParts[1]
+                    fp = open(filePath)
+                    clientSocket.sendall(fp.read())
+                    fp.close()
                 clientOutputStream.flush()
             else:
-                Utils.log('__DEBUG__ empty response string')
+                responseString = executeCommand(requestString)
+                if responseString:
+                    Socket.writePacket(clientOutputStream, responseString)
+                    clientOutputStream.flush()
+                else:
+                    Utils.log('__DEBUG__ empty response string')
             Utils.log('__DEBUG__ Closing client %s' % str(clientAddress))
             clientSocket.close()
         except socket.error, e:

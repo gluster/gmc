@@ -114,8 +114,8 @@ public class GlusterServerSummaryView extends ViewPart {
 			memoryUsageBar.setMinimum(0);
 			memoryUsageBar.setMaximum((int) Math.round(server.getTotalMemory()));
 			memoryUsageBar.setSelection((int) Math.round(server.getMemoryInUse()));
-			memoryUsageBar.setToolTipText("Total: " + server.getTotalMemory() + "GB, In Use: "
-					+ server.getMemoryInUse() + "GB");
+			memoryUsageBar.setToolTipText("Total: " + NumberUtil.formatNumber(server.getTotalMemory()) + "GB, In Use: "
+					+ NumberUtil.formatNumber(server.getMemoryInUse()) + "GB");
 
 			// toolkit.createLabel(section, "Memory Usage: ", SWT.NONE);
 			// final CoolProgressBar bar = new CoolProgressBar(section,SWT.HORIZONTAL,

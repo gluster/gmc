@@ -138,6 +138,10 @@ public class VolumesClient extends AbstractClient {
 		return (LogMessageListResponse) fetchSubResource(volumeName + "/" + RESTConstants.SUBRESOURCE_LOGS,
 				queryParams, LogMessageListResponse.class);
 	}
+	
+	public void downloadLogs(String volumeName) {
+		downloadSubResource((volumeName) + "/" + RESTConstants.SUBRESOURCE_LOGS + "/" + RESTConstants.SUBRESOURCE_DOWNLOAD);
+	}
 
 	private MultivaluedMap<String, String> prepareGetLogQueryParams(String diskName, String severity,
 			Date fromTimestamp, Date toTimestamp, int messageCount) {
@@ -222,15 +226,16 @@ public class VolumesClient extends AbstractClient {
 //			}
 //			System.out.println(client.getVolume("Volume3").getOptions());
 //			System.out.println(client.setVolumeOption("Volume3", "network.frame-timeout", "600").getMessage());
-			List<Disk> disks = new ArrayList<Disk>(); 
-			Disk disk = new Disk();
-			disk.setServerName("server1");
-			disk.setName("sda");
-			disk.setStatus(DISK_STATUS.READY);
-			disks.add(disk);
-			
-			Status status = client.addDisks("Volume3", disks);
-			System.out.println(status.getMessage());
+//			List<Disk> disks = new ArrayList<Disk>(); 
+//			Disk disk = new Disk();
+//			disk.setServerName("server1");
+//			disk.setName("sda");
+//			disk.setStatus(DISK_STATUS.READY);
+//			disks.add(disk);
+//			
+//			Status status = client.addDisks("Volume3", disks);
+//			System.out.println(status.getMessage());
+			client.downloadLogs("vol1");
 		}
 	}
 }
