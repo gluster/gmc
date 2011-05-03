@@ -21,8 +21,12 @@
 package com.gluster.storage.management.server.resources;
 
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_OPERATION;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_PAUSE;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_SOURCE;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_START;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_STATUS;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_STOP;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_TARGET;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_VOLUME_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DELETE_OPTION;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DISKS;
@@ -119,7 +123,8 @@ public class VolumesResource {
 					status.setMessage("Error while setting volume options: " + optionsStatus);
 				}
 			} else {
-				Status cleanupStatus = cleanupDirectories(disks, volume.getName(), disks.size(), "-d"); // delete permanently
+				Status cleanupStatus = cleanupDirectories(disks, volume.getName(), disks.size(), "-d"); // delete
+																										// permanently
 				if (!cleanupStatus.isSuccess()) {
 					status.setMessage(status.getMessage() + CoreConstants.NEWLINE + "Cleanup errors: "
 							+ CoreConstants.NEWLINE + cleanupStatus);
@@ -249,7 +254,7 @@ public class VolumesResource {
 		return status;
 	}
 
-	//TODO Can be removed and use StringUtil.ListToString(List<String> list, String delimiter)
+	// TODO Can be removed and use StringUtil.ListToString(List<String> list, String delimiter)
 	private String bricksAsString(List<String> bricks) {
 		String bricksStr = "";
 		for (String brickInfo : bricks) {
@@ -266,8 +271,8 @@ public class VolumesResource {
 			diskInfo = disks.get(i).split(":");
 			serverName = diskInfo[0];
 			diskName = diskInfo[1];
-			result = ((GenericResponse) serverUtil.executeOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
-					+ diskName + " " + volumeName + " " + deleteFlag, GenericResponse.class)).getStatus();
+			result = ((GenericResponse) serverUtil.executeOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT
+					+ " " + diskName + " " + volumeName + " " + deleteFlag, GenericResponse.class)).getStatus();
 			if (!result.isSuccess()) {
 				return result;
 			}
@@ -281,30 +286,30 @@ public class VolumesResource {
 		String[] brickParts = brickName.split(":");
 		String serverName = brickParts[0];
 		String brickDir = brickParts[1];
-		
+
 		String logDir = glusterUtil.getLogLocation(volume.getName(), brickName);
 		String logFileName = glusterUtil.getLogFileNameForBrickDir(brickDir);
 		String logFilePath = logDir + CoreConstants.FILE_SEPARATOR + logFileName;
 
 		// Usage: get_volume_disk_log.py <volumeName> <diskName> <lineCount>
-		Object responseObj = serverUtil.executeOnServer(true, serverName, VOLUME_BRICK_LOG_SCRIPT
-				+ " " + logFilePath + " " + lineCount, LogMessageListResponse.class);
+		Object responseObj = serverUtil.executeOnServer(true, serverName, VOLUME_BRICK_LOG_SCRIPT + " " + logFilePath
+				+ " " + lineCount, LogMessageListResponse.class);
 		Status status = null;
 		LogMessageListResponse response = null;
-		if(responseObj instanceof LogMessageListResponse) {
-			response = (LogMessageListResponse)responseObj;
+		if (responseObj instanceof LogMessageListResponse) {
+			response = (LogMessageListResponse) responseObj;
 			status = response.getStatus();
 		} else {
-			status = (Status)responseObj;
+			status = (Status) responseObj;
 		}
-		
+
 		if (!status.isSuccess()) {
 			throw new GlusterRuntimeException(status.toString());
 		}
 
 		// populate disk and trim other fields
 		List<LogMessage> logMessages = response.getLogMessages();
-		for(LogMessage logMessage : logMessages) {
+		for (LogMessage logMessage : logMessages) {
 			logMessage.setDisk(getDiskForBrick(volume, brickName));
 			logMessage.setMessage(logMessage.getMessage().trim());
 			logMessage.setSeverity(logMessage.getSeverity().trim());
@@ -332,32 +337,32 @@ public class VolumesResource {
 		} catch (Exception e) {
 			return new LogMessageListResponse(new Status(e), null);
 		}
-		
+
 		filterLogsBySeverity(logMessages, severity);
-		filterLogsByTime(logMessages, fromTimestamp, toTimestamp);		
+		filterLogsByTime(logMessages, fromTimestamp, toTimestamp);
 		return new LogMessageListResponse(Status.STATUS_SUCCESS, logMessages);
 	}
 
 	private void filterLogsByTime(List<LogMessage> logMessages, String fromTimestamp, String toTimestamp) {
 		Date fromTime = null, toTime = null;
-		
-		if(fromTimestamp != null && !fromTimestamp.isEmpty()) {
+
+		if (fromTimestamp != null && !fromTimestamp.isEmpty()) {
 			fromTime = DateUtil.stringToDate(fromTimestamp);
 		}
-		
-		if(toTimestamp != null && !toTimestamp.isEmpty()) {
+
+		if (toTimestamp != null && !toTimestamp.isEmpty()) {
 			toTime = DateUtil.stringToDate(toTimestamp);
 		}
 
 		List<LogMessage> messagesToRemove = new ArrayList<LogMessage>();
-		for(LogMessage logMessage : logMessages) {
+		for (LogMessage logMessage : logMessages) {
 			Date logTimestamp = logMessage.getTimestamp();
-			if(fromTime != null && logTimestamp.before(fromTime)) {
+			if (fromTime != null && logTimestamp.before(fromTime)) {
 				messagesToRemove.add(logMessage);
 				continue;
 			}
-			
-			if(toTime != null && logTimestamp.after(toTime)) {
+
+			if (toTime != null && logTimestamp.after(toTime)) {
 				messagesToRemove.add(logMessage);
 			}
 		}
@@ -365,13 +370,13 @@ public class VolumesResource {
 	}
 
 	private void filterLogsBySeverity(List<LogMessage> logMessages, String severity) {
-		if(severity == null || severity.isEmpty()) {
+		if (severity == null || severity.isEmpty()) {
 			return;
 		}
-		
+
 		List<LogMessage> messagesToRemove = new ArrayList<LogMessage>();
-		for(LogMessage logMessage : logMessages) {
-			if(!logMessage.getSeverity().equals(severity)) {
+		for (LogMessage logMessage : logMessages) {
+			if (!logMessage.getSeverity().equals(severity)) {
 				messagesToRemove.add(logMessage);
 			}
 		}
@@ -385,7 +390,7 @@ public class VolumesResource {
 		for (String brick : volume.getBricks()) {
 			logMessages.addAll(getBrickLogs(volume, brick, lineCount));
 		}
-		
+
 		// Sort the log messages based on log timestamp
 		Collections.sort(logMessages, new Comparator<LogMessage>() {
 			@Override
@@ -393,29 +398,41 @@ public class VolumesResource {
 				return message1.getTimestamp().compareTo(message2.getTimestamp());
 			}
 		});
-		
+
 		return logMessages;
 	}
-	
+
 	@POST
 	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_DISKS)
-	public Status addDisks(@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName, @FormParam(QUERY_PARAM_DISKS) String disks) {
-		
-		List<String> diskList = Arrays.asList( disks.split(",") ); // Convert from comma separated sting (query parameter) to list
+	public Status addDisks(@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName,
+			@FormParam(QUERY_PARAM_DISKS) String disks) {
+
+		List<String> diskList = Arrays.asList(disks.split(",")); // Convert from comma separated sting (query parameter)
+																	// to list
 		Status status = createDirectories(diskList, volumeName);
 		if (status.isSuccess()) {
 			List<String> bricks = Arrays.asList(status.getMessage().split(" "));
 			status = glusterUtil.addBricks(volumeName, bricks);
 
 			if (!status.isSuccess()) {
-				Status cleanupStatus = cleanupDirectories(diskList, volumeName, diskList.size(), "-d"); // Remove the directories if created
+				Status cleanupStatus = cleanupDirectories(diskList, volumeName, diskList.size(), "-d"); // Remove the
+																										// directories
+																										// if created
 				if (!cleanupStatus.isSuccess()) {
 					// append cleanup error to prepare brick error
 					status.setMessage(status.getMessage() + CoreConstants.NEWLINE + cleanupStatus.getMessage());
 				}
 			}
-		} 
+		}
 		return status;
+	}
+
+	@PUT
+	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_DISKS)
+	public Status replaceDisk(@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName,
+			@FormParam(FORM_PARAM_VALUE_SOURCE) String diskFrom, @FormParam(FORM_PARAM_VALUE_TARGET) String diskTo,
+			@FormParam(FORM_PARAM_OPERATION) String operation) {
+		return glusterUtil.migrateDisk(volumeName, diskFrom, diskTo, operation);
 	}
 
 	private String getBrickForDisk(Volume volume, String diskName) {
