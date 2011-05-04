@@ -232,8 +232,14 @@ public class VolumesResource {
 
 	@SuppressWarnings("rawtypes")
 	private Status prepareBrick(String serverName, String diskName, String volumeName) {
-		return (Status) ((GenericResponse) serverUtil.executeOnServer(true, serverName, PREPARE_BRICK_SCRIPT + " "
-				+ diskName + " " + volumeName, GenericResponse.class)).getStatus();
+		Object response = serverUtil.executeOnServer(true, serverName, PREPARE_BRICK_SCRIPT + " "
+				+ diskName + " " + volumeName, GenericResponse.class);
+		if(response instanceof GenericResponse) {
+			return ((GenericResponse)response).getStatus();
+		} else {
+			// in case of script failure on server, a Status object will be returned
+			return (Status) response;
+		}		
 	}
 
 	private Status createDirectories(List<String> disks, String volumeName) {
@@ -245,11 +251,8 @@ public class VolumesResource {
 			String[] diskParts = disk.split(":");
 			String serverName = diskParts[0];
 			String diskName = diskParts[1];
-			try {
-				status = prepareBrick(serverName, diskName, volumeName);
-			} catch (Exception e) {
-				status = new Status(e);
-			}
+
+			status = prepareBrick(serverName, diskName, volumeName);
 			if (status.isSuccess()) {
 				String brickDir = status.getMessage().trim();
 				bricks.add(serverName + ":" + brickDir);
@@ -284,10 +287,19 @@ public class VolumesResource {
 			diskInfo = disks.get(i).split(":");
 			serverName = diskInfo[0];
 			diskName = diskInfo[1];
-			result = ((GenericResponse) serverUtil.executeOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT
-					+ " " + diskName + " " + volumeName + " " + deleteFlag, GenericResponse.class)).getStatus();
-			if (!result.isSuccess()) {
-				return result;
+			
+			Object response = serverUtil.executeOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT
+					+ " " + diskName + " " + volumeName + " " + deleteFlag, GenericResponse.class);
+			if(response instanceof GenericResponse) {
+				result = ((GenericResponse)response).getStatus();
+				if (!result.isSuccess()) {
+					// TODO: append error and continue with cleaning up of other directories
+					return result;
+				}
+			} else {
+				// TODO: append error and continue with cleaning up of other directories
+				// In case of script execution failure, a Status object will be returned.
+				return (Status)response;
 			}
 		}
 		return new Status(Status.STATUS_CODE_SUCCESS, "Directories cleaned up successfully!");
