@@ -28,8 +28,8 @@ public class RemoveDiskAction extends AbstractActionDelegate {
 	@Override
 	protected void performAction(IAction action) {
 		final String actionDesc = action.getDescription();
-		Integer deleteOption = new MessageDialog(getShell(), "Delete Volume", GUIHelper.getInstance().getImage(
-				IImageKeys.VOLUME), "Are you sure you want to remove following disks from volume [" + volume.getName()
+		Integer deleteOption = new MessageDialog(getShell(), "Remove Disk(s)", GUIHelper.getInstance().getImage(
+				IImageKeys.VOLUME), "Are you sure you want to remove disks from volume [" + volume.getName()
 				+ "] ?", MessageDialog.QUESTION, new String[] { "Cancel", "Remove disks, delete volume data from them",
 				"Remove disks, back-up volume data from them" }, 2).open();
 		if (deleteOption == 0) {
@@ -45,10 +45,10 @@ public class RemoveDiskAction extends AbstractActionDelegate {
 		Status status = client.removeBricks(volume.getName(), disks, confirmDelete);
 
 		if (status.isSuccess()) {
-			showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] disk removed successfully!");
+			showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] disk(s) removed successfully!");
 			modelManager.deleteVolume(volume);
 		} else {
-			showErrorDialog(actionDesc, "Volume [" + volume.getName() + "] disk could not be removed! Error: ["
+			showErrorDialog(actionDesc, "Volume [" + volume.getName() + "] disk(s) could not be removed! Error: ["
 					+ status + "]");
 		}
 	}

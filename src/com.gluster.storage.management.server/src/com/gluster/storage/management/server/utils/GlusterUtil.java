@@ -475,7 +475,6 @@ public class GlusterUtil {
 	}
 	
 	public Status removeBricks(String volumeName, List<String> bricks) {
-
 		List<String> command = new ArrayList<String>();
 		command.add("gluster");
 		command.add("volume");
