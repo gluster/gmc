@@ -33,16 +33,17 @@ public class StringUtil {
 
 	public static String ListToString(List<String> list, String delimiter) {
 		StringBuilder output = new StringBuilder();
-		for(String element : list) {
+		for (String element : list) {
 			output.append(element).append(delimiter);
 		}
 		String outputStr = output.toString();
-		return outputStr.substring(0, outputStr.length() - (delimiter.length()+1));
+		int endIndex = (list.size() > 1) ? outputStr.length() - (delimiter.length() + 1) : outputStr.length() - 1;
+		return outputStr.substring(0, endIndex);
 	}
-	
+
 	public static <T extends Enum<T>> List<String> enumToArray(T[] values) {
 		List<String> enumAsArray = new ArrayList<String>();
-		for(T value : values) {
+		for (T value : values) {
 			enumAsArray.add(value.toString());
 		}
 		return enumAsArray;
