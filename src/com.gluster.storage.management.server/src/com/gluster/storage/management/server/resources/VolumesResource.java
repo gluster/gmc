@@ -173,10 +173,15 @@ public class VolumesResource {
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
 	@Produces(MediaType.TEXT_XML)
 	public Status deleteVolume(@QueryParam(QUERY_PARAM_VOLUME_NAME) String volumeName,
-			@QueryParam(QUERY_PARAM_DELETE_OPTION) String deleteOption) {
+			@QueryParam(QUERY_PARAM_DELETE_OPTION) boolean deleteFlag) {
 		Volume volume = glusterUtil.getVolume(volumeName);
 		Status status = glusterUtil.deleteVolume(volumeName);
-
+		
+		String deleteOption = "";
+		if(deleteFlag) {
+			deleteOption = "-d";
+		}
+		
 		if (status.isSuccess()) {
 			List<String> disks = volume.getDisks();
 			Status postDeleteStatus = postDelete(volumeName, disks, deleteOption);
@@ -193,16 +198,21 @@ public class VolumesResource {
 	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_DISKS)
 	@Produces(MediaType.TEXT_XML)
 	public Status removeBricks(@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName,
-			@QueryParam(QUERY_PARAM_DISKS) String disks, @QueryParam(QUERY_PARAM_DELETE_OPTION) String deleteOption) {
+			@QueryParam(QUERY_PARAM_DISKS) String disks, @QueryParam(QUERY_PARAM_DELETE_OPTION) boolean deleteFlag) {
 		List<String> bricks = Arrays.asList(disks.split(",")); // Convert from comma separated string (query parameter)
-		List<String> volumeBrick = new ArrayList<String>();
+		List<String> volumeBricks = new ArrayList<String>();
 		for (String brickInfo : bricks) {
 			String diskInfo[] = brickInfo.split(":");
-			volumeBrick.add(getBrickForDisk(getVolume(volumeName), diskInfo[1]));
+			volumeBricks.add(getBrickForDisk(getVolume(volumeName), diskInfo[1]));
 		}
 
-		Status status = glusterUtil.removeBricks(volumeName, volumeBrick);
+		Status status = glusterUtil.removeBricks(volumeName, volumeBricks);
 
+		String deleteOption = "";
+		if(deleteFlag) {
+			deleteOption = "-d";
+		}
+		
 		if (status.isSuccess()) {
 			Status cleanupStatus = cleanupDirectories(bricks, volumeName, bricks.size(), deleteOption);
 			if (!cleanupStatus.isSuccess()) {
@@ -569,7 +579,7 @@ public class VolumesResource {
 		Form form = new Form();
 		form.add("volumeName", volume.getName());
 		form.add(RESTConstants.FORM_PARAM_DELETE_OPTION, 1);
-		Status status = vr.deleteVolume("Vol2", "1");
+		Status status = vr.deleteVolume("Vol2", true);
 		System.out.println("Code : " + status.getCode());
 		System.out.println("Message " + status.getMessage());
 	}
