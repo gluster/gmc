@@ -63,9 +63,10 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 				return;
 			}
 		}
-		String confirmDelete = "";
+		
+		boolean confirmDelete = false;
 		if (deleteOption == 1) {
-			confirmDelete = "-d";
+			confirmDelete = true;
 		}
 
 		status = client.deleteVolume(volume, confirmDelete);

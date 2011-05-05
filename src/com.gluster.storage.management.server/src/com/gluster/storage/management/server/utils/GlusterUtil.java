@@ -184,7 +184,6 @@ public class GlusterUtil {
 		List<String> command = prepareVolumeCreateCommand(volume, bricks, count, volumeType, transportTypeStr);
 		ProcessResult result = processUtil.executeCommand(command);
 		if (!result.isSuccess()) {
-			// Perform cleanup on all nodes before returning
 			return new Status(result);
 		}
 

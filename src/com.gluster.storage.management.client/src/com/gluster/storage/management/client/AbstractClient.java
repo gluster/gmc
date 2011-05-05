@@ -48,14 +48,15 @@ public abstract class AbstractClient {
 		return res.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML)
 				.get(responseClass);
 	}
-	
+
 	private Object downloadResource(WebResource res, MultivaluedMap<String, String> queryParams, Class responseClass) {
 		return res.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML)
 				.get(responseClass);
 	}
-	
+
 	protected Object downloadResource(WebResource res) {
-		ClientResponse response = res.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_OCTET_STREAM).get(ClientResponse.class);
+		ClientResponse response = res.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_OCTET_STREAM)
+				.get(ClientResponse.class);
 		return response;
 	}
 
@@ -124,7 +125,7 @@ public abstract class AbstractClient {
 			Class responseClass) {
 		return fetchResource(resource.path(subResourceName), queryParams, responseClass);
 	}
-	
+
 	/**
 	 * Submits given Form using POST method to the resource and returns the object received as response
 	 * 
@@ -207,21 +208,12 @@ public abstract class AbstractClient {
 		return resource.header(HTTP_HEADER_AUTH, authHeader).delete(responseClass);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected Object deleteSubResource(String subResourceName, Class responseClass, String volumeName,
-			String deleteOption) {
-		return resource.path(subResourceName).queryParam(RESTConstants.QUERY_PARAM_VOLUME_NAME, volumeName)
-				.queryParam(RESTConstants.QUERY_PARAM_DELETE_OPTION, deleteOption).header(HTTP_HEADER_AUTH, authHeader)
+	@SuppressWarnings("unchecked")
+	protected Object deleteSubResource(String subResourceName, Class responseClass,
+			MultivaluedMap<String, String> queryParams) {
+		return resource.path(subResourceName).queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader)
 				.delete(responseClass);
-	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected Object deleteSubResource(String subResourceName, Class responseClass, String volumeName, String disks,
-			String deleteOption) {
-		return resource.path(subResourceName).queryParam(RESTConstants.QUERY_PARAM_VOLUME_NAME, volumeName)
-				.queryParam(RESTConstants.QUERY_PARAM_DISKS, disks)
-				.queryParam(RESTConstants.QUERY_PARAM_DELETE_OPTION, deleteOption).header("Authorization", authHeader)
-				.delete(responseClass);
 	}
 
 	public abstract String getResourceName();
