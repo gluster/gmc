@@ -397,7 +397,7 @@ public class VolumeSummaryView extends ViewPart {
 
 	private void updateVolumeStatusLabel() {
 		lblStatusValue.setText(volume.getStatusStr());
-		lblStatusValue.setImage(volume.getStatus() == Volume.VOLUME_STATUS.ONLINE ? guiHelper
+		lblStatusValue.setImage( (volume.getStatus() == Volume.VOLUME_STATUS.ONLINE) ? guiHelper
 				.getImage(IImageKeys.STATUS_ONLINE) : guiHelper.getImage(IImageKeys.STATUS_OFFLINE));
 		lblStatusValue.redraw();
 	}
