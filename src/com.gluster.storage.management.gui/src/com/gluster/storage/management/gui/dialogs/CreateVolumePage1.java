@@ -25,8 +25,10 @@ import java.util.Set;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -195,6 +197,7 @@ public class CreateVolumePage1 extends WizardPage {
 				        	// user has customized disks. get them from the dialog box.
 				        	volume.setDisks(dialog.getSelectedBricks());
 				        	linkCustomize.setText("" + volume.getDisks().size() + " Disk(s) (<a>customize</a>)");
+				        	validateForm();
 				        }
 					}
 				});
@@ -231,6 +234,12 @@ public class CreateVolumePage1 extends WizardPage {
 			public String getText(Object element) {
 				VOLUME_TYPE volumeType = (VOLUME_TYPE)element;
 				return Volume.getVolumeTypeStr(volumeType);
+			}
+		});
+		typeComboViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				validateForm();				
 			}
 		});
 	}
