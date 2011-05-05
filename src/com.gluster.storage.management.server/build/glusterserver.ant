@@ -39,7 +39,8 @@
 				<include name="**/*.sql" />
 			</fileset>
 		</copy>
-		<javac srcdir="${basedir}/src" destdir="${WEB-INF}/classes" classpathref="libs" />
+		<!-- TODO: make debug option configurable in jenkins -->
+		<javac srcdir="${basedir}/src" destdir="${WEB-INF}/classes" classpathref="libs" debug="true" debuglevel="lines,vars,source"/>
 	</target>
 
 	<target name="archive" depends="compile">

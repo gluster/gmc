@@ -181,12 +181,27 @@ def main():
         try:
             requestString = Socket.readPacket(clientInputStream)
             Utils.log('__DEBUG__ Received %s' % repr(requestString))
-            responseString = executeCommand(requestString)
-            if responseString:
-                Socket.writePacket(clientOutputStream, responseString)
+            requestParts = requestString.split(None, 3)
+                
+            if "get_file" == requestParts[0]:
+                if len(requestParts) != 2:
+                    rs = ResponseXml()
+                    rs.appendTagRoute("status.code", "-1")
+                    rs.appendTagRoute("status.message", "File path not passed")
+                    Socket.writePacket(clientOutputStream, rs.toprettyxml())
+                else:
+                    filePath = requestParts[1]
+                    fp = open(filePath)
+                    clientSocket.sendall(fp.read())
+                    fp.close()
                 clientOutputStream.flush()
             else:
-                Utils.log('__DEBUG__ empty response string')
+                responseString = executeCommand(requestString)
+                if responseString:
+                    Socket.writePacket(clientOutputStream, responseString)
+                    clientOutputStream.flush()
+                else:
+                    Utils.log('__DEBUG__ empty response string')
             Utils.log('__DEBUG__ Closing client %s' % str(clientAddress))
             clientSocket.close()
         except socket.error, e:
