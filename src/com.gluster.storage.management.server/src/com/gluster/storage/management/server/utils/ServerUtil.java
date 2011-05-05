@@ -106,17 +106,30 @@ public class ServerUtil {
 			Socket connection = new Socket(address, 50000);
 
 			PrintWriter writer = new PrintWriter(connection.getOutputStream(), true);
-			InputStream inputStream = connection.getInputStream();
-
 			writer.println(commandWithArgs);
 			writer.println(); // empty line means end of request
 
+			InputStream inputStream = connection.getInputStream();
 			int available = inputStream.available();
-			byte[] responseData = new byte[available];
-			inputStream.read(responseData);
+			
+			StringBuffer output = new StringBuffer();
+			if( available > 0 ) {
+				// This happens when PeerAgent sends complete file
+				byte[] responseData = new byte[available];
+				inputStream.read(responseData);
+				output.append(new String(responseData, "UTF-8"));
+			} else {
+				// This happens in case of normal XML response from PeerAgent
+				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+
+				String line;
+				while (!(line = reader.readLine()).trim().isEmpty()) {
+					output.append(line + CoreConstants.NEWLINE);
+				}
+			}
 			connection.close();
 
-			return new String(responseData, "UTF-8");
+			return output.toString();
 		} catch (Exception e) {
 			throw new GlusterRuntimeException("Error during remote execution: [" + e.getMessage() + "]");
 		}
