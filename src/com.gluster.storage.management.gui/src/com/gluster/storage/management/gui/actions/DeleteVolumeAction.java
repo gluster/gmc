@@ -48,7 +48,7 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 		Integer deleteOption = new MessageDialog(getShell(), "Delete Volume", GUIHelper.getInstance().getImage(
 				IImageKeys.VOLUME), warningMessage, MessageDialog.QUESTION, new String[] { "Cancel",
 				"Delete volume and it's data", "Delete volume, keep back-up of data" }, 2).open();
-		if (deleteOption == 0) {
+		if (deleteOption <= 0) { // By Cancel button(0) or Escape key(-1)
 			return;
 		}
 
@@ -63,9 +63,10 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 				return;
 			}
 		}
-		String confirmDelete = "";
+		
+		boolean confirmDelete = false;
 		if (deleteOption == 1) {
-			confirmDelete = "-d";
+			confirmDelete = true;
 		}
 
 		status = client.deleteVolume(volume, confirmDelete);

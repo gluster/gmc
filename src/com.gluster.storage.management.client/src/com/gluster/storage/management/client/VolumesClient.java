@@ -23,6 +23,7 @@ package com.gluster.storage.management.client;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
@@ -90,8 +91,9 @@ public class VolumesClient extends AbstractClient {
 		return (Volume) fetchSubResource(volumeName, Volume.class);
 	}
 
-	public Status deleteVolume(Volume volume, String deleteOption) {
-		return (Status) deleteSubResource(volume.getName(), Status.class, volume.getName(), deleteOption);
+	public Status deleteVolume(Volume volume, boolean deleteOption) {
+		MultivaluedMap<String, String> queryParams =  prepareGetDeleteVolumeQueryParams(volume.getName(), deleteOption);
+		return (Status) deleteSubResource(volume.getName(), Status.class, queryParams);
 	}
 
 	public VolumeOptionInfoListResponse getVolumeOptionsDefaults() {
@@ -142,7 +144,28 @@ public class VolumesClient extends AbstractClient {
 	public void downloadLogs(String volumeName) {
 		downloadSubResource((volumeName) + "/" + RESTConstants.SUBRESOURCE_LOGS + "/" + RESTConstants.SUBRESOURCE_DOWNLOAD);
 	}
+	
+	public Status removeBricks(String volumeName, List<Disk> diskList, boolean deleteOption) {
+		String disks = StringUtil.ListToString( GlusterCoreUtil.getQualifiedDiskNames(diskList), ",");
+		MultivaluedMap<String, String> queryParams = prepareGetRemoveBrickQueryParams(volumeName, disks, deleteOption);
+		return (Status) deleteSubResource(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, queryParams);
+	}
+	
+	private MultivaluedMap<String, String> prepareGetRemoveBrickQueryParams(String volumeName, String disks, boolean deleteOption) {
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+		queryParams.add(RESTConstants.QUERY_PARAM_VOLUME_NAME, volumeName);
+		queryParams.add(RESTConstants.QUERY_PARAM_DISKS, disks);
+		queryParams.add(RESTConstants.QUERY_PARAM_DELETE_OPTION, "" + deleteOption);
+		return queryParams;
+	}
 
+	private MultivaluedMap<String, String> prepareGetDeleteVolumeQueryParams(String volumeName, boolean deleteOption) {
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+		queryParams.add(RESTConstants.QUERY_PARAM_VOLUME_NAME, volumeName);
+		queryParams.add(RESTConstants.QUERY_PARAM_DELETE_OPTION, "" + deleteOption);
+		return queryParams;
+	}
+	
 	private MultivaluedMap<String, String> prepareGetLogQueryParams(String diskName, String severity,
 			Date fromTimestamp, Date toTimestamp, int messageCount) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
