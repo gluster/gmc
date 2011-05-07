@@ -72,7 +72,7 @@ public class VolumesSummaryView extends ViewPart {
 				volumes = (EntityGroup<Volume>) selectedObj;
 			}
 		}
-
+		setPartName("Summary");
 		createSections(parent);
 	}
 

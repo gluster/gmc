@@ -64,6 +64,7 @@ public class VolumeSummaryView extends ViewPart {
 		}
 
 		this.parent = parent;
+		setPartName("Summary");
 		createSections();
 
 		// Refresh the navigation tree whenever there is a change to the data model

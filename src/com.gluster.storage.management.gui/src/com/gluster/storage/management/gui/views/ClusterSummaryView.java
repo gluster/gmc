@@ -78,7 +78,7 @@ public class ClusterSummaryView extends ViewPart {
 		if (cluster == null) {
 			cluster = model.getCluster();
 		}
-
+		setPartName("Summary");
 		createSections(parent);
 	}
 
@@ -127,6 +127,10 @@ public class ClusterSummaryView extends ViewPart {
 	
 	private void createDiskSpaceSection() {
 		Composite section = guiHelper.createSection(form, toolkit, "Disk Space", null, 3, false);
+		if (cluster.getServers().size() == 0) {
+			toolkit.createLabel(section, "This section will be populated after at least one server is added to the storage cloud.");
+			return;
+		}
 		
 		double totalDiskSpace = cluster.getTotalDiskSpace();
 		double diskSpaceInUse = cluster.getDiskSpaceInUse();
@@ -241,6 +245,7 @@ public class ClusterSummaryView extends ViewPart {
 		createServersSection();
 		createDiskSpaceSection();
 		createCPUUsageSection();
+		createNetworkUsageSection();
 		//createMemoryUsageSection();
 		createActionsSection();
 		createAlertsSection();
@@ -256,7 +261,16 @@ public class ClusterSummaryView extends ViewPart {
 
 	private void createCPUUsageSection() {
 		Composite section = guiHelper.createSection(form, toolkit, "CPU Usage (aggregated)", null, 1, false);
+		if (cluster.getServers().size() == 0) {
+			toolkit.createLabel(section, "This section will be populated after at least one server is added to the storage cloud.");
+			return;
+		}
 		toolkit.createLabel(section, "Historical CPU Usage graph aggregated across all servers will be displayed here.");
+	}
+
+	private void createNetworkUsageSection() {
+		Composite section = guiHelper.createSection(form, toolkit, "Network Usage", null, 1, false);
+		toolkit.createLabel(section, "Historical Network Usage graph will be displayed here.");
 	}
 
 	private void createRunningTasksSection() {

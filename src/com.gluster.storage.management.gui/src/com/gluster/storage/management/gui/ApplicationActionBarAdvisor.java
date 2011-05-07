@@ -46,6 +46,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 	 */
 	private IWorkbenchAction exitAction;
 	private IWorkbenchAction aboutAction;
+	private IWorkbenchAction helpContentsAction;
 
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 
@@ -68,6 +69,11 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		aboutAction.setImageDescriptor(AbstractUIPlugin.imageDescriptorFromPlugin(Application.PLUGIN_ID,
 				IImageKeys.HELP));
 		register(aboutAction);
+		
+		helpContentsAction = ActionFactory.HELP_CONTENTS.create(window);
+		helpContentsAction.setText("&Contents");
+		//helpContentsAction.setImageDescriptor(newImage)
+		register(helpContentsAction);
 	}
 
 	protected void fillMenuBar(IMenuManager menuBar) {
@@ -78,6 +84,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
 		// Help
 		MenuManager helpMenu = new MenuManager("&Help", IWorkbenchActionConstants.M_HELP);
+		helpMenu.add(helpContentsAction);
 		helpMenu.add(aboutAction);
 
 		menuBar.add(fileMenu);

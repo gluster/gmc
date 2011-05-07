@@ -68,6 +68,7 @@ public class GlusterServerSummaryView extends ViewPart {
 		if (server == null) {
 			server = (GlusterServer) guiHelper.getSelectedEntity(getSite(), GlusterServer.class);
 		}
+		setPartName("Summary");
 		createSections(parent);
 	}
 

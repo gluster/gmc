@@ -54,7 +54,7 @@ public class GlusterServersSummaryView extends ViewPart {
 		if (servers == null) {
 			servers = (EntityGroup<GlusterServer>)guiHelper.getSelectedEntity(getSite(), EntityGroup.class);
 		}
-		
+		setPartName("Summary");
 		createSections(parent);
 	}
 
@@ -62,12 +62,11 @@ public class GlusterServersSummaryView extends ViewPart {
 	 * @param parent
 	 */
 	private void createSections(Composite parent) {
-		form = guiHelper.setupForm(parent, toolkit, "Volumes - Summary");
+		form = guiHelper.setupForm(parent, toolkit, "Servers - Summary");
 		
 		createSummarySection();
 		createRunningTasksSection();
 		createAlertsSection();
-
 		
 		parent.layout(); // IMP: lays out the form properly
 	}
