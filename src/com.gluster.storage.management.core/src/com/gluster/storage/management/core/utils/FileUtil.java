@@ -20,26 +20,31 @@ package com.gluster.storage.management.core.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
 
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 
 public class FileUtil {
 	public String readFileAsString(File file) {
 		try {
-			FileInputStream fileInputStream = new FileInputStream(file);
-			byte[] data = new byte[fileInputStream.available()];
-			fileInputStream.read(data);
-			fileInputStream.close();
-			
-			return new String(data);
+			return new String(readFileAsByteArray(file), CoreConstants.ENCODING_UTF8);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new GlusterRuntimeException("Could not read file [" + file + "]", e);
 		}
+	}
+
+	public byte[] readFileAsByteArray(File file) throws FileNotFoundException, IOException {
+		FileInputStream fileInputStream = new FileInputStream(file);
+		byte[] data = new byte[fileInputStream.available()];
+		fileInputStream.read(data);
+		fileInputStream.close();
+		return data;
 	}
 	
 	public InputStream loadResource(String resourcePath) {
@@ -50,6 +55,7 @@ public class FileUtil {
 		try {
 			FileWriter writer = new FileWriter(fileName);
 			writer.write(contents);
+			writer.close();
 		} catch (Exception e) {
 			throw new GlusterRuntimeException("Exception while trying to create text file [" + fileName + "]", e);
 		}

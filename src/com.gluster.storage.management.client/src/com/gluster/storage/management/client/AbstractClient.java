@@ -1,12 +1,15 @@
 package com.gluster.storage.management.client;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.gluster.storage.management.client.utils.ClientUtil;
-import com.gluster.storage.management.core.constants.RESTConstants;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -49,15 +52,25 @@ public abstract class AbstractClient {
 				.get(responseClass);
 	}
 
-	private Object downloadResource(WebResource res, MultivaluedMap<String, String> queryParams, Class responseClass) {
-		return res.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML)
-				.get(responseClass);
-	}
-
-	protected Object downloadResource(WebResource res) {
+	protected void downloadResource(WebResource res, String filePath) {
 		ClientResponse response = res.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_OCTET_STREAM)
 				.get(ClientResponse.class);
-		return response;
+		try {
+			if(!response.hasEntity()) {
+				throw new GlusterRuntimeException("No entity in response!");
+			}
+			
+			InputStream inputStream = response.getEntityInputStream();
+			byte[] data = new byte[inputStream.available()];
+			inputStream.read(data);
+			inputStream.close();
+			
+			FileOutputStream os = new FileOutputStream(filePath);
+			os.write(data);
+			os.close();
+		} catch (IOException e) {
+			throw new GlusterRuntimeException("Error while downloading resource [" + res.getURI().getPath() + "]", e);
+		}
 	}
 
 	/**
@@ -104,8 +117,8 @@ public abstract class AbstractClient {
 		return fetchResource(resource.path(subResourceName), NO_PARAMS, responseClass);
 	}
 
-	protected Object downloadSubResource(String subResourceName) {
-		return downloadResource(resource.path(subResourceName));
+	protected void downloadSubResource(String subResourceName, String filePath) {
+		downloadResource(resource.path(subResourceName), filePath);
 	}
 
 	/**
