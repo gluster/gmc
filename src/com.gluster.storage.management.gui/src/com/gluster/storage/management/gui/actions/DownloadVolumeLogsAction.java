@@ -50,6 +50,7 @@ public class DownloadVolumeLogsAction extends AbstractActionDelegate {
 	protected void performAction(IAction action) {
 		final Volume volume = (Volume)selectedEntity;
 		final VolumesClient client = new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken());
+		
 		Display.getDefault().asyncExec(new Runnable() {
 			
 			@Override
