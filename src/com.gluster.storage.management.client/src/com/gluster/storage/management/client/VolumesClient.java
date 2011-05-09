@@ -141,8 +141,8 @@ public class VolumesClient extends AbstractClient {
 				queryParams, LogMessageListResponse.class);
 	}
 	
-	public void downloadLogs(String volumeName) {
-		downloadSubResource((volumeName) + "/" + RESTConstants.SUBRESOURCE_LOGS + "/" + RESTConstants.SUBRESOURCE_DOWNLOAD);
+	public void downloadLogs(String volumeName, String filePath) {
+		downloadSubResource((volumeName) + "/" + RESTConstants.SUBRESOURCE_LOGS + "/" + RESTConstants.SUBRESOURCE_DOWNLOAD, filePath);
 	}
 	
 	public Status removeBricks(String volumeName, List<Disk> diskList, boolean deleteOption) {
@@ -258,7 +258,7 @@ public class VolumesClient extends AbstractClient {
 //			
 //			Status status = client.addDisks("Volume3", disks);
 //			System.out.println(status.getMessage());
-			client.downloadLogs("vol1");
+			client.downloadLogs("vol1", "/tmp/temp1.tar.gz");
 		}
 	}
 }
