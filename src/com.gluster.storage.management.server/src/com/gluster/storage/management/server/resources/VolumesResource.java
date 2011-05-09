@@ -102,7 +102,11 @@ public class VolumesResource {
 
 	@InjectParam
 	private static ServerUtil serverUtil;
-	private final GlusterUtil glusterUtil = new GlusterUtil();
+	
+	@InjectParam
+	private static GlusterUtil glusterUtil;
+	
+	private static final FileUtil fileUtil = new FileUtil();
 
 	@InjectParam
 	private VolumeOptionsDefaults volumeOptionsDefaults;
@@ -386,13 +390,9 @@ public class VolumesResource {
 			public void write(OutputStream output) throws IOException, WebApplicationException {
 				Volume volume = getVolume(volumeName);
 				try {
-					String archiveFileName = downloadLogs(volume);
-					FileInputStream inputStream = new FileInputStream(archiveFileName);
-					int size = inputStream.available();
-					byte[] data = new byte[size];
-					inputStream.read(data);
-					inputStream.close();
-					output.write(data);
+					File archiveFile = new File(downloadLogs(volume));
+					output.write(fileUtil.readFileAsByteArray(archiveFile));
+					archiveFile.delete();
 				} catch (Exception e) {
 					e.printStackTrace();
 					throw new GlusterRuntimeException("Exception while downloading/archiving volume log files!", e);
@@ -402,8 +402,6 @@ public class VolumesResource {
 	}
 
 	private String downloadLogs(Volume volume) {
-		FileUtil fileUtil = new FileUtil();
-		
 		// create temporary directory
 		File tempDir = fileUtil.createTempDir();
 		String tempDirPath = tempDir.getPath();
@@ -423,7 +421,7 @@ public class VolumesResource {
 		}
 		
 		String gzipPath = fileUtil.getTempDirName() + CoreConstants.FILE_SEPARATOR + volume.getName() + "-logs.tar.gz";
-		new ProcessUtil().executeCommand("tar", "czvf", gzipPath, tempDirPath);
+		new ProcessUtil().executeCommand("tar", "czvf", gzipPath, "-C", tempDir.getParent(), tempDir.getName());
 		
 		// delete the temp directory
 		fileUtil.recursiveDelete(tempDir);
