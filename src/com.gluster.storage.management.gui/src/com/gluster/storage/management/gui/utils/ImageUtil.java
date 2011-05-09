@@ -24,6 +24,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
+import com.gluster.storage.management.core.utils.LRUCache;
 import com.gluster.storage.management.gui.Application;
 
 /**
