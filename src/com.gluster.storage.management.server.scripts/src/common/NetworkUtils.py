@@ -25,7 +25,7 @@ import tempfile
 import Globals
 
 from Utils import *
-from netconfpkg.NCHardwareList import getHardwareList
+#from netconfpkg.NCHardwareList import getHardwareList
 
 def readHostFile(fileName=None):
     hostEntryList = []
@@ -244,7 +244,9 @@ def setBondMode(deviceName, mode, fileName=None):
 
 def getNetDeviceList(root=""):
     netDeviceList = []
-    for device in getHardwareList():
+
+    for deviceName in os.listdir("/sys/class/net/"):
+    #for device in getHardwareList():
         netDevice = {}
         netDevice["device"] = None
         netDevice["description"] = None
@@ -266,18 +268,21 @@ def getNetDeviceList(root=""):
         netDevice["link"] = None
         netDevice["mode"] = None
 
-        netDevice["device"] = device.Name
-        netDevice["description"] = device.Description
-        netDevice["type"] = device.Type
-        netDevice["link"] = getLinkStatus(device.Name)
-        netDevice["mode"] = getBondMode(device.Name, root + Globals.MODPROBE_CONF_FILE)
+        #netDevice["device"] = device.Name
+        netDevice["device"] = deviceName
+        #netDevice["description"] = device.Description
+        netDevice["description"] = deviceName
+        #netDevice["type"] = device.Type
+        netDevice["type"] = None
+        netDevice["link"] = getLinkStatus(deviceName)
+        netDevice["mode"] = getBondMode(deviceName, root + Globals.MODPROBE_CONF_FILE)
         try:
-            netDevice["hwaddr"] = open("/sys/class/net/%s/address" % device.Name).read().strip()
+            netDevice["hwaddr"] = open("/sys/class/net/%s/address" % deviceName).read().strip()
         except IOError:
             pass
         netDeviceList.append(netDevice)
 
-        conf = readIfcfgConfFile(device.Name, root)
+        conf = readIfcfgConfFile(deviceName, root)
         if not conf:
             continue
         try:
