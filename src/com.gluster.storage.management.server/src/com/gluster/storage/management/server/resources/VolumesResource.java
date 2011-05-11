@@ -206,8 +206,7 @@ public class VolumesResource {
 		List<String> bricks = Arrays.asList(disks.split(",")); // Convert from comma separated string (query parameter)
 		List<String> volumeBricks = new ArrayList<String>();
 		for (String brickInfo : bricks) {
-			String diskInfo[] = brickInfo.split(":");
-			volumeBricks.add(getBrickForDisk(getVolume(volumeName), diskInfo[1]));
+			volumeBricks.add(getBrickForDisk(getVolume(volumeName), brickInfo));
 		}
 
 		Status status = glusterUtil.removeBricks(volumeName, volumeBricks);
@@ -565,20 +564,24 @@ public class VolumesResource {
 		// System.out.println("\nName:" + volume.getName() + "\nType: " + volume.getVolumeTypeStr() + "\nStatus: "
 		// + volume.getStatusStr());
 		// }
-		Volume volume = new Volume();
-		volume.setName("vol3");
-		volume.setTransportType(TRANSPORT_TYPE.ETHERNET);
-		List<String> disks = new ArrayList<String>();
-		disks.add("192.168.1.210:sdb");
-		volume.addDisks(disks);
-		volume.setAccessControlList("192.168.*");
-		// Status status = vr.createVolume(volume);
-		// System.out.println(status.getMessage());
-		Form form = new Form();
-		form.add("volumeName", volume.getName());
-		form.add(RESTConstants.FORM_PARAM_DELETE_OPTION, 1);
-		Status status = vr.deleteVolume("Vol2", true);
-		System.out.println("Code : " + status.getCode());
-		System.out.println("Message " + status.getMessage());
+//		Volume volume = new Volume();
+//		volume.setName("vol3");
+//		volume.setTransportType(TRANSPORT_TYPE.ETHERNET);
+//		List<String> disks = new ArrayList<String>();
+//		disks.add("192.168.1.210:sdb");
+//		volume.addDisks(disks);
+//		volume.setAccessControlList("192.168.*");
+//		// Status status = vr.createVolume(volume);
+//		// System.out.println(status.getMessage());
+//		Form form = new Form();
+//		form.add("volumeName", volume.getName());
+//		form.add(RESTConstants.FORM_PARAM_DELETE_OPTION, 1);
+//		Status status = vr.deleteVolume("Vol2", true);
+//		System.out.println("Code : " + status.getCode());
+//		System.out.println("Message " + status.getMessage());
+		
+		Status status1 = vr.removeBricks("test", "192.168.1.210:sdb", true);
+		System.out.println("Code : " + status1.getCode());
+		System.out.println("Message " + status1.getMessage());
 	}
 }
