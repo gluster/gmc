@@ -47,7 +47,7 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 
 		Integer deleteOption = new MessageDialog(getShell(), "Delete Volume", GUIHelper.getInstance().getImage(
 				IImageKeys.VOLUME), warningMessage, MessageDialog.QUESTION, new String[] { "Cancel",
-				"Delete volume and it's data", "Delete volume, keep back-up of data" }, 2).open();
+				"Delete volume and data", "Delete volume and keep data" }, 2).open();
 		if (deleteOption <= 0) { // By Cancel button(0) or Escape key(-1)
 			return;
 		}
