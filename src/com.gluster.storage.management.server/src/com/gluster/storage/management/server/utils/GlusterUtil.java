@@ -486,6 +486,9 @@ public class GlusterUtil {
 		return new Status(processUtil.executeCommand(command));
 	}
 
+	public Status removeServer(String serverName) {
+		return new Status(processUtil.executeCommand("gluster", "peer", "detach", serverName));
+	}
 
 	public static void main(String args[]) {
 		// List<String> names = new GlusterUtil().getGlusterServerNames();
@@ -496,6 +499,4 @@ public class GlusterUtil {
 		Status status = new GlusterUtil().addBricks("Volume3", disks);
 		System.out.println(status);
 	}
-
-	
 }
