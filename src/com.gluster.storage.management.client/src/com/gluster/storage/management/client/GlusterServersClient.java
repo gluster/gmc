@@ -23,6 +23,7 @@ import java.util.List;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Response;
 import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
 import com.gluster.storage.management.core.response.GlusterServerResponse;
@@ -59,6 +60,10 @@ public class GlusterServersClient extends AbstractClient {
 		Form form = new Form();
 		form.add("serverName", discoveredServer.getName());
 		return (GlusterServerResponse)postRequest(GlusterServerResponse.class, form);
+	}
+	
+	public Status removeServer(String serverName) {
+		return (Status) deleteResource(Status.class, serverName);
 	}
 
 	public static void main(String[] args) {

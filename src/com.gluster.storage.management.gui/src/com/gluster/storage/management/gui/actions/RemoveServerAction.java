@@ -18,16 +18,76 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.actions;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.viewers.ISelection;
+
+import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.client.GlusterServersClient;
+import com.gluster.storage.management.core.model.Cluster;
+import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.utils.StringUtil;
 
 public class RemoveServerAction extends AbstractActionDelegate {
+
+	private Server server;
+	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+
 	@Override
 	protected void performAction(IAction action) {
-		System.out.println("Running [" + this.getClass().getSimpleName() + "]");
+		final String actionDesc = action.getDescription();
+		boolean confirmed = showConfirmDialog(actionDesc,
+				"Are you sure you want to remove this server [" + server.getName() + "] ?");
+		if (!confirmed) {
+			return;
+		}
+
+		List<String> configuredVolumes = getServerVolumeNames(server.getName());
+
+		if (configuredVolumes.size() > 0) {
+			String volumes = StringUtil.ListToString(configuredVolumes, ", ");
+			showErrorDialog(actionDesc, "Server cannot be removed. The following volumes are configured.\n" + volumes);
+			return;
+		}
+
+		GlusterServersClient client = new GlusterServersClient(modelManager.getSecurityToken());
+		Status status = client.removeServer(server.getName());
+
+		if (status.isSuccess()) {
+			showInfoDialog(actionDesc, "Server removed successfully");
+		} else {
+			showErrorDialog(actionDesc, "Server could not be removed. Error: [" + status + "]");
+		}
+	}
+
+	private List<String> getServerVolumeNames(String serverName) {
+		Cluster cluster = GlusterDataModelManager.getInstance().getModel().getCluster();
+		List<String> volumeNames  = new ArrayList<String>();
+		for(Volume volume : cluster.getVolumes()) {
+			for(String brick : volume.getDisks()) {
+				if (serverName.equals(brick.split(":")[0])) {
+					volumeNames.add(volume.getName());
+					break;
+				}
+			}
+		}
+		return volumeNames;
 	}
 
 	@Override
 	public void dispose() {
 		System.out.println("Disposing [" + this.getClass().getSimpleName() + "]");
+	}
+
+	@Override
+	public void selectionChanged(IAction action, ISelection selection) {
+		super.selectionChanged(action, selection);
+		if (selectedEntity instanceof Server) {
+			server = (Server) selectedEntity;
+		}
 	}
 }
