@@ -22,6 +22,7 @@ import java.io.File;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 
@@ -51,20 +52,34 @@ public class DownloadVolumeLogsAction extends AbstractActionDelegate {
 		final Volume volume = (Volume)selectedEntity;
 		final VolumesClient client = new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken());
 		
-		Display.getDefault().asyncExec(new Runnable() {
+		final Runnable downloadLogsThread = new Runnable() {
 			
 			@Override
 			public void run() {
 				FileDialog dialog = new FileDialog(getShell(), SWT.SAVE);
-				dialog.setFilterNames(new String[] {"GZipped Tar"});
+				dialog.setFilterNames(new String[] {"GZipped Tar (*.tar.gz)"});
 				dialog.setFilterExtensions(new String[] {"*.tar.gz"});
 				dialog.open();
 				
-				try {
-					client.downloadLogs(volume.getName(), dialog.getFilterPath() + File.separator + dialog.getFileName());
-				} catch(Exception e) {
-					showErrorDialog("Download Volume Logs [" + volume.getName() + "]", e.getMessage());
+				String title = "Download Volume Logs [" + volume.getName() + "]";
+				String filePath = dialog.getFilterPath() + File.separator + dialog.getFileName();
+				if(!filePath.endsWith(".tar.gz")) {
+					filePath += ".tar.gz";
 				}
+				try {
+					client.downloadLogs(volume.getName(), filePath);
+					showInfoDialog(title, "Volume logs downloaded successfully to [" + filePath + "]");
+				} catch(Exception e) {
+					showErrorDialog(title, e.getMessage());
+				}
+			}
+		};
+		
+		BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
+			
+			@Override
+			public void run() {
+				Display.getDefault().asyncExec(downloadLogsThread);
 			}
 		});
 	}
