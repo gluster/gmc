@@ -40,17 +40,19 @@ public class RemoveServerAction extends AbstractActionDelegate {
 	@Override
 	protected void performAction(IAction action) {
 		final String actionDesc = action.getDescription();
-		boolean confirmed = showConfirmDialog(actionDesc,
-				"Are you sure you want to remove this server [" + server.getName() + "] ?");
-		if (!confirmed) {
-			return;
-		}
 
 		List<String> configuredVolumes = getServerVolumeNames(server.getName());
 
 		if (configuredVolumes.size() > 0) {
 			String volumes = StringUtil.ListToString(configuredVolumes, ", ");
-			showErrorDialog(actionDesc, "Server cannot be removed. The following volumes are configured.\n" + volumes);
+			showErrorDialog(actionDesc, "Server cannot be removed as it is being used by following volumes: ["
+					+ volumes + "]");
+			return;
+		}
+
+		boolean confirmed = showConfirmDialog(actionDesc,
+				"Are you sure you want to remove this server [" + server.getName() + "] ?");
+		if (!confirmed) {
 			return;
 		}
 
@@ -66,9 +68,9 @@ public class RemoveServerAction extends AbstractActionDelegate {
 
 	private List<String> getServerVolumeNames(String serverName) {
 		Cluster cluster = GlusterDataModelManager.getInstance().getModel().getCluster();
-		List<String> volumeNames  = new ArrayList<String>();
-		for(Volume volume : cluster.getVolumes()) {
-			for(String brick : volume.getDisks()) {
+		List<String> volumeNames = new ArrayList<String>();
+		for (Volume volume : cluster.getVolumes()) {
+			for (String brick : volume.getDisks()) {
 				if (serverName.equals(brick.split(":")[0])) {
 					volumeNames.add(volume.getName());
 					break;
