@@ -217,13 +217,8 @@ public abstract class AbstractClient {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-<<<<<<< HEAD:src/com.gluster.storage.management.client/src/com/gluster/storage/management/client/AbstractClient.java
-	protected Object deleteResource(Class responseClass, String resourceName) {
-		return resource.queryParam("serverName", resourceName).header(HTTP_HEADER_AUTH, authHeader).delete(responseClass);
-=======
 	protected Object deleteResource(Class responseClass, MultivaluedMap<String, String> queryParams) {
 		return resource.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader).delete(responseClass);
->>>>>>> remove-server:src/com.gluster.storage.management.client/src/com/gluster/storage/management/client/AbstractClient.java
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
