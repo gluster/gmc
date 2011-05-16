@@ -20,13 +20,17 @@ package com.gluster.storage.management.client;
 
 import java.util.List;
 
+import javax.ws.rs.core.MultivaluedMap;
+
+import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.GlusterServer;
-import com.gluster.storage.management.core.model.Response;
 import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
 import com.gluster.storage.management.core.response.GlusterServerResponse;
 import com.sun.jersey.api.representation.Form;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class GlusterServersClient extends AbstractClient {
 	private static final String RESOURCE_NAME = "/cluster/servers";
@@ -59,6 +63,12 @@ public class GlusterServersClient extends AbstractClient {
 		Form form = new Form();
 		form.add("serverName", discoveredServer.getName());
 		return (GlusterServerResponse)postRequest(GlusterServerResponse.class, form);
+	}
+	
+	public Status removeServer(String serverName) {
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+		queryParams.add(RESTConstants.QUERY_PARAM_SERVER_NAME, serverName);
+		return (Status) deleteResource(Status.class, queryParams);
 	}
 
 	public static void main(String[] args) {

@@ -30,8 +30,8 @@ public class RemoveDiskAction extends AbstractActionDelegate {
 		final String actionDesc = action.getDescription();
 		Integer deleteOption = new MessageDialog(getShell(), "Remove Disk(s)", GUIHelper.getInstance().getImage(
 				IImageKeys.VOLUME), "Are you sure you want to remove disks from volume [" + volume.getName()
-				+ "] ?", MessageDialog.QUESTION, new String[] { "Cancel", "Remove disks, delete volume data from them",
-				"Remove disks, back-up volume data from them" }, 2).open();
+				+ "] ?", MessageDialog.QUESTION, new String[] { "Cancel", "Remove disks, delete data",
+				"Remove disks, keep data" }, 2).open();
 		if (deleteOption <= 0) { // By Cancel button(0) or Escape key(-1)
 			return;
 		}

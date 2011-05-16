@@ -216,12 +216,12 @@ public abstract class AbstractClient {
 				.post(responseClass, requestObject);
 	}
 
-	@SuppressWarnings("unchecked")
-	protected Object deleteResource(Class responseClass, Form form) {
-		return resource.header(HTTP_HEADER_AUTH, authHeader).delete(responseClass);
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected Object deleteResource(Class responseClass, MultivaluedMap<String, String> queryParams) {
+		return resource.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader).delete(responseClass);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Object deleteSubResource(String subResourceName, Class responseClass,
 			MultivaluedMap<String, String> queryParams) {
 		return resource.path(subResourceName).queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader)

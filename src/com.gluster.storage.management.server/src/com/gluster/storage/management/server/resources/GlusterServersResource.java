@@ -20,12 +20,14 @@ package com.gluster.storage.management.server.resources;
 
 import java.util.List;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import org.springframework.stereotype.Component;
@@ -34,10 +36,8 @@ import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
 import com.gluster.storage.management.core.response.GlusterServerResponse;
-import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.sun.jersey.spi.resource.Singleton;
 
@@ -100,6 +100,12 @@ public class GlusterServersResource extends AbstractServersResource {
 			return new GlusterServerResponse(status, null);
 		}
 		return new GlusterServerResponse(Status.STATUS_SUCCESS, getGlusterServer(serverName));
+	}
+	
+	@DELETE
+	@Produces(MediaType.TEXT_XML)
+	public Status removeServer(@QueryParam("serverName") String serverName) {
+		return glusterUtil.removeServer(serverName);
 	}
 
 	public static void main(String[] args) {
