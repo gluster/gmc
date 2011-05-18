@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #  Copyright (C) 2009 Gluster, Inc. <http://www.gluster.com>
 #  This file is part of Gluster Storage Platform.
 #
@@ -188,6 +189,7 @@ def getServerDetails():
             continue
         partitionTag = responseDom.createTag("disk", None)
         partitionTag.appendChild(responseDom.createTag("name", os.path.basename(disk['device'])))
+        partitionTag.appendChild(responseDom.createTag("mountPoint", disk['mount_point']))
         partitionTag.appendChild(responseDom.createTag("serverName", serverName))
         partitionTag.appendChild(responseDom.createTag("description", disk['description']))
         total, used, free = getDiskSizeInfo(disk['device'])
@@ -204,5 +206,9 @@ def getServerDetails():
     serverTag.appendChild(responseDom.createTag("diskSpaceInUse", str(diskSpaceInUse)))
     return serverTag
 
-def test():
-    print getServerDetails().toxml()
+def main():
+    print getServerDetails().toprettyxml()
+    sys.exit(0)
+
+if __name__ == "__main__":
+    main()

@@ -99,7 +99,8 @@ class Disk:
                 'description': str(parent.GetProperty('storage.model')) + " " + str(parent.GetProperty('storage.vendor')),
                 'size'    : str(int(dev.GetProperty('volume.size')) / 1024**2),
                 'totalsize'    : str(int(parent.GetProperty('storage.size')) / 1024**2),
-                'drive_type': str(parent.GetProperty('storage.drive_type'))
+                'drive_type': str(parent.GetProperty('storage.drive_type')),
+                'mount_point': str(dev.GetProperty('volume.mount_point'))
                 })
 
     def _get_device(self, udi):
