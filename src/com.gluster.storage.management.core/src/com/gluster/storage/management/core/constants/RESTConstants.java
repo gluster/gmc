@@ -56,6 +56,7 @@ public class RESTConstants {
 	public static final String QUERY_PARAM_TO_TIMESTAMP = "toTimestamp";
 	public static final String QUERY_PARAM_DOWNLOAD = "download";
 	public static final String QUERY_PARAM_SERVER_NAME = "serverName";
+	public static final String QUERY_PARAM_KNOWN_SERVER = "knownServer";
 
 	// Running tasks resource
 	public static final String RESOURCE_PATH_RUNNING_TASKS = "/cluster/runningtasks";

@@ -32,6 +32,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.springframework.stereotype.Component;
 
+import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Server;
@@ -39,21 +40,32 @@ import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
 import com.gluster.storage.management.core.response.GlusterServerResponse;
 import com.gluster.storage.management.server.utils.GlusterUtil;
+import com.gluster.storage.management.server.utils.SshUtil;
+import com.sun.jersey.api.core.InjectParam;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Component
 @Singleton
 @Path("/cluster/servers")
 public class GlusterServersResource extends AbstractServersResource {
-	private GlusterUtil glusterUtil = new GlusterUtil();
+	@InjectParam
+	private GlusterUtil glusterUtil;
+	
 	public static final String HOSTNAMETAG = "hostname:";
 
-	private List<GlusterServer> getServerDetails() {
-		List<GlusterServer> glusterServers = glusterUtil.getGlusterServers();
+	public void setGlusterUtil(GlusterUtil glusterUtil) {
+		this.glusterUtil = glusterUtil;
+	}
+
+	public GlusterUtil getGlusterUtil() {
+		return glusterUtil;
+	}
+
+	private List<GlusterServer> getServerDetails(String knownServer) {
+		List<GlusterServer> glusterServers = glusterUtil.getGlusterServers(knownServer);
 		for (GlusterServer server : glusterServers) {
 			if (server.getStatus() == SERVER_STATUS.ONLINE) {
 				fetchServerDetails(server);
-				// server.setPreferredNetworkInterface(server.getNetworkInterfaces().get(0));
 			}
 		}
 		return glusterServers;
@@ -61,17 +73,17 @@ public class GlusterServersResource extends AbstractServersResource {
 
 	@GET
 	@Produces(MediaType.TEXT_XML)
-	public GlusterServerListResponse getGlusterServers() {
-		return new GlusterServerListResponse(Status.STATUS_SUCCESS, getServerDetails());
+	public GlusterServerListResponse getGlusterServers(@QueryParam(RESTConstants.QUERY_PARAM_KNOWN_SERVER) String knownServer) {
+		return new GlusterServerListResponse(Status.STATUS_SUCCESS, getServerDetails(knownServer));
 	}
 
 	@GET
 	@Path("{serverName}")
 	@Produces(MediaType.TEXT_XML)
 	public GlusterServer getGlusterServer(@PathParam("serverName") String serverName) {
+		// TODO: Implement logic to fetch details of a single gluster server (peer)
 		GlusterServer server = new GlusterServer(serverName);
 		fetchServerDetails(server);
-		// server.setPreferredNetworkInterface(server.getNetworkInterfaces().get(0));
 		server.setStatus(SERVER_STATUS.ONLINE);
 		return server;
 	}
@@ -93,8 +105,8 @@ public class GlusterServersResource extends AbstractServersResource {
 
 	@POST
 	@Produces(MediaType.TEXT_XML)
-	public GlusterServerResponse addServer(@FormParam("serverName") String serverName) {
-		Status status = glusterUtil.addServer(serverName);
+	public GlusterServerResponse addServer(@FormParam("serverName") String serverName, @FormParam("existingServer") String existingServer) {
+		Status status = glusterUtil.addServer(serverName, existingServer);
 
 		if (!status.isSuccess()) {
 			return new GlusterServerResponse(status, null);
@@ -110,10 +122,13 @@ public class GlusterServersResource extends AbstractServersResource {
 
 	public static void main(String[] args) {
 		GlusterServersResource glusterServersResource = new GlusterServersResource();
-		System.out.println(glusterServersResource.getServerDetails());
+		GlusterUtil glusterUtil = new GlusterUtil();
+		glusterUtil.setSshUtil(new SshUtil());
+		glusterServersResource.setGlusterUtil(glusterUtil);
+		System.out.println(glusterServersResource.getServerDetails("127.0.0.1").size());
 
 		// To add a server
-		GlusterServerResponse response = glusterServersResource.addServer("my-server");
-		System.out.println(response.getData().getName());
+//		GlusterServerResponse response = glusterServersResource.addServer("my-server");
+//		System.out.println(response.getData().getName());
 	}
 }

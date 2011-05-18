@@ -26,6 +26,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Date;
 
+import org.springframework.stereotype.Component;
+
 import ch.ethz.ssh2.ChannelCondition;
 import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.Session;
@@ -39,6 +41,7 @@ import com.gluster.storage.management.core.utils.ProcessResult;
 /**
  *
  */
+@Component
 public class SshUtil {
 	private LRUCache<String, Connection> sshConnCache = new LRUCache<String, Connection>(10);
 	private static final File PEM_FILE = new File(CoreConstants.USER_HOME + "/" + ".ssh/id_rsa");

@@ -69,8 +69,9 @@ public class UsersResource {
 	@Path("{user}")
 	@GET
 	@Produces(MediaType.TEXT_XML)
-	public Status login(@PathParam("user") String user) {
+	public Status authenticate(@PathParam("user") String user) {
 		// success only if the user passed in query is same as the one passed in security header
+		// spring security would have already authenticated the user credentials
 		return (SecurityContextHolder.getContext().getAuthentication().getName().equals(user) ? Status.STATUS_SUCCESS
 				: Status.STATUS_FAILURE);
 	}

@@ -20,11 +20,13 @@
  */
 package com.gluster.storage.management.server.utils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
@@ -56,11 +58,22 @@ public class GlusterUtil {
 	private static final String VOLUME_TRANSPORT_TYPE_PFX = "Transport-type:";
 	private static final String VOLUME_BRICKS_GROUP_PFX = "Bricks";
 	private static final String VOLUME_OPTIONS_RECONFIG_PFX = "Options Reconfigured";
-	private static final String VOLUME_OPTION_AUTH_ALLOW = "auth.allow:";
+	private static final String VOLUME_OPTION_AUTH_ALLOW_PFX = "auth.allow:";
 	private static final String VOLUME_LOG_LOCATION_PFX = "log file location:";
 	private static final String VOLUME_TYPE_DISTRIBUTE = "Distribute";
 	private static final String VOLUME_TYPE_REPLICATE = "Replicate";
 	private static final ProcessUtil processUtil = new ProcessUtil();
+	
+	@Autowired
+	private SshUtil sshUtil;
+
+	public void setSshUtil(SshUtil sshUtil) {
+		this.sshUtil = sshUtil;
+	}
+
+	public SshUtil getSshUtil() {
+		return sshUtil;
+	}
 
 	/**
 	 * Extract value of given token from given line. It is assumed that the token, if present, will be of the following
@@ -79,8 +92,8 @@ public class GlusterUtil {
 		return null;
 	}
 
-	public List<GlusterServer> getGlusterServers() {
-		String output = getPeerStatus();
+	public List<GlusterServer> getGlusterServers(String knownServer) {
+		String output = getPeerStatus(knownServer);
 		if (output == null) {
 			return null;
 		}
@@ -127,8 +140,8 @@ public class GlusterUtil {
 		return glusterServers;
 	}
 
-	public List<String> getGlusterServerNames() {
-		String output = getPeerStatus();
+	public List<String> getGlusterServerNames(String knownServer) {
+		String output = getPeerStatus(knownServer);
 		if (output == null) {
 			return null;
 		}
@@ -143,9 +156,15 @@ public class GlusterUtil {
 		return glusterServerNames;
 	}
 
-	private String getPeerStatus() {
+	/**
+	 * @param knownServer
+	 *            A known server on which the gluster command will be executed to fetch peer status
+	 * @return Outout of the "gluster peer status" command
+	 */
+	private String getPeerStatus(String knownServer) {
 		String output;
-		ProcessResult result = processUtil.executeCommand("gluster", "peer", "status");
+		//ProcessResult result = processUtil.executeCommand("gluster", "peer", "status");
+		ProcessResult result = getSshUtil().executeRemote(knownServer, "gluster peer status");
 		if (!result.isSuccess()) {
 			output = null;
 		}
@@ -153,8 +172,8 @@ public class GlusterUtil {
 		return output;
 	}
 
-	public Status addServer(String serverName) {
-		return new Status(processUtil.executeCommand("gluster", "peer", "probe", serverName));
+	public Status addServer(String serverName, String existingServer) {
+		return new Status(sshUtil.executeRemote(existingServer, "gluster peer probe " + serverName));
 	}
 
 	public Status startVolume(String volumeName) {
@@ -465,10 +484,10 @@ public class GlusterUtil {
 
 	public String getLogFileNameForBrickDir(String brickDir) {
 		String logFileName = brickDir;
-		if (logFileName.startsWith(CoreConstants.FILE_SEPARATOR)) {
-			logFileName = logFileName.replaceFirst(CoreConstants.FILE_SEPARATOR, "");
+		if (logFileName.startsWith(File.separator)) {
+			logFileName = logFileName.replaceFirst(File.separator, "");
 		}
-		logFileName = logFileName.replaceAll(CoreConstants.FILE_SEPARATOR, "-") + ".log";
+		logFileName = logFileName.replaceAll(File.separator, "-") + ".log";
 		return logFileName;
 	}
 	
