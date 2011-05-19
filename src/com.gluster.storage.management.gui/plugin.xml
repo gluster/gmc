@@ -385,7 +385,7 @@
                definitionId="org.eclipse.ui.window.preferences"
                icon="icons/preferences.png"
                id="com.gluster.storage.management.gui.actions.AddServerAction"
-               label="&amp;Preferences"
+               label="&amp;Settings"
                menubarPath="com.gluster.storage.management.gui.menu.edit/edit"
                mode="FORCE_TEXT"
                pulldown="false"
