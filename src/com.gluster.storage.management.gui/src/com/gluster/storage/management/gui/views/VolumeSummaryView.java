@@ -1,5 +1,6 @@
 package com.gluster.storage.management.gui.views;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -29,14 +30,18 @@ import org.eclipse.ui.part.ViewPart;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Alert;
+import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
+import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.utils.NumberUtil;
+import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.core.utils.ValidationUtil;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
@@ -56,6 +61,7 @@ public class VolumeSummaryView extends ViewPart {
 	private ControlDecoration errDecoration;
 	private Composite parent;
 	private static final String COURIER_FONT = "Courier";
+	private Cluster cluster = GlusterDataModelManager.getInstance().getModel().getCluster();
 
 	@Override
 	public void createPartControl(Composite parent) {
@@ -139,42 +145,36 @@ public class VolumeSummaryView extends ViewPart {
 	private void createVolumeMountingInfoSection() {
 		String glusterFs = "Gluster:";
 		String nfs = "NFS:";
-		String glusterFsSyntax = "mount -t glusterfs <SERVER-NAME>:/<VOLUME-NAME> <MOUNT-POINT>";
-		String nfsSyntax = "mount -t nfs <SERVER-NAME>:/nfs/<VOLUME-NAME> <MOUNT-POINT>";
-		String info = "<SERVER-NAME> - Any server name in the storage cloud";
-		String volumeName = volume.getName().trim();
-		String serverName = volume.getDisks().get(0).split(":")[0].trim(); // disk if the form of: "server:disk"
-
+		String onlineServers = getOnlineServers(10); // Limited to 10 servers
+		String firstOnlineServer = onlineServers.split(",")[0].trim();
+		String glusterFsMountInfo = "mount -t glusterfs " + firstOnlineServer + ":/" + volume.getName()	+ " <mount-point>";
+		String nfsMountInfo = "mount -t nfs " + firstOnlineServer + ":/" + volume.getName() + " <mount-point>";
+		String info = "Server can be any server name in the storage cloud eg. <" + onlineServers + ">"; //TODO: if more than 10 servers... 
+		
 		Composite section = guiHelper.createSection(form, toolkit, "Mounting Information", null, 2, false);
 
-		Label lbl = toolkit.createLabel(section, "Syntax");
-		final int defaultFontSize = lbl.getFont().getFontData()[0].getHeight();
-		final String defaultFontName = lbl.getFont().getFontData()[0].name;
-		
-		setLabelStyle(lbl, defaultFontName, defaultFontSize, SWT.BOLD);
-		toolkit.createLabel(section, "");
-
-		setLabelStyle(toolkit.createLabel(section, glusterFs), defaultFontName, defaultFontSize, SWT.NORMAL);
-		setLabelStyle(toolkit.createLabel(section, glusterFsSyntax, SWT.NONE), COURIER_FONT, 10, SWT.NONE);
+		toolkit.createLabel(section, glusterFs, SWT.NORMAL);
+		setLabelStyle(toolkit.createLabel(section, glusterFsMountInfo, SWT.NONE), COURIER_FONT, 10, SWT.NONE);
 
 		// TODO: Check required if nfs is optional
-		setLabelStyle(toolkit.createLabel(section, nfs), defaultFontName, defaultFontSize, SWT.NORMAL);
-		setLabelStyle(toolkit.createLabel(section, nfsSyntax, SWT.NONE), COURIER_FONT, 10, SWT.NONE);
+		toolkit.createLabel(section, nfs, SWT.NORMAL);
+		setLabelStyle(toolkit.createLabel(section, nfsMountInfo, SWT.NONE), COURIER_FONT, 10, SWT.NONE);
 
 		toolkit.createLabel(section, "");
-		setLabelStyle(toolkit.createLabel(section, info), defaultFontName, (defaultFontSize - 1), SWT.NONE);
+		toolkit.createLabel(section, info, SWT.NONE);
+	}
 
-		setLabelStyle(toolkit.createLabel(section, "Example"), defaultFontName, defaultFontSize, SWT.BOLD);
-		toolkit.createLabel(section, "");
-
-		setLabelStyle(toolkit.createLabel(section, glusterFs), defaultFontName, defaultFontSize, SWT.NORMAL);
-		setLabelStyle(toolkit.createLabel(section, "#mount -t glusterfs " + serverName + ":/" + volumeName + " /mnt"),
-				COURIER_FONT, 10, SWT.NONE);
-
-		// TODO: Check required if nfs is optional
-		setLabelStyle(toolkit.createLabel(section, nfs), defaultFontName, defaultFontSize, SWT.NORMAL);
-		setLabelStyle(toolkit.createLabel(section, "#mount -t nfs " + serverName + ":/" + volumeName + " /mnt"),
-				COURIER_FONT, 10, SWT.NONE);
+	private String getOnlineServers(int maxServers) {
+		List<String> OnlineServers = new ArrayList<String>();
+		for (GlusterServer server : cluster.getServers()) {
+			if (server.getStatus() == SERVER_STATUS.ONLINE) {
+				OnlineServers.add(server.getName());
+				if (OnlineServers.size() >= maxServers) {
+					break;
+				}
+			}
+		}
+		return StringUtil.ListToString(OnlineServers, ", ") + ((OnlineServers.size() > maxServers) ? "..." : "");
 	}
 
 	/**
@@ -398,7 +398,7 @@ public class VolumeSummaryView extends ViewPart {
 
 	private void updateVolumeStatusLabel() {
 		lblStatusValue.setText(volume.getStatusStr());
-		lblStatusValue.setImage(volume.getStatus() == Volume.VOLUME_STATUS.ONLINE ? guiHelper
+		lblStatusValue.setImage((volume.getStatus() == Volume.VOLUME_STATUS.ONLINE) ? guiHelper
 				.getImage(IImageKeys.STATUS_ONLINE) : guiHelper.getImage(IImageKeys.STATUS_OFFLINE));
 		lblStatusValue.redraw();
 	}
