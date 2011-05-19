@@ -37,7 +37,7 @@ public class StringUtil {
 			output.append(element).append(delimiter);
 		}
 		String outputStr = output.toString();
-		int endIndex = (list.size() > 1) ? outputStr.length() - (delimiter.length() + 1) : outputStr.length() - 1;
+		int endIndex = (list.size() > 1) ? outputStr.length() - (delimiter.length() + 1) : outputStr.length() - delimiter.length();
 		return outputStr.substring(0, endIndex);
 	}
 

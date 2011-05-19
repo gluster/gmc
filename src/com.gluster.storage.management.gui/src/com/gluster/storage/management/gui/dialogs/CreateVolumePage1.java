@@ -102,8 +102,8 @@ public class CreateVolumePage1 extends WizardPage {
 		createTypeLabel(container);
 		createTypeCombo(container);
 		
-		createTransportTypeLabel(container);
-		createTransportTypeValueLabel(container);
+//		createTransportTypeLabel(container);
+//		createTransportTypeValueLabel(container);
 		
 		createDisksLabel(container);
 		createDisksCustomizeLink(container);
@@ -293,7 +293,7 @@ public class CreateVolumePage1 extends WizardPage {
 		IStructuredSelection selection = (IStructuredSelection)typeComboViewer.getSelection();
 		volume.setVolumeType((VOLUME_TYPE)selection.getFirstElement());
 		
-		volume.setTransportType(TRANSPORT_TYPE.ETHERNET);
+		volume.setTransportType(TRANSPORT_TYPE.ETHERNET); // Support only for Ethernet
 		Set<NAS_PROTOCOL> nasProtocols = new HashSet<Volume.NAS_PROTOCOL>();
 		nasProtocols.add(NAS_PROTOCOL.GLUSTERFS);
 		nasProtocols.add(NAS_PROTOCOL.NFS);
