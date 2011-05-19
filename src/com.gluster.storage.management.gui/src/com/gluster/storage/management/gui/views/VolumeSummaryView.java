@@ -196,7 +196,7 @@ public class VolumeSummaryView extends ViewPart {
 
 		createNumOfDisksField(section);
 		createDiskSpaceField(section);
-		createTransportTypeField(section);
+//		createTransportTypeField(section);
 		createNASProtocolField(section);
 		createAccessControlField(section);
 		createStatusField(section);
