@@ -116,7 +116,7 @@ public class MigrateDiskPage1 extends WizardPage {
 		super(PAGE_NAME);
 		this.volume = volume;
 		this.fromDisk = disk;
-		setTitle("Migrate Disk [" + volume.getName() + "]");
+		setTitle("Migrate Brick [" + volume.getName() + "]");
 		// setDescription("Migrate data from one disk to another for the chosen Volume. " +
 		// "This will copy all data present in the \"from disk\" of the volume " +
 		// "to \"to disk\", remove \"from disk\" from the volume, and " +
@@ -127,10 +127,10 @@ public class MigrateDiskPage1 extends WizardPage {
 
 	private void setPageDescription(String source, String target) {
 		if (source == null || source == "") {
-			source = "From Disk";
+			source = "From Brick";
 		}
 		if (target == null || target == "") {
-			target = "To Disk";
+			target = "To Brick";
 		}
 		setDescription("Migrate volume data from \"" + source + "\" to \"" + target + "\"");
 	}
@@ -186,10 +186,10 @@ public class MigrateDiskPage1 extends WizardPage {
 		//labelLayoutData.verticalIndent = 10;
 		
 		Label lblFromDisk = new Label(container, SWT.NONE);
-		lblFromDisk.setText("From Disk:");
+		lblFromDisk.setText("From Brick:");
 		lblFromDisk.setLayoutData(labelLayoutData);
 		Label lblToDisk = new Label(container, SWT.NONE);
-		lblToDisk.setText("To Disk:");
+		lblToDisk.setText("To Brick:");
 		lblToDisk.setLayoutData(labelLayoutData);
 
 		Text txtFilterFrom = guiHelper.createFilterText(container);

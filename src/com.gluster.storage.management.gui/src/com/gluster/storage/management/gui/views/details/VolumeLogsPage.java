@@ -55,6 +55,7 @@ import com.gluster.storage.management.core.model.LogMessage;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.response.LogMessageListResponse;
+import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.gui.VolumeLogTableLabelProvider;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
@@ -65,7 +66,7 @@ public class VolumeLogsPage extends Composite {
 	private Text filterText;
 	private Text lineCountText;
 	private Volume volume;
-	
+
 	public enum LOG_TABLE_COLUMN_INDICES {
 		DATE, TIME, DISK, SEVERITY, MESSAGE
 	};
@@ -83,14 +84,16 @@ public class VolumeLogsPage extends Composite {
 
 	/**
 	 * Create the volume logs page
+	 * 
 	 * @param parent
 	 * @param style
-	 * @param volume Volume for which the logs page is to be created	
+	 * @param volume
+	 *            Volume for which the logs page is to be created
 	 */
 	public VolumeLogsPage(Composite parent, int style, Volume volume) {
 		super(parent, style);
 		this.volume = volume;
-		
+
 		addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
 				toolkit.dispose();
@@ -98,35 +101,35 @@ public class VolumeLogsPage extends Composite {
 		});
 		toolkit.adapt(this);
 		toolkit.paintBordersFor(this);
-		
+
 		configureLayout();
-		
+
 		Composite composite = toolkit.createComposite(this, SWT.NONE);
 		toolkit.paintBordersFor(composite);
-		
+
 		createLineCountLabel(composite);
 		createLineCountText(composite);
-		
+
 		createDiskLabel(composite);
 		createDisksCombo(composite);
-		
+
 		createSeverityLabel(composite);
 		createSeverityCombo(composite);
-		
+
 		createFromDateLabel(composite);
 		createFromDateField(composite);
 		createFromTimeField(composite);
 		createFromCheckbox(composite);
-		
+
 		createToDateLabel(composite);
 		createToDateField(composite);
 		createToTimeField(composite);
 		createToCheckbox(composite);
-		
+
 		createSearchButton(composite);
-		
+
 		createSeparator(composite);
-		
+
 		createFilterLabel(composite);
 		createFilterText(composite);
 
@@ -135,7 +138,7 @@ public class VolumeLogsPage extends Composite {
 
 	private void createLogTableViewer() {
 		Composite tableViewerComposite = createTableViewerComposite();
-		
+
 		tableViewer = new TableViewer(tableViewerComposite, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
 		tableViewer.setLabelProvider(new VolumeLogTableLabelProvider());
 		tableViewer.setContentProvider(new ArrayContentProvider());
@@ -169,23 +172,23 @@ public class VolumeLogsPage extends Composite {
 
 				Date fromTimestamp = null;
 				Date toTimestamp = null;
-				
-				if(fromCheckbox.getSelection()) {
+
+				if (fromCheckbox.getSelection()) {
 					fromTimestamp = extractTimestamp(fromDate, fromTime);
 				}
-				
-				if(toCheckbox.getSelection()) {
+
+				if (toCheckbox.getSelection()) {
 					toTimestamp = extractTimestamp(toDate, toTime);
 				}
-				
+
 				if (!validateTimeRange(fromTimestamp, toTimestamp)) {
 					return;
 				}
-				
+
 				LogMessageListResponse response = client.getLogs(volume.getName(), disksCombo.getText(),
 						severityCombo.getText(), fromTimestamp, toTimestamp, Integer.parseInt(lineCountText.getText()));
 				Status status = response.getStatus();
-				if(status.isSuccess()) {
+				if (status.isSuccess()) {
 					List<LogMessage> logMessages = response.getLogMessages();
 					tableViewer.setInput(logMessages.toArray(new LogMessage[0]));
 					tableViewer.refresh();
@@ -198,30 +201,30 @@ public class VolumeLogsPage extends Composite {
 	}
 
 	protected boolean validateTimeRange(Date fromTimestamp, Date toTimestamp) {
-		if(fromTimestamp == null && toTimestamp == null) {
+		if (fromTimestamp == null && toTimestamp == null) {
 			// no time range selected. nothing to validate.
 			return true;
 		}
-		
+
 		Calendar calendar = Calendar.getInstance();
 		Date now = calendar.getTime();
-		if(fromTimestamp != null && fromTimestamp.after(now)) {
+		if (fromTimestamp != null && fromTimestamp.after(now)) {
 			MessageDialog.openError(getShell(), "Volume Logs", "From time can't be greater than current time!");
 			return false;
 		}
-		
-		if(toTimestamp != null) {
+
+		if (toTimestamp != null) {
 			if (toTimestamp.after(now)) {
 				MessageDialog.openError(getShell(), "Volume Logs", "To time can't be greater than current time!");
 				return false;
 			}
-			
-			if(fromTimestamp.after(toTimestamp)) {
+
+			if (fromTimestamp.after(toTimestamp)) {
 				MessageDialog.openError(getShell(), "Volume Logs", "From time can't be greater than To time!");
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
 
@@ -304,11 +307,11 @@ public class VolumeLogsPage extends Composite {
 	private void createSeverityCombo(Composite composite) {
 		severityCombo = new Combo(composite, SWT.READ_ONLY);
 		severityCombo.setBounds(555, 15, 110, 20);
-		
+
 		severityCombo.setItems(GlusterConstants.VOLUME_LOG_LEVELS_ARR.toArray(new String[0]));
 		severityCombo.select(VOLUME_LOG_LEVELS.ERROR.ordinal());
 		severityCombo.add(CoreConstants.ALL, 0);
-		
+
 		toolkit.adapt(severityCombo);
 		toolkit.paintBordersFor(severityCombo);
 	}
@@ -319,9 +322,11 @@ public class VolumeLogsPage extends Composite {
 	}
 
 	private void createDisksCombo(Composite composite) {
+		GlusterCoreUtil glusterCoreUtil = new GlusterCoreUtil();
+
 		disksCombo = new Combo(composite, SWT.READ_ONLY);
 		disksCombo.setBounds(365, 15, 100, 20);
-		disksCombo.setItems(volume.getDisks().toArray(new String[0]));
+		disksCombo.setItems(glusterCoreUtil.getQualifiedBrickList(volume.getBricks()).toArray(new String[0]));
 		disksCombo.add(CoreConstants.ALL, 0);
 		toolkit.adapt(disksCombo);
 		toolkit.paintBordersFor(disksCombo);
@@ -329,7 +334,7 @@ public class VolumeLogsPage extends Composite {
 	}
 
 	private void createDiskLabel(Composite composite) {
-		Label lblMessagesAndFilter = toolkit.createLabel(composite, "messages, and filter on disk", SWT.NONE);
+		Label lblMessagesAndFilter = toolkit.createLabel(composite, "messages, and filter on bricks", SWT.NONE);
 		lblMessagesAndFilter.setBounds(160, 15, 200, 20);
 	}
 
@@ -348,10 +353,10 @@ public class VolumeLogsPage extends Composite {
 		GridData layoutData = new GridData();
 		layoutData.grabExcessHorizontalSpace = true;
 		layoutData.grabExcessVerticalSpace = true;
-		//layoutData.verticalIndent = 10;
+		// layoutData.verticalIndent = 10;
 		setLayoutData(layoutData);
 	}
-	
+
 	private Composite createTableViewerComposite() {
 		Composite tableViewerComposite = new Composite(this, SWT.NO);
 		tableViewerComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
@@ -360,7 +365,7 @@ public class VolumeLogsPage extends Composite {
 		tableViewerComposite.setLayoutData(layoutData);
 		return tableViewerComposite;
 	}
-	
+
 	private void setupLogsTable(Composite parent, Table table) {
 		table.setHeaderVisible(true);
 		table.setLinesVisible(false);
@@ -374,7 +379,7 @@ public class VolumeLogsPage extends Composite {
 		setColumnProperties(table, LOG_TABLE_COLUMN_INDICES.SEVERITY, SWT.CENTER, 50);
 		setColumnProperties(table, LOG_TABLE_COLUMN_INDICES.MESSAGE, SWT.LEFT, 100);
 	}
-	
+
 	/**
 	 * Sets properties for alignment and weight of given column of given table
 	 * 

@@ -23,6 +23,7 @@ package com.gluster.storage.management.core.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Disk;
 
 
@@ -34,5 +35,22 @@ public class GlusterCoreUtil {
 			qualifiedDiskNames.add(disk.getQualifiedName());
 		}
 		return qualifiedDiskNames;
+	}
+	
+	// Convert from Disk list to Qualified bricks list 
+	public static final List<String> getQualifiedBrickNames(List<Disk> diskList) {
+		List<String> qualifiedBrickNames = new ArrayList<String>();
+		for (Disk disk : diskList) {
+			qualifiedBrickNames.add(disk.getQualifiedBrickName());
+		}
+		return qualifiedBrickNames;
+	}
+	
+	public List<String> getQualifiedBrickList(List<Brick> bricks) {
+		List<String> qualifiedBricks = new ArrayList<String>();
+		for (Brick brick : bricks) {
+			qualifiedBricks.add(brick.getQualifiedBrickName());
+		}
+		return qualifiedBricks;
 	}
 }
