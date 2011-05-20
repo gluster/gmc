@@ -21,15 +21,14 @@
 package com.gluster.storage.management.server.resources;
 
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_OPERATION;
-import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_PAUSE;
-import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_SOURCE;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SOURCE;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_BRICKS;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_TARGET;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_START;
-import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_STATUS;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_STOP;
-import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_TARGET;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_VOLUME_NAME;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_BRICKS;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DELETE_OPTION;
-import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DISKS;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DISK_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DOWNLOAD;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_FROM_TIMESTAMP;
@@ -45,8 +44,6 @@ import static com.gluster.storage.management.core.constants.RESTConstants.SUBRES
 import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_OPTIONS;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -55,7 +52,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.zip.GZIPOutputStream;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -69,28 +65,27 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
+import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.LogMessage;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.LogMessageListResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 import com.gluster.storage.management.core.utils.DateUtil;
 import com.gluster.storage.management.core.utils.FileUtil;
+import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
 import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.ServerUtil;
 import com.sun.jersey.api.core.InjectParam;
-import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Singleton
@@ -102,11 +97,13 @@ public class VolumesResource {
 
 	@InjectParam
 	private static ServerUtil serverUtil;
-	
+
 	@InjectParam
 	private static GlusterUtil glusterUtil;
-	
+
 	private static final FileUtil fileUtil = new FileUtil();
+	
+	private static GlusterCoreUtil glusterCoreUtil = new GlusterCoreUtil();
 
 	@InjectParam
 	private VolumeOptionsDefaults volumeOptionsDefaults;
@@ -127,25 +124,13 @@ public class VolumesResource {
 	@Consumes(MediaType.TEXT_XML)
 	@Produces(MediaType.TEXT_XML)
 	public Status createVolume(Volume volume) {
-		// Create the directories for the volume
-		List<String> disks = volume.getDisks();
-		Status status = createDirectories(disks, volume.getName());
+		List<String> brickDirectories = glusterCoreUtil.getQualifiedBrickList(volume.getBricks());
+		Status status = glusterUtil.createVolume(volume, brickDirectories);
 		if (status.isSuccess()) {
-			List<String> bricks = Arrays.asList(status.getMessage().split(" "));
-			status = glusterUtil.createVolume(volume, bricks);
-			if (status.isSuccess()) {
-				Status optionsStatus = glusterUtil.createOptions(volume);
-				if (!optionsStatus.isSuccess()) {
-					status.setCode(Status.STATUS_CODE_PART_SUCCESS);
-					status.setMessage("Error while setting volume options: " + optionsStatus);
-				}
-			} else {
-				Status cleanupStatus = cleanupDirectories(disks, volume.getName(), disks.size(), "-d"); // delete
-																										// permanently
-				if (!cleanupStatus.isSuccess()) {
-					status.setMessage(status.getMessage() + CoreConstants.NEWLINE + "Cleanup errors: "
-							+ CoreConstants.NEWLINE + cleanupStatus);
-				}
+			Status optionsStatus = glusterUtil.createOptions(volume);
+			if (!optionsStatus.isSuccess()) {
+				status.setCode(Status.STATUS_CODE_PART_SUCCESS);
+				status.setMessage("Error while setting volume options: " + optionsStatus);
 			}
 		}
 		return status;
@@ -180,12 +165,12 @@ public class VolumesResource {
 			@QueryParam(QUERY_PARAM_DELETE_OPTION) boolean deleteFlag) {
 		Volume volume = glusterUtil.getVolume(volumeName);
 		Status status = glusterUtil.deleteVolume(volumeName);
-		
+
 		String deleteOption = "";
-		if(deleteFlag) {
+		if (deleteFlag) {
 			deleteOption = "-d";
 		}
-		
+
 		if (status.isSuccess()) {
 			List<String> disks = volume.getDisks();
 			Status postDeleteStatus = postDelete(volumeName, disks, deleteOption);
@@ -202,22 +187,18 @@ public class VolumesResource {
 	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_DISKS)
 	@Produces(MediaType.TEXT_XML)
 	public Status removeBricks(@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName,
-			@QueryParam(QUERY_PARAM_DISKS) String disks, @QueryParam(QUERY_PARAM_DELETE_OPTION) boolean deleteFlag) {
-		List<String> bricks = Arrays.asList(disks.split(",")); // Convert from comma separated string (query parameter)
-		List<String> volumeBricks = new ArrayList<String>();
-		for (String brickInfo : bricks) {
-			volumeBricks.add(getBrickForDisk(getVolume(volumeName), brickInfo));
-		}
+			@QueryParam(QUERY_PARAM_BRICKS) String bricks, @QueryParam(QUERY_PARAM_DELETE_OPTION) boolean deleteFlag) {
+		List<String> brickList = Arrays.asList(bricks.split(",")); // Convert from comma separated string (query parameter)
 
-		Status status = glusterUtil.removeBricks(volumeName, volumeBricks);
+		Status status = glusterUtil.removeBricks(volumeName, brickList);
 
 		String deleteOption = "";
-		if(deleteFlag) {
+		if (deleteFlag) {
 			deleteOption = "-d";
 		}
-		
+
 		if (status.isSuccess()) {
-			Status cleanupStatus = cleanupDirectories(bricks, volumeName, bricks.size(), deleteOption);
+			Status cleanupStatus = cleanupDirectories(brickList, volumeName, brickList.size(), deleteOption);
 			if (!cleanupStatus.isSuccess()) {
 				// append cleanup error to prepare brick error
 				status.setMessage(status.getMessage() + CoreConstants.NEWLINE + cleanupStatus.getMessage());
@@ -269,14 +250,14 @@ public class VolumesResource {
 
 	@SuppressWarnings("rawtypes")
 	private Status prepareBrick(String serverName, String diskName, String volumeName) {
-		Object response = serverUtil.executeOnServer(true, serverName, PREPARE_BRICK_SCRIPT + " "
-				+ diskName + " " + volumeName, GenericResponse.class);
-		if(response instanceof GenericResponse) {
-			return ((GenericResponse)response).getStatus();
+		Object response = serverUtil.executeOnServer(true, serverName, PREPARE_BRICK_SCRIPT + " " + diskName + " "
+				+ volumeName, GenericResponse.class);
+		if (response instanceof GenericResponse) {
+			return ((GenericResponse) response).getStatus();
 		} else {
 			// in case of script failure on server, a Status object will be returned
 			return (Status) response;
-		}		
+		}
 	}
 
 	private Status createDirectories(List<String> disks, String volumeName) {
@@ -324,11 +305,11 @@ public class VolumesResource {
 			diskInfo = disks.get(i).split(":");
 			serverName = diskInfo[0];
 			diskName = diskInfo[1];
-			
-			Object response = serverUtil.executeOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT
-					+ " " + diskName + " " + volumeName + " " + deleteFlag, GenericResponse.class);
-			if(response instanceof GenericResponse) {
-				result = ((GenericResponse)response).getStatus();
+
+			Object response = serverUtil.executeOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
+					+ diskName + " " + volumeName + " " + deleteFlag, GenericResponse.class);
+			if (response instanceof GenericResponse) {
+				result = ((GenericResponse) response).getStatus();
 				if (!result.isSuccess()) {
 					// TODO: append error and continue with cleaning up of other directories
 					return result;
@@ -336,12 +317,12 @@ public class VolumesResource {
 			} else {
 				// TODO: append error and continue with cleaning up of other directories
 				// In case of script execution failure, a Status object will be returned.
-				return (Status)response;
+				return (Status) response;
 			}
 		}
 		return new Status(Status.STATUS_CODE_SUCCESS, "Directories cleaned up successfully!");
 	}
-	
+
 	private List<LogMessage> getBrickLogs(Volume volume, String brickName, Integer lineCount)
 			throws GlusterRuntimeException {
 		// brick name format is <serverName>:<brickDirectory>
@@ -378,13 +359,13 @@ public class VolumesResource {
 		}
 		return logMessages;
 	}
-	
+
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_LOGS + "/" + SUBRESOURCE_DOWNLOAD)
 	public StreamingOutput getLogs(@PathParam(PATH_PARAM_VOLUME_NAME) final String volumeName) {
 		return new StreamingOutput() {
-			
+
 			@Override
 			public void write(OutputStream output) throws IOException, WebApplicationException {
 				Volume volume = getVolume(volumeName);
@@ -404,27 +385,22 @@ public class VolumesResource {
 		// create temporary directory
 		File tempDir = fileUtil.createTempDir();
 		String tempDirPath = tempDir.getPath();
-		
-		for(String brickName : volume.getBricks()) {
-			// brick name format is <serverName>:<brickDirectory>
-			String[] brickParts = brickName.split(":");
-			String serverName = brickParts[0];
-			String brickDir = brickParts[1];
-			
-			String logDir = glusterUtil.getLogLocation(volume.getName(), brickName);
-			String logFileName = glusterUtil.getLogFileNameForBrickDir(brickDir);
+
+		for (Brick brick : volume.getBricks()) {
+			String logDir = glusterUtil.getLogLocation(volume.getName(), brick.getBrickDirectory());
+			String logFileName = glusterUtil.getLogFileNameForBrickDir(brick.getBrickDirectory());
 			String logFilePath = logDir + CoreConstants.FILE_SEPARATOR + logFileName;
 
-			String logContents = serverUtil.getFileFromServer(serverName, logFilePath);
+			String logContents = serverUtil.getFileFromServer(brick.getServerName(), logFilePath);
 			fileUtil.createTextFile(tempDirPath + CoreConstants.FILE_SEPARATOR + logFileName, logContents);
 		}
-		
+
 		String gzipPath = fileUtil.getTempDirName() + CoreConstants.FILE_SEPARATOR + volume.getName() + "-logs.tar.gz";
 		new ProcessUtil().executeCommand("tar", "czvf", gzipPath, "-C", tempDir.getParent(), tempDir.getName());
-		
+
 		// delete the temp directory
 		fileUtil.recursiveDelete(tempDir);
-		
+
 		return gzipPath;
 	}
 
@@ -434,8 +410,7 @@ public class VolumesResource {
 			@QueryParam(QUERY_PARAM_DISK_NAME) String diskName, @QueryParam(QUERY_PARAM_LOG_SEVERITY) String severity,
 			@QueryParam(QUERY_PARAM_FROM_TIMESTAMP) String fromTimestamp,
 			@QueryParam(QUERY_PARAM_TO_TIMESTAMP) String toTimestamp,
-			@QueryParam(QUERY_PARAM_LINE_COUNT) Integer lineCount,
-			@QueryParam(QUERY_PARAM_DOWNLOAD) Boolean download) {
+			@QueryParam(QUERY_PARAM_LINE_COUNT) Integer lineCount, @QueryParam(QUERY_PARAM_DOWNLOAD) Boolean download) {
 		List<LogMessage> logMessages = null;
 
 		try {
@@ -499,8 +474,8 @@ public class VolumesResource {
 		List<LogMessage> logMessages;
 		logMessages = new ArrayList<LogMessage>();
 		// fetch logs for every brick of the volume
-		for (String brick : volume.getBricks()) {
-			logMessages.addAll(getBrickLogs(volume, brick, lineCount));
+		for (Brick brick : volume.getBricks()) {
+			logMessages.addAll(getBrickLogs(volume, brick.getBrickDirectory(), lineCount));
 		}
 
 		// Sort the log messages based on log timestamp
@@ -516,40 +491,22 @@ public class VolumesResource {
 
 	@POST
 	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_DISKS)
-	public Status addDisks(@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName,
-			@FormParam(QUERY_PARAM_DISKS) String disks) {
-
-		List<String> diskList = Arrays.asList(disks.split(",")); // Convert from comma separated sting (query parameter)
-																	// to list
-		Status status = createDirectories(diskList, volumeName);
-		if (status.isSuccess()) {
-			List<String> bricks = Arrays.asList(status.getMessage().split(" "));
-			status = glusterUtil.addBricks(volumeName, bricks);
-
-			if (!status.isSuccess()) {
-				Status cleanupStatus = cleanupDirectories(diskList, volumeName, diskList.size(), "-d"); // Remove the
-																										// directories
-																										// if created
-				if (!cleanupStatus.isSuccess()) {
-					// append cleanup error to prepare brick error
-					status.setMessage(status.getMessage() + CoreConstants.NEWLINE + cleanupStatus.getMessage());
-				}
-			}
-		}
-		return status;
+	public Status addBricks(@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName,
+			@FormParam(FORM_PARAM_BRICKS) String bricks) {
+		return glusterUtil.addBricks(volumeName, Arrays.asList(bricks.split(",")));
 	}
 
 	@PUT
 	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_DISKS)
 	public Status replaceDisk(@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName,
-			@FormParam(FORM_PARAM_VALUE_SOURCE) String diskFrom, @FormParam(FORM_PARAM_VALUE_TARGET) String diskTo,
+			@FormParam(FORM_PARAM_SOURCE) String diskFrom, @FormParam(FORM_PARAM_TARGET) String diskTo,
 			@FormParam(FORM_PARAM_OPERATION) String operation) {
 		return glusterUtil.migrateDisk(volumeName, diskFrom, diskTo, operation);
 	}
 
 	private String getBrickForDisk(Volume volume, String diskName) {
 		int index = volume.getDisks().indexOf(diskName);
-		return volume.getBricks().get(index);
+		return volume.getBricks().get(index).getBrickDirectory();
 	}
 
 	private String getDiskForBrick(Volume volume, String brickName) {

@@ -32,37 +32,27 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
+import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Disk;
 
 public class SelectDisksDialog extends Dialog {
 
-	private DisksSelectionPage disksPage;
+	private BricksSelectionPage disksPage;
 	private List<Disk> allDisks;
 	private List<Disk> selectedDisks;
+	private String volumeName;
 
 	/**
 	 * Create the dialog.
 	 * 
 	 * @param parentShell
 	 */
-	public SelectDisksDialog(Shell parentShell, List<Disk> allDisks, List<String> selectedDisks) {
+	public SelectDisksDialog(Shell parentShell, List<Disk> allDisks, List<Disk> selectedDisks, String volumeName) {
 		super(parentShell);
 		setShellStyle(getShellStyle() | SWT.RESIZE);
 		this.allDisks = allDisks;
-		this.selectedDisks = getSelectedDisks(allDisks, selectedDisks);
-	}
-
-	private List<Disk> getSelectedDisks(List<Disk> allDisks, List<String> selectedDisks) {
-		List<Disk> disks = new ArrayList<Disk>();
-		for (String selectedDisk : selectedDisks) {
-			for (Disk disk : allDisks) {
-				String brick[] = selectedDisk.split(":");
-				if (disk.getServerName().equals(brick[0]) && disk.getName().equals(brick[1])) {
-					disks.add(disk);
-				}
-			}
-		}
-		return disks;
+		this.selectedDisks = selectedDisks;
+		this.volumeName = volumeName;
 	}
 
 	/**
@@ -78,9 +68,9 @@ public class SelectDisksDialog extends Dialog {
 		GridData containerLayoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
 		container.setLayoutData(containerLayoutData);
 
-		getShell().setText("Create Volume - Select Disks");
+		getShell().setText("Create Volume - Select Bricks");
 
-		disksPage = new DisksSelectionPage(container, SWT.NONE, allDisks, selectedDisks);
+		disksPage = new BricksSelectionPage(container, SWT.NONE, allDisks, selectedDisks, volumeName);
 
 		return container;
 	}
@@ -105,14 +95,14 @@ public class SelectDisksDialog extends Dialog {
 	}
 
 	@Override
-	protected void cancelPressed() { System.out.println("Test");
+	protected void cancelPressed() {
 		super.cancelPressed();
 	}
 
 	@Override
 	protected void okPressed() {
 		if (this.getSelectedDisks().size() == 0) {
-			MessageDialog.openError(getShell(), "Select Disk(s)", "Please select atlease one disk");
+			MessageDialog.openError(getShell(), "Select Brick(s)", "Please select atlease one brick");
 		} else {
 			super.okPressed();
 		}
@@ -122,7 +112,7 @@ public class SelectDisksDialog extends Dialog {
 		return disksPage.getChosenDisks();
 	}
 
-	public List<String> getSelectedBricks() {
-		return disksPage.getChosenBricks();
+	public List<Brick> getSelectedBricks(String volumeName) {
+		return disksPage.getChosenBricks(volumeName);
 	}
 }

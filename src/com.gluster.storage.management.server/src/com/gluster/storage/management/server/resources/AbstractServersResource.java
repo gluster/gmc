@@ -70,10 +70,10 @@ public class AbstractServersResource {
 	 */
 	private void addDummyDisks(Server server) {
 		double dummyDiskSpace = Math.random() * 500;
-		server.addDisk(new Disk(server, "sda", dummyDiskSpace, Math.random() * dummyDiskSpace, Disk.DISK_STATUS.READY));
+		server.addDisk(new Disk(server, "sda", "/export/sda", dummyDiskSpace, Math.random() * dummyDiskSpace, Disk.DISK_STATUS.READY));
 		dummyDiskSpace = Math.random() * 500;
-		server.addDisk(new Disk(server, "sdb", dummyDiskSpace, Math.random() * dummyDiskSpace, Disk.DISK_STATUS.READY));
+		server.addDisk(new Disk(server, "sdb", "/export/sdb", dummyDiskSpace, Math.random() * dummyDiskSpace, Disk.DISK_STATUS.READY));
 		dummyDiskSpace = Math.random() * 500;
-		server.addDisk(new Disk(server, "sdc", dummyDiskSpace, Math.random() * dummyDiskSpace, Disk.DISK_STATUS.READY));
+		server.addDisk(new Disk(server, "sdc", "/export/sdc", dummyDiskSpace, Math.random() * dummyDiskSpace, Disk.DISK_STATUS.READY));
 	}
 }

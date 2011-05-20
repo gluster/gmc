@@ -18,8 +18,9 @@
  *******************************************************************************/
 package com.gluster.storage.management.core.model;
 
+import java.io.File;
+
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 import com.gluster.storage.management.core.utils.StringUtil;
 
@@ -32,6 +33,7 @@ public class Disk extends Entity {
 	private String[] DISK_STATUS_STR = { "Ready", "Uninitialized", "Initializing", "Offline" };
 
 	private String serverName;
+	private String mountPoint;
 	private Double space;
 	private Double spaceInUse;
 	private DISK_STATUS status;
@@ -88,9 +90,18 @@ public class Disk extends Entity {
 		this.serverName = serverName;
 	}
 
-	public Disk(Server server, String name, Double space, Double spaceInUse, DISK_STATUS status) {
+	public void setMountPoint(String mountPoint) {
+		this.mountPoint = mountPoint;
+	}
+
+	public String getMountPoint() {
+		return mountPoint;
+	}
+
+	public Disk(Server server, String name, String mountPoint, Double space, Double spaceInUse, DISK_STATUS status) {
 		super(name, server);
 		setServerName(server != null ? server.getName() : "");
+		setMountPoint(mountPoint);
 		setSpace(space);
 		setSpaceInUse(spaceInUse);
 		setStatus(status);
@@ -103,5 +114,9 @@ public class Disk extends Entity {
 	
 	public String getQualifiedName() {
 		return getServerName() + ":" + getName();
+	}
+	
+	public String getQualifiedBrickName(String volumeName) {
+		return getServerName() + ":" + getMountPoint() + File.separator + volumeName;
 	}
 }

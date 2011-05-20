@@ -84,7 +84,7 @@ public class GlusterViewsManager implements ViewsManager {
 
 	private void showViewsForVolume(Volume volume) throws PartInitException {
 		page.showView(VolumeSummaryView.ID);
-		page.showView(VolumeDisksView.ID, null, IWorkbenchPage.VIEW_CREATE);
+		page.showView(VolumeBricksView.ID, null, IWorkbenchPage.VIEW_CREATE);
 		page.showView(VolumeOptionsView.ID, null, IWorkbenchPage.VIEW_CREATE);
 		page.showView(VolumeLogsView.ID, null, IWorkbenchPage.VIEW_CREATE);
 	}

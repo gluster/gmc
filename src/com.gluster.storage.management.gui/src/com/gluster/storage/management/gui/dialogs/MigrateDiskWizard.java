@@ -22,24 +22,25 @@ import org.eclipse.jface.wizard.Wizard;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Volume;
 
 public class MigrateDiskWizard extends Wizard {
 	private Volume volume;
-	private Disk disk;
+	private Brick brick;
 	private MigrateDiskPage1 page;
 
-	public MigrateDiskWizard(Volume volume, Disk disk) {
-		setWindowTitle("Gluster Management Console - Migrate Disk [" + volume.getName() + "]");
+	public MigrateDiskWizard(Volume volume, Brick brick) {
+		setWindowTitle("Gluster Management Console - Migrate Brick [" + volume.getName() + "]");
 		this.volume = volume;
-		this.disk = disk;
+		this.brick = brick;
 		setHelpAvailable(false); // TODO: Introduce wizard help
 	}
 
 	@Override
 	public void addPages() {
-		page = new MigrateDiskPage1(volume, disk);
+		page = new MigrateDiskPage1(volume, brick);
 		addPage(page);
 	}
 

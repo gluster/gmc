@@ -139,4 +139,13 @@ public class Cluster extends Entity {
 		}
 		return diskSpaceInUse;
 	}
+	
+	public GlusterServer getServer(String serverName) {
+		for(GlusterServer server : servers) {
+			if (server.getName().equals(serverName)) {
+				return server;
+			}
+		}
+		return null;
+	}
 }

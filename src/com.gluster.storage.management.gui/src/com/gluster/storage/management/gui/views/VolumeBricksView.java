@@ -5,15 +5,14 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
-import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.views.details.DisksPage;
+import com.gluster.storage.management.gui.views.details.BricksPage;
 
-public class VolumeDisksView extends ViewPart {
-	public static final String ID = VolumeDisksView.class.getName();
+public class VolumeBricksView extends ViewPart {
+	public static final String ID = VolumeBricksView.class.getName();
 	private static final GUIHelper guiHelper = GUIHelper.getInstance();
-	private DisksPage page;
+	private BricksPage page;
 	private Volume volume;
 
 	@Override
@@ -29,7 +28,7 @@ public class VolumeDisksView extends ViewPart {
 	 * @param parent
 	 */
 	private void createPage(Composite parent) {
-		page = new DisksPage(parent, SWT.NONE, getSite(), GlusterDataModelManager.getInstance().getReadyDisksOfVolume(volume));
+		page = new BricksPage(parent, SWT.NONE, getSite(), GlusterDataModelManager.getInstance().getOnlineBricks(volume));
 		parent.layout(); // IMP: lays out the form properly
 	}
 

@@ -28,6 +28,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
@@ -42,7 +43,7 @@ public class AddDiskPage extends WizardPage {
 	private List<Disk> availableDisks = new ArrayList<Disk>();
 	private List<Disk> selectedDisks = new ArrayList<Disk>();
 	private Volume volume = null;
-	private DisksSelectionPage page = null;
+	private BricksSelectionPage page = null;
 
 
 	public static final String PAGE_NAME = "add.disk.volume.page";
@@ -53,26 +54,26 @@ public class AddDiskPage extends WizardPage {
 	protected AddDiskPage(Volume volume) {
 		super(PAGE_NAME);
 		this.volume = volume;
-		setTitle("Add Disk");
+		setTitle("Add Brick");
 
-		String description = "Add disks to the Volume by choosing disks from the cluster servers.\n";
+		String description = "Add bricks to [" + volume.getName() + "] ";
 		if ( volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
-			description += "(Disk selection should be multiples of " + volume.getReplicaCount() + ")";
+			description += "(in multiples of " + volume.getReplicaCount() + ")";
 		} else if (volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_STRIPE) {
-			description += "(Disk selection should be multiples of " + volume.getStripeCount() + ")";
+			description += "(in multiples of " + volume.getStripeCount() + ")";
 		}
 		setDescription(description);
 
 		availableDisks = getAvailableDisks(volume);
 		
 		setPageComplete(false);
-		setErrorMessage("Please select disks to be added to the volume.");
+		setErrorMessage("Please select bricks to be added to the volume [" + volume.getName()  +"]");
 	}
 
 	
 	private boolean  isDiskUsed(Volume volume, Disk disk){
-		for (String volumeDisk : volume.getDisks()) { // expected form of volumeDisk is "server:diskName"
-			if ( disk.getQualifiedName().equals(volumeDisk)) {
+		for (Brick volumeBrick : volume.getBricks()) { // expected form of volumeBrick is "server:/export/diskName/volumeName"
+			if ( disk.getQualifiedBrickName(volume.getName()).equals(volumeBrick.getQualifiedName())) {
 				return true;
 			}
 		}
@@ -92,6 +93,10 @@ public class AddDiskPage extends WizardPage {
 
 	public List<Disk> getChosenDisks( ) {
 		return page.getChosenDisks();
+	}
+	
+	public List<Brick> getChosenBricks( String volumeName ) {
+		return page.getChosenBricks(volumeName);
 	}
 	
 	private boolean isValidDiskSelection(int diskCount) {
@@ -115,10 +120,10 @@ public class AddDiskPage extends WizardPage {
 	 */
 	@Override
 	public void createControl(Composite parent) {
-		getShell().setText("Add Disk");
+		getShell().setText("Add Brick");
 		List<Disk> chosenDisks = new ArrayList<Disk>(); // or volume.getDisks();
 		
-		page = new DisksSelectionPage(parent, SWT.NONE, availableDisks, chosenDisks);
+		page = new BricksSelectionPage(parent, SWT.NONE, availableDisks, chosenDisks, volume.getName());
 		page.addDiskSelectionListener(new ListContentChangedListener<Disk>() {
 			@Override
 			public void listContentChanged(IRemovableContentProvider<Disk> contentProvider) {
@@ -138,11 +143,11 @@ public class AddDiskPage extends WizardPage {
 	private void setError() {
 		String errorMessage = null;
 		if ( volume.getVolumeType() == VOLUME_TYPE.PLAIN_DISTRIBUTE) {
-			errorMessage = "Please select at least one disk!";
+			errorMessage = "Please select at least one brick!";
 		} else if( volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
-			errorMessage = "Please select disks in multiples of " + volume.getReplicaCount();
+			errorMessage = "Please select bricks in multiples of " + volume.getReplicaCount();
 		} else {
-			errorMessage = "Please select disks in multiples of " + volume.getStripeCount();
+			errorMessage = "Please select bricks in multiples of " + volume.getStripeCount();
 		}
 
 		setPageComplete(false);
@@ -154,7 +159,7 @@ public class AddDiskPage extends WizardPage {
 		setPageComplete(true);
 	}
 
-	public DisksSelectionPage getDialogPage() {
+	public BricksSelectionPage getDialogPage() {
 		return this.page;
 	}
 	

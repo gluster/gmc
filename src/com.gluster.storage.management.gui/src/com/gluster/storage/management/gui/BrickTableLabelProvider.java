@@ -27,9 +27,10 @@ import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.utils.GUIHelper;
+import com.gluster.storage.management.gui.views.details.BricksPage.BRICK_TABLE_COLUMN_INDICES;
 import com.gluster.storage.management.gui.views.details.DisksPage.DISK_TABLE_COLUMN_INDICES;
 
-public class DiskTableLabelProvider extends TableLabelProviderAdapter {
+public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 
 	@Override
@@ -40,7 +41,7 @@ public class DiskTableLabelProvider extends TableLabelProviderAdapter {
 		}
 
 		Brick brick = (Brick) element;
-		Disk disk = GlusterDataModelManager.getInstance().getDisk(brick.getDiskName());
+		Disk disk = GlusterDataModelManager.getInstance().getDiskDetails(brick.getDiskName());
 		
 		if (columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
 			DISK_STATUS status = disk.getStatus();
@@ -49,12 +50,8 @@ public class DiskTableLabelProvider extends TableLabelProviderAdapter {
 				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
 			case OFFLINE:
 				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
-			case UNINITIALIZED:
-				return guiHelper.getImage(IImageKeys.DISK_UNINITIALIZED);
-			case INITIALIZING:
-				return guiHelper.getImage(IImageKeys.WORK_IN_PROGRESS);
 			default:
-				throw new GlusterRuntimeException("Invalid disk status [" + status + "]");
+				throw new GlusterRuntimeException("Invalid brick status [" + status + "]");
 			}
 		}
 
@@ -84,12 +81,12 @@ public class DiskTableLabelProvider extends TableLabelProviderAdapter {
 		}
 
 		Brick brick = (Brick) element;
-		Disk disk = GlusterDataModelManager.getInstance().getDisk(brick.getDiskName());
+		Disk disk = GlusterDataModelManager.getInstance().getDiskDetails(brick.getDiskName());
 		
-		return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? brick.getServerName()
-				: columnIndex == DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? brick.getBrickDirectory()
-				: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? getDiskSpace(disk)
-				: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal() ? getDiskSpaceInUse(disk)
-				: columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? disk.getStatusStr() : "Invalid");
+		return (columnIndex == BRICK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? brick.getServerName()
+				: columnIndex == BRICK_TABLE_COLUMN_INDICES.BRICK.ordinal() ? brick.getBrickDirectory()
+				: columnIndex == BRICK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? getDiskSpace(disk)
+				: columnIndex == BRICK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal() ? getDiskSpaceInUse(disk)
+				: columnIndex == BRICK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? brick.getStatusStr() : "Invalid");
 	}
 }
