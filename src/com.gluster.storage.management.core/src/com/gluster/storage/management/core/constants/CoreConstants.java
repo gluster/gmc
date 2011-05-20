@@ -25,6 +25,7 @@ package com.gluster.storage.management.core.constants;
 public class CoreConstants {
     public static final String NEWLINE = System.getProperty("line.separator");
     public static final String FILE_SEPARATOR = System.getProperty("file.separator");
+    public static final String USER_HOME = System.getProperty("user.home");
     public static final String ENCODING_UTF8 = "UTF-8";
 	public static final String ALL = "ALL";
 	public static final String DATE_WITH_TIME_FORMAT = "MM/dd/yyyy HH:mm:ss";

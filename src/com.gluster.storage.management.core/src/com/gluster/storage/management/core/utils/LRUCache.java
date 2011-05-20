@@ -18,7 +18,7 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package com.gluster.storage.management.gui.utils;
+package com.gluster.storage.management.core.utils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

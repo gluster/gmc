@@ -112,13 +112,13 @@ public class GlusterDataModelManager {
 		servers.add(server);
 	}
 
-	public void initializeModel(String securityToken) {
+	public void initializeModel(String securityToken, String knownServer) {
 		model = new GlusterDataModel("Gluster Data Model");
 		setSecurityToken(securityToken);
 
 		Cluster cluster = new Cluster("Home", model);
 
-		initializeGlusterServers(cluster);
+		initializeGlusterServers(cluster, knownServer);
 		initializeVolumes(cluster);
 
 		initializeAutoDiscoveredServers(cluster);
@@ -227,8 +227,8 @@ public class GlusterDataModelManager {
 		volume5.addDisk("server5:sdb");
 	}
 
-	private void initializeGlusterServers(Cluster cluster) {
-		cluster.setServers(new GlusterServersClient(securityToken).getServers());
+	private void initializeGlusterServers(Cluster cluster, String knownServer) {
+		cluster.setServers(new GlusterServersClient(securityToken).getServers(knownServer));
 	}
 
 	private void initializeAutoDiscoveredServers(Cluster cluster) {

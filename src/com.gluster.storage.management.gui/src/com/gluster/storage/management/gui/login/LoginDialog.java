@@ -193,7 +193,7 @@ public class LoginDialog extends Dialog {
 		UsersClient usersClient = new UsersClient();
 		if (usersClient.authenticate(user, password).isSuccess()) {
 			try {
-				GlusterDataModelManager.getInstance().initializeModel(usersClient.getSecurityToken());
+				GlusterDataModelManager.getInstance().initializeModel(usersClient.getSecurityToken(), "127.0.0.1");
 				super.okPressed();
 			} catch (Exception e) {
 				setReturnCode(RETURN_CODE_ERROR);
