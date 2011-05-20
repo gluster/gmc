@@ -109,7 +109,7 @@
             class="com.gluster.storage.management.gui.views.VolumeDisksView"
             icon="icons/disks.png"
             id="com.gluster.storage.management.gui.views.VolumeDisksView"
-            name="Disks (Volume)"
+            name="Bricks"
             restorable="true">
       </view>
       <view
@@ -247,20 +247,20 @@
       </command>
       <command
             categoryId="com.gluster.storage.management.gui.category"
-            description="Migrate Disk"
+            description="Migrate Brick"
             id="com.gluster.storage.management.gui.commands.MigrateDisk"
-            name="Migrate Disk">
+            name="Migrate Brick">
       </command>
       <command
             categoryId="com.gluster.storage.management.gui.category"
-            description="Remove Disk"
+            description="Remove Brick"
             id="com.gluster.storage.management.gui.commands.RemoveDisk"
-            name="Remove Disk">
+            name="Remove Brick">
       </command>
       <command
-            description="Add Disk"
+            description="Add Brick"
             id="com.gluster.storage.management.gui.commands.AddDisk"
-            name="Add Disk">
+            name="Add Brick">
       </command>
    </extension>
    <extension
@@ -493,7 +493,7 @@
                definitionId="com.gluster.storage.management.gui.commands.MigrateDisk"
                icon="icons/disk-migrate.png"
                id="com.gluster.storage.management.gui.actions.MigrateDiskAction"
-               label="&amp;Migrate Disk"
+               label="&amp;Migrate Brick"
                menubarPath="com.gluster.storage.management.gui.menu.glusterserver/glusterserver"
                mode="FORCE_TEXT"
                pulldown="false"
@@ -610,7 +610,7 @@
                definitionId="com.gluster.storage.management.gui.commands.RemoveDisk"
                icon="icons/disk.png"
                id="com.gluster.storage.management.gui.actions.RemoveDiskAction"
-               label="Remove Disk"
+               label="Remove Brick"
                menubarPath="com.gluster.storage.management.gui.menu.volume/volume"
                mode="FORCE_TEXT"
                pulldown="false"
@@ -618,7 +618,7 @@
                state="false"
                style="push"
                toolbarPath="Normal"
-               tooltip="Remove Disk from Volume">
+               tooltip="Remove Brick from Volume">
          </action>
          <action
                allowLabelUpdate="false"
@@ -626,7 +626,7 @@
                definitionId="com.gluster.storage.management.gui.commands.AddDisk"
                icon="icons/disk.png"
                id="com.gluster.storage.management.gui.actions.AddDiskAction"
-               label="&amp;Add Disk"
+               label="&amp;Add Brick"
                menubarPath="com.gluster.storage.management.gui.menu.volume/volume"
                mode="FORCE_TEXT"
                pulldown="false"
@@ -634,7 +634,7 @@
                state="false"
                style="push"
                toolbarPath="Normal"
-               tooltip="Add Disk to Volume">
+               tooltip="Add Brick to Volume">
          </action>
          <menu
                id="com.gluster.storage.management.gui.menu.volume"

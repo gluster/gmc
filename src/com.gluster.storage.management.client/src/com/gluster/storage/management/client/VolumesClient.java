@@ -92,7 +92,7 @@ public class VolumesClient extends AbstractClient {
 	}
 
 	public Status deleteVolume(Volume volume, boolean deleteOption) {
-		MultivaluedMap<String, String> queryParams =  prepareGetDeleteVolumeQueryParams(volume.getName(), deleteOption);
+		MultivaluedMap<String, String> queryParams = prepareGetDeleteVolumeQueryParams(volume.getName(), deleteOption);
 		return (Status) deleteSubResource(volume.getName(), Status.class, queryParams);
 	}
 
@@ -100,17 +100,11 @@ public class VolumesClient extends AbstractClient {
 		return ((VolumeOptionInfoListResponse) fetchSubResource(RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS,
 				VolumeOptionInfoListResponse.class));
 	}
-	
-	public Status addDisks(String volumeName, List<Disk> diskList) {
-		String disks = StringUtil.ListToString( GlusterCoreUtil.getQualifiedDiskNames(diskList), ",");
-		Form form = new Form();
-		form.add(RESTConstants.QUERY_PARAM_DISKS, disks);
-		return (Status) postRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
-	}
 
-	public Status addDisks(String volumeName, String disks) {
+	public Status addDisks(String volumeName, List<String> brickList) {
+		String bricks = StringUtil.ListToString(brickList, ",");
 		Form form = new Form();
-		form.add(RESTConstants.QUERY_PARAM_DISKS, disks);
+		form.add(RESTConstants.QUERY_PARAM_DISKS, bricks);
 		return (Status) postRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
 	}
 
@@ -133,25 +127,28 @@ public class VolumesClient extends AbstractClient {
 	 *            Number of most recent log messages to be fetched (from each disk)
 	 * @return Log Message List response received from the Gluster Management Server.
 	 */
-	public LogMessageListResponse getLogs(String volumeName, String diskName, String severity, Date fromTimestamp, Date toTimestamp, int messageCount) {
+	public LogMessageListResponse getLogs(String volumeName, String diskName, String severity, Date fromTimestamp,
+			Date toTimestamp, int messageCount) {
 		MultivaluedMap<String, String> queryParams = prepareGetLogQueryParams(diskName, severity, fromTimestamp,
 				toTimestamp, messageCount);
 
 		return (LogMessageListResponse) fetchSubResource(volumeName + "/" + RESTConstants.SUBRESOURCE_LOGS,
 				queryParams, LogMessageListResponse.class);
 	}
-	
+
 	public void downloadLogs(String volumeName, String filePath) {
-		downloadSubResource((volumeName) + "/" + RESTConstants.SUBRESOURCE_LOGS + "/" + RESTConstants.SUBRESOURCE_DOWNLOAD, filePath);
+		downloadSubResource((volumeName) + "/" + RESTConstants.SUBRESOURCE_LOGS + "/"
+				+ RESTConstants.SUBRESOURCE_DOWNLOAD, filePath);
 	}
-	
+
 	public Status removeBricks(String volumeName, List<Disk> diskList, boolean deleteOption) {
-		String disks = StringUtil.ListToString( GlusterCoreUtil.getQualifiedDiskNames(diskList), ",");
+		String disks = StringUtil.ListToString(GlusterCoreUtil.getQualifiedBrickNames(diskList), ",");
 		MultivaluedMap<String, String> queryParams = prepareGetRemoveBrickQueryParams(volumeName, disks, deleteOption);
 		return (Status) deleteSubResource(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, queryParams);
 	}
-	
-	private MultivaluedMap<String, String> prepareGetRemoveBrickQueryParams(String volumeName, String disks, boolean deleteOption) {
+
+	private MultivaluedMap<String, String> prepareGetRemoveBrickQueryParams(String volumeName, String disks,
+			boolean deleteOption) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.add(RESTConstants.QUERY_PARAM_VOLUME_NAME, volumeName);
 		queryParams.add(RESTConstants.QUERY_PARAM_DISKS, disks);
@@ -165,19 +162,19 @@ public class VolumesClient extends AbstractClient {
 		queryParams.add(RESTConstants.QUERY_PARAM_DELETE_OPTION, "" + deleteOption);
 		return queryParams;
 	}
-	
+
 	private MultivaluedMap<String, String> prepareGetLogQueryParams(String diskName, String severity,
 			Date fromTimestamp, Date toTimestamp, int messageCount) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.add(RESTConstants.QUERY_PARAM_LINE_COUNT, "" + messageCount);
-		if(!diskName.equals(CoreConstants.ALL)) {
+		if (!diskName.equals(CoreConstants.ALL)) {
 			queryParams.add(RESTConstants.QUERY_PARAM_DISK_NAME, diskName);
 		}
-		
+
 		if (!severity.equals(CoreConstants.ALL)) {
 			queryParams.add(RESTConstants.QUERY_PARAM_LOG_SEVERITY, severity);
 		}
-		
+
 		if (fromTimestamp != null) {
 			queryParams.add(RESTConstants.QUERY_PARAM_FROM_TIMESTAMP,
 					DateUtil.dateToString(fromTimestamp, CoreConstants.DATE_WITH_TIME_FORMAT));
@@ -190,43 +187,42 @@ public class VolumesClient extends AbstractClient {
 		return queryParams;
 	}
 
-	public Status startMigration( String volumeName, String diskFrom, String diskTo) {
+	public Status startMigration(String volumeName, String diskFrom, String diskTo) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_VALUE_SOURCE, diskFrom);
 		form.add(RESTConstants.FORM_PARAM_VALUE_TARGET, diskTo);
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_START);
-		
-		return (Status) putRequest( volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
+
+		return (Status) putRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
 	}
-	
+
 	public Status stopMigration(String volumeName, String diskFrom, String diskTo) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_VALUE_SOURCE, diskFrom);
 		form.add(RESTConstants.FORM_PARAM_VALUE_TARGET, diskTo);
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_STOP);
-		
-		return (Status) putRequest( volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
+
+		return (Status) putRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
 	}
-	
+
 	public Status pauseMigration(String volumeName, String diskFrom, String diskTo) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_VALUE_SOURCE, diskFrom);
 		form.add(RESTConstants.FORM_PARAM_VALUE_TARGET, diskTo);
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_PAUSE);
-		
-		return (Status) putRequest( volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
+
+		return (Status) putRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
 	}
-	
+
 	public Status statusMigration(String volumeName, String diskFrom, String diskTo) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_VALUE_SOURCE, diskFrom);
 		form.add(RESTConstants.FORM_PARAM_VALUE_TARGET, diskTo);
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_STATUS);
-		
-		return (Status) putRequest( volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
+
+		return (Status) putRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
 	}
-	
-	
+
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();
 		if (usersClient.authenticate("gluster", "gluster").isSuccess()) {

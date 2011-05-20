@@ -71,7 +71,7 @@ public class Volume extends Entity {
 
 	private double totalDiskSpace = 0;
 	private List<String> disks = new ArrayList<String>();
-	private List<String> bricks = new ArrayList<String>();
+	private List<Brick> bricks = new ArrayList<Brick>();
 
 	public Volume() {
 	}
@@ -225,15 +225,25 @@ public class Volume extends Entity {
 		totalDiskSpace = 0;
 	}
 
-	public void addBrick(String brick) {
+	public void addBrick(Brick brick) {
 		bricks.add(brick);
 	}
 	
-	public void removeBrick(String brick) {
+	public void addBricks(List<Brick> bricks) {
+		bricks.addAll(bricks);
+	}
+	
+	
+	public void setBricks(List<Brick> bricks) {
+		this.bricks.clear();
+		this.bricks.addAll(bricks);
+	}
+	
+	public void removeBrick(Brick brick) {
 		bricks.remove(brick);
 	}
 
-	public List<String> getBricks() {
+	public List<Brick> getBricks() {
 		return bricks;
 	}
 

@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
+import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Disk;
 
 public class SelectDisksDialog extends Dialog {
@@ -78,7 +79,7 @@ public class SelectDisksDialog extends Dialog {
 		GridData containerLayoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
 		container.setLayoutData(containerLayoutData);
 
-		getShell().setText("Create Volume - Select Disks");
+		getShell().setText("Create Volume - Select Bricks");
 
 		disksPage = new DisksSelectionPage(container, SWT.NONE, allDisks, selectedDisks);
 
@@ -112,7 +113,7 @@ public class SelectDisksDialog extends Dialog {
 	@Override
 	protected void okPressed() {
 		if (this.getSelectedDisks().size() == 0) {
-			MessageDialog.openError(getShell(), "Select Disk(s)", "Please select atlease one disk");
+			MessageDialog.openError(getShell(), "Select Brick(s)", "Please select atlease one brick");
 		} else {
 			super.okPressed();
 		}
@@ -122,7 +123,7 @@ public class SelectDisksDialog extends Dialog {
 		return disksPage.getChosenDisks();
 	}
 
-	public List<String> getSelectedBricks() {
-		return disksPage.getChosenBricks();
+	public List<Brick> getSelectedBricks(String volumeName) {
+		return disksPage.getChosenBricks(volumeName);
 	}
 }

@@ -36,7 +36,7 @@ public class DisksPage extends AbstractDisksPage {
 		SERVER, DISK, SPACE, SPACE_IN_USE, STATUS
 	};
 
-	private static final String[] DISK_TABLE_COLUMN_NAMES = new String[] { "Server", "Disk", "Space (GB)",
+	private static final String[] DISK_TABLE_COLUMN_NAMES = new String[] { "Server", "Bricks Directory", "Space (GB)",
 			"Space in Use (GB)", "Status" };
 
 	public DisksPage(final Composite parent, int style, IWorkbenchSite site, List<Disk> disks) {

@@ -71,7 +71,7 @@ public class CreateVolumePage1 extends WizardPage {
 	public CreateVolumePage1() {
 		super(PAGE_NAME);
 		setTitle("Create Volume");
-		setDescription("Create a new Volume by choosing disks from the cluster servers and configuring the volume properties.");
+		setDescription("Create a new Volume by choosing bricks from the cluster servers and configuring the volume properties.");
 		
 		// by default, we create volume with all available disks
 		allDisks = GlusterDataModelManager.getInstance().getReadyDisksOfAllServers();
@@ -183,7 +183,7 @@ public class CreateVolumePage1 extends WizardPage {
 
 	private void createDisksCustomizeLink(Composite container) {
 		linkCustomize = new Link(container, SWT.UNDERLINE_LINK);
-		linkCustomize.setText("All Disk(s) (<a>customize</a>)");
+		linkCustomize.setText("All Brick(s) (<a>customize</a>)");
 		linkCustomize.addListener (SWT.Selection, new Listener () {
 			public void handleEvent(Event event) {
 				Display.getDefault().asyncExec(new Runnable() {
@@ -195,8 +195,8 @@ public class CreateVolumePage1 extends WizardPage {
 						dialog.create();
 				        if(dialog.open() == Window.OK) {
 				        	// user has customized disks. get them from the dialog box.
-				        	volume.setDisks(dialog.getSelectedBricks());
-				        	linkCustomize.setText("" + volume.getDisks().size() + " Disk(s) (<a>customize</a>)");
+				        	volume.setBricks(dialog.getSelectedBricks(volume.getName()));
+				        	linkCustomize.setText("" + volume.getDisks().size() + " Brick(s) (<a>customize</a>)");
 				        	validateForm();
 				        }
 					}

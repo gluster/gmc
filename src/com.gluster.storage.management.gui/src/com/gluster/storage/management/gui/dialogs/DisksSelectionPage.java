@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
+import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.IImageKeys;
@@ -52,7 +53,7 @@ public class DisksSelectionPage extends Composite {
 		SERVER, DISK, SPACE, SPACE_USED
 	}
 
-	private static final String[] DISK_TABLE_COLUMNS_NAMES = { "Server", "Disk", "Space (GB)", "Used Space (GB)" };
+	private static final String[] DISK_TABLE_COLUMNS_NAMES = { "Server", "Mount Point", "Space (GB)", "Used Space (GB)" };
 
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 	private CustomTableDualListComposite<Disk> dualTableViewer;
@@ -89,7 +90,7 @@ public class DisksSelectionPage extends Composite {
 
 				Disk disk = (Disk) element;
 				return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? disk.getServerName()
-						: columnIndex == DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? disk.getName()
+						: columnIndex == DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? disk.getMountPoint()
 								: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? NumberUtil
 										.formatNumber(disk.getSpace())
 										: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE_USED.ordinal() ? NumberUtil
@@ -308,14 +309,15 @@ public class DisksSelectionPage extends Composite {
 		return null;
 	}
 
-	public List<String> getChosenBricks() {
-		Object[] disksArr = (Object[]) chosenDisksContentProvider.getElements(dualTableViewer);
-		if (disksArr != null) {
-			List<String> disks = new ArrayList<String>();
-			for (Object disk : disksArr) {
-				disks.add( ((Disk)disk).getServerName() + ":" + ((Disk)disk).getName() ); // Format: Server:disk
+	public List<Brick> getChosenBricks(String volumeName) {
+		Object[] bricksArr = (Object[]) chosenDisksContentProvider.getElements(dualTableViewer);
+		
+		if (bricksArr != null) {
+			List<Brick> bricks = new ArrayList<Brick>();
+			for (Object disk : bricksArr) {
+				bricks.add( new Brick( ((Disk) disk).getServerName(), ((Disk) disk).getName(), ((Disk) disk).getMountPoint() + "/" + volumeName)); // Assume mount point is not having trailing "/"
 			}
-			return disks;
+			return bricks;
 		}
 		return null;
 	}
