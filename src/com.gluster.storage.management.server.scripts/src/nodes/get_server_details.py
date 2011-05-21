@@ -117,16 +117,18 @@ def getServerDetails():
     #TODO: probe and retrieve timezone, ntp-server, preferred-network details and update the tags
 
     deviceList = {}
+    interfaces = responseDom.createTag("networkInterfaces", None)
     for device in getNetDeviceList():
         deviceList[device["device"]] = device
         try:
             macAddress = open("/sys/class/net/%s/address" % device["device"]).read().strip()
         except IOError:
             continue
-        interfaces = responseDom.createTag("networkInterfaces", None)
         interfaceTag = responseDom.createTag("networkInterface", None)
         interfaceTag.appendChild(responseDom.createTag("name",      device["device"]))
-        interfaceTag.appendChild(responseDom.createTag("hwaddr",      macAddress))
+        interfaceTag.appendChild(responseDom.createTag("hwAddr",      macAddress))
+        interfaceTag.appendChild(responseDom.createTag("speed",      device["speed"]))
+        interfaceTag.appendChild(responseDom.createTag("model",      device["model"]))
         if deviceList[device["device"]]:
             if deviceList[device["device"]]["onboot"]:
                 interfaceTag.appendChild(responseDom.createTag("onboot", "yes"))
@@ -147,6 +149,7 @@ def getServerDetails():
             interfaceTag.appendChild(responseDom.createTag("bootProto", "none"))
         interfaces.appendChild(interfaceTag)
     serverTag.appendChild(interfaces)
+
     responseDom.appendTag(serverTag)
     serverTag.appendChild(responseDom.createTag("numOfCPUs", int(os.sysconf('SC_NPROCESSORS_ONLN'))))
 

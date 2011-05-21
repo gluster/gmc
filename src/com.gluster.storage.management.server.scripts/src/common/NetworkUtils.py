@@ -177,6 +177,26 @@ def writeIfcfgConfFile(deviceName, conf, root="", deviceFile=None):
     return True
 
 
+def getNetModel(deviceName):
+    rv = runCommandFG("ifconfig %s" % deviceName, stdout=True, root=True)
+    if rv["Status"] != 0:
+        return False
+    for line in rv["Stdout"].split():
+        tokens = line.strip().split(":")
+        if tokens[0].upper() == "ENCAP":
+            return tokens[1].strip().upper()
+    return None
+
+def getNetSpeed(deviceName):
+    rv = runCommandFG("ethtool %s" % deviceName, stdout=True, root=True)
+    if rv["Status"] != 0:
+        return False
+    for line in rv["Stdout"].split("\n"):
+        tokens = line.strip().split(":")
+        if tokens[0].upper() == "SPEED":
+            return tokens[1].strip().upper()
+    return None
+
 def getLinkStatus(deviceName):
     return True
     ## ethtool takes very long time to respond.  So its disabled now
@@ -276,6 +296,9 @@ def getNetDeviceList(root=""):
         netDevice["type"] = None
         netDevice["link"] = getLinkStatus(deviceName)
         netDevice["mode"] = getBondMode(deviceName, root + Globals.MODPROBE_CONF_FILE)
+        netDevice["model"] = getNetModel(deviceName)
+        netDevice["speed"] = getNetSpeed(deviceName)
+
         try:
             netDevice["hwaddr"] = open("/sys/class/net/%s/address" % deviceName).read().strip()
         except IOError:
