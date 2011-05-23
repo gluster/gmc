@@ -80,6 +80,8 @@ class Disk:
                 else: # iterate over children looking for a volume
                     children = self.hal.FindDeviceStringMatch("info.parent",
                                                          device)
+                    if not children and "disk" == dev.GetProperty("storage.drive_type"):
+                        self._add_volume(dev)
                     for child in children:
                         child = self._get_device(child)
                         if child.GetProperty("block.is_volume"):
@@ -88,6 +90,23 @@ class Disk:
 
     def _add_volume(self, dev, parent=None):
         volume = str(dev.GetProperty('block.device'))
+        if not parent:
+            self.volumes.append ({
+                'device'  : volume,
+                'label'   : str(dev.GetProperty('block.device')),
+                'fstype'  : None,
+                'fsversion': None,
+                'uuid'    : None,
+                'interface': str(dev.GetProperty('storage.bus')),
+                'parent'  : None,
+                'description': str(dev.GetProperty('storage.model')) + " " + str(dev.GetProperty('storage.vendor')),
+                'size'    : None,
+                'totalsize'    : str(int(dev.GetProperty('storage.size')) / 1024**2),
+                'drive_type': str(dev.GetProperty('storage.drive_type')),
+                'mount_point': "NA"
+                                })
+            return
+        
         self.volumes.append ({
                 'device'  : volume,
                 'label'   : str(dev.GetProperty('volume.label')),
@@ -102,6 +121,7 @@ class Disk:
                 'drive_type': str(parent.GetProperty('storage.drive_type')),
                 'mount_point': str(dev.GetProperty('volume.mount_point'))
                 })
+        return
 
     def _get_device(self, udi):
         """ Return a dbus Interface to a specific HAL device UDI """

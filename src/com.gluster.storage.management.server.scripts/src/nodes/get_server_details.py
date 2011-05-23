@@ -195,14 +195,21 @@ def getServerDetails():
         partitionTag.appendChild(responseDom.createTag("mountPoint", disk['mount_point']))
         partitionTag.appendChild(responseDom.createTag("serverName", serverName))
         partitionTag.appendChild(responseDom.createTag("description", disk['description']))
-        total, used, free = getDiskSizeInfo(disk['device'])
+        total, used, free = 0, 0, 0
+        if disk['size']:
+            total, used, free = getDiskSizeInfo(disk['device'])
         if total:
             partitionTag.appendChild(responseDom.createTag("space", str(total)))
             totalDiskSpace += total
+        else:
+            partitionTag.appendChild(responseDom.createTag("space", "NA"))
         if used:
             partitionTag.appendChild(responseDom.createTag("spaceInUse", str(used)))
             diskSpaceInUse += used
             partitionTag.appendChild(responseDom.createTag("status", "READY"))
+        else:
+            partitionTag.appendChild(responseDom.createTag("spaceInUse", "NA"))
+            partitionTag.appendChild(responseDom.createTag("status", "UNINITIALIZED"))
         diskTag.appendChild(partitionTag)
     serverTag.appendChild(diskTag)
     serverTag.appendChild(responseDom.createTag("totalDiskSpace", str(totalDiskSpace)))
