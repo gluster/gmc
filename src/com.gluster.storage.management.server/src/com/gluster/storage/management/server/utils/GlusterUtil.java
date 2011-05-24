@@ -92,6 +92,13 @@ public class GlusterUtil {
 		return null;
 	}
 
+	private GlusterServer getKnownServer(String knownServer) {
+		GlusterServer server = new GlusterServer(knownServer);
+		server.setStatus(SERVER_STATUS.ONLINE); //TODO: If pingable
+		//NOTE: No UUID assumed, it can be fetch while getting server details
+		return server;
+	}
+	
 	public List<GlusterServer> getGlusterServers(String knownServer) {
 		String output = getPeerStatus(knownServer);
 		if (output == null) {
@@ -99,6 +106,7 @@ public class GlusterUtil {
 		}
 
 		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();
+		glusterServers.add(getKnownServer(knownServer)); // Append the known server
 		GlusterServer server = null;
 		boolean foundHost = false;
 		boolean foundUuid = false;
