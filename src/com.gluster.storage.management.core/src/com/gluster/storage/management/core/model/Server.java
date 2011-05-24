@@ -133,7 +133,7 @@ public class Server extends Entity {
 	}
 
 	public void addDisk(Disk disk) {
-		if (disks.add(disk)) {
+		if (disks.add(disk) && disk.isReady()) {
 			totalDiskSpace += disk.getSpace();
 			diskSpaceInUse += disk.getSpaceInUse();
 		}
@@ -179,5 +179,20 @@ public class Server extends Entity {
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
 		return StringUtil.filterString(getName() + getIpAddressesAsString(), filterString, caseSensitive);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void copyFrom(Server server) {
+		this.setName(server.getName());
+		this.setParent(server.getParent());
+		this.setChildren(( List<Entity>) server.getChildren());
+		this.setNetworkInterfaces(server.getNetworkInterfaces());
+		this.setNumOfCPUs(server.getNumOfCPUs());
+		this.setCpuUsage(server.getCpuUsage());
+		this.setTotalMemory(server.getTotalMemory());
+		this.setMemoryInUse(server.getMemoryInUse());
+		this.setTotalDiskSpace(server.getTotalDiskSpace());
+		this.setDiskSpaceInUse(server.getDiskSpaceInUse());
+		this.setDisks(server.getDisks());
 	}
 }

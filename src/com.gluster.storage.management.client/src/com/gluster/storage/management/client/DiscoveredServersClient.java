@@ -45,19 +45,17 @@ public class DiscoveredServersClient extends AbstractClient {
 	private Object getDiscoveredServers(Boolean getDetails, Class responseClass) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.putSingle("details", getDetails.toString());
-
-		//System.out.println((String) fetchResource(queryParams, String.class));
-		return ((Response) fetchResource(queryParams, responseClass)).getData();
+		// return ((Response) fetchResource(queryParams, responseClass)).getData();
+		return responseClass.cast(fetchResource(queryParams, responseClass));
 	}
 
-	@SuppressWarnings("unchecked")
-	public List<String> getDiscoveredServerNames() {
-		return (List<String>) getDiscoveredServers(Boolean.FALSE, StringListResponse.class);
+	public StringListResponse getDiscoveredServerNames() {
+		
+		return  (StringListResponse) getDiscoveredServers(Boolean.FALSE, StringListResponse.class);
 	}
 
-	@SuppressWarnings("unchecked")
-	public List<Server> getDiscoveredServerDetails() {
-		return (List<Server>) getDiscoveredServers(Boolean.TRUE, ServerListResponse.class);
+	public ServerListResponse getDiscoveredServerDetails() {
+		return (ServerListResponse) getDiscoveredServers(Boolean.TRUE, ServerListResponse.class);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -71,10 +69,10 @@ public class DiscoveredServersClient extends AbstractClient {
 		if (usersClient.authenticate("gluster", "gluster").isSuccess()) {
 			DiscoveredServersClient serverResource = new DiscoveredServersClient("localhost",
 					usersClient.getSecurityToken());
-			List<String> discoveredServerNames = serverResource.getDiscoveredServerNames();
-			System.out.println(discoveredServerNames);
-			List<Server> discoveredServers = serverResource.getDiscoveredServerDetails();
-			System.out.println(discoveredServers);
+			StringListResponse discoveredServerNames = serverResource.getDiscoveredServerNames();
+			System.out.println(discoveredServerNames.getData());
+			ServerListResponse discoveredServers = serverResource.getDiscoveredServerDetails();
+			System.out.println(discoveredServers.getData());
 
 			// Server serverDetails = ServerResource.getServer("localhost");
 			// System.out.println(serverDetails.getName());

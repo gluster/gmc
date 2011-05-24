@@ -21,8 +21,8 @@
 package com.gluster.storage.management.server.resources;
 
 import com.gluster.storage.management.core.model.Disk;
-import com.gluster.storage.management.core.model.NetworkInterface;
 import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.response.GenericResponse;
 
 /**
  * Abstract resource class for servers. Abstracts basic server related functionality like "get server details".
@@ -38,14 +38,15 @@ public class AbstractServersResource {
 	 * @param server
 	 *            Server whose details are to be fetched
 	 */
-	protected void fetchServerDetails(Server server) {
-		String serverName = server.getName();
+	
+	
 
-		// TODO: Fetch the server details and populate in the object.
-		// For now, populating dummy data.
-		populateDummyData(server);
-	}
-
+//	public Server getServerDetails(String serverName) {
+//		
+//	}
+	
+	
+	
 	/**
 	 * @param server
 	 */
@@ -55,15 +56,15 @@ public class AbstractServersResource {
 		server.setTotalMemory(Math.ceil(Math.random() * 8));
 		server.setMemoryInUse(Math.random() * server.getTotalMemory());
 		addDummyDisks(server);
-		addDummyNetworkInterfaces(server, (int) Math.ceil(Math.random() * 4));
+		//addDummyNetworkInterfaces(server, (int) Math.ceil(Math.random() * 4));
 	}
 
-	private void addDummyNetworkInterfaces(Server server, int interfaceCount) {
-		for (int i = 0; i < interfaceCount; i++) {
-			server.addNetworkInterface(new NetworkInterface("eth" + i, server, "192.168.1." + ipCount++,
-					"255.255.255.0", "192.168.1.1"));
-		}
-	}
+//	private void addDummyNetworkInterfaces(Server server, int interfaceCount) {
+//		for (int i = 0; i < interfaceCount; i++) {
+//			server.addNetworkInterface(new NetworkInterface("eth" + i, server, "192.168.1." + ipCount++,
+//					"255.255.255.0", "192.168.1.1"));
+//		}
+//	}
 
 	/**
 	 * @param server
