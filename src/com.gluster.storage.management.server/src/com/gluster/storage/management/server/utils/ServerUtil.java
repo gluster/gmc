@@ -49,6 +49,9 @@ import com.gluster.storage.management.core.utils.ProcessUtil;
 public class ServerUtil {
 	@Autowired
 	ServletContext servletContext;
+	
+	@Autowired
+	private SshUtil sshUtil;
 
 	private static final String SCRIPT_DIR = "scripts";
 	private static final String SCRIPT_COMMAND = "python";
@@ -84,7 +87,7 @@ public class ServerUtil {
 			Class expectedClass) {
 		try {
 			String output = executeOnServer(serverName, commandWithArgs);
-
+System.out.println(output);
 			// In case the script execution exits ungracefully, the agent would return a GenericResponse.
 			// hence pass last argument as true to try GenericResponse unmarshalling in such cases.
 			Object response = unmarshal(expectedClass, output, expectedClass != GenericResponse.class);
@@ -101,39 +104,50 @@ public class ServerUtil {
 	}
 
 	private String executeOnServer(String serverName, String commandWithArgs) {
-		try {
-			InetAddress address = InetAddress.getByName(serverName);
-			Socket connection = new Socket(address, 50000);
-
-			PrintWriter writer = new PrintWriter(connection.getOutputStream(), true);
-			writer.println(commandWithArgs);
-			writer.println(); // empty line means end of request
-
-			InputStream inputStream = connection.getInputStream();
-			int available = inputStream.available();
-			
-			StringBuffer output = new StringBuffer();
-			if( available > 0 ) {
-				// This happens when PeerAgent sends complete file
-				byte[] responseData = new byte[available];
-				inputStream.read(responseData);
-				output.append(new String(responseData, "UTF-8"));
-			} else {
-				// This happens in case of normal XML response from PeerAgent
-				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-
-				String line;
-				while (!(line = reader.readLine()).trim().isEmpty()) {
-					output.append(line + CoreConstants.NEWLINE);
-				}
-			}
-			connection.close();
-
-			return output.toString();
-		} catch (Exception e) {
-			throw new GlusterRuntimeException("Error during remote execution: [" + e.getMessage() + "]");
+		ProcessResult result = sshUtil.executeRemote(serverName, commandWithArgs);
+		if(!result.isSuccess()) {
+			throw new GlusterRuntimeException("Command [" + commandWithArgs + "] failed on [" + serverName
+					+ "] with error [" + result.getExitValue() + "][" + result.getOutput() + "]");
 		}
+		return result.getOutput();
 	}
+	
+	// This is the old executeOnServer that used socket communication.
+	// We can keep it commented for the time being.
+	// private String executeOnServerUsingSocket(String serverName, String commandWithArgs) {
+	// try {
+	// InetAddress address = InetAddress.getByName(serverName);
+	// Socket connection = new Socket(address, 50000);
+	//
+	// PrintWriter writer = new PrintWriter(connection.getOutputStream(), true);
+	// writer.println(commandWithArgs);
+	// writer.println(); // empty line means end of request
+	//
+	// InputStream inputStream = connection.getInputStream();
+	// int available = inputStream.available();
+	//
+	// StringBuffer output = new StringBuffer();
+	// if( available > 0 ) {
+	// // This happens when PeerAgent sends complete file
+	// byte[] responseData = new byte[available];
+	// inputStream.read(responseData);
+	// output.append(new String(responseData, "UTF-8"));
+	// } else {
+	// // This happens in case of normal XML response from PeerAgent
+	// BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+	//
+	// String line;
+	// while (!(line = reader.readLine()).trim().isEmpty()) {
+	// output.append(line + CoreConstants.NEWLINE);
+	// }
+	// }
+	// connection.close();
+	//
+	// return output.toString();
+	// } catch (Exception e) {
+	// throw new GlusterRuntimeException("Error during remote execution: [" + e.getMessage() + "]");
+	// }
+	// }
 	
 	public String getFileFromServer(String serverName, String fileName) {
 		return executeOnServer(serverName, "get_file " + fileName); 

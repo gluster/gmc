@@ -33,7 +33,6 @@ public class GlusterServer extends Server {
 
 	private String uuid;
 	private SERVER_STATUS status;
-	// private NetworkInterface preferredNetworkInterface;
 	private Cluster cluster;
 
 	public GlusterServer() {

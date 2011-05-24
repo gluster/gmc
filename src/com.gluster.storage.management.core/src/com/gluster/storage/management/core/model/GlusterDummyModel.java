@@ -56,16 +56,15 @@ public class GlusterDummyModel {
 			double memoryInUse) {
 		GlusterServer glusterServer = new GlusterServer(name, parent, status, numOfCPUs, cpuUsage, totalMemory,
 				memoryInUse);
-		NetworkInterface networkInterface = addNetworkInterface(glusterServer, interfaceName);	// Renamed preferredInterfaceName to interfaceName
-		// glusterServer.setPreferredNetworkInterface(networkInterface);
+		NetworkInterface networkInterface = addNetworkInterface(glusterServer, interfaceName); 
 
 		servers.add(glusterServer);
 		return glusterServer;
 	}
 
 	private NetworkInterface addNetworkInterface(Server server, String interfaceName) {
-		NetworkInterface networkInterface = new NetworkInterface(interfaceName, server, "192.168.1."
-				+ Math.round(Math.random() * 255), "255.255.255.0", "192.168.1.1");
+		NetworkInterface networkInterface = new NetworkInterface(interfaceName, server, "00:00:00:00", "IPV6-IN-IPV4",
+				"1000MB/S", "192.168.1." + Math.round(Math.random() * 255), "255.255.255.0", "192.168.1.1");
 		server.setNetworkInterfaces(Arrays.asList(new NetworkInterface[] { networkInterface }));
 		return networkInterface;
 	}
@@ -148,7 +147,7 @@ public class GlusterDummyModel {
 		s2dc = new Disk(server2, "sdc", 200d, -1d, DISK_STATUS.UNINITIALIZED);
 		s2dd = new Disk(server2, "sdd", 200d, 124.89, DISK_STATUS.READY);
 
-		s3da = new Disk(server3, "NA", -1d, -1d, DISK_STATUS.OFFLINE); // disk name unavailable since server is offline
+		s3da = new Disk(server3, "NA", -1d, -1d, DISK_STATUS.IO_ERROR); // disk name unavailable since server is offline
 
 		s4da = new Disk(server4, "sda", 100d, 85.39, DISK_STATUS.READY);
 
@@ -245,29 +244,29 @@ public class GlusterDummyModel {
 	public static List<LogMessage> getDummyLogMessages() {
 		return logMessages;
 	}
-	
+
 	public Disk getVolumeDisk(String volumeDisk) {
 		List<Disk> allDisks = getReadyDisksOfAllServers();
 		String brickInfo[] = volumeDisk.split(":");
-		for( Disk disk: allDisks) {
+		for (Disk disk : allDisks) {
 			if (disk.getServerName() == brickInfo[0] && disk.getName() == brickInfo[1]) {
 				return disk;
 			}
 		}
 		return null;
 	}
-	
+
 	public List<Disk> getReadyDisksOfVolume(Volume volume) {
-//		List<Disk> disks = new ArrayList<Disk>();
-//		for (Disk disk : volume.getDisks()) {
-//			if (disk.isReady()) {
-//				disks.add(disk);
-//			}
-//		}
-//		return disks;
+		// List<Disk> disks = new ArrayList<Disk>();
+		// for (Disk disk : volume.getDisks()) {
+		// if (disk.isReady()) {
+		// disks.add(disk);
+		// }
+		// }
+		// return disks;
 		Disk disk = null;
 		List<Disk> volumeDisks = new ArrayList<Disk>();
-		for (String volumeDisk : volume.getDisks() ) {
+		for (String volumeDisk : volume.getDisks()) {
 			disk = getVolumeDisk(volumeDisk);
 			if (disk != null && disk.isReady()) {
 				volumeDisks.add(disk);
@@ -290,7 +289,7 @@ public class GlusterDummyModel {
 
 	public List<Disk> getReadyDisksOfAllServersExcluding(List<Disk> excludeDisks) {
 		List<Disk> disks = new ArrayList<Disk>();
-		
+
 		for (Server server : ((Cluster) model.getChildren().get(0)).getServers()) {
 			for (Disk disk : server.getDisks()) {
 				if (disk.isReady() && !excludeDisks.contains(disk)) {

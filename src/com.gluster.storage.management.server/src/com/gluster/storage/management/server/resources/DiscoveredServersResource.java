@@ -33,8 +33,11 @@ import org.springframework.stereotype.Component;
 import com.gluster.storage.management.core.model.Response;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.ServerListResponse;
 import com.gluster.storage.management.core.response.StringListResponse;
+import com.gluster.storage.management.server.utils.ServerUtil;
+import com.sun.jersey.api.core.InjectParam;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Component
@@ -42,6 +45,9 @@ import com.sun.jersey.spi.resource.Singleton;
 @Path("/discoveredservers")
 public class DiscoveredServersResource extends AbstractServersResource {
 	private List<String> discoveredServerNames = new ArrayList<String>();
+	
+	@InjectParam
+	private static ServerUtil serverUtil;
 
 	public List<String> getDiscoveredServerNames() {
 		return discoveredServerNames;
@@ -49,22 +55,27 @@ public class DiscoveredServersResource extends AbstractServersResource {
 
 	@GET
 	@Produces(MediaType.TEXT_XML)
-	public Response getDiscoveredServers(@QueryParam("details") Boolean getDetails) {
+	public Object getDiscoveredServers(@QueryParam("details") Boolean getDetails) {
 		if(getDetails != null && getDetails == true) {
-			return new ServerListResponse(Status.STATUS_SUCCESS, getDiscoveredServerDetails());
+			return getDiscoveredServerDetails();
 		}
 		return new StringListResponse(getDiscoveredServerNames());
 	}
 
-	private List<Server> getDiscoveredServerDetails() {
+	private ServerListResponse getDiscoveredServerDetails() {
 		List<Server> discoveredServers = new ArrayList<Server>();
 		List<String> serverNames = getDiscoveredServerNames();
+		GenericResponse<Server> discoveredServer;
 		for (String serverName : serverNames) {
-			discoveredServers.add(getDiscoveredServer(serverName));
+			discoveredServer = getDiscoveredServer(serverName);
+			if (!discoveredServer.getStatus().isSuccess()) {
+				return new ServerListResponse(discoveredServer.getStatus(), discoveredServers);
+			}
+			discoveredServers.add(discoveredServer.getData());
 		}
-		return discoveredServers;
+		return new ServerListResponse(Status.STATUS_SUCCESS, discoveredServers);
 	}
-
+	
 	public void setDiscoveredServerNames(List<String> discoveredServerNames) {
 		synchronized (discoveredServerNames) {
 			this.discoveredServerNames = discoveredServerNames;
@@ -74,11 +85,21 @@ public class DiscoveredServersResource extends AbstractServersResource {
 	@Path("/{serverName}")
 	@GET
 	@Produces(MediaType.TEXT_XML)
-	public Server getDiscoveredServer(@PathParam("serverName") String serverName) {
+	public GenericResponse<Server> getDiscoveredServer(@PathParam("serverName") String serverName) {
 		Server server = new Server(serverName);
-		fetchServerDetails(server);
-		return server;
+		return fetchServerDetails(server);
 	}
+	
+	protected GenericResponse<Server> fetchServerDetails(Server server) {
+		// fetch standard server details like cpu, disk, memory details
+		Object response = serverUtil.executeOnServer(true, server.getName(), "get_server_details.py", Server.class);
+		if (response instanceof Status) {
+			return new GenericResponse<Server>((Status)response, server);
+		}
+		server.copyFrom((Server) response); // Update the details in <Server> object
+		return new GenericResponse<Server>( Status.STATUS_SUCCESS, (Server) response);
+	}
+	
 
 	public static void main(String[] args) {
 		StringListResponse listResponse = (StringListResponse)new DiscoveredServersResource().getDiscoveredServers(false);

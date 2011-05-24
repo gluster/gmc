@@ -42,7 +42,7 @@ public class DiskTableLabelProvider extends TableLabelProviderAdapter {
 			switch (status) {
 			case READY:
 				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
-			case OFFLINE:
+			case IO_ERROR:
 				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
 			case UNINITIALIZED:
 				return guiHelper.getImage(IImageKeys.DISK_UNINITIALIZED);
@@ -65,7 +65,7 @@ public class DiskTableLabelProvider extends TableLabelProviderAdapter {
 	}
 
 	private String getDiskSpace(Disk disk) {
-		if (disk.isOffline()) {
+		if (disk.hasErrors() || disk.isUninitialized()) {
 			return "NA";
 		} else {
 			return NumberUtil.formatNumber(disk.getSpace());

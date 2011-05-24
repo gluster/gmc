@@ -44,11 +44,12 @@ public class GlusterServersClient extends AbstractClient {
 		return RESOURCE_NAME;
 	}
 
-	public List<GlusterServer> getServers(String knownServer) {
+	// public List<GlusterServer> getServers(String knownServer) {
+	public GlusterServerListResponse getServers(String knownServer) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.add(RESTConstants.QUERY_PARAM_KNOWN_SERVER, knownServer);
 		GlusterServerListResponse response = (GlusterServerListResponse) fetchResource(queryParams, GlusterServerListResponse.class);
-		return response.getServers();
+		return response; //.getServers();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -78,7 +79,7 @@ public class GlusterServersClient extends AbstractClient {
 		if (usersClient.authenticate("gluster", "gluster").isSuccess()) {
 
 			GlusterServersClient serverResource = new GlusterServersClient(usersClient.getSecurityToken());
-			List<GlusterServer> glusterServers = serverResource.getServers("127.0.0.1");
+			List<GlusterServer> glusterServers = serverResource.getServers("127.0.0.1").getData();
 			for (GlusterServer server : glusterServers) {
 				System.out.println(server.getName());
 			}
