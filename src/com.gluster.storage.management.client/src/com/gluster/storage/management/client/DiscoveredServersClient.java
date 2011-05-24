@@ -18,11 +18,8 @@
  *******************************************************************************/
 package com.gluster.storage.management.client;
 
-import java.util.List;
-
 import javax.ws.rs.core.MultivaluedMap;
 
-import com.gluster.storage.management.core.model.Response;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.ServerListResponse;
@@ -32,7 +29,7 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 public class DiscoveredServersClient extends AbstractClient {
 	private static final String RESOURCE_NAME = "discoveredservers";
 
-	public DiscoveredServersClient(String serverName, String securityToken) {
+	public DiscoveredServersClient(String securityToken) {
 		super(securityToken);
 	}
 
@@ -45,8 +42,7 @@ public class DiscoveredServersClient extends AbstractClient {
 	private Object getDiscoveredServers(Boolean getDetails, Class responseClass) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.putSingle("details", getDetails.toString());
-		// return ((Response) fetchResource(queryParams, responseClass)).getData();
-		return responseClass.cast(fetchResource(queryParams, responseClass));
+		return fetchResource(queryParams, responseClass);
 	}
 
 	public StringListResponse getDiscoveredServerNames() {
@@ -67,8 +63,7 @@ public class DiscoveredServersClient extends AbstractClient {
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();
 		if (usersClient.authenticate("gluster", "gluster").isSuccess()) {
-			DiscoveredServersClient serverResource = new DiscoveredServersClient("localhost",
-					usersClient.getSecurityToken());
+			DiscoveredServersClient serverResource = new DiscoveredServersClient(usersClient.getSecurityToken());
 			StringListResponse discoveredServerNames = serverResource.getDiscoveredServerNames();
 			System.out.println(discoveredServerNames.getData());
 			ServerListResponse discoveredServers = serverResource.getDiscoveredServerDetails();

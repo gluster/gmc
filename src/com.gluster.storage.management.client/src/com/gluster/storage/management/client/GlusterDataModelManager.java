@@ -55,7 +55,6 @@ public class GlusterDataModelManager {
 	private static GlusterDataModelManager instance = new GlusterDataModelManager();
 	private GlusterDataModel model;
 	private String securityToken;
-	private String serverName;
 	private List<ClusterListener> listeners = new ArrayList<ClusterListener>();
 	private List<VolumeOptionInfo> volumeOptionsDefaults;
 
@@ -107,7 +106,7 @@ public class GlusterDataModelManager {
 	}
 
 	private void initializeAutoDiscoveredServers(Cluster cluster) {
-		ServerListResponse discoveredServerListResponse = new DiscoveredServersClient(serverName, securityToken).getDiscoveredServerDetails();
+		ServerListResponse discoveredServerListResponse = new DiscoveredServersClient(securityToken).getDiscoveredServerDetails();
 		if (!discoveredServerListResponse.getStatus().isSuccess()) {
 			throw new GlusterRuntimeException(discoveredServerListResponse.getStatus().getMessage());
 		}

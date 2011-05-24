@@ -53,6 +53,10 @@ public class GlusterServer extends Server {
 		this(name, parent, status, numOfCPUs, cpuUsage, totalMemory, memoryInUse);
 		setCluster(cluster);
 	}
+	
+	public Boolean isOnline() {
+		return getStatus() == SERVER_STATUS.ONLINE;
+	}
 
 	public String getStatusStr() {
 		return STATUS_STR[getStatus().ordinal()];
