@@ -32,92 +32,92 @@ import javax.ws.rs.core.MediaType;
 
 import org.springframework.stereotype.Component;
 
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
-import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
 import com.gluster.storage.management.core.response.GlusterServerResponse;
 import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.SshUtil;
-import com.sun.jersey.api.core.InjectParam;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Component
 @Singleton
 @Path("/cluster/servers")
 public class GlusterServersResource extends AbstractServersResource {
-	@InjectParam
-	private GlusterUtil glusterUtil;
-	
+
 	public static final String HOSTNAMETAG = "hostname:";
 
-	public void setGlusterUtil(GlusterUtil glusterUtil) {
-		this.glusterUtil = glusterUtil;
-	}
-
-	public GlusterUtil getGlusterUtil() {
-		return glusterUtil;
-	}
-
-	private List<GlusterServer> getServerDetails(String knownServer) {
-		List<GlusterServer> glusterServers = glusterUtil.getGlusterServers(knownServer);
+	private GlusterServerListResponse getServerDetails(String knownServer) {
+		List<GlusterServer> glusterServers = getGlusterUtil().getGlusterServers(knownServer);
+		int errCount = 0;
+		StringBuilder errMsg = new StringBuilder("Couldn't fetch details for server(s): ");
+		
 		for (GlusterServer server : glusterServers) {
 			if (server.getStatus() == SERVER_STATUS.ONLINE) {
+				try {
 				fetchServerDetails(server);
+				} catch (Exception e) {
+					errMsg.append(CoreConstants.NEWLINE + server.getName() + " : [" + e.getMessage() + "]");
+					errCount++;
+				}
 			}
 		}
-		return glusterServers;
+		Status status;
+		if (errCount==0) {
+			status = new Status(Status.STATUS_CODE_SUCCESS, "Success");
+		} else if(errCount == glusterServers.size()) {
+			status = new Status(Status.STATUS_CODE_FAILURE, errMsg.toString());
+		} else {
+			status = new Status(Status.STATUS_CODE_PART_SUCCESS, errMsg.toString());
+		}
+		return new GlusterServerListResponse(status, glusterServers);
 	}
 
 	@GET
 	@Produces(MediaType.TEXT_XML)
-	public GlusterServerListResponse getGlusterServers(@QueryParam(RESTConstants.QUERY_PARAM_KNOWN_SERVER) String knownServer) {
-		return new GlusterServerListResponse(Status.STATUS_SUCCESS, getServerDetails(knownServer));
+	public GlusterServerListResponse getGlusterServers(
+			@QueryParam(RESTConstants.QUERY_PARAM_KNOWN_SERVER) String knownServer) {
+		return getServerDetails(knownServer);
 	}
 
 	@GET
 	@Path("{serverName}")
 	@Produces(MediaType.TEXT_XML)
-	public GlusterServer getGlusterServer(@PathParam("serverName") String serverName) {
-		// TODO: Implement logic to fetch details of a single gluster server (peer)
-		GlusterServer server = new GlusterServer(serverName);
-		fetchServerDetails(server);
-		server.setStatus(SERVER_STATUS.ONLINE);
-		return server;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.gluster.storage.management.server.resources.AbstractServersResource#fetchServerDetails(com.gluster.storage
-	 * .management.core.model.Server)
-	 */
-	@Override
-	protected void fetchServerDetails(Server server) {
-		// fetch standard server details like cpu, disk, memory details
-		super.fetchServerDetails(server);
-
-		// TODO: Fetch gluster server details like status
+	public GlusterServerResponse getGlusterServer(
+			@QueryParam(RESTConstants.QUERY_PARAM_KNOWN_SERVER) String knownServer,
+			@PathParam("serverName") String serverName) {
+		GlusterServer server = getGlusterUtil().getGlusterServer(knownServer, serverName);
+		Status status = Status.STATUS_SUCCESS;
+		if(server.isOnline()) {
+			try {
+				fetchServerDetails(server);
+			} catch (Exception e) {
+				status.setCode(Status.STATUS_CODE_FAILURE); 
+			}
+		}
+		return new GlusterServerResponse(status, server);
 	}
 
 	@POST
 	@Produces(MediaType.TEXT_XML)
-	public GlusterServerResponse addServer(@FormParam("serverName") String serverName, @FormParam("existingServer") String existingServer) {
-		Status status = glusterUtil.addServer(serverName, existingServer);
+	public GlusterServerResponse addServer(@FormParam("serverName") String serverName,
+			@FormParam("existingServer") String existingServer) {
+		Status status = getGlusterUtil().addServer(serverName, existingServer);
 
 		if (!status.isSuccess()) {
 			return new GlusterServerResponse(status, null);
 		}
-		return new GlusterServerResponse(Status.STATUS_SUCCESS, getGlusterServer(serverName));
+		return new GlusterServerResponse(Status.STATUS_SUCCESS, getGlusterServer(existingServer, serverName)
+				.getGlusterServer());
 	}
-	
+
 	@DELETE
 	@Produces(MediaType.TEXT_XML)
 	public Status removeServer(@QueryParam("serverName") String serverName) {
-		return glusterUtil.removeServer(serverName);
+		return getGlusterUtil().removeServer(serverName);
 	}
 
 	public static void main(String[] args) {
@@ -125,10 +125,10 @@ public class GlusterServersResource extends AbstractServersResource {
 		GlusterUtil glusterUtil = new GlusterUtil();
 		glusterUtil.setSshUtil(new SshUtil());
 		glusterServersResource.setGlusterUtil(glusterUtil);
-		System.out.println(glusterServersResource.getServerDetails("127.0.0.1").size());
+		// System.out.println(glusterServersResource.getServerDetails("127.0.0.1").size());
 
 		// To add a server
-//		GlusterServerResponse response = glusterServersResource.addServer("my-server");
-//		System.out.println(response.getData().getName());
+		// GlusterServerResponse response = glusterServersResource.addServer("my-server");
+		// System.out.println(response.getData().getName());
 	}
 }

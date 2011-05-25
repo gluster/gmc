@@ -33,7 +33,6 @@ public class GlusterServer extends Server {
 
 	private String uuid;
 	private SERVER_STATUS status;
-	// private NetworkInterface preferredNetworkInterface;
 	private Cluster cluster;
 
 	public GlusterServer() {
@@ -53,6 +52,10 @@ public class GlusterServer extends Server {
 			double totalMemory, double memoryInUse, Cluster cluster) {
 		this(name, parent, status, numOfCPUs, cpuUsage, totalMemory, memoryInUse);
 		setCluster(cluster);
+	}
+	
+	public Boolean isOnline() {
+		return getStatus() == SERVER_STATUS.ONLINE;
 	}
 
 	public String getStatusStr() {

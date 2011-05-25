@@ -50,6 +50,9 @@ public class ServerUtil {
 	@Autowired
 	ServletContext servletContext;
 
+	@Autowired
+	private SshUtil sshUtil;
+
 	private static final String SCRIPT_DIR = "scripts";
 	private static final String SCRIPT_COMMAND = "python";
 	private static final String REMOTE_SCRIPT_GET_DISK_FOR_DIR = "get_disk_for_dir.py";
@@ -101,42 +104,53 @@ public class ServerUtil {
 	}
 
 	private String executeOnServer(String serverName, String commandWithArgs) {
-		try {
-			InetAddress address = InetAddress.getByName(serverName);
-			Socket connection = new Socket(address, 50000);
-
-			PrintWriter writer = new PrintWriter(connection.getOutputStream(), true);
-			writer.println(commandWithArgs);
-			writer.println(); // empty line means end of request
-
-			InputStream inputStream = connection.getInputStream();
-			int available = inputStream.available();
-			
-			StringBuffer output = new StringBuffer();
-			if( available > 0 ) {
-				// This happens when PeerAgent sends complete file
-				byte[] responseData = new byte[available];
-				inputStream.read(responseData);
-				output.append(new String(responseData, "UTF-8"));
-			} else {
-				// This happens in case of normal XML response from PeerAgent
-				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-
-				String line;
-				while (!(line = reader.readLine()).trim().isEmpty()) {
-					output.append(line + CoreConstants.NEWLINE);
-				}
-			}
-			connection.close();
-
-			return output.toString();
-		} catch (Exception e) {
-			throw new GlusterRuntimeException("Error during remote execution: [" + e.getMessage() + "]");
+		ProcessResult result = sshUtil.executeRemote(serverName, commandWithArgs);
+		if (!result.isSuccess()) {
+			throw new GlusterRuntimeException("Command [" + commandWithArgs + "] failed on [" + serverName
+					+ "] with error [" + result.getExitValue() + "][" + result.getOutput() + "]");
 		}
+		return result.getOutput();
 	}
-	
+
+	// This is the old executeOnServer that used socket communication.
+	// We can keep it commented for the time being.
+	// private String executeOnServerUsingSocket(String serverName, String commandWithArgs) {
+	// try {
+	// InetAddress address = InetAddress.getByName(serverName);
+	// Socket connection = new Socket(address, 50000);
+	//
+	// PrintWriter writer = new PrintWriter(connection.getOutputStream(), true);
+	// writer.println(commandWithArgs);
+	// writer.println(); // empty line means end of request
+	//
+	// InputStream inputStream = connection.getInputStream();
+	// int available = inputStream.available();
+	//
+	// StringBuffer output = new StringBuffer();
+	// if( available > 0 ) {
+	// // This happens when PeerAgent sends complete file
+	// byte[] responseData = new byte[available];
+	// inputStream.read(responseData);
+	// output.append(new String(responseData, "UTF-8"));
+	// } else {
+	// // This happens in case of normal XML response from PeerAgent
+	// BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+	//
+	// String line;
+	// while (!(line = reader.readLine()).trim().isEmpty()) {
+	// output.append(line + CoreConstants.NEWLINE);
+	// }
+	// }
+	// connection.close();
+	//
+	// return output.toString();
+	// } catch (Exception e) {
+	// throw new GlusterRuntimeException("Error during remote execution: [" + e.getMessage() + "]");
+	// }
+	// }
+
 	public String getFileFromServer(String serverName, String fileName) {
-		return executeOnServer(serverName, "get_file " + fileName); 
+		return executeOnServer(serverName, "get_file " + fileName);
 	}
 
 	/**
@@ -160,14 +174,25 @@ public class ServerUtil {
 			Unmarshaller um = context.createUnmarshaller();
 			return um.unmarshal(new ByteArrayInputStream(input.getBytes()));
 		} catch (JAXBException e) {
-			if(tryGenericResponseOnFailure) {
+			if (tryGenericResponseOnFailure) {
 				// unmarshalling failed. try to unmarshal a GenericResponse object
 				return unmarshal(GenericResponse.class, input, false);
 			}
-			
+
 			return new Status(Status.STATUS_CODE_FAILURE, "Error during unmarshalling string [" + input
 					+ "] for class [" + expectedClass.getName() + ": [" + e.getMessage() + "]");
 		}
+	}
+
+	/**
+	 * @param serverName
+	 *            Server on which the directory is present
+	 * @param brickDir
+	 *            Directory whose disk is to be fetched
+	 * @return Status object containing the disk name, or error message in case the remote script fails.
+	 */
+	public Status getDiskForDir(String serverName, String brickDir) {
+		return (Status) executeOnServer(true, serverName, REMOTE_SCRIPT_GET_DISK_FOR_DIR + " " + brickDir, Status.class);
 	}
 
 	public static void main(String args[]) throws Exception {
@@ -175,12 +200,4 @@ public class ServerUtil {
 		System.out.println(new ServerUtil().getFileFromServer("localhost", "/tmp/python/PeerAgent.py"));
 	}
 
-	/**
-	 * @param serverName Server on which the directory is present
-	 * @param brickDir Directory whose disk is to be fetched
-	 * @return Status object containing the disk name, or error message in case the remote script fails.
-	 */
-	public Status getDiskForDir(String serverName, String brickDir) {
-		return (Status) executeOnServer(true, serverName, REMOTE_SCRIPT_GET_DISK_FOR_DIR + " " + brickDir, Status.class);
-	}
 }

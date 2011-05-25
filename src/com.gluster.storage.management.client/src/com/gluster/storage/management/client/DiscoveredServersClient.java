@@ -18,11 +18,8 @@
  *******************************************************************************/
 package com.gluster.storage.management.client;
 
-import java.util.List;
-
 import javax.ws.rs.core.MultivaluedMap;
 
-import com.gluster.storage.management.core.model.Response;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.ServerListResponse;
@@ -32,7 +29,7 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 public class DiscoveredServersClient extends AbstractClient {
 	private static final String RESOURCE_NAME = "discoveredservers";
 
-	public DiscoveredServersClient(String serverName, String securityToken) {
+	public DiscoveredServersClient(String securityToken) {
 		super(securityToken);
 	}
 
@@ -45,19 +42,16 @@ public class DiscoveredServersClient extends AbstractClient {
 	private Object getDiscoveredServers(Boolean getDetails, Class responseClass) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.putSingle("details", getDetails.toString());
-
-		//System.out.println((String) fetchResource(queryParams, String.class));
-		return ((Response) fetchResource(queryParams, responseClass)).getData();
+		return fetchResource(queryParams, responseClass);
 	}
 
-	@SuppressWarnings("unchecked")
-	public List<String> getDiscoveredServerNames() {
-		return (List<String>) getDiscoveredServers(Boolean.FALSE, StringListResponse.class);
+	public StringListResponse getDiscoveredServerNames() {
+		
+		return  (StringListResponse) getDiscoveredServers(Boolean.FALSE, StringListResponse.class);
 	}
 
-	@SuppressWarnings("unchecked")
-	public List<Server> getDiscoveredServerDetails() {
-		return (List<Server>) getDiscoveredServers(Boolean.TRUE, ServerListResponse.class);
+	public ServerListResponse getDiscoveredServerDetails() {
+		return (ServerListResponse) getDiscoveredServers(Boolean.TRUE, ServerListResponse.class);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -69,12 +63,11 @@ public class DiscoveredServersClient extends AbstractClient {
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();
 		if (usersClient.authenticate("gluster", "gluster").isSuccess()) {
-			DiscoveredServersClient serverResource = new DiscoveredServersClient("localhost",
-					usersClient.getSecurityToken());
-			List<String> discoveredServerNames = serverResource.getDiscoveredServerNames();
-			System.out.println(discoveredServerNames);
-			List<Server> discoveredServers = serverResource.getDiscoveredServerDetails();
-			System.out.println(discoveredServers);
+			DiscoveredServersClient serverResource = new DiscoveredServersClient(usersClient.getSecurityToken());
+			StringListResponse discoveredServerNames = serverResource.getDiscoveredServerNames();
+			System.out.println(discoveredServerNames.getData());
+			ServerListResponse discoveredServers = serverResource.getDiscoveredServerDetails();
+			System.out.println(discoveredServers.getData());
 
 			// Server serverDetails = ServerResource.getServer("localhost");
 			// System.out.println(serverDetails.getName());

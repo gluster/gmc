@@ -20,17 +20,22 @@
  */
 package com.gluster.storage.management.server.resources;
 
-import com.gluster.storage.management.core.model.Disk;
-import com.gluster.storage.management.core.model.NetworkInterface;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.server.utils.GlusterUtil;
+import com.gluster.storage.management.server.utils.ServerUtil;
+import com.sun.jersey.api.core.InjectParam;
 
 /**
  * Abstract resource class for servers. Abstracts basic server related functionality like "get server details".
  */
 public class AbstractServersResource {
-	// TODO: Used for generating dummy ip address. To be removed after implementing actual logic for fetching server
-	// details
-	private static int ipCount = 1;
+	@InjectParam
+	private ServerUtil serverUtil;
+	
+	@InjectParam
+	private GlusterUtil glusterUtil;
 
 	/**
 	 * Fetch details of the given server. The server name must be populated in the object before calling this method.
@@ -39,41 +44,19 @@ public class AbstractServersResource {
 	 *            Server whose details are to be fetched
 	 */
 	protected void fetchServerDetails(Server server) {
-		String serverName = server.getName();
-
-		// TODO: Fetch the server details and populate in the object.
-		// For now, populating dummy data.
-		populateDummyData(server);
-	}
-
-	/**
-	 * @param server
-	 */
-	private void populateDummyData(Server server) {
-		server.setNumOfCPUs((int) (Math.ceil(Math.random() * 8)));
-		server.setCpuUsage(Math.random() * 100);
-		server.setTotalMemory(Math.ceil(Math.random() * 8));
-		server.setMemoryInUse(Math.random() * server.getTotalMemory());
-		addDummyDisks(server);
-		addDummyNetworkInterfaces(server, (int) Math.ceil(Math.random() * 4));
-	}
-
-	private void addDummyNetworkInterfaces(Server server, int interfaceCount) {
-		for (int i = 0; i < interfaceCount; i++) {
-			server.addNetworkInterface(new NetworkInterface("eth" + i, server, "192.168.1." + ipCount++,
-					"255.255.255.0", "192.168.1.1"));
+		// fetch standard server details like cpu, disk, memory details
+		Object response = serverUtil.executeOnServer(true, server.getName(), "get_server_details.py", Server.class);
+		if (response instanceof Status) {
+			throw new GlusterRuntimeException(((Status)response).getMessage());
 		}
+		server.copyFrom((Server) response); // Update the details in <Server> object
 	}
 
-	/**
-	 * @param server
-	 */
-	private void addDummyDisks(Server server) {
-		double dummyDiskSpace = Math.random() * 500;
-		server.addDisk(new Disk(server, "sda", dummyDiskSpace, Math.random() * dummyDiskSpace, Disk.DISK_STATUS.READY));
-		dummyDiskSpace = Math.random() * 500;
-		server.addDisk(new Disk(server, "sdb", dummyDiskSpace, Math.random() * dummyDiskSpace, Disk.DISK_STATUS.READY));
-		dummyDiskSpace = Math.random() * 500;
-		server.addDisk(new Disk(server, "sdc", dummyDiskSpace, Math.random() * dummyDiskSpace, Disk.DISK_STATUS.READY));
+	protected void setGlusterUtil(GlusterUtil glusterUtil) {
+		this.glusterUtil = glusterUtil;
+	}
+
+	protected GlusterUtil getGlusterUtil() {
+		return glusterUtil;
 	}
 }

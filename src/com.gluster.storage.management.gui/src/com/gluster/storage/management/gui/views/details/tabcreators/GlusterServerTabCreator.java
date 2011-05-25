@@ -58,18 +58,18 @@ import com.richclientgui.toolbox.gauges.CoolGauge;
 
 public class GlusterServerTabCreator implements TabCreator {
 	public enum NETWORK_INTERFACE_TABLE_COLUMN_INDICES {
-		INTERFACE, IP_ADDRESS, NETMASK, GATEWAY
+		INTERFACE, MODEL, SPEED, IP_ADDRESS, NETMASK, GATEWAY
 	};
 
-	private static final String[] NETWORK_INTERFACE_TABLE_COLUMN_NAMES = { "Interface", "IP Address", "Netmask",
-			"Gateway" };
+	private static final String[] NETWORK_INTERFACE_TABLE_COLUMN_NAMES = { "Interface", "Model", "Speed", "IP Address",
+			"Netmask", "Gateway" };
 	private static final GUIHelper guiHelper = GUIHelper.getInstance();
 
 	private void createServerSummarySection(GlusterServer server, FormToolkit toolkit, final ScrolledForm form) {
 		Composite section = guiHelper.createSection(form, toolkit, "Summary", null, 2, false);
 
-//		toolkit.createLabel(section, "Preferred Network: ", SWT.NONE);
-//		toolkit.createLabel(section, server.getPreferredNetworkInterface().getName(), SWT.NONE);
+		// toolkit.createLabel(section, "Preferred Network: ", SWT.NONE);
+		// toolkit.createLabel(section, server.getPreferredNetworkInterface().getName(), SWT.NONE);
 
 		boolean online = server.getStatus() == SERVER_STATUS.ONLINE;
 
@@ -168,6 +168,8 @@ public class GlusterServerTabCreator implements TabCreator {
 		parent.setLayout(tableColumnLayout);
 
 		setColumnProperties(table, NETWORK_INTERFACE_TABLE_COLUMN_INDICES.INTERFACE, SWT.CENTER, 70);
+		setColumnProperties(table, NETWORK_INTERFACE_TABLE_COLUMN_INDICES.MODEL, SWT.CENTER, 70);
+		setColumnProperties(table, NETWORK_INTERFACE_TABLE_COLUMN_INDICES.SPEED, SWT.CENTER, 70);
 		setColumnProperties(table, NETWORK_INTERFACE_TABLE_COLUMN_INDICES.IP_ADDRESS, SWT.CENTER, 100);
 		setColumnProperties(table, NETWORK_INTERFACE_TABLE_COLUMN_INDICES.NETMASK, SWT.CENTER, 70);
 		setColumnProperties(table, NETWORK_INTERFACE_TABLE_COLUMN_INDICES.GATEWAY, SWT.CENTER, 70);
@@ -217,19 +219,20 @@ public class GlusterServerTabCreator implements TabCreator {
 	private Composite createNetworkInterfacesSection(GlusterServer server, FormToolkit toolkit, ScrolledForm form) {
 		final Composite section = guiHelper.createSection(form, toolkit, "Network Interfaces", null, 1, false);
 		createNetworkInterfacesTableViewer(createTableViewerComposite(section), server);
-//		Hyperlink changePreferredNetworkLink = toolkit.createHyperlink(section, "Change Preferred Network", SWT.NONE);
-//		changePreferredNetworkLink.addHyperlinkListener(new HyperlinkAdapter() {
-//
-//			@Override
-//			public void linkActivated(HyperlinkEvent e) {
-//				new MessageDialog(
-//						section.getShell(),
-//						"Gluster Storage Platform",
-//						guiHelper.getImage(IImageKeys.SERVER),
-//						"This will show additional controls to help user choose a new network interface. TO BE IMPLEMENTED.",
-//						MessageDialog.INFORMATION, new String[] { "OK" }, 0).open();
-//			}
-//		});
+		// Hyperlink changePreferredNetworkLink = toolkit.createHyperlink(section, "Change Preferred Network",
+		// SWT.NONE);
+		// changePreferredNetworkLink.addHyperlinkListener(new HyperlinkAdapter() {
+		//
+		// @Override
+		// public void linkActivated(HyperlinkEvent e) {
+		// new MessageDialog(
+		// section.getShell(),
+		// "Gluster Storage Platform",
+		// guiHelper.getImage(IImageKeys.SERVER),
+		// "This will show additional controls to help user choose a new network interface. TO BE IMPLEMENTED.",
+		// MessageDialog.INFORMATION, new String[] { "OK" }, 0).open();
+		// }
+		// });
 		return section;
 	}
 
@@ -241,7 +244,8 @@ public class GlusterServerTabCreator implements TabCreator {
 		serverLogsTab.layout(); // IMP: lays out the form properly
 	}
 
-	private void createServerDisksTab(GlusterServer server, TabFolder tabFolder, FormToolkit toolkit, IWorkbenchSite site) {
+	private void createServerDisksTab(GlusterServer server, TabFolder tabFolder, FormToolkit toolkit,
+			IWorkbenchSite site) {
 		Composite serverDisksTab = guiHelper.createTab(tabFolder, "Disks", IImageKeys.SERVER);
 		ServerDisksPage page = new ServerDisksPage(serverDisksTab, SWT.NONE, site, server.getDisks());
 
