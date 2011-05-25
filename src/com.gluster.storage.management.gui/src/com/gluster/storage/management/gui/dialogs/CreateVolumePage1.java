@@ -18,6 +18,7 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.dialogs;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -47,8 +48,10 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
@@ -64,6 +67,7 @@ public class CreateVolumePage1 extends WizardPage {
 	private Button btnNfs;
 	private Button btnStartVolume;
 	private Link linkCustomize;
+	private List<Disk> selectedDisks;
 
 	/**
 	 * Create the wizard.
@@ -75,7 +79,7 @@ public class CreateVolumePage1 extends WizardPage {
 		
 		// by default, we create volume with all available disks
 		allDisks = GlusterDataModelManager.getInstance().getReadyDisksOfAllServers();
-		volume.setDisks(getBricks(allDisks)); // volume.setDisks(allDisks);
+		selectedDisks = allDisks; // volume.setDisks(allDisks);
 	}
 	
 	private List<String> getBricks(List<Disk> allDisks) {
@@ -183,20 +187,21 @@ public class CreateVolumePage1 extends WizardPage {
 
 	private void createDisksCustomizeLink(Composite container) {
 		linkCustomize = new Link(container, SWT.UNDERLINE_LINK);
-		linkCustomize.setText("All Brick(s) (<a>customize</a>)");
+		linkCustomize.setText("All Brick(s) (<a>customize</a>)" );
+		linkCustomize.setEnabled(false);
 		linkCustomize.addListener (SWT.Selection, new Listener () {
 			public void handleEvent(Event event) {
 				Display.getDefault().asyncExec(new Runnable() {
 					
 					@Override
 					public void run() {
-						SelectDisksDialog dialog = new SelectDisksDialog(getShell(), allDisks, volume.getDisks());
+						SelectDisksDialog dialog = new SelectDisksDialog(getShell(), allDisks, selectedDisks, txtName.getText().trim());
 
 						dialog.create();
 				        if(dialog.open() == Window.OK) {
 				        	// user has customized disks. get them from the dialog box.
-				        	volume.setBricks(dialog.getSelectedBricks(volume.getName()));
-				        	linkCustomize.setText("" + volume.getDisks().size() + " Brick(s) (<a>customize</a>)");
+				        	selectedDisks = dialog.getSelectedDisks();
+				        	linkCustomize.setText("" + selectedDisks.size() + " Brick(s) (<a>customize</a>)");
 				        	validateForm();
 				        }
 					}
@@ -254,7 +259,8 @@ public class CreateVolumePage1 extends WizardPage {
 		txtName = new Text(container, SWT.BORDER);
 		GridData txtNameData = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
 		txtNameData.widthHint = 300;
-		txtName.setLayoutData(txtNameData);		
+		txtName.setTextLimit(32);
+		txtName.setLayoutData(txtNameData);
 		txtName.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
@@ -300,6 +306,11 @@ public class CreateVolumePage1 extends WizardPage {
 		
 		volume.setAccessControlList(txtAccessControl.getText());
 		
+		for(Disk disk : selectedDisks) {
+			Brick brick = new Brick(disk.getServerName(), BRICK_STATUS.ONLINE, disk.getName(), disk.getMountPoint() + File.separator + volume.getName());
+			volume.addBrick(brick);
+		}
+		
 		return volume;
 	}
 	
@@ -326,7 +337,7 @@ public class CreateVolumePage1 extends WizardPage {
 	}
 
 	private void validateDisks() {
-		int diskCount = volume.getDisks().size();
+		int diskCount = selectedDisks.size();
 		
 		if(diskCount  < 1) {
 			setError("At least one disk must be selected!");
@@ -356,8 +367,14 @@ public class CreateVolumePage1 extends WizardPage {
 	private void validateVolumeName() {
 		String volumeName = txtName.getText().trim();
 		String volumeNameToken = "^[a-zA-Z][a-zA-Z0-9\\-]*";
+		
+		if (volumeName.length() > 0) {
+			linkCustomize.setEnabled(true);
+		}
+		
 		if(volumeName.length() == 0) {
 			setError("Please enter Volume Name");
+			linkCustomize.setEnabled(false);
 		}
 		
 		if (!volumeName.matches(volumeNameToken)) {

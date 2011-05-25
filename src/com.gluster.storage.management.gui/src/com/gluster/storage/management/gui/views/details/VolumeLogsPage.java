@@ -322,11 +322,9 @@ public class VolumeLogsPage extends Composite {
 	}
 
 	private void createDisksCombo(Composite composite) {
-		GlusterCoreUtil glusterCoreUtil = new GlusterCoreUtil();
-
 		disksCombo = new Combo(composite, SWT.READ_ONLY);
 		disksCombo.setBounds(365, 15, 100, 20);
-		disksCombo.setItems(glusterCoreUtil.getQualifiedBrickList(volume.getBricks()).toArray(new String[0]));
+		disksCombo.setItems(volume.getBricks().toArray(new String[0]));
 		disksCombo.add(CoreConstants.ALL, 0);
 		toolkit.adapt(disksCombo);
 		toolkit.paintBordersFor(disksCombo);

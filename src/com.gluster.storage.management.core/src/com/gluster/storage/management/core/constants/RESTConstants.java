@@ -33,6 +33,7 @@ public class RESTConstants {
 	public static final String SUBRESOURCE_DISKS = "disks";
 	
 	
+	public static final String FORM_PARAM_DISKS = "disks";
 	public static final String FORM_PARAM_OPERATION = "operation";
 	public static final String FORM_PARAM_VALUE_START = "start";
 	public static final String FORM_PARAM_VALUE_STOP = "stop";
@@ -40,14 +41,16 @@ public class RESTConstants {
 	public static final String FORM_PARAM_VALUE_STATUS = "status";
 	public static final String FORM_PARAM_OPTION_KEY = "key";
 	public static final String FORM_PARAM_OPTION_VALUE = "value";
-	public static final String FORM_PARAM_VALUE_SOURCE = "source";
-	public static final String FORM_PARAM_VALUE_TARGET = "target";
+	public static final String FORM_PARAM_SOURCE = "source";
+	public static final String FORM_PARAM_TARGET = "target";
+	public static final String FORM_PARAM_BRICKS = "bricks";
 	
 	public static final String PATH_PARAM_VOLUME_NAME = "volumeName";
 	public static final String FORM_PARAM_DELETE_OPTION = "value";
 	
 	public static final String QUERY_PARAM_DISK_NAME = "diskName";
 	public static final String QUERY_PARAM_DISKS = "disks";
+	public static final String QUERY_PARAM_BRICKS = "bricks";
 	public static final String QUERY_PARAM_LINE_COUNT = "lineCount";
 	public static final String QUERY_PARAM_VOLUME_NAME = "volumeName";
 	public static final String QUERY_PARAM_DELETE_OPTION = "deleteOption";

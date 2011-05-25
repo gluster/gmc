@@ -253,11 +253,29 @@ public class GlusterDataModelManager {
 		return logMessages;
 	}
 
-	public Disk getVolumeDisk(String volumeDisk) {
+	/**
+	 * @param serverPartition Qualified name of the disk to be returned (serverName:diskName)
+	 * @return The disk object for given qualified name
+	 */
+	public Disk getDisk(String serverPartition) {
 		List<Disk> allDisks = getReadyDisksOfAllServers();
-		String brickInfo[] = volumeDisk.split(":");
+		String diskInfo[] = serverPartition.split(":");
 		for (Disk disk : allDisks) {
-			if (disk.getServerName().equals(brickInfo[0]) && disk.getName().equals(brickInfo[1])) {
+			if (disk.getServerName().equals(diskInfo[0]) && disk.getName().equals(diskInfo[1])) {
+				return disk;
+			}
+		}
+		return null;
+	}
+	
+	/*
+	 * @param diskName (sda)
+	 * @return The disk object for given disk name
+	 */
+	public Disk getDiskDetails(String diskName) {
+		List<Disk> allDisks = getReadyDisksOfAllServers();
+		for (Disk disk : allDisks) {
+			if (disk.getName().equals(diskName)) {
 				return disk;
 			}
 		}
@@ -274,7 +292,7 @@ public class GlusterDataModelManager {
 		Disk disk = null;
 		List<Disk> volumeDisks = new ArrayList<Disk>();
 		for (String volumeDisk : volume.getDisks()) {
-			disk = getVolumeDisk(volumeDisk);
+			disk = getDisk(volumeDisk);
 			if (disk != null && disk.isReady()) {
 				volumeDisks.add(disk);
 			}
@@ -417,6 +435,15 @@ public class GlusterDataModelManager {
 	public void setAccessControlList(Volume volume, String accessControlList) {
 		volume.setAccessControlList(accessControlList);
 		setVolumeOption(volume, getOptionEntry(volume, Volume.OPTION_AUTH_ALLOW));
+	}
+	
+	public Server getGlusterServer(String serverName) {
+		for(Server server : model.getCluster().getServers() ) {
+			if (server.getName().equals(serverName)) {
+				return server;
+			}
+		}
+		return null;
 	}
 
 	private Entry<String, String> getOptionEntry(Volume volume, String optionKey) {

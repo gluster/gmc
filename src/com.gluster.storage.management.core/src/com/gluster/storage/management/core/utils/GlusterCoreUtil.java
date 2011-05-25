@@ -37,19 +37,10 @@ public class GlusterCoreUtil {
 		return qualifiedDiskNames;
 	}
 	
-	// Convert from Disk list to Qualified bricks list 
-	public static final List<String> getQualifiedBrickNames(List<Disk> diskList) {
-		List<String> qualifiedBrickNames = new ArrayList<String>();
-		for (Disk disk : diskList) {
-			qualifiedBrickNames.add(disk.getQualifiedBrickName());
-		}
-		return qualifiedBrickNames;
-	}
-	
-	public List<String> getQualifiedBrickList(List<Brick> bricks) {
+	public static final List<String> getQualifiedBrickList(List<Brick> bricks) {
 		List<String> qualifiedBricks = new ArrayList<String>();
 		for (Brick brick : bricks) {
-			qualifiedBricks.add(brick.getQualifiedBrickName());
+			qualifiedBricks.add(brick.getQualifiedName());
 		}
 		return qualifiedBricks;
 	}

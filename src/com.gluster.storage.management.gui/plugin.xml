@@ -106,9 +106,9 @@
       <view
             allowMultiple="false"
             category="com.gluster.storage.management.gui.category"
-            class="com.gluster.storage.management.gui.views.VolumeDisksView"
+            class="com.gluster.storage.management.gui.views.VolumeBricksView"
             icon="icons/disks.png"
-            id="com.gluster.storage.management.gui.views.VolumeDisksView"
+            id="com.gluster.storage.management.gui.views.VolumeBricksView"
             name="Bricks"
             restorable="true">
       </view>

@@ -64,7 +64,7 @@ public class AddDiskWizard extends Wizard {
 		VolumesClient volumeClient = new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken());
 		try {
 			List<String> brickList = getBrickList(bricks);
-			Status status = volumeClient.addDisks(volume.getName(), brickList);
+			Status status = volumeClient.addBricks(volume.getName(), brickList);
 			if (!status.isSuccess()) {
 				MessageDialog.openError(getShell(), "Add brick(s) to Volume", status.getMessage());
 				return status.isSuccess();

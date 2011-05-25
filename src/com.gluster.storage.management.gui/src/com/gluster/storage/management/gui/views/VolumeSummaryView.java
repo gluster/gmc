@@ -410,7 +410,7 @@ public class VolumeSummaryView extends ViewPart {
 	}
 
 	private void createNumOfDisksField(Composite section) {
-		toolkit.createLabel(section, "Number of Disks: ", SWT.NONE);
+		toolkit.createLabel(section, "Number of Bricks: ", SWT.NONE);
 		toolkit.createLabel(section, "" + volume.getNumOfDisks(), SWT.NONE);
 		toolkit.createLabel(section, "", SWT.NONE); // dummy
 	}

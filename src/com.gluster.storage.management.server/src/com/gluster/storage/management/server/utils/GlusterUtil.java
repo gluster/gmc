@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Brick;
+import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
@@ -63,7 +64,7 @@ public class GlusterUtil {
 	private static final String VOLUME_TYPE_DISTRIBUTE = "Distribute";
 	private static final String VOLUME_TYPE_REPLICATE = "Replicate";
 	private static final ProcessUtil processUtil = new ProcessUtil();
-	
+
 	@Autowired
 	private SshUtil sshUtil;
 
@@ -183,7 +184,7 @@ public class GlusterUtil {
 	 */
 	private String getPeerStatus(String knownServer) {
 		String output;
-		//ProcessResult result = processUtil.executeCommand("gluster", "peer", "status");
+		// ProcessResult result = processUtil.executeCommand("gluster", "peer", "status");
 		ProcessResult result = getSshUtil().executeRemote(knownServer, "gluster peer status");
 		if (!result.isSuccess()) {
 			output = null;
@@ -354,30 +355,30 @@ public class GlusterUtil {
 			String[] brickParts = line.split(":");
 			String serverName = brickParts[1].trim();
 			String brickDir = brickParts[2].trim();
-			Brick brick = new Brick(serverName, brickDir.split("/")[2].trim(), brickDir);
-			volume.addBrick(brick);
-			detectAndAddDiskToVolume(volume, serverName, brickDir);
+			addBrickToVolume(volume, serverName, brickDir);
 			return true;
 		}
 		return false;
 	}
 
-	private void detectAndAddDiskToVolume(Volume volume, String serverName, String brickDir) {
-		// brick directory should be of the form /export/<diskname>/volume-name
-		try {
-			volume.addDisk(serverName + ":" + brickDir.split("/")[2].trim());
-		} catch (ArrayIndexOutOfBoundsException e) {
-			// brick directory of a different form, most probably created manually
-			// connect to the server and get disk for the brick directory
-			Status status = new ServerUtil().getDiskForDir(serverName, brickDir);
-			if (status.isSuccess()) {
-				volume.addDisk(serverName + ":" + status.getMessage());
-			} else {
-				// Couldn't fetch disk for the brick directory. Log error and add "unknown" as disk name.
-				System.out.println("Couldn't fetch disk name for brick [" + serverName + ":" + brickDir + "]");
-				volume.addDisk(serverName + ":unknown");
-			}
-		}
+	private void addBrickToVolume(Volume volume, String serverName, String brickDir) {
+		// TODO: Brick status should be same as the server status (online/offline)
+		volume.addBrick(new Brick(serverName, BRICK_STATUS.ONLINE, brickDir.split("/")[2].trim(), brickDir));
+		//
+		// try {
+		// volume.addDisk(serverName + ":" + brickDir.split("/")[2].trim());
+		// } catch (ArrayIndexOutOfBoundsException e) {
+		// // brick directory of a different form, most probably created manually
+		// // connect to the server and get disk for the brick directory
+		// Status status = new ServerUtil().getDiskForDir(serverName, brickDir);
+		// if (status.isSuccess()) {
+		// volume.addDisk(serverName + ":" + status.getMessage());
+		// } else {
+		// // Couldn't fetch disk for the brick directory. Log error and add "unknown" as disk name.
+		// System.out.println("Couldn't fetch disk name for brick [" + serverName + ":" + brickDir + "]");
+		// volume.addDisk(serverName + ":unknown");
+		// }
+		// }
 	}
 
 	private boolean readBrickGroup(String line) {
@@ -506,9 +507,9 @@ public class GlusterUtil {
 		return logFileName;
 	}
 
-	public Status migrateDisk(String volumeName, String diskFrom, String diskTo, String operation) {
-		return new Status(processUtil.executeCommand("gluster", "volume", "replace-brick", volumeName, diskFrom,
-				diskTo, operation));
+	public Status migrateDisk(String volumeName, String fromBrick, String toBrick, String operation) {
+		return new Status(processUtil.executeCommand("gluster", "volume", "replace-brick", volumeName, fromBrick,
+				toBrick, operation));
 	}
 
 	public Status removeBricks(String volumeName, List<String> bricks) {

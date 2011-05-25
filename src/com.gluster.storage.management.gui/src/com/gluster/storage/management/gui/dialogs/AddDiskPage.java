@@ -43,7 +43,7 @@ public class AddDiskPage extends WizardPage {
 	private List<Disk> availableDisks = new ArrayList<Disk>();
 	private List<Disk> selectedDisks = new ArrayList<Disk>();
 	private Volume volume = null;
-	private DisksSelectionPage page = null;
+	private BricksSelectionPage page = null;
 
 
 	public static final String PAGE_NAME = "add.disk.volume.page";
@@ -56,24 +56,24 @@ public class AddDiskPage extends WizardPage {
 		this.volume = volume;
 		setTitle("Add Brick");
 
-		String description = "Add bricks to the Volume by choosing bricks from the cluster servers.\n";
+		String description = "Add bricks to [" + volume.getName() + "] ";
 		if ( volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
-			description += "(Brick selection should be multiples of " + volume.getReplicaCount() + ")";
+			description += "(in multiples of " + volume.getReplicaCount() + ")";
 		} else if (volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_STRIPE) {
-			description += "(Brick selection should be multiples of " + volume.getStripeCount() + ")";
+			description += "(in multiples of " + volume.getStripeCount() + ")";
 		}
 		setDescription(description);
 
 		availableDisks = getAvailableDisks(volume);
 		
 		setPageComplete(false);
-		setErrorMessage("Please select bricks to be added to the volume. [" + volume.getName()  +"]");
+		setErrorMessage("Please select bricks to be added to the volume [" + volume.getName()  +"]");
 	}
 
 	
 	private boolean  isDiskUsed(Volume volume, Disk disk){
-		for (String volumeDisk : volume.getDisks()) { // expected form of volumeDisk is "server:diskName"
-			if ( disk.getQualifiedName().equals(volumeDisk)) {
+		for (Brick volumeBrick : volume.getBricks()) { // expected form of volumeBrick is "server:/export/diskName/volumeName"
+			if ( disk.getQualifiedBrickName(volume.getName()).equals(volumeBrick.getQualifiedName())) {
 				return true;
 			}
 		}
@@ -120,10 +120,10 @@ public class AddDiskPage extends WizardPage {
 	 */
 	@Override
 	public void createControl(Composite parent) {
-		getShell().setText("Add Disk");
+		getShell().setText("Add Brick");
 		List<Disk> chosenDisks = new ArrayList<Disk>(); // or volume.getDisks();
 		
-		page = new DisksSelectionPage(parent, SWT.NONE, availableDisks, chosenDisks);
+		page = new BricksSelectionPage(parent, SWT.NONE, availableDisks, chosenDisks, volume.getName());
 		page.addDiskSelectionListener(new ListContentChangedListener<Disk>() {
 			@Override
 			public void listContentChanged(IRemovableContentProvider<Disk> contentProvider) {
@@ -159,7 +159,7 @@ public class AddDiskPage extends WizardPage {
 		setPageComplete(true);
 	}
 
-	public DisksSelectionPage getDialogPage() {
+	public BricksSelectionPage getDialogPage() {
 		return this.page;
 	}
 	

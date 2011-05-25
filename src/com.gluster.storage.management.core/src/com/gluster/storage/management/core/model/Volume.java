@@ -235,8 +235,7 @@ public class Volume extends Entity {
 	
 	
 	public void setBricks(List<Brick> bricks) {
-		this.bricks.clear();
-		this.bricks.addAll(bricks);
+		this.bricks = bricks;
 	}
 	
 	public void removeBrick(Brick brick) {

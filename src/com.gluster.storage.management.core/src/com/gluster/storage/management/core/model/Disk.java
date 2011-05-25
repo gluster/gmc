@@ -18,6 +18,8 @@
  *******************************************************************************/
 package com.gluster.storage.management.core.model;
 
+import java.io.File;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.gluster.storage.management.core.utils.StringUtil;
@@ -114,7 +116,7 @@ public class Disk extends Entity {
 		return getServerName() + ":" + getName();
 	}
 	
-	public String getQualifiedBrickName() {
-		return getServerName() + ":" + getMountPoint();
+	public String getQualifiedBrickName(String volumeName) {
+		return getServerName() + ":" + getMountPoint() + File.separator + volumeName;
 	}
 }

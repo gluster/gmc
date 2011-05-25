@@ -20,20 +20,38 @@ package com.gluster.storage.management.core.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "Bricks")
-public class Brick {
+import com.gluster.storage.management.core.utils.StringUtil;
+
+@XmlRootElement
+public class Brick extends Entity {
+	public enum BRICK_STATUS {ONLINE, OFFLINE};
+	private String[] BRICK_STATUS_STR = {"Online", "Offline"};
 
 	private String serverName;
 	private String diskName;
 	private String brickDirectory;
+	private BRICK_STATUS status;
 
 	public Brick() {
 	}
+	
+	public BRICK_STATUS getStatus() {
+		return status;
+	}
 
-	public Brick(String serverName, String diskName, String brickDirectory) {
-		this.serverName = serverName;
-		this.diskName = diskName;
-		this.brickDirectory = brickDirectory;
+	public String getStatusStr() {
+		return BRICK_STATUS_STR[getStatus().ordinal()];
+	}
+	
+	public void setStatus(BRICK_STATUS status) {
+		this.status = status;
+	}
+
+	public Brick(String serverName, BRICK_STATUS brickStatus, String diskName, String brickDirectory) {
+		setServerName(serverName);
+		setStatus(brickStatus);
+		setDiskName(diskName);
+		setBrickDirectory(brickDirectory);
 	}
 
 	public void setServerName(String serverName) {
@@ -60,7 +78,13 @@ public class Brick {
 		return diskName;
 	}
 
-	public String getQualifiedBrickName() {
+	public String getQualifiedName() {
 		return serverName + ":" + brickDirectory;
 	}
+
+	public boolean filter(String filterString, boolean caseSensitive) {
+		return StringUtil.filterString(getServerName() + getBrickDirectory() + getDiskName(), filterString,
+				caseSensitive);
+	}
+
 }

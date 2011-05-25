@@ -23,20 +23,20 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.wizard.WizardDialog;
 
-import com.gluster.storage.management.core.model.Disk;
+import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.dialogs.MigrateDiskWizard;
 
 public class MigrateDiskAction extends AbstractActionDelegate {
 	private Volume volume;
-	private Disk disk;
+	private Brick brick;
 
 	@Override
 	protected void performAction(IAction action) {
 //		MigrateDiskDialog dialog = new MigrateDiskDialog(window.getShell(), volume, disk);
 // 		dialog.create();
 // 		dialog.open();
-		MigrateDiskWizard wizard = new MigrateDiskWizard(volume, disk);
+		MigrateDiskWizard wizard = new MigrateDiskWizard(volume, brick);
 
 		WizardDialog dialog = new WizardDialog(window.getShell(), wizard);
 		dialog.create();
@@ -53,8 +53,8 @@ public class MigrateDiskAction extends AbstractActionDelegate {
 		}
 
 		action.setEnabled(false);
-		if (selectedEntity instanceof Disk) {
-			disk = (Disk) selectedEntity;
+		if (selectedEntity instanceof Brick) {
+			brick = (Brick) selectedEntity;
 			action.setEnabled(((StructuredSelection) selection).size() == 1);
 		}
 	}

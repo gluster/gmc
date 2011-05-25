@@ -20,7 +20,6 @@
  */
 package com.gluster.storage.management.client;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -29,11 +28,9 @@ import javax.ws.rs.core.MultivaluedMap;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.constants.RESTConstants;
-import com.gluster.storage.management.core.model.Disk;
-import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
+import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.response.LogMessageListResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
@@ -92,7 +89,7 @@ public class VolumesClient extends AbstractClient {
 	}
 
 	public Status deleteVolume(Volume volume, boolean deleteOption) {
-		MultivaluedMap<String, String> queryParams = prepareGetDeleteVolumeQueryParams(volume.getName(), deleteOption);
+		MultivaluedMap<String, String> queryParams = prepareDeleteVolumeQueryParams(volume.getName(), deleteOption);
 		return (Status) deleteSubResource(volume.getName(), Status.class, queryParams);
 	}
 
@@ -101,10 +98,10 @@ public class VolumesClient extends AbstractClient {
 				VolumeOptionInfoListResponse.class));
 	}
 
-	public Status addDisks(String volumeName, List<String> brickList) {
+	public Status addBricks(String volumeName, List<String> brickList) {
 		String bricks = StringUtil.ListToString(brickList, ",");
 		Form form = new Form();
-		form.add(RESTConstants.QUERY_PARAM_DISKS, bricks);
+		form.add(RESTConstants.FORM_PARAM_BRICKS, bricks);
 		return (Status) postRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
 	}
 
@@ -141,22 +138,22 @@ public class VolumesClient extends AbstractClient {
 				+ RESTConstants.SUBRESOURCE_DOWNLOAD, filePath);
 	}
 
-	public Status removeBricks(String volumeName, List<Disk> diskList, boolean deleteOption) {
-		String disks = StringUtil.ListToString(GlusterCoreUtil.getQualifiedBrickNames(diskList), ",");
-		MultivaluedMap<String, String> queryParams = prepareGetRemoveBrickQueryParams(volumeName, disks, deleteOption);
+	public Status removeBricks(String volumeName, List<Brick> BrickList, boolean deleteOption) {
+		String bricks = StringUtil.ListToString(GlusterCoreUtil.getQualifiedBrickList(BrickList), ",");
+		MultivaluedMap<String, String> queryParams = prepareRemoveBrickQueryParams(volumeName, bricks, deleteOption);
 		return (Status) deleteSubResource(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, queryParams);
 	}
 
-	private MultivaluedMap<String, String> prepareGetRemoveBrickQueryParams(String volumeName, String disks,
+	private MultivaluedMap<String, String> prepareRemoveBrickQueryParams(String volumeName, String bricks,
 			boolean deleteOption) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.add(RESTConstants.QUERY_PARAM_VOLUME_NAME, volumeName);
-		queryParams.add(RESTConstants.QUERY_PARAM_DISKS, disks);
+		queryParams.add(RESTConstants.QUERY_PARAM_BRICKS, bricks);
 		queryParams.add(RESTConstants.QUERY_PARAM_DELETE_OPTION, "" + deleteOption);
 		return queryParams;
 	}
 
-	private MultivaluedMap<String, String> prepareGetDeleteVolumeQueryParams(String volumeName, boolean deleteOption) {
+	private MultivaluedMap<String, String> prepareDeleteVolumeQueryParams(String volumeName, boolean deleteOption) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.add(RESTConstants.QUERY_PARAM_VOLUME_NAME, volumeName);
 		queryParams.add(RESTConstants.QUERY_PARAM_DELETE_OPTION, "" + deleteOption);
@@ -187,37 +184,37 @@ public class VolumesClient extends AbstractClient {
 		return queryParams;
 	}
 
-	public Status startMigration(String volumeName, String diskFrom, String diskTo) {
+	public Status startMigration(String volumeName, String brickFrom, String brickTo) {
 		Form form = new Form();
-		form.add(RESTConstants.FORM_PARAM_VALUE_SOURCE, diskFrom);
-		form.add(RESTConstants.FORM_PARAM_VALUE_TARGET, diskTo);
+		form.add(RESTConstants.FORM_PARAM_SOURCE, brickFrom);
+		form.add(RESTConstants.FORM_PARAM_TARGET, brickTo);
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_START);
 
 		return (Status) putRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
 	}
 
-	public Status stopMigration(String volumeName, String diskFrom, String diskTo) {
+	public Status stopMigration(String volumeName, String brickFrom, String brickkTo) {
 		Form form = new Form();
-		form.add(RESTConstants.FORM_PARAM_VALUE_SOURCE, diskFrom);
-		form.add(RESTConstants.FORM_PARAM_VALUE_TARGET, diskTo);
+		form.add(RESTConstants.FORM_PARAM_SOURCE, brickFrom);
+		form.add(RESTConstants.FORM_PARAM_TARGET, brickkTo);
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_STOP);
 
 		return (Status) putRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
 	}
 
-	public Status pauseMigration(String volumeName, String diskFrom, String diskTo) {
+	public Status pauseMigration(String volumeName, String brickFrom, String brickTo) {
 		Form form = new Form();
-		form.add(RESTConstants.FORM_PARAM_VALUE_SOURCE, diskFrom);
-		form.add(RESTConstants.FORM_PARAM_VALUE_TARGET, diskTo);
+		form.add(RESTConstants.FORM_PARAM_SOURCE, brickFrom);
+		form.add(RESTConstants.FORM_PARAM_TARGET, brickTo);
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_PAUSE);
 
 		return (Status) putRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
 	}
 
-	public Status statusMigration(String volumeName, String diskFrom, String diskTo) {
+	public Status statusMigration(String volumeName, String brickFrom, String brickTo) {
 		Form form = new Form();
-		form.add(RESTConstants.FORM_PARAM_VALUE_SOURCE, diskFrom);
-		form.add(RESTConstants.FORM_PARAM_VALUE_TARGET, diskTo);
+		form.add(RESTConstants.FORM_PARAM_SOURCE, brickFrom);
+		form.add(RESTConstants.FORM_PARAM_TARGET, brickTo);
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_STATUS);
 
 		return (Status) putRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);

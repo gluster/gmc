@@ -36,7 +36,9 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+
 import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.utils.NumberUtil;
@@ -47,31 +49,30 @@ public class MigrateDiskPage1 extends WizardPage {
 	private static final String PAGE_NAME = "migrate.disk.page.1";
 
 	private enum DISK_TABLE_COLUMN_INDICES {
-		SERVER, DISK, SPACE, SPACE_IN_USE
+		SERVER, BRICK_DIRECTORY, SPACE, SPACE_IN_USE
 	}
 
-	private static final String[] DISK_TABLE_COLUMN_NAMES = { "Server", "Disk", "Space (GB)", "Used Space (GB)" };
+	private static final String[] DISK_TABLE_COLUMN_NAMES = { "Server", "Brick Directory", "Space (GB)", "Used Space (GB)" };
 
 	private Volume volume;
-	private Disk fromDisk;
+	private Brick fromBrick;
 	private static final GUIHelper guiHelper = GUIHelper.getInstance();
 
 	private TableViewer tableViewerTo;
 
 	private TableViewer tableViewerFrom;
 
-	private ITableLabelProvider getDiskLabelProvider() {
+	private ITableLabelProvider getDiskLabelProvider(final String volumeName) {
 		return new TableLabelProviderAdapter() {
-
+			
 			@Override
 			public String getColumnText(Object element, int columnIndex) {
 				if (!(element instanceof Disk)) {
 					return null;
 				}
-
 				Disk disk = (Disk) element;
 				return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? disk.getServerName()
-						: columnIndex == DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? disk.getName()
+						: columnIndex == DISK_TABLE_COLUMN_INDICES.BRICK_DIRECTORY.ordinal() ? disk.getMountPoint() + "/" + volumeName
 								: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? NumberUtil
 										.formatNumber(disk.getSpace())
 										: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal() ? NumberUtil
@@ -88,7 +89,7 @@ public class MigrateDiskPage1 extends WizardPage {
 		parent.setLayout(tableColumnLayout);
 
 		setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.SERVER, SWT.CENTER, 100);
-		setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.DISK, SWT.CENTER, 100);
+		setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.BRICK_DIRECTORY, SWT.CENTER, 100);
 		setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.SPACE, SWT.CENTER, 90);
 		setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE, SWT.CENTER, 90);
 	}
@@ -112,10 +113,10 @@ public class MigrateDiskPage1 extends WizardPage {
 	/**
 	 * Create the wizard.
 	 */
-	public MigrateDiskPage1(Volume volume, Disk disk) {
+	public MigrateDiskPage1(Volume volume, Brick brick) {
 		super(PAGE_NAME);
 		this.volume = volume;
-		this.fromDisk = disk;
+		this.fromBrick = brick;
 		setTitle("Migrate Brick [" + volume.getName() + "]");
 		// setDescription("Migrate data from one disk to another for the chosen Volume. " +
 		// "This will copy all data present in the \"from disk\" of the volume " +
@@ -195,25 +196,25 @@ public class MigrateDiskPage1 extends WizardPage {
 		Text txtFilterFrom = guiHelper.createFilterText(container);
 		Text txtFilterTo = guiHelper.createFilterText(container);
 		
-		ITableLabelProvider diskLabelProvider = getDiskLabelProvider();
+		ITableLabelProvider diskLabelProvider = getDiskLabelProvider(volume.getName());
 
 		GlusterDataModelManager glusterDataModelManager = GlusterDataModelManager.getInstance();
-		List<Disk> fromDisks = glusterDataModelManager.getReadyDisksOfVolume(volume);
+		List<Disk> fromBricks = glusterDataModelManager.getReadyDisksOfVolume(volume);
 		List<Disk> toDisks = glusterDataModelManager.getReadyDisksOfAllServersExcluding( glusterDataModelManager.getReadyDisksOfVolume(volume));
 		
-		tableViewerFrom = createTableViewer(container, diskLabelProvider, fromDisks, txtFilterFrom);
+		tableViewerFrom = createTableViewer(container, diskLabelProvider, fromBricks, txtFilterFrom);
 		
-		if(fromDisk != null) {
-			setFromDisk(tableViewerFrom, fromDisk);
+		if(fromBrick != null) {
+			setFromDisk(tableViewerFrom, fromBrick);
 		}
 		tableViewerTo = createTableViewer(container, diskLabelProvider, toDisks, txtFilterTo);
 	}
 
-	private void setFromDisk(TableViewer tableViewer, Disk diskToSelect) {
+	private void setFromDisk(TableViewer tableViewer, Brick brickToSelect) {
 		Table table = tableViewer.getTable();
 		for (int i = 0; i < table.getItemCount(); i++) {
 			TableItem item = table.getItem(i);
-			if (item.getData() == diskToSelect) {
+			if (item.getData() == brickToSelect) {
 				table.select(i);
 				return;
 			}
