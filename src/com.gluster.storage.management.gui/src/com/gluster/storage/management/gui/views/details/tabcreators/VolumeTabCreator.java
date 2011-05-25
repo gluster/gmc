@@ -42,6 +42,7 @@ import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.GUIHelper;
+import com.gluster.storage.management.gui.views.details.BricksPage;
 import com.gluster.storage.management.gui.views.details.DisksPage;
 import com.gluster.storage.management.gui.views.details.TabCreator;
 import com.gluster.storage.management.gui.views.details.VolumeLogsPage;
@@ -248,8 +249,7 @@ public class VolumeTabCreator implements TabCreator {
 
 	private void createVolumeDisksTab(Volume volume, TabFolder tabFolder, FormToolkit toolkit, IWorkbenchSite site) {
 		Composite volumeDisksTab = guiHelper.createTab(tabFolder, "Disks", IImageKeys.VOLUME);
-		DisksPage page = new DisksPage(volumeDisksTab, SWT.NONE, site, GlusterDataModelManager.getInstance().getReadyDisksOfVolume(volume));
-
+		BricksPage page = new BricksPage(volumeDisksTab, SWT.NONE, site, GlusterDataModelManager.getInstance().getOnlineBricks(volume));
 		volumeDisksTab.layout(); // IMP: lays out the form properly
 	}
 

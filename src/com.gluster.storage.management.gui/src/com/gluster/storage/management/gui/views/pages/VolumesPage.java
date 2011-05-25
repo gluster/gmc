@@ -56,7 +56,7 @@ public class VolumesPage extends Composite {
 	};
 	
 	private static final String[] VOLUME_TABLE_COLUMN_NAMES = new String[] { "Name",
-			"Volume Type", "Number of\nDisks", "Transport Type", "Status" };
+			"Volume Type", "Number of\nBricks", "Transport Type", "Status" };
 
 	public VolumesPage(final Composite parent, IWorkbenchSite site, EntityGroup<Volume> volumes) {
 		super(parent, SWT.NONE);

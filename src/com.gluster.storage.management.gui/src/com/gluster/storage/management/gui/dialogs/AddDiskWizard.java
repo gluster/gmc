@@ -20,7 +20,7 @@
  */
 package com.gluster.storage.management.gui.dialogs;
 
-
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -28,11 +28,12 @@ import org.eclipse.jface.wizard.Wizard;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
-
+import com.gluster.storage.management.core.utils.StringUtil;
 
 /**
  *
@@ -41,9 +42,8 @@ public class AddDiskWizard extends Wizard {
 	private AddDiskPage page;
 	private Volume volume;
 
-
 	public AddDiskWizard(Volume volume) {
-		setWindowTitle("Gluster Management Console - Add disk");
+		setWindowTitle("Gluster Management Console - Add Brick");
 		setHelpAvailable(false); // TODO: Introduce wizard help
 		this.volume = volume;
 	}
@@ -53,7 +53,6 @@ public class AddDiskWizard extends Wizard {
 		addPage(page);
 	}
 
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -61,23 +60,34 @@ public class AddDiskWizard extends Wizard {
 	 */
 	@Override
 	public boolean performFinish() {
-		List<Disk> disks = page.getChosenDisks();
+		List<Brick> bricks = page.getChosenBricks(volume.getName());
 		VolumesClient volumeClient = new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken());
 		try {
-			Status status = volumeClient.addDisks(volume.getName(), disks);
+			List<String> brickList = getBrickList(bricks);
+			Status status = volumeClient.addBricks(volume.getName(), brickList);
 			if (!status.isSuccess()) {
-				MessageDialog.openError(getShell(), "Add disk(s) to Volume", status.getMessage());
+				MessageDialog.openError(getShell(), "Add brick(s) to Volume", status.getMessage());
 				return status.isSuccess();
 			} else {
+				List<Disk> disks = page.getChosenDisks();
 				volume.addDisks(GlusterCoreUtil.getQualifiedDiskNames(disks));
-				MessageDialog.openInformation(getShell(), "Add disk(s) to Volume", "Disk(s) are successfully added to "
-						+ volume.getName());
+				volume.addBricks(bricks);
+				MessageDialog.openInformation(getShell(), "Add brick(s) to Volume", "Volume [" + volume.getName()
+						+ "] is expanded with bricks [" + StringUtil.ListToString(brickList, ", ") + "]");
 				return status.isSuccess();
 			}
 		} catch (Exception e) {
-			MessageDialog.openError(getShell(), "Add disk(s) to Volume", e.getMessage());
+			MessageDialog.openError(getShell(), "Add brick(s) to Volume", e.getMessage());
 			return false;
 		}
+	}
+
+	private List<String> getBrickList(List<Brick> bricks) {
+		List<String> brickList = new ArrayList<String>();
+		for(Brick brick : bricks) {
+			brickList.add(brick.getServerName() + ":" + brick.getBrickDirectory());
+		}
+		return brickList;
 	}
 
 	/*

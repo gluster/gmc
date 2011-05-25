@@ -72,7 +72,7 @@ public class GlusterDummyModel {
 	private void addDiscoveredServer(List<Server> servers, Entity parent, String name, int numOfCPUs, double cpuUsage,
 			double totalMemory, double memoryInUse, double totalDiskSpace, double diskSpaceInUse) {
 		Server server = new Server(name, parent, numOfCPUs, cpuUsage, totalMemory, memoryInUse);
-		server.addDisk(new Disk(server, "sda", totalDiskSpace, diskSpaceInUse, DISK_STATUS.READY));
+		server.addDisk(new Disk(server, "sda", "/export/md0", totalDiskSpace, diskSpaceInUse, DISK_STATUS.READY));
 		addNetworkInterface(server, "eth0");
 
 		servers.add(server);
@@ -139,20 +139,18 @@ public class GlusterDummyModel {
 	}
 
 	private void initializeDisks() {
-		s1da = new Disk(server1, "sda", 100d, 80d, DISK_STATUS.READY);
-		s1db = new Disk(server1, "sdb", 100d, 67.83, DISK_STATUS.READY);
+		s1da = new Disk(server1, "sda", "/export/md0", 100d, 80d, DISK_STATUS.READY);
+		s1db = new Disk(server1, "sdb", "/export/md1", 100d, 67.83, DISK_STATUS.READY);
 
-		s2da = new Disk(server2, "sda", 200d, 157.12, DISK_STATUS.READY);
-		s2db = new Disk(server2, "sdb", 200d, 182.27, DISK_STATUS.READY);
-		s2dc = new Disk(server2, "sdc", 200d, -1d, DISK_STATUS.UNINITIALIZED);
-		s2dd = new Disk(server2, "sdd", 200d, 124.89, DISK_STATUS.READY);
+		s2da = new Disk(server2, "sda", "/export/md0", 200d, 157.12, DISK_STATUS.READY);
+		s2db = new Disk(server2, "sdb", "/export/md1", 200d, 182.27, DISK_STATUS.READY);
+		s2dc = new Disk(server2, "sdc", "/export/md0", 200d, -1d, DISK_STATUS.UNINITIALIZED);
+		s2dd = new Disk(server2, "sdd", "/export/md1", 200d, 124.89, DISK_STATUS.READY);
 
-		s3da = new Disk(server3, "NA", -1d, -1d, DISK_STATUS.IO_ERROR); // disk name unavailable since server is offline
+		s4da = new Disk(server4, "sda", "/export/md0", 100d, 85.39, DISK_STATUS.READY);
 
-		s4da = new Disk(server4, "sda", 100d, 85.39, DISK_STATUS.READY);
-
-		s5da = new Disk(server5, "sda", 100d, 92.83, DISK_STATUS.READY);
-		s5db = new Disk(server5, "sdb", 200d, 185.69, DISK_STATUS.READY);
+		s5da = new Disk(server5, "sda", "/export/md1", 100d, 92.83, DISK_STATUS.READY);
+		s5db = new Disk(server5, "sdb", "/export/md1", 200d, 185.69, DISK_STATUS.READY);
 	}
 
 	private void addDisksToServers() {

@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
+import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.Disk;
@@ -76,7 +77,6 @@ public class GlusterDataModelManager {
 	public static GlusterDataModelManager getInstance() {
 		return instance;
 	}
-
 	public void initializeModel(String securityToken, String knownServer) {
 		model = new GlusterDataModel("Gluster Data Model");
 		setSecurityToken(securityToken);
@@ -164,21 +164,22 @@ public class GlusterDataModelManager {
 
 
 	private void initializeDisks() {
-		s1da = new Disk(server1, "sda", 100d, 80d, DISK_STATUS.READY);
-		s1db = new Disk(server1, "sdb", 100d, 67.83, DISK_STATUS.READY);
+		s1da = new Disk(server1, "sda", "/export/md0", 100d, 80d, DISK_STATUS.READY);
+		s1db = new Disk(server1, "sdb", "/export/md1", 100d, 67.83, DISK_STATUS.READY);
 
-		s2da = new Disk(server2, "sda", 200d, 157.12, DISK_STATUS.READY);
-		s2db = new Disk(server2, "sdb", 200d, 182.27, DISK_STATUS.READY);
-		s2dc = new Disk(server2, "sdc", 200d, -1d, DISK_STATUS.UNINITIALIZED);
-		s2dd = new Disk(server2, "sdd", 200d, 124.89, DISK_STATUS.READY);
+		s2da = new Disk(server2, "sda", "/export/md0", 200d, 157.12, DISK_STATUS.READY);
+		s2db = new Disk(server2, "sdb", "/export/md1", 200d, 182.27, DISK_STATUS.READY);
+		s2dc = new Disk(server2, "sdc", "/export/md0", 200d, -1d, DISK_STATUS.UNINITIALIZED);
+		s2dd = new Disk(server2, "sdd", "/export/md1", 200d, 124.89, DISK_STATUS.READY);
 
 		// disk name unavailable since server is offline
-		s3da = new Disk(server3, "NA", -1d, -1d, DISK_STATUS.IO_ERROR);
 
-		s4da = new Disk(server4, "sda", 100d, 85.39, DISK_STATUS.READY);
+		s3da = new Disk(server3, "NA", "/export/md0", -1d, -1d, DISK_STATUS.IO_ERROR);
 
-		s5da = new Disk(server5, "sda", 100d, 92.83, DISK_STATUS.READY);
-		s5db = new Disk(server5, "sdb", 200d, 185.69, DISK_STATUS.READY);
+		s4da = new Disk(server4, "sda", "/export/md0", 100d, 85.39, DISK_STATUS.READY);
+
+		s5da = new Disk(server5, "sda", "/export/md1", 100d, 92.83, DISK_STATUS.READY);
+		s5db = new Disk(server5, "sdb", "/export/md1", 200d, 185.69, DISK_STATUS.READY);
 	}
 
 	private void addDisksToServers() {
@@ -252,11 +253,29 @@ public class GlusterDataModelManager {
 		return logMessages;
 	}
 
-	public Disk getVolumeDisk(String volumeDisk) {
+	/**
+	 * @param serverPartition Qualified name of the disk to be returned (serverName:diskName)
+	 * @return The disk object for given qualified name
+	 */
+	public Disk getDisk(String serverPartition) {
 		List<Disk> allDisks = getReadyDisksOfAllServers();
-		String brickInfo[] = volumeDisk.split(":");
+		String diskInfo[] = serverPartition.split(":");
 		for (Disk disk : allDisks) {
-			if (disk.getServerName().equals(brickInfo[0]) && disk.getName().equals(brickInfo[1])) {
+			if (disk.getServerName().equals(diskInfo[0]) && disk.getName().equals(diskInfo[1])) {
+				return disk;
+			}
+		}
+		return null;
+	}
+	
+	/*
+	 * @param diskName (sda)
+	 * @return The disk object for given disk name
+	 */
+	public Disk getDiskDetails(String diskName) {
+		List<Disk> allDisks = getReadyDisksOfAllServers();
+		for (Disk disk : allDisks) {
+			if (disk.getName().equals(diskName)) {
 				return disk;
 			}
 		}
@@ -273,14 +292,34 @@ public class GlusterDataModelManager {
 		Disk disk = null;
 		List<Disk> volumeDisks = new ArrayList<Disk>();
 		for (String volumeDisk : volume.getDisks()) {
-			disk = getVolumeDisk(volumeDisk);
+			disk = getDisk(volumeDisk);
 			if (disk != null && disk.isReady()) {
 				volumeDisks.add(disk);
 			}
 		}
 		return volumeDisks;
 	}
-
+	
+	
+	public List<Brick> getOnlineBricks(Volume volume) {
+		List<Brick> onlineBricks = new ArrayList<Brick>();
+		for(Brick brick : volume.getBricks()) {
+			if (isOnlineDisk(brick.getDiskName())) {
+				onlineBricks.add(brick);
+			}
+		}
+		return onlineBricks;
+	}
+	
+	public boolean isOnlineDisk(String diskName) {
+		for( Disk disk : getReadyDisksOfAllServers() ) {
+			if (disk.getName().equals(diskName) && disk.isReady()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public List<Disk> getReadyDisksOfAllVolumes() {
 		List<Disk> disks = new ArrayList<Disk>();
 		for (Volume volume : model.getCluster().getVolumes()) {
@@ -396,6 +435,15 @@ public class GlusterDataModelManager {
 	public void setAccessControlList(Volume volume, String accessControlList) {
 		volume.setAccessControlList(accessControlList);
 		setVolumeOption(volume, getOptionEntry(volume, Volume.OPTION_AUTH_ALLOW));
+	}
+	
+	public Server getGlusterServer(String serverName) {
+		for(Server server : model.getCluster().getServers() ) {
+			if (server.getName().equals(serverName)) {
+				return server;
+			}
+		}
+		return null;
 	}
 
 	private Entry<String, String> getOptionEntry(Volume volume, String optionKey) {
