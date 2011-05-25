@@ -20,24 +20,29 @@ package com.gluster.storage.management.core.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name="networkInterface")
+@XmlRootElement(name = "networkInterface")
 public class NetworkInterface extends Entity {
+	private String hwAddr;
+	private String model;
+	private String speed;
 	private String ipAddress;
 	private String netMask;
 	private String defaultGateway;
-//	private boolean isPreferred;
-	
+
 	public NetworkInterface() {
-		
+
 	}
 	
-//	public boolean isPreferred() {
-//		return isPreferred;
-//	}
-//
-//	public void setPreferred(boolean isPreferred) {
-//		this.isPreferred = isPreferred;
-//	}
+	public NetworkInterface(String name, Entity parent, String hwAddr, String model, String speed, String ipAddress,
+			String netMask, String defaultGateway) {
+		super(name, parent);
+		setHwAddr(hwAddr);
+		setModel(model);
+		setSpeed(speed);
+		setIpAddress(ipAddress);
+		setNetMask(netMask);
+		setDefaultGateway(defaultGateway);
+	}
 
 	public String getIpAddress() {
 		return ipAddress;
@@ -63,11 +68,28 @@ public class NetworkInterface extends Entity {
 		this.defaultGateway = defaultGateway;
 	}
 
-	public NetworkInterface(String name, Entity parent, String ipAddress, String netMask, String defaultGateway) {
-		super(name, parent);
-		setIpAddress(ipAddress);
-		setNetMask(netMask);
-		setDefaultGateway(defaultGateway);
+	public String getHwAddr() {
+		return hwAddr;
 	}
-	
+
+	public void setHwAddr(String hwAddr) {
+		this.hwAddr = hwAddr;
+	}
+
+	public String getModel() {
+		return model;
+	}
+
+	public void setModel(String model) {
+		this.model = model;
+	}
+
+	public String getSpeed() {
+		return speed;
+	}
+
+	public void setSpeed(String speed) {
+		this.speed = speed;
+	}
+
 }

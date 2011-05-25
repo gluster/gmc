@@ -20,6 +20,7 @@ package com.gluster.storage.management.gui;
 
 import org.eclipse.swt.graphics.Image;
 
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
@@ -43,7 +44,7 @@ public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 			switch (status) {
 			case READY:
 				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
-			case OFFLINE:
+			case IO_ERROR:
 				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
 			case UNINITIALIZED:
 				return guiHelper.getImage(IImageKeys.DISK_UNINITIALIZED);
@@ -58,16 +59,16 @@ public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 	}
 
 	private String getDiskSpaceInUse(Disk disk) {
-		if(disk.isReady()) {
-			return NumberUtil.formatNumber(disk.getSpaceInUse());
+		if(disk.hasErrors() || disk.isUninitialized()) {
+			return CoreConstants.NA;
 		} else {
-			return "NA";
+			return NumberUtil.formatNumber(disk.getSpaceInUse());
 		}
 	}
 	
 	private String getDiskSpace(Disk disk) {
-		if(disk.isOffline()) {
-			return "NA";
+		if(disk.hasErrors() || disk.isUninitialized()) {
+			return CoreConstants.NA;
 		} else {
 			return NumberUtil.formatNumber(disk.getSpace());
 		}
@@ -78,13 +79,13 @@ public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 		if (!(element instanceof Disk)) {
 			return null;
 		}
-		
 
 		Disk disk = (Disk) element;
-		return (columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? disk.getName()
-			: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? getDiskSpace(disk)
+		String columnText = (columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? disk.getName()
+			: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? getDiskSpace(disk) 
 			: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal() ? getDiskSpaceInUse(disk)
 			: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? disk.getStatusStr()
 			: "Invalid");
+		return ((columnText == null || columnText.trim().equals("")) ? CoreConstants.NA : columnText); 
 	}
 }

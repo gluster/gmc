@@ -57,11 +57,11 @@ public class GlusterServerSummaryView extends ViewPart {
 	private GlusterServer server;
 
 	public enum NETWORK_INTERFACE_TABLE_COLUMN_INDICES {
-		INTERFACE, IP_ADDRESS, NETMASK, GATEWAY
+		INTERFACE, MODEL, SPEED, IP_ADDRESS, NETMASK, GATEWAY
 	};
 
-	private static final String[] NETWORK_INTERFACE_TABLE_COLUMN_NAMES = { "Interface", "IP Address", "Netmask",
-			"Gateway" };
+	private static final String[] NETWORK_INTERFACE_TABLE_COLUMN_NAMES = { "Interface", "Model", "Speed", "IP Address",
+			"Netmask", "Gateway" };
 
 	@Override
 	public void createPartControl(Composite parent) {
@@ -206,10 +206,11 @@ public class GlusterServerSummaryView extends ViewPart {
 		parent.setLayout(tableColumnLayout);
 
 		setColumnProperties(table, NETWORK_INTERFACE_TABLE_COLUMN_INDICES.INTERFACE, SWT.CENTER, 70);
+		setColumnProperties(table, NETWORK_INTERFACE_TABLE_COLUMN_INDICES.MODEL, SWT.CENTER, 70);
+		setColumnProperties(table, NETWORK_INTERFACE_TABLE_COLUMN_INDICES.SPEED, SWT.CENTER, 70);
 		setColumnProperties(table, NETWORK_INTERFACE_TABLE_COLUMN_INDICES.IP_ADDRESS, SWT.CENTER, 100);
 		setColumnProperties(table, NETWORK_INTERFACE_TABLE_COLUMN_INDICES.NETMASK, SWT.CENTER, 70);
 		setColumnProperties(table, NETWORK_INTERFACE_TABLE_COLUMN_INDICES.GATEWAY, SWT.CENTER, 70);
-		// setColumnProperties(table, NETWORK_INTERFACE_TABLE_COLUMN_INDICES.PREFERRED, SWT.CENTER, 70);
 	}
 
 	private Composite createTableViewerComposite(Composite parent) {
