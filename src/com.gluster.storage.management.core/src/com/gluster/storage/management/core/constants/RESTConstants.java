@@ -40,6 +40,7 @@ public class RESTConstants {
 	public static final String RESOURCE_SERVERS = "servers";
 
 	public static final String FORM_PARAM_CLUSTER_NAME = "clusterName";
+	public static final String FORM_PARAM_SERVER_NAME = "serverName";
 	public static final String FORM_PARAM_DISKS = "disks";
 	public static final String FORM_PARAM_OPERATION = "operation";
 	public static final String FORM_PARAM_VALUE_START = "start";

@@ -73,6 +73,10 @@ public class GlusterServersSummaryView extends ViewPart {
 	
 	private void createSummarySection() {
 		Composite section = guiHelper.createSection(form, toolkit, "Availability", null, 2, false);
+		if(servers.getEntities().size() == 0) {
+			toolkit.createLabel(section, "This section will be populated after at least\none server is added to the storage cloud.");
+			return;
+		}
 
 		Double[] values = new Double[] { Double.valueOf(getServerCountByStatus(servers, SERVER_STATUS.ONLINE)),
 				Double.valueOf(getServerCountByStatus(servers, SERVER_STATUS.OFFLINE)) };

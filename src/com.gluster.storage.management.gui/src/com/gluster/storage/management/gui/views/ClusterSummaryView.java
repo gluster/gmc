@@ -128,7 +128,7 @@ public class ClusterSummaryView extends ViewPart {
 	private void createDiskSpaceSection() {
 		Composite section = guiHelper.createSection(form, toolkit, "Disk Space", null, 3, false);
 		if (cluster.getServers().size() == 0) {
-			toolkit.createLabel(section, "This section will be populated after at least one server is added to the storage cloud.");
+			toolkit.createLabel(section, "This section will be populated after at least\none server is added to the storage cloud.");
 			return;
 		}
 		
@@ -262,10 +262,10 @@ public class ClusterSummaryView extends ViewPart {
 	private void createCPUUsageSection() {
 		Composite section = guiHelper.createSection(form, toolkit, "CPU Usage (aggregated)", null, 1, false);
 		if (cluster.getServers().size() == 0) {
-			toolkit.createLabel(section, "This section will be populated after at least one server is added to the storage cloud.");
+			toolkit.createLabel(section, "This section will be populated after at least\none server is added to the storage cloud.");
 			return;
 		}
-		toolkit.createLabel(section, "Historical CPU Usage graph aggregated across all servers will be displayed here.");
+		toolkit.createLabel(section, "Historical CPU Usage graph aggregated across\nall servers will be displayed here.");
 	}
 
 	private void createNetworkUsageSection() {
