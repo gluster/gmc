@@ -49,7 +49,7 @@ import com.gluster.storage.management.core.utils.ProcessUtil;
 public class ServerUtil {
 	@Autowired
 	ServletContext servletContext;
-	
+
 	@Autowired
 	private SshUtil sshUtil;
 
@@ -87,7 +87,7 @@ public class ServerUtil {
 			Class expectedClass) {
 		try {
 			String output = executeOnServer(serverName, commandWithArgs);
-System.out.println(output);
+
 			// In case the script execution exits ungracefully, the agent would return a GenericResponse.
 			// hence pass last argument as true to try GenericResponse unmarshalling in such cases.
 			Object response = unmarshal(expectedClass, output, expectedClass != GenericResponse.class);
@@ -105,13 +105,13 @@ System.out.println(output);
 
 	private String executeOnServer(String serverName, String commandWithArgs) {
 		ProcessResult result = sshUtil.executeRemote(serverName, commandWithArgs);
-		if(!result.isSuccess()) {
+		if (!result.isSuccess()) {
 			throw new GlusterRuntimeException("Command [" + commandWithArgs + "] failed on [" + serverName
 					+ "] with error [" + result.getExitValue() + "][" + result.getOutput() + "]");
 		}
 		return result.getOutput();
 	}
-	
+
 	// This is the old executeOnServer that used socket communication.
 	// We can keep it commented for the time being.
 	// private String executeOnServerUsingSocket(String serverName, String commandWithArgs) {
@@ -148,9 +148,9 @@ System.out.println(output);
 	// throw new GlusterRuntimeException("Error during remote execution: [" + e.getMessage() + "]");
 	// }
 	// }
-	
+
 	public String getFileFromServer(String serverName, String fileName) {
-		return executeOnServer(serverName, "get_file " + fileName); 
+		return executeOnServer(serverName, "get_file " + fileName);
 	}
 
 	/**
@@ -174,14 +174,25 @@ System.out.println(output);
 			Unmarshaller um = context.createUnmarshaller();
 			return um.unmarshal(new ByteArrayInputStream(input.getBytes()));
 		} catch (JAXBException e) {
-			if(tryGenericResponseOnFailure) {
+			if (tryGenericResponseOnFailure) {
 				// unmarshalling failed. try to unmarshal a GenericResponse object
 				return unmarshal(GenericResponse.class, input, false);
 			}
-			
+
 			return new Status(Status.STATUS_CODE_FAILURE, "Error during unmarshalling string [" + input
 					+ "] for class [" + expectedClass.getName() + ": [" + e.getMessage() + "]");
 		}
+	}
+
+	/**
+	 * @param serverName
+	 *            Server on which the directory is present
+	 * @param brickDir
+	 *            Directory whose disk is to be fetched
+	 * @return Status object containing the disk name, or error message in case the remote script fails.
+	 */
+	public Status getDiskForDir(String serverName, String brickDir) {
+		return (Status) executeOnServer(true, serverName, REMOTE_SCRIPT_GET_DISK_FOR_DIR + " " + brickDir, Status.class);
 	}
 
 	public static void main(String args[]) throws Exception {
@@ -189,12 +200,4 @@ System.out.println(output);
 		System.out.println(new ServerUtil().getFileFromServer("localhost", "/tmp/python/PeerAgent.py"));
 	}
 
-	/**
-	 * @param serverName Server on which the directory is present
-	 * @param brickDir Directory whose disk is to be fetched
-	 * @return Status object containing the disk name, or error message in case the remote script fails.
-	 */
-	public Status getDiskForDir(String serverName, String brickDir) {
-		return (Status) executeOnServer(true, serverName, REMOTE_SCRIPT_GET_DISK_FOR_DIR + " " + brickDir, Status.class);
-	}
 }

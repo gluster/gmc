@@ -99,6 +99,18 @@ public class GlusterUtil {
 		return server;
 	}
 	
+
+	public GlusterServer getGlusterServer(String knownServer, String serverName) {
+		List<GlusterServer> servers = getGlusterServers(knownServer);
+		for(GlusterServer server : servers) {
+			if(server.getName().equals(serverName)) {
+				return server;
+			}
+		}
+		return null;
+	}
+	
+
 	public List<GlusterServer> getGlusterServers(String knownServer) {
 		String output = getPeerStatus(knownServer);
 		if (output == null) {
