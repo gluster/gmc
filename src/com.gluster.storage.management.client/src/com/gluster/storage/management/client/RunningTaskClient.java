@@ -1,21 +1,23 @@
 package com.gluster.storage.management.client;
 
-import java.util.List;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_RUNNING_TASKS;
 
-import com.gluster.storage.management.core.constants.RESTConstants;
-import com.gluster.storage.management.core.model.Response;
-import com.gluster.storage.management.core.model.RunningTask;
 import com.gluster.storage.management.core.response.RunningTaskListResponse;
 
 public class RunningTaskClient extends AbstractClient {
 
-	public RunningTaskClient(String securityToken) {
-		super(securityToken);
+	public RunningTaskClient(String clusterName) {
+		super(clusterName);
+	}
+	
+	public RunningTaskClient(String securityToken, String clusterName) {
+		super(securityToken, clusterName);
 	}
 
 	@Override
-	public String getResourceName() {
-		return RESTConstants.RESOURCE_PATH_RUNNING_TASKS;
+	public String getResourcePath() {
+		return RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/" + RESOURCE_RUNNING_TASKS;
 	}
 
 	public RunningTaskListResponse getRunningTasks() {

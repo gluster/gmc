@@ -24,18 +24,22 @@ import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.ServerListResponse;
 import com.gluster.storage.management.core.response.StringListResponse;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_DISCOVERED_SERVERS;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class DiscoveredServersClient extends AbstractClient {
-	private static final String RESOURCE_NAME = "discoveredservers";
-
-	public DiscoveredServersClient(String securityToken) {
-		super(securityToken);
+	
+	public DiscoveredServersClient(String clusterName) {
+		super(clusterName);
+	}
+	
+	public DiscoveredServersClient(String securityToken, String clusterName) {
+		super(securityToken, clusterName);
 	}
 
 	@Override
-	public String getResourceName() {
-		return RESOURCE_NAME;
+	public String getResourcePath() {
+		return RESOURCE_PATH_DISCOVERED_SERVERS;
 	}
 
 	@SuppressWarnings("rawtypes")

@@ -23,6 +23,7 @@ import java.util.List;
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.gluster.storage.management.core.constants.RESTConstants;
+import static com.gluster.storage.management.core.constants.RESTConstants.*;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Status;
@@ -33,22 +34,21 @@ import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class GlusterServersClient extends AbstractClient {
-	private static final String RESOURCE_NAME = "/cluster/servers";
-
-	public GlusterServersClient(String securityToken) {
-		super(securityToken);
+	public GlusterServersClient(String clusterName) {
+		super(clusterName);
+	}
+	
+	public GlusterServersClient(String securityToken, String clusterName) {
+		super(securityToken, clusterName);
 	}
 
 	@Override
-	public String getResourceName() {
-		return RESOURCE_NAME;
+	public String getResourcePath() {
+		return RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/" + RESOURCE_SERVERS;
 	}
 
-	public GlusterServerListResponse getServers(String knownServer) {
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-		queryParams.add(RESTConstants.QUERY_PARAM_KNOWN_SERVER, knownServer);
-		GlusterServerListResponse response = (GlusterServerListResponse) fetchResource(queryParams, GlusterServerListResponse.class);
-		return response; //.getServers();
+	public GlusterServerListResponse getServers() {
+		return (GlusterServerListResponse) fetchResource(GlusterServerListResponse.class);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -76,9 +76,8 @@ public class GlusterServersClient extends AbstractClient {
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();
 		if (usersClient.authenticate("gluster", "gluster").isSuccess()) {
-
-			GlusterServersClient glusterServersClient = new GlusterServersClient(usersClient.getSecurityToken());
-			List<GlusterServer> glusterServers = glusterServersClient.getServers("127.0.0.1").getData();
+			GlusterServersClient glusterServersClient = new GlusterServersClient(usersClient.getSecurityToken(), "cluster1");
+			List<GlusterServer> glusterServers = glusterServersClient.getServers().getData();
 			for (GlusterServer server : glusterServers) {
 				System.out.println(server.getName());
 			}

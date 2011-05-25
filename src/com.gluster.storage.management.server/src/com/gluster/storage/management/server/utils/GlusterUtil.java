@@ -101,8 +101,8 @@ public class GlusterUtil {
 	}
 	
 
-	public GlusterServer getGlusterServer(String knownServer, String serverName) {
-		List<GlusterServer> servers = getGlusterServers(knownServer);
+	public GlusterServer getGlusterServer(GlusterServer onlineServer, String serverName) {
+		List<GlusterServer> servers = getGlusterServers(onlineServer);
 		for(GlusterServer server : servers) {
 			if(server.getName().equals(serverName)) {
 				return server;
@@ -112,14 +112,15 @@ public class GlusterUtil {
 	}
 	
 
-	public List<GlusterServer> getGlusterServers(String knownServer) {
-		String output = getPeerStatus(knownServer);
+	public List<GlusterServer> getGlusterServers(GlusterServer knownServer) {
+		String output = getPeerStatus(knownServer.getName());
 		if (output == null) {
 			return null;
 		}
 
 		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();
-		glusterServers.add(getKnownServer(knownServer)); // Append the known server
+		// TODO: Append the known server. But where? Order matters in replication/striping
+		glusterServers.add(knownServer); 
 		GlusterServer server = null;
 		boolean foundHost = false;
 		boolean foundUuid = false;
@@ -193,8 +194,8 @@ public class GlusterUtil {
 		return output;
 	}
 
-	public Status addServer(String serverName, String existingServer) {
-		return new Status(sshUtil.executeRemote(existingServer, "gluster peer probe " + serverName));
+	public Status addServer(String existingServer, String newServer) {
+		return new Status(sshUtil.executeRemote(existingServer, "gluster peer probe " + newServer));
 	}
 
 	public Status startVolume(String volumeName) {
@@ -522,8 +523,8 @@ public class GlusterUtil {
 		return new Status(processUtil.executeCommand(command));
 	}
 
-	public Status removeServer(String serverName) {
-		return new Status(processUtil.executeCommand("gluster", "peer", "detach", serverName));
+	public Status removeServer(String existingServer, String serverName) {
+		return new Status(sshUtil.executeRemote(existingServer, "gluster peer detach " + serverName));
 	}
 
 	public static void main(String args[]) {

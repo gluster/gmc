@@ -24,15 +24,22 @@ package com.gluster.storage.management.core.constants;
  * All constants related to the Gluster REST server and client
  */
 public class RESTConstants {
-	// Volumes Resource
-	public static final String RESOURCE_PATH_VOLUMES = "/cluster/volumes";
-	public static final String SUBRESOURCE_DEFAULT_OPTIONS = "defaultoptions";
-	public static final String SUBRESOURCE_OPTIONS = "options";
-	public static final String SUBRESOURCE_LOGS = "logs";
-	public static final String SUBRESOURCE_DOWNLOAD = "download";
-	public static final String SUBRESOURCE_DISKS = "disks";
+	// REST Resource paths
+	public static final String RESOURCE_PATH_CLUSTERS = "/clusters";
+	public static final String RESOURCE_PATH_DISCOVERED_SERVERS = "/discoveredservers";
 	
-	
+	// REST Resource names
+	public static final String RESOURCE_VOLUMES = "volumes";
+	public static final String RESOURCE_DEFAULT_OPTIONS = "defaultoptions";
+	public static final String RESOURCE_OPTIONS = "options";
+	public static final String RESOURCE_LOGS = "logs";
+	public static final String RESOURCE_DOWNLOAD = "download";
+	public static final String RESOURCE_DISKS = "disks";
+	public static final String RESOURCE_RUNNING_TASKS = "runningtasks";
+	public static final String RESOURCE_ALERTS = "alerts";
+	public static final String RESOURCE_SERVERS = "servers";
+
+	public static final String FORM_PARAM_CLUSTER_NAME = "clusterName";
 	public static final String FORM_PARAM_DISKS = "disks";
 	public static final String FORM_PARAM_OPERATION = "operation";
 	public static final String FORM_PARAM_VALUE_START = "start";
@@ -46,7 +53,8 @@ public class RESTConstants {
 	public static final String FORM_PARAM_BRICKS = "bricks";
 	
 	public static final String PATH_PARAM_VOLUME_NAME = "volumeName";
-	public static final String FORM_PARAM_DELETE_OPTION = "value";
+	public static final String PATH_PARAM_CLUSTER_NAME = "clusterName";
+	public static final String PATH_PARAM_SERVER_NAME = "serverName";
 	
 	public static final String QUERY_PARAM_DISK_NAME = "diskName";
 	public static final String QUERY_PARAM_DISKS = "disks";
@@ -59,9 +67,4 @@ public class RESTConstants {
 	public static final String QUERY_PARAM_TO_TIMESTAMP = "toTimestamp";
 	public static final String QUERY_PARAM_DOWNLOAD = "download";
 	public static final String QUERY_PARAM_SERVER_NAME = "serverName";
-	public static final String QUERY_PARAM_KNOWN_SERVER = "knownServer";
-
-	// Running tasks resource
-	public static final String RESOURCE_PATH_RUNNING_TASKS = "/cluster/runningtasks";
-	public static final String RESOURCE_PATH_ALERTS = "/cluster/alerts";
 }

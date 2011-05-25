@@ -34,7 +34,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
 
 import com.gluster.storage.management.core.model.Entity;
-import com.gluster.storage.management.gui.login.LoginDialog;
+import com.gluster.storage.management.gui.dialogs.LoginDialog;
 
 /**
  * This class controls all aspects of the application's execution

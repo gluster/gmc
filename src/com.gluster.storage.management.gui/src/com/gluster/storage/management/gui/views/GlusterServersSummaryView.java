@@ -34,7 +34,7 @@ import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.views.details.tabcreators.PieChartViewerComposite;
+import com.gluster.storage.management.gui.utils.PieChartViewerComposite;
 
 /**
  *

@@ -89,7 +89,7 @@ public class UsersClient extends AbstractClient {
 	 * @see com.gluster.storage.management.client.AbstractClient#getResourceName()
 	 */
 	@Override
-	public String getResourceName() {
+	public String getResourcePath() {
 		return RESOURCE_NAME;
 	}
 

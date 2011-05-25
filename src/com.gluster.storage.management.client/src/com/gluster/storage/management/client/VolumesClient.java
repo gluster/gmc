@@ -41,13 +41,17 @@ import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class VolumesClient extends AbstractClient {
-	public VolumesClient(String securityToken) {
-		super(securityToken);
+	public VolumesClient(String clusterName) {
+		super(clusterName);
+	}
+	
+	public VolumesClient(String securityToken, String clusterName) {
+		super(securityToken, clusterName);
 	}
 
 	@Override
-	public String getResourceName() {
-		return RESTConstants.RESOURCE_PATH_VOLUMES;
+	public String getResourcePath() {
+		return RESTConstants.RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/" + RESTConstants.RESOURCE_VOLUMES;
 	}
 
 	public Status createVolume(Volume volume) {
@@ -73,11 +77,11 @@ public class VolumesClient extends AbstractClient {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_OPTION_KEY, key);
 		form.add(RESTConstants.FORM_PARAM_OPTION_VALUE, value);
-		return (Status) postRequest(volume + "/" + RESTConstants.SUBRESOURCE_OPTIONS, Status.class, form);
+		return (Status) postRequest(volume + "/" + RESTConstants.RESOURCE_OPTIONS, Status.class, form);
 	}
 
 	public Status resetVolumeOptions(String volume) {
-		return (Status) putRequest(volume + "/" + RESTConstants.SUBRESOURCE_OPTIONS, Status.class);
+		return (Status) putRequest(volume + "/" + RESTConstants.RESOURCE_OPTIONS, Status.class);
 	}
 
 	public VolumeListResponse getAllVolumes() {
@@ -94,7 +98,7 @@ public class VolumesClient extends AbstractClient {
 	}
 
 	public VolumeOptionInfoListResponse getVolumeOptionsDefaults() {
-		return ((VolumeOptionInfoListResponse) fetchSubResource(RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS,
+		return ((VolumeOptionInfoListResponse) fetchSubResource(RESTConstants.RESOURCE_DEFAULT_OPTIONS,
 				VolumeOptionInfoListResponse.class));
 	}
 
@@ -102,7 +106,7 @@ public class VolumesClient extends AbstractClient {
 		String bricks = StringUtil.ListToString(brickList, ",");
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_BRICKS, bricks);
-		return (Status) postRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
+		return (Status) postRequest(volumeName + "/" + RESTConstants.RESOURCE_DISKS, Status.class, form);
 	}
 
 	/**
@@ -129,21 +133,20 @@ public class VolumesClient extends AbstractClient {
 		MultivaluedMap<String, String> queryParams = prepareGetLogQueryParams(diskName, severity, fromTimestamp,
 				toTimestamp, messageCount);
 
-		return (LogMessageListResponse) fetchSubResource(volumeName + "/" + RESTConstants.SUBRESOURCE_LOGS,
+		return (LogMessageListResponse) fetchSubResource(volumeName + "/" + RESTConstants.RESOURCE_LOGS,
 				queryParams, LogMessageListResponse.class);
 	}
 
 	public void downloadLogs(String volumeName, String filePath) {
-		downloadSubResource((volumeName) + "/" + RESTConstants.SUBRESOURCE_LOGS + "/"
-				+ RESTConstants.SUBRESOURCE_DOWNLOAD, filePath);
+		downloadSubResource((volumeName) + "/" + RESTConstants.RESOURCE_LOGS + "/" + RESTConstants.RESOURCE_DOWNLOAD, filePath);
 	}
 
 	public Status removeBricks(String volumeName, List<Brick> BrickList, boolean deleteOption) {
 		String bricks = StringUtil.ListToString(GlusterCoreUtil.getQualifiedBrickList(BrickList), ",");
 		MultivaluedMap<String, String> queryParams = prepareRemoveBrickQueryParams(volumeName, bricks, deleteOption);
-		return (Status) deleteSubResource(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, queryParams);
+		return (Status) deleteSubResource(volumeName + "/" + RESTConstants.RESOURCE_DISKS, Status.class, queryParams);
 	}
-
+	
 	private MultivaluedMap<String, String> prepareRemoveBrickQueryParams(String volumeName, String bricks,
 			boolean deleteOption) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
@@ -189,8 +192,8 @@ public class VolumesClient extends AbstractClient {
 		form.add(RESTConstants.FORM_PARAM_SOURCE, brickFrom);
 		form.add(RESTConstants.FORM_PARAM_TARGET, brickTo);
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_START);
-
-		return (Status) putRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
+		
+		return (Status) putRequest( volumeName + "/" + RESTConstants.RESOURCE_DISKS, Status.class, form);
 	}
 
 	public Status stopMigration(String volumeName, String brickFrom, String brickkTo) {
@@ -198,8 +201,8 @@ public class VolumesClient extends AbstractClient {
 		form.add(RESTConstants.FORM_PARAM_SOURCE, brickFrom);
 		form.add(RESTConstants.FORM_PARAM_TARGET, brickkTo);
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_STOP);
-
-		return (Status) putRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
+		
+		return (Status) putRequest( volumeName + "/" + RESTConstants.RESOURCE_DISKS, Status.class, form);
 	}
 
 	public Status pauseMigration(String volumeName, String brickFrom, String brickTo) {
@@ -207,8 +210,8 @@ public class VolumesClient extends AbstractClient {
 		form.add(RESTConstants.FORM_PARAM_SOURCE, brickFrom);
 		form.add(RESTConstants.FORM_PARAM_TARGET, brickTo);
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_PAUSE);
-
-		return (Status) putRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
+		
+		return (Status) putRequest( volumeName + "/" + RESTConstants.RESOURCE_DISKS, Status.class, form);
 	}
 
 	public Status statusMigration(String volumeName, String brickFrom, String brickTo) {
@@ -216,8 +219,8 @@ public class VolumesClient extends AbstractClient {
 		form.add(RESTConstants.FORM_PARAM_SOURCE, brickFrom);
 		form.add(RESTConstants.FORM_PARAM_TARGET, brickTo);
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_STATUS);
-
-		return (Status) putRequest(volumeName + "/" + RESTConstants.SUBRESOURCE_DISKS, Status.class, form);
+		
+		return (Status) putRequest( volumeName + "/" + RESTConstants.RESOURCE_DISKS, Status.class, form);
 	}
 
 	public static void main(String[] args) {

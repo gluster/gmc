@@ -3,6 +3,7 @@
     <wb-module deploy-name="com.gluster.storage.management.server">
         <wb-resource deploy-path="/" source-path="/WebContent"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/junit"/>
         <property name="java-output-path" value="/com.gluster.storage.management.server/build/classes"/>
         <property name="context-root" value="glustermc"/>
     </wb-module>

@@ -39,7 +39,7 @@ import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.views.details.tabcreators.PieChartViewerComposite;
+import com.gluster.storage.management.gui.utils.PieChartViewerComposite;
 
 /**
  * 

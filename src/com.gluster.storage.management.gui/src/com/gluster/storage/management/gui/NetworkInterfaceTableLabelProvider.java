@@ -21,7 +21,7 @@ package com.gluster.storage.management.gui;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.NetworkInterface;
-import com.gluster.storage.management.gui.views.details.tabcreators.GlusterServerTabCreator.NETWORK_INTERFACE_TABLE_COLUMN_INDICES;
+import com.gluster.storage.management.gui.views.GlusterServerSummaryView.NETWORK_INTERFACE_TABLE_COLUMN_INDICES;
 
 public class NetworkInterfaceTableLabelProvider extends TableLabelProviderAdapter {
 	@Override

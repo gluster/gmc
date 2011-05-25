@@ -21,19 +21,26 @@
 package com.gluster.storage.management.server.tasks;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import javax.servlet.ServletContext;
 
 import org.apache.derby.tools.ij;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.security.authentication.encoding.PasswordEncoder;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
-import com.gluster.storage.management.core.utils.FileUtil;
+import com.gluster.storage.management.server.data.ClusterInfo;
+import com.gluster.storage.management.server.data.PersistenceDao;
 
 /**
  * Initializes the Gluster Management Server.
@@ -41,6 +48,17 @@ import com.gluster.storage.management.core.utils.FileUtil;
 public class InitServerTask extends JdbcDaoSupport {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+
+	@Autowired
+	private String appVersion;
+
+	@Autowired
+	private PersistenceDao<ClusterInfo> clusterDao;
+
+	@Autowired
+	ServletContext servletContext;
+
+	private static final String SCRIPT_DIR = "data/scripts/";
 
 	public void securePasswords() {
 		getJdbcTemplate().query("select username, password from users", new RowCallbackHandler() {
@@ -55,32 +73,53 @@ public class InitServerTask extends JdbcDaoSupport {
 		});
 	}
 
-	private void executeScript(String script) {
+	private void executeScript(File script) {
 		ByteArrayOutputStream sqlOut = new ByteArrayOutputStream();
 		int numOfExceptions;
 		try {
-			numOfExceptions = ij.runScript(getJdbcTemplate().getDataSource().getConnection(),
-					new FileUtil().loadResource(script), CoreConstants.ENCODING_UTF8, sqlOut,
-					CoreConstants.ENCODING_UTF8);
+			numOfExceptions = ij.runScript(getJdbcTemplate().getDataSource().getConnection(), new FileInputStream(
+					script), CoreConstants.ENCODING_UTF8, sqlOut, CoreConstants.ENCODING_UTF8);
 			String output = sqlOut.toString();
 			sqlOut.close();
-			logger.debug("Data script [" + script + "] returned with exit status [" + numOfExceptions
+			logger.debug("Data script [" + script.getName() + "] returned with exit status [" + numOfExceptions
 					+ "] and output [" + output + "]");
 			if (numOfExceptions != 0) {
-				throw new GlusterRuntimeException("Server data initialization script [ " + script + "] failed with ["
-						+ numOfExceptions + "] exceptions! [" + output + "]");
+				throw new GlusterRuntimeException("Server data initialization script [ " + script.getName()
+						+ "] failed with [" + numOfExceptions + "] exceptions! [" + output + "]");
 			}
 		} catch (Exception ex) {
-			ex.printStackTrace();
-			throw new GlusterRuntimeException("Server data initialization script [" + script + "] failed!", ex);
+			throw new GlusterRuntimeException("Server data initialization script [" + script.getName() + "] failed!",
+					ex);
 		}
 	}
 
 	private void initDatabase() {
 		logger.debug("Initializing server data...");
-		executeScript("data/scripts/security-schema.sql");
-		executeScript("data/scripts/users-authorities-groups.sql");
+		executeScriptsFrom(getDirFromRelativePath(SCRIPT_DIR + appVersion));
+
 		securePasswords(); // encrypt the passwords
+	}
+
+	private File getDirFromRelativePath(String relativePath) {
+		String scriptDirPath = servletContext.getRealPath(relativePath);
+		File scriptDir = new File(scriptDirPath);
+		return scriptDir;
+	}
+
+	private void executeScriptsFrom(File scriptDir) {
+		if (!scriptDir.exists()) {
+			throw new GlusterRuntimeException("Script directory [" + scriptDir.getAbsolutePath() + "] doesn't exist!");
+		}
+		
+		List<File> scripts = Arrays.asList(scriptDir.listFiles());
+		if(scripts.size() == 0) {
+			throw new GlusterRuntimeException("Script directory [" + scriptDir.getAbsolutePath() + "] is empty!");
+		}
+		
+		Collections.sort(scripts);
+		for (File script : scripts) {
+			executeScript(script);
+		}
 	}
 
 	/**
@@ -88,12 +127,36 @@ public class InitServerTask extends JdbcDaoSupport {
 	 */
 	public synchronized void initServer() {
 		try {
-			// Query to check whether the user table exists
-			getJdbcTemplate().queryForInt("select count(*) from users");
-			logger.debug("Server data is already initialized!");
-		} catch (DataAccessException ex) {
+			String dbVersion = getDBVersion();
+			if (!appVersion.equals(dbVersion)) {
+				logger.info("App version [" + appVersion + "] differs from data version [" + dbVersion
+						+ "]. Trying to upgrade data...");
+				upgradeData(dbVersion, appVersion);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
 			// Database not created yet. Create it!
 			initDatabase();
 		}
+
+		// For development time debugging. To be removed later.
+		List<ClusterInfo> clusters = clusterDao.findAll();
+		logger.info(clusters.size());
+
+		if (clusters.size() > 0) {
+			for (ClusterInfo cluster : clusters) {
+				logger.info("Cluster: [" + cluster.getId() + "][" + cluster.getName() + "]");
+			}
+		} else {
+			logger.info("No cluster created yet.");
+		}
+	}
+
+	private void upgradeData(String fromVersion, String toVersion) {
+		executeScriptsFrom(getDirFromRelativePath(SCRIPT_DIR + fromVersion + "-" + toVersion));
+	}
+
+	private String getDBVersion() {
+		return (String) clusterDao.getSingleResultFromSQL("select version from version");
 	}
 }

@@ -54,7 +54,7 @@ import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.actions.IActionConstants;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.views.details.tabcreators.PieChartViewerComposite;
+import com.gluster.storage.management.gui.utils.PieChartViewerComposite;
 
 /**
  * @author root

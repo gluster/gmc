@@ -8,13 +8,17 @@ import com.gluster.storage.management.core.model.AlertListResponse;
 
 public class AlertsClient  extends AbstractClient {
 	
-	public AlertsClient(String securityToken) {
-		super(securityToken);
+	public AlertsClient(String clusterName) {
+		super(clusterName);
+	}
+	
+	public AlertsClient(String securityToken,String clusterName) {
+		super(securityToken, clusterName);
 	}
 	
 	@Override
-	public String getResourceName() {
-		return RESTConstants.RESOURCE_PATH_ALERTS;
+	public String getResourcePath() {
+		return RESTConstants.RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/" + RESTConstants.RESOURCE_ALERTS;
 	}
 	
 	@SuppressWarnings("rawtypes") 

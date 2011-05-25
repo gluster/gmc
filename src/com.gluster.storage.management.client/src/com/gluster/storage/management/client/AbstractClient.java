@@ -21,18 +21,29 @@ public abstract class AbstractClient {
 	private static final String HTTP_HEADER_AUTH = "Authorization";
 	protected static final MultivaluedMap<String, String> NO_PARAMS = new MultivaluedMapImpl();
 
+	protected String clusterName;
 	protected WebResource resource;
 	private String securityToken;
 	private String authHeader;
 
 	public AbstractClient() {
-		URI baseURI = new ClientUtil().getServerBaseURI();
-		resource = Client.create(new DefaultClientConfig()).resource(baseURI).path(getResourceName());
+		createResource();
 	}
 
-	public AbstractClient(String securityToken) {
-		this();
+	private void createResource() {
+		URI baseURI = new ClientUtil().getServerBaseURI();
+		resource = Client.create(new DefaultClientConfig()).resource(baseURI).path(getResourcePath());
+	}
+
+	public AbstractClient(String securityToken, String clusterName) {
+		this.clusterName = clusterName;
 		setSecurityToken(securityToken);
+		// this must be after setting clusterName as sub-classes may refer to cluster name in the getResourcePath method
+		createResource();
+	}
+
+	public AbstractClient(String clusterName) {
+		this(GlusterDataModelManager.getInstance().getSecurityToken(), clusterName);
 	}
 
 	/**
@@ -56,15 +67,15 @@ public abstract class AbstractClient {
 		ClientResponse response = res.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_OCTET_STREAM)
 				.get(ClientResponse.class);
 		try {
-			if(!response.hasEntity()) {
+			if (!response.hasEntity()) {
 				throw new GlusterRuntimeException("No entity in response!");
 			}
-			
+
 			InputStream inputStream = response.getEntityInputStream();
 			byte[] data = new byte[inputStream.available()];
 			inputStream.read(data);
 			inputStream.close();
-			
+
 			FileOutputStream os = new FileOutputStream(filePath);
 			os.write(data);
 			os.close();
@@ -74,7 +85,7 @@ public abstract class AbstractClient {
 	}
 
 	/**
-	 * Fetches the default resource (the one returned by {@link AbstractClient#getResourceName()}) by dispatching a GET
+	 * Fetches the default resource (the one returned by {@link AbstractClient#getResourcePath()}) by dispatching a GET
 	 * request on the resource
 	 * 
 	 * @param queryParams
@@ -89,7 +100,7 @@ public abstract class AbstractClient {
 	}
 
 	/**
-	 * Fetches the default resource (the one returned by {@link AbstractClient#getResourceName()}) by dispatching a GET
+	 * Fetches the default resource (the one returned by {@link AbstractClient#getResourcePath()}) by dispatching a GET
 	 * request on the resource
 	 * 
 	 * @param responseClass
@@ -104,7 +115,7 @@ public abstract class AbstractClient {
 
 	/**
 	 * Fetches the resource whose name is arrived at by appending the "subResourceName" parameter to the default
-	 * resource (the one returned by {@link AbstractClient#getResourceName()})
+	 * resource (the one returned by {@link AbstractClient#getResourcePath()})
 	 * 
 	 * @param subResourceName
 	 *            Name of the sub-resource
@@ -123,7 +134,7 @@ public abstract class AbstractClient {
 
 	/**
 	 * Fetches the resource whose name is arrived at by appending the "subResourceName" parameter to the default
-	 * resource (the one returned by {@link AbstractClient#getResourceName()})
+	 * resource (the one returned by {@link AbstractClient#getResourcePath()})
 	 * 
 	 * @param subResourceName
 	 *            Name of the sub-resource
@@ -226,10 +237,14 @@ public abstract class AbstractClient {
 			MultivaluedMap<String, String> queryParams) {
 		return resource.path(subResourceName).queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader)
 				.delete(responseClass);
-
 	}
 
-	public abstract String getResourceName();
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected Object deleteSubResource(String subResourceName, Class responseClass) {
+		return resource.path(subResourceName).header(HTTP_HEADER_AUTH, authHeader).delete(responseClass);
+	}
+
+	public abstract String getResourcePath();
 
 	/**
 	 * @return the securityToken

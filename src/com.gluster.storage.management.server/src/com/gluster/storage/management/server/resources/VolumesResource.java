@@ -26,6 +26,7 @@ import static com.gluster.storage.management.core.constants.RESTConstants.FORM_P
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_TARGET;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_START;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_STOP;
+import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_VOLUME_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_BRICKS;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DELETE_OPTION;
@@ -36,12 +37,13 @@ import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_LOG_SEVERITY;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_TO_TIMESTAMP;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_VOLUME_NAME;
-import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_VOLUMES;
-import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DEFAULT_OPTIONS;
-import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DISKS;
-import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_DOWNLOAD;
-import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_LOGS;
-import static com.gluster.storage.management.core.constants.RESTConstants.SUBRESOURCE_OPTIONS;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_DEFAULT_OPTIONS;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_DISKS;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_DOWNLOAD;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_LOGS;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_OPTIONS;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_VOLUMES;
 
 import java.io.File;
 import java.io.IOException;
@@ -89,7 +91,7 @@ import com.sun.jersey.api.core.InjectParam;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Singleton
-@Path(RESOURCE_PATH_VOLUMES)
+@Path(RESOURCE_PATH_CLUSTERS + "/{" + PATH_PARAM_CLUSTER_NAME + "}/" + RESOURCE_VOLUMES)
 public class VolumesResource {
 	private static final String PREPARE_BRICK_SCRIPT = "create_volume_directory.py";
 	private static final String VOLUME_DIRECTORY_CLEANUP_SCRIPT = "clear_volume_directory.py";
@@ -110,8 +112,9 @@ public class VolumesResource {
 
 	@GET
 	@Produces(MediaType.TEXT_XML)
-	public VolumeListResponse getAllVolumes() {
+	public VolumeListResponse getAllVolumes(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
 		try {
+			// TODO: pass cluster name to getAllVolumes
 			return new VolumeListResponse(Status.STATUS_SUCCESS, glusterUtil.getAllVolumes());
 		} catch (Exception e) {
 			// TODO: log the error
@@ -123,7 +126,9 @@ public class VolumesResource {
 	@POST
 	@Consumes(MediaType.TEXT_XML)
 	@Produces(MediaType.TEXT_XML)
-	public Status createVolume(Volume volume) {
+	public Status createVolume(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName, Volume volume) {
+		// TODO: Create volume on given cluster
+		// Create the directories for the volume
 		List<String> brickDirectories = glusterCoreUtil.getQualifiedBrickList(volume.getBricks());
 		Status status = glusterUtil.createVolume(volume, brickDirectories);
 		if (status.isSuccess()) {
@@ -139,16 +144,18 @@ public class VolumesResource {
 	@GET
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
 	@Produces(MediaType.TEXT_XML)
-	public Volume getVolume(@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName) {
+	public Volume getVolume(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName) {
+		// TODO: Pass cluster name to getVolume
 		return glusterUtil.getVolume(volumeName);
 	}
 
 	@PUT
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
 	@Produces(MediaType.TEXT_XML)
-	public Status performOperation(@FormParam(FORM_PARAM_OPERATION) String operation,
-			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName) {
-
+	public Status performOperation(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_OPERATION) String operation) {
+		// TODO: Perform the operation on given cluster
 		if (operation.equals(FORM_PARAM_VALUE_START)) {
 			return glusterUtil.startVolume(volumeName);
 		}
@@ -161,8 +168,10 @@ public class VolumesResource {
 	@DELETE
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
 	@Produces(MediaType.TEXT_XML)
-	public Status deleteVolume(@QueryParam(QUERY_PARAM_VOLUME_NAME) String volumeName,
+	public Status deleteVolume(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@QueryParam(QUERY_PARAM_VOLUME_NAME) String volumeName,
 			@QueryParam(QUERY_PARAM_DELETE_OPTION) boolean deleteFlag) {
+		// TODO: Delete volume on given cluster
 		Volume volume = glusterUtil.getVolume(volumeName);
 		Status status = glusterUtil.deleteVolume(volumeName);
 
@@ -184,12 +193,14 @@ public class VolumesResource {
 	}
 
 	@DELETE
-	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_DISKS)
+	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + RESOURCE_DISKS)
 	@Produces(MediaType.TEXT_XML)
-	public Status removeBricks(@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName,
-			@QueryParam(QUERY_PARAM_BRICKS) String bricks, @QueryParam(QUERY_PARAM_DELETE_OPTION) boolean deleteFlag) {
+	public Status removeBricks(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName, @QueryParam(QUERY_PARAM_BRICKS) String bricks, 
+			@QueryParam(QUERY_PARAM_DELETE_OPTION) boolean deleteFlag) {
 		List<String> brickList = Arrays.asList(bricks.split(",")); // Convert from comma separated string (query parameter)
 
+		// TODO: pass clusterName to removeBricks
 		Status status = glusterUtil.removeBricks(volumeName, brickList);
 
 		String deleteOption = "";
@@ -224,25 +235,29 @@ public class VolumesResource {
 	}
 
 	@POST
-	@Path("{" + PATH_PARAM_VOLUME_NAME + " }/" + SUBRESOURCE_OPTIONS)
+	@Path("{" + PATH_PARAM_VOLUME_NAME + " }/" + RESOURCE_OPTIONS)
 	@Produces(MediaType.TEXT_XML)
-	public Status setOption(@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName,
+	public Status setOption(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName,
 			@FormParam(RESTConstants.FORM_PARAM_OPTION_KEY) String key,
 			@FormParam(RESTConstants.FORM_PARAM_OPTION_VALUE) String value) {
+		// TODO: pass cluster name to setOption
 		return glusterUtil.setOption(volumeName, key, value);
 	}
 
 	@PUT
-	@Path("{" + PATH_PARAM_VOLUME_NAME + " }/" + SUBRESOURCE_OPTIONS)
+	@Path("{" + PATH_PARAM_VOLUME_NAME + " }/" + RESOURCE_OPTIONS)
 	@Produces(MediaType.TEXT_XML)
-	public Status resetOptions(@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName) {
+	public Status resetOptions(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName) {
+		// TODO: pass clusterName to resetOptions
 		return glusterUtil.resetOptions(volumeName);
 	}
 
 	@GET
-	@Path(SUBRESOURCE_DEFAULT_OPTIONS)
+	@Path(RESOURCE_DEFAULT_OPTIONS)
 	@Produces(MediaType.TEXT_XML)
-	public VolumeOptionInfoListResponse getDefaultOptions() {
+	public VolumeOptionInfoListResponse getDefaultOptions(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
 		// TODO: Fetch all volume options with their default values from GlusterFS
 		// whenever such a CLI command is made available in GlusterFS
 		return new VolumeOptionInfoListResponse(Status.STATUS_SUCCESS, volumeOptionsDefaults.getDefaults());
@@ -362,14 +377,16 @@ public class VolumesResource {
 
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
-	@Path("{" + PATH_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_LOGS + "/" + SUBRESOURCE_DOWNLOAD)
-	public StreamingOutput getLogs(@PathParam(PATH_PARAM_VOLUME_NAME) final String volumeName) {
+	@Path("{" + PATH_PARAM_VOLUME_NAME + "}/" + RESOURCE_LOGS + "/" + RESOURCE_DOWNLOAD)
+	public StreamingOutput getLogs(@PathParam(PATH_PARAM_CLUSTER_NAME) final String clusterName,
+			@PathParam(PATH_PARAM_VOLUME_NAME) final String volumeName) {
 		return new StreamingOutput() {
 
 			@Override
 			public void write(OutputStream output) throws IOException, WebApplicationException {
-				Volume volume = getVolume(volumeName);
+				Volume volume = getVolume(clusterName, volumeName);
 				try {
+					// TODO: pass clusterName to downloadLogs
 					File archiveFile = new File(downloadLogs(volume));
 					output.write(fileUtil.readFileAsByteArray(archiveFile));
 					archiveFile.delete();
@@ -405,21 +422,24 @@ public class VolumesResource {
 	}
 
 	@GET
-	@Path("{" + PATH_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_LOGS)
-	public LogMessageListResponse getLogs(@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName,
-			@QueryParam(QUERY_PARAM_DISK_NAME) String brickName, @QueryParam(QUERY_PARAM_LOG_SEVERITY) String severity,
+	@Path("{" + PATH_PARAM_VOLUME_NAME + "}/" + RESOURCE_LOGS)
+	public LogMessageListResponse getLogs(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName, 
+			@QueryParam(QUERY_PARAM_DISK_NAME) String brickName,
+			@QueryParam(QUERY_PARAM_LOG_SEVERITY) String severity,
 			@QueryParam(QUERY_PARAM_FROM_TIMESTAMP) String fromTimestamp,
 			@QueryParam(QUERY_PARAM_TO_TIMESTAMP) String toTimestamp,
-			@QueryParam(QUERY_PARAM_LINE_COUNT) Integer lineCount, @QueryParam(QUERY_PARAM_DOWNLOAD) Boolean download) {
+			@QueryParam(QUERY_PARAM_LINE_COUNT) Integer lineCount, 
+			@QueryParam(QUERY_PARAM_DOWNLOAD) Boolean download) {
 		List<LogMessage> logMessages = null;
 
 		try {
-			Volume volume = getVolume(volumeName);
+			// TODO: Fetch logs from brick(s) of given cluster only
+			Volume volume = getVolume(clusterName, volumeName);
 			if (brickName == null || brickName.isEmpty() || brickName.equals(CoreConstants.ALL)) {
 				logMessages = getLogsForAllBricks(volume, lineCount);
 			} else {
 				// fetch logs for given brick of the volume
-				// logMessages = getBrickLogs(volume, getBrickForDisk(volume, brickName), lineCount);
 				logMessages = getBrickLogs(volume, brickName, lineCount);
 			}
 		} catch (Exception e) {
@@ -491,17 +511,18 @@ public class VolumesResource {
 	}
 
 	@POST
-	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_DISKS)
-	public Status addBricks(@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName,
-			@FormParam(FORM_PARAM_BRICKS) String bricks) {
+	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + RESOURCE_DISKS)
+	public Status addBricks(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_BRICKS) String bricks) {
 		return glusterUtil.addBricks(volumeName, Arrays.asList(bricks.split(",")));
 	}
 
 	@PUT
-	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_DISKS)
-	public Status replaceDisk(@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName,
-			@FormParam(FORM_PARAM_SOURCE) String diskFrom, @FormParam(FORM_PARAM_TARGET) String diskTo,
-			@FormParam(FORM_PARAM_OPERATION) String operation) {
+	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + RESOURCE_DISKS)
+	public Status replaceDisk(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_SOURCE) String diskFrom,
+			@FormParam(FORM_PARAM_TARGET) String diskTo, @FormParam(FORM_PARAM_OPERATION) String operation) {
+		// TODO: Migrate disk on given cluster only
 		return glusterUtil.migrateDisk(volumeName, diskFrom, diskTo, operation);
 	}
 
@@ -533,7 +554,7 @@ public class VolumesResource {
 //		System.out.println("Code : " + status.getCode());
 //		System.out.println("Message " + status.getMessage());
 		
-		Status status1 = vr.removeBricks("test", "192.168.1.210:sdb", true);
+		Status status1 = vr.removeBricks("testCluster", "test", "192.168.1.210:sdb", true);
 		System.out.println("Code : " + status1.getCode());
 		System.out.println("Message " + status1.getMessage());
 	}

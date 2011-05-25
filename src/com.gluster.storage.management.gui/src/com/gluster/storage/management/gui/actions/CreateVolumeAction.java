@@ -19,8 +19,11 @@
 package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.wizard.WizardDialog;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.core.model.EntityGroup;
@@ -36,7 +39,16 @@ public class CreateVolumeAction extends AbstractActionDelegate {
 			public void run() {
 				CreateVolumeWizard wizard = new CreateVolumeWizard();
 				
-				WizardDialog dialog = new WizardDialog(getShell(), wizard);
+				WizardDialog dialog = new WizardDialog(getShell(), wizard) {
+					@Override
+					protected Button createButton(Composite parent, int id, String label, boolean defaultButton) {
+						Button button = super.createButton(parent, id, label, defaultButton);
+						if(id == IDialogConstants.FINISH_ID) {
+							button.setText("&Create");
+						}
+						return button;
+					}
+				};
 		        dialog.create();
 		        dialog.getShell().setSize(500, 550);	
 		        dialog.open();

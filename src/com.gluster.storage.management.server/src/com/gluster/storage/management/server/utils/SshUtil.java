@@ -34,6 +34,7 @@ import ch.ethz.ssh2.Session;
 import ch.ethz.ssh2.StreamGobbler;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.utils.LRUCache;
 import com.gluster.storage.management.core.utils.ProcessResult;
@@ -71,18 +72,18 @@ public class SshUtil {
 	private void authenticateWithPublicKey(Connection conn) {
 		try {
 			if (!supportsPublicKeyAuthentication(conn)) {
-				throw new GlusterRuntimeException("Public key authentication not supported on [" + conn.getHostname()
+				throw new ConnectionException("Public key authentication not supported on [" + conn.getHostname()
 						+ "]");
 			}
 
 			// TODO: Introduce password for the PEM file (third argument) so that it is more secure
 			if (!conn.authenticateWithPublicKey(USER_NAME, PEM_FILE, null)) {
-				throw new GlusterRuntimeException("SSH Authentication (public key) failed for server ["
+				throw new ConnectionException("SSH Authentication (public key) failed for server ["
 						+ conn.getHostname() + "]");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			throw new GlusterRuntimeException("Exception during SSH authentication (public key) for server ["
+			throw new ConnectionException("Exception during SSH authentication (public key) for server ["
 					+ conn.getHostname() + "]", e);
 		}
 	}
@@ -90,18 +91,18 @@ public class SshUtil {
 	private void authenticateWithPassword(Connection conn) {
 		try {
 			if (!supportsPasswordAuthentication(conn)) {
-				throw new GlusterRuntimeException("Password authentication not supported on [" + conn.getHostname()
+				throw new ConnectionException("Password authentication not supported on [" + conn.getHostname()
 						+ "]");
 			}
 
 			// TODO: Introduce password for the PEM file (third argument) so that it is more secure
 			if (!conn.authenticateWithPassword(USER_NAME, DEFAULT_PASSWORD)) {
-				throw new GlusterRuntimeException("SSH Authentication (password) failed for server ["
+				throw new ConnectionException("SSH Authentication (password) failed for server ["
 						+ conn.getHostname() + "]");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			throw new GlusterRuntimeException("Exception during SSH authentication (password) for server ["
+			throw new ConnectionException("Exception during SSH authentication (password) for server ["
 					+ conn.getHostname() + "]", e);
 		}
 	}
@@ -121,8 +122,7 @@ public class SshUtil {
 			conn.connect();
 		} catch (IOException e) {
 			e.printStackTrace();
-			throw new GlusterRuntimeException("Exception while creating SSH connection with server [" + serverName
-					+ "]", e);
+			throw new ConnectionException("Exception while creating SSH connection with server [" + serverName + "]", e);
 		}
 		return conn;
 	}
@@ -159,10 +159,9 @@ public class SshUtil {
 			session.close();
 			return result;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new GlusterRuntimeException("Exception while executing command [" + command + "] on ["
+					+ sshConnection.getHostname() + "]", e);
 		}
-		return null;
 	}
 
 	private ProcessResult getResultOfExecution(Session session, BufferedReader stdoutReader, BufferedReader stderrReader) {

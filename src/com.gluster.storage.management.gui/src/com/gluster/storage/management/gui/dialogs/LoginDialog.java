@@ -16,7 +16,10 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.gui.login;
+package com.gluster.storage.management.gui.dialogs;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.UpdateValueStrategy;
@@ -26,6 +29,7 @@ import org.eclipse.jface.databinding.swt.WidgetProperties;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
@@ -39,9 +43,13 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.gluster.storage.management.client.ClustersClient;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.UsersClient;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.ConnectionDetails;
+import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.response.StringListResponse;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.validators.StringRequiredValidator;
@@ -192,9 +200,35 @@ public class LoginDialog extends Dialog {
 
 		UsersClient usersClient = new UsersClient();
 		if (usersClient.authenticate(user, password).isSuccess()) {
+			close();
+			ClustersClient clustersClient = new ClustersClient(usersClient.getSecurityToken());
+			List<String> clusterNames = getClusterNames(clustersClient);
+			ClusterSelectionDialog clusterDialog = new ClusterSelectionDialog(getParentShell(),
+					clusterNames);
+			int userAction = clusterDialog.open();
+			if (userAction == Window.CANCEL) {
+				MessageDialog.openError(getShell(), "Login Cancelled",
+						"User cancelled login at cluster selection. Application will close!");
+				cancelPressed();
+				return;
+			}
 			try {
-				GlusterDataModelManager.getInstance().initializeModel(usersClient.getSecurityToken(), "127.0.0.1");
+				String clusterName = clusterDialog.getClusterName();
+				if(clusterNames.contains(clusterName)) {
+					GlusterDataModelManager.getInstance().initializeModel(usersClient.getSecurityToken(),
+						clusterName);
+				} else {
+					Status status = createCluster(clustersClient, clusterName);
+					if(!status.isSuccess()) {
+						MessageDialog.openError(getShell(), "Cluster Creation Failed!", status.toString());
+						setReturnCode(RETURN_CODE_ERROR);
+						return;
+					}
+					GlusterDataModelManager.getInstance().initializeModelWithNewCluster(usersClient.getSecurityToken(),
+							clusterName);
+				}
 				super.okPressed();
+					
 			} catch (Exception e) {
 				setReturnCode(RETURN_CODE_ERROR);
 				MessageDialog.openError(getShell(), "Initialization Error", e.getMessage());
@@ -203,5 +237,20 @@ public class LoginDialog extends Dialog {
 		} else {
 			MessageDialog.openError(getShell(), "Authentication Failed", "Invalid User ID or password");
 		}
+	}
+
+	private Status createCluster(ClustersClient clustersClient, String clusterName) {
+		return clustersClient.createCluster(clusterName);
+	}
+
+	private List<String> getClusterNames(ClustersClient clustersClient) {
+		StringListResponse clustersResponse = clustersClient.getClusters();
+		List<String> clusters = new ArrayList<String>();
+		if (clustersResponse.getStatus().isSuccess()) {
+			clusters = clustersResponse.getData();
+		} else {
+			throw new GlusterRuntimeException("Could not fetch cluster names. Error: " + clustersResponse.getStatus());
+		}
+		return clusters;
 	}
 }

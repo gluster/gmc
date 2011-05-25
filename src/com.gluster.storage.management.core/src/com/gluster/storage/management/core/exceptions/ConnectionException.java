@@ -16,33 +16,22 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.core.response;
+package com.gluster.storage.management.core.exceptions;
 
-import java.util.ArrayList;
-import java.util.List;
+/**
+ *
+ */
+public class ConnectionException extends GlusterRuntimeException {
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
+	private static final long serialVersionUID = 1L;
 
-import com.gluster.storage.management.core.model.Status;
-
-@XmlRootElement(name = "response")
-public class StringListResponse extends AbstractResponse {
-	private List<String> data = new ArrayList<String>();
 	
-	public StringListResponse() {
+	public ConnectionException(String message) {
+		super(message);
 	}
-	
-	public StringListResponse(List<String> data) {
-		this.data = data;
-		setStatus(Status.STATUS_SUCCESS);
+
+	public ConnectionException(String message, Throwable cause) {
+		super(message, cause);
 	}
-	
-	@Override
-	@XmlElementWrapper(name = "list")
-	@XmlElement(name = "value", type = String.class)
-	public List<String> getData() {
-		return data;
-	}
+
 }

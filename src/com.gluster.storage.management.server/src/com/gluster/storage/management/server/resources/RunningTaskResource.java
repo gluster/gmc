@@ -30,7 +30,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.springframework.stereotype.Component;
 
-import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_RUNNING_TASKS;
+import static com.gluster.storage.management.core.constants.RESTConstants.*;
 import com.gluster.storage.management.core.model.Response;
 import com.gluster.storage.management.core.model.RunningTask;
 import com.gluster.storage.management.core.model.RunningTaskStatus;
@@ -40,7 +40,7 @@ import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.server.runningtasks.managers.RunningTaskManager;
 
 @Component
-@Path(RESOURCE_PATH_RUNNING_TASKS)
+@Path(RESOURCE_PATH_CLUSTERS + "/{" + PATH_PARAM_CLUSTER_NAME + "}/" + RESOURCE_RUNNING_TASKS)
 public class RunningTaskResource {
 
 	private static final String PKG = "com.gluster.storage.management.server.runningtasks.managers";

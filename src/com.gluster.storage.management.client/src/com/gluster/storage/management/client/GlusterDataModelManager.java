@@ -19,7 +19,6 @@
 package com.gluster.storage.management.client;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -32,7 +31,6 @@ import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
-import com.gluster.storage.management.core.model.LogMessage;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
@@ -48,15 +46,12 @@ import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse
 public class GlusterDataModelManager {
 	// private Server discoveredServer1, discoveredServer2, discoveredServer3,
 	// discoveredServer4, discoveredServer5;
-	private GlusterServer server1, server2, server3, server4, server5;
-	private Volume volume1, volume2, volume3, volume4, volume5;
-	private Disk s1da, s1db, s2da, s2db, s2dc, s2dd, s3da, s4da, s5da, s5db;
-	private static List<LogMessage> logMessages = new ArrayList<LogMessage>();
 	private static GlusterDataModelManager instance = new GlusterDataModelManager();
 	private GlusterDataModel model;
 	private String securityToken;
 	private List<ClusterListener> listeners = new ArrayList<ClusterListener>();
 	private List<VolumeOptionInfo> volumeOptionsDefaults;
+	private String clusterName;
 
 	private GlusterDataModelManager() {
 	}
@@ -69,6 +64,14 @@ public class GlusterDataModelManager {
 		this.securityToken = securityToken;
 	}
 
+	public void setClusterName(String clusterName) {
+		this.clusterName = clusterName;
+	}
+
+	public String getClusterName() {
+		return clusterName;
+	}
+
 	public GlusterDataModel getModel() {
 		return model;
 	}
@@ -76,19 +79,37 @@ public class GlusterDataModelManager {
 	public static GlusterDataModelManager getInstance() {
 		return instance;
 	}
-
-	public void initializeModel(String securityToken, String knownServer) {
+	
+	public void initializeModelWithNewCluster(String securityToken, String clusterName) {
 		model = new GlusterDataModel("Gluster Data Model");
 		setSecurityToken(securityToken);
-		Cluster cluster = new Cluster("Home", model);
+		
+		Cluster cluster = new Cluster(clusterName, model);
 
-		initializeGlusterServers(cluster, knownServer);
-		initializeVolumes(cluster);
+		cluster.setServers(new ArrayList<GlusterServer>());
+		cluster.setVolumes(new ArrayList<Volume>());		
 
 		initializeAutoDiscoveredServers(cluster);
 		// initializeDisks();
 
-		createDummyLogMessages(cluster);
+		initializeRunningTasks(cluster);
+		initializeAlerts(cluster);
+
+		model.addCluster(cluster);
+	}
+
+	public void initializeModel(String securityToken, String clusterName) {
+		model = new GlusterDataModel("Gluster Data Model");
+		setSecurityToken(securityToken);
+		setClusterName(clusterName);
+		
+		Cluster cluster = new Cluster(clusterName, model);
+
+		initializeGlusterServers(cluster);
+		initializeVolumes(cluster);
+
+		initializeAutoDiscoveredServers(cluster);
+		// initializeDisks();
 
 		initializeRunningTasks(cluster);
 		initializeAlerts(cluster);
@@ -97,9 +118,9 @@ public class GlusterDataModelManager {
 		model.addCluster(cluster);
 	}
 
-	private void initializeGlusterServers(Cluster cluster, String knownServer) {
-		GlusterServerListResponse glusterServerListResponse = new GlusterServersClient(securityToken)
-				.getServers(knownServer);
+	private void initializeGlusterServers(Cluster cluster) {
+		GlusterServerListResponse glusterServerListResponse = new GlusterServersClient(clusterName)
+				.getServers();
 		if (!glusterServerListResponse.getStatus().isSuccess()) {
 			throw new GlusterRuntimeException(glusterServerListResponse.getStatus().getMessage());
 		}
@@ -125,7 +146,7 @@ public class GlusterDataModelManager {
 	}
 
 	private void initializeVolumeOptionsDefaults() {
-		VolumeOptionInfoListResponse response = new VolumesClient(getSecurityToken()).getVolumeOptionsDefaults();
+		VolumeOptionInfoListResponse response = new VolumesClient(clusterName).getVolumeOptionsDefaults();
 		if (!response.getStatus().isSuccess()) {
 			throw new GlusterRuntimeException("Error fetching volume option defaults: ["
 					+ response.getStatus().getMessage() + "]");
@@ -134,7 +155,7 @@ public class GlusterDataModelManager {
 	}
 
 	public void initializeRunningTasks(Cluster cluster) {
-		RunningTaskListResponse runningTaskResponse = new RunningTaskClient(securityToken).getRunningTasks();
+		RunningTaskListResponse runningTaskResponse = new RunningTaskClient(cluster.getName()).getRunningTasks();
 		if (!runningTaskResponse.getStatus().isSuccess()) {
 			throw new GlusterRuntimeException(runningTaskResponse.getStatus().getMessage());
 		}
@@ -142,17 +163,7 @@ public class GlusterDataModelManager {
 	}
 
 	public void initializeAlerts(Cluster cluster) {
-		cluster.setAlerts(new AlertsClient(securityToken).getAllAlerts());
-	}
-
-	private void addVolumeOptions() {
-		for (Volume vol : new Volume[] { volume1, volume2, volume3, volume4, volume5 }) {
-			for (int i = 1; i <= 5; i++) {
-				String key = vol.getName() + "key" + i;
-				String value = vol.getName() + "value" + i;
-				vol.setOption(key, value);
-			}
-		}
+		cluster.setAlerts(new AlertsClient(cluster.getName()).getAllAlerts());
 	}
 
 	public Volume addVolume(List<Volume> volumes, String name, Cluster cluster, VOLUME_TYPE volumeType,
@@ -161,47 +172,6 @@ public class GlusterDataModelManager {
 		volumes.add(volume);
 
 		return volume;
-	}
-
-	private void addMessages(List<LogMessage> messages, Disk disk, String severity, int count) {
-		for (int i = 1; i <= count; i++) {
-			String message = severity + "message" + i;
-			messages.add(new LogMessage(new Date(), disk.getQualifiedName(), severity, message));
-		}
-	}
-
-	private void addMessagesForDisk(List<LogMessage> logMessages, Disk disk) {
-		addMessages(logMessages, disk, "SEVERE", 5);
-		addMessages(logMessages, disk, "WARNING", 5);
-		addMessages(logMessages, disk, "DEBUG", 5);
-		addMessages(logMessages, disk, "INFO", 5);
-	}
-
-	private List<Disk> getAllDisks(Cluster cluster) {
-		List<Disk> disks = new ArrayList<Disk>();
-		for (GlusterServer server : cluster.getServers()) {
-			disks.addAll(server.getDisks());
-		}
-		return disks;
-	}
-	public List<LogMessage> createDummyLogMessages(Cluster cluster) {
-		for(Disk disk: getAllDisks(cluster)) {
-			addMessagesForDisk(logMessages, disk);
-		}
-
-		// addMessagesForDisk(logMessages, s1db);
-		// addMessagesForDisk(logMessages, s2da);
-		// addMessagesForDisk(logMessages, s2db);
-		// addMessagesForDisk(logMessages, s2dc);
-		// addMessagesForDisk(logMessages, s2dd);
-		// addMessagesForDisk(logMessages, s4da);
-		// addMessagesForDisk(logMessages, s5da);
-		// addMessagesForDisk(logMessages, s5db);
-		return logMessages;
-	}
-
-	public static List<LogMessage> getDummyLogMessages() {
-		return logMessages;
 	}
 
 	/**
@@ -398,6 +368,7 @@ public class GlusterDataModelManager {
 		return null;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private Entry<String, String> getOptionEntry(Volume volume, String optionKey) {
 		for (Entry entry : volume.getOptions().entrySet()) {
 			if (entry.getKey().equals(optionKey)) {

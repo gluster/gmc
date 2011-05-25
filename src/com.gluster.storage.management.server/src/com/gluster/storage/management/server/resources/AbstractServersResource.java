@@ -32,10 +32,10 @@ import com.sun.jersey.api.core.InjectParam;
  */
 public class AbstractServersResource {
 	@InjectParam
-	private ServerUtil serverUtil;
+	protected ServerUtil serverUtil;
 	
 	@InjectParam
-	private GlusterUtil glusterUtil;
+	protected GlusterUtil glusterUtil;
 
 	/**
 	 * Fetch details of the given server. The server name must be populated in the object before calling this method.
@@ -47,16 +47,9 @@ public class AbstractServersResource {
 		// fetch standard server details like cpu, disk, memory details
 		Object response = serverUtil.executeOnServer(true, server.getName(), "get_server_details.py", Server.class);
 		if (response instanceof Status) {
+			// TODO: check if this happened because the server is not reachable, and if yes, set it's status as offline
 			throw new GlusterRuntimeException(((Status)response).getMessage());
 		}
 		server.copyFrom((Server) response); // Update the details in <Server> object
-	}
-
-	protected void setGlusterUtil(GlusterUtil glusterUtil) {
-		this.glusterUtil = glusterUtil;
-	}
-
-	protected GlusterUtil getGlusterUtil() {
-		return glusterUtil;
 	}
 }

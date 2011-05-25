@@ -22,6 +22,7 @@ package com.gluster.storage.management.server.utils;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -39,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.response.GenericResponse;
@@ -56,6 +58,14 @@ public class ServerUtil {
 	private static final String SCRIPT_DIR = "scripts";
 	private static final String SCRIPT_COMMAND = "python";
 	private static final String REMOTE_SCRIPT_GET_DISK_FOR_DIR = "get_disk_for_dir.py";
+
+	public void setSshUtil(SshUtil sshUtil) {
+		this.sshUtil = sshUtil;
+	}
+
+	public SshUtil getSshUtil() {
+		return sshUtil;
+	}
 
 	public ProcessResult executeGlusterScript(boolean runInForeground, String scriptName, List<String> arguments) {
 		List<String> command = new ArrayList<String>();
@@ -97,14 +107,19 @@ public class ServerUtil {
 				return ((GenericResponse) response).getStatus();
 			}
 			return response;
-		} catch (Exception e) {
-			// any other exception means unexpected error. return status with error from exception.
-			return new Status(e);
+		} catch (RuntimeException e) {
+			// Except for connection exception, wrap any other exception in the a object and return it.
+			if (e instanceof ConnectionException) {
+				throw e;
+			} else {
+				// error during unmarshalling. return status with error from exception.
+				return new Status(e);
+			}
 		}
 	}
 
 	private String executeOnServer(String serverName, String commandWithArgs) {
-		ProcessResult result = sshUtil.executeRemote(serverName, commandWithArgs);
+		ProcessResult result = getSshUtil().executeRemote(serverName, commandWithArgs);
 		if (!result.isSuccess()) {
 			throw new GlusterRuntimeException("Command [" + commandWithArgs + "] failed on [" + serverName
 					+ "] with error [" + result.getExitValue() + "][" + result.getOutput() + "]");
@@ -196,8 +211,10 @@ public class ServerUtil {
 	}
 
 	public static void main(String args[]) throws Exception {
-		// CreateVolumeExportDirectory.py md0 testvol
-		System.out.println(new ServerUtil().getFileFromServer("localhost", "/tmp/python/PeerAgent.py"));
+		ServerUtil su = new ServerUtil();
+		su.setSshUtil(new SshUtil());
+		// Object result = new ServerUtil().executeOnServer(true, "serverName", "ls -lrt", String.class);
+		// System.out.println(result);
 	}
 
 }

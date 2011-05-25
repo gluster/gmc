@@ -16,7 +16,7 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.gui.views.details.tabcreators;
+package com.gluster.storage.management.gui.utils;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -57,7 +57,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 
-import com.gluster.storage.management.gui.utils.GlusterChartPalette;
 
 /**
  * 

@@ -1,6 +1,6 @@
 package com.gluster.storage.management.server.resources;
 
-import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_ALERTS;
+import static com.gluster.storage.management.core.constants.RESTConstants.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,7 @@ import com.gluster.storage.management.core.model.AlertListResponse;
 import com.gluster.storage.management.core.model.Alert;
 
 @Component
-@Path(RESOURCE_PATH_ALERTS)
+@Path(RESOURCE_PATH_CLUSTERS + "/{" + PATH_PARAM_CLUSTER_NAME + "}/" + RESOURCE_ALERTS)
 public class AlertsResource {
 
 	@GET

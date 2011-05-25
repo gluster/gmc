@@ -1,50 +1,73 @@
 
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:task="http://www.springframework.org/schema/task"
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:tx="http://www.springframework.org/schema/tx"
 	xsi:schemaLocation="
    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
-   http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+   http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd 
+   http://www.springframework.org/schema/tx  http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
 	<context:component-scan base-package="com.gluster.storage.management.server" />
 	<task:scheduler id="taskScheduler" />
 	<task:executor id="taskExecutor" pool-size="1" />
-	<task:annotation-driven executor="taskExecutor"
-		scheduler="taskScheduler" />
+	<task:annotation-driven executor="taskExecutor" scheduler="taskScheduler" />
 
 	<task:scheduled-tasks>
-		<task:scheduled ref="serverDiscoveryTask" method="discoverServers"
-			fixed-delay="60000" />
+		<task:scheduled ref="serverDiscoveryTask" method="discoverServers" fixed-delay="60000" />
 	</task:scheduled-tasks>
 
+	<!-- Cluster environment. Valid values: vmware, aws, baremetal -->
 	<bean id="environment" class="java.lang.String">
 		<constructor-arg value="vmware" />
 	</bean>
 
-	<!-- Derby embedded data source -->
-	<!-- bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" 
-		lazy-init="false"> <property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver" 
-		/> <property name="url" value="jdbc:derby:work/data;create=true" /> <property 
-		name="username" value="gluster" /> <property name="password" value="gluster" 
-		/> </bean -->
+	<!-- Gluster Management Gateway Version -->
+	<bean id="appVersion" class="java.lang.String">
+		<constructor-arg value="1.0.0" />
+	</bean>
 
-	<bean id="dataSourceFactory"
-		class="com.gluster.storage.management.server.data.GlusterDataSource" />
-	<bean id="dataSource"
-		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
-		<property name="targetObject">
-			<ref local="dataSourceFactory" />
-		</property>
-		<property name="targetMethod">
-			<value>getDataSource</value>
+	<!-- Derby embedded data source -->
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" lazy-init="false">
+		<property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver" />
+		<property name="url" value="jdbc:derby:/etc/glustermg/data;create=true" />
+		<property name="username" value="gluster" />
+		<property name="password" value="gluster" />
+	</bean>
+
+	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="jpaVendorAdapter">
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+				<property name="showSql" value="true" />
+				<property name="generateDdl" value="false" />
+				<property name="databasePlatform" value="org.hibernate.dialect.DerbyDialect" />
+			</bean>
 		</property>
 	</bean>
 
-	<!-- bean id="dataSource" class="com.gluster.storage.management.server.data.GlusterDataSource" 
+	<bean
+        class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor" />
+
+	<bean id="clusterDao" class="com.gluster.storage.management.server.data.PersistenceDao">
+		<constructor-arg type="java.lang.Class">
+			<value>com.gluster.storage.management.server.data.ClusterInfo</value>
+		</constructor-arg>
+	</bean>
+
+	<!-- bean id="dataSourceFactory" class="com.gluster.storage.management.server.data.GlusterDataSource" />
+		<bean id="dataSource" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetObject">
+		<ref local="dataSourceFactory" />
+		</property>
+		<property name="targetMethod">
+		<value>getDataSource</value>
+		</property>
+		</bean -->
+
+	<!-- bean id="dataSource" class="com.gluster.storage.management.server.data.GlusterDataSource"
 		lazy-init="false" autowire="byType" / -->
 
-	<bean class="com.gluster.storage.management.server.tasks.InitServerTask"
-		init-method="initServer" depends-on="dataSource">
+	<bean class="com.gluster.storage.management.server.tasks.InitServerTask" init-method="initServer" depends-on="dataSource">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 </beans>

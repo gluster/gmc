@@ -16,33 +16,50 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.core.response;
+package com.gluster.storage.management.server.data;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
+/**
+ *
+ */
+@Entity(name="server_info")
+public class ServerInfo {
+	@Id
+	@GeneratedValue
+	private Integer id;
 
-import com.gluster.storage.management.core.model.Status;
-
-@XmlRootElement(name = "response")
-public class StringListResponse extends AbstractResponse {
-	private List<String> data = new ArrayList<String>();
+	private String name;
 	
-	public StringListResponse() {
+	@ManyToOne
+	@JoinColumn(name="cluster_id")
+	private ClusterInfo cluster;
+
+	public void setId(Integer id) {
+		this.id = id;
 	}
-	
-	public StringListResponse(List<String> data) {
-		this.data = data;
-		setStatus(Status.STATUS_SUCCESS);
+
+	public Integer getId() {
+		return id;
 	}
-	
-	@Override
-	@XmlElementWrapper(name = "list")
-	@XmlElement(name = "value", type = String.class)
-	public List<String> getData() {
-		return data;
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setCluster(ClusterInfo cluster) {
+		this.cluster = cluster;
+	}
+
+	public ClusterInfo getCluster() {
+		return cluster;
 	}
 }
