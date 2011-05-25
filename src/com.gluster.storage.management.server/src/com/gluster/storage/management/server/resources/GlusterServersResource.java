@@ -102,7 +102,10 @@ public class GlusterServersResource extends AbstractServersResource {
 		return null;
 	}
 	
-	private GlusterServerListResponse getServerDetails(String clusterName) {
+	@GET
+	@Produces(MediaType.TEXT_XML)
+	public GlusterServerListResponse getGlusterServers(
+			@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
 		GlusterServer onlineServer = getOnlineServer(clusterName);
 		if(onlineServer == null) {
 			return new GlusterServerListResponse(Status.STATUS_SUCCESS, new ArrayList<GlusterServer>());
@@ -143,13 +146,6 @@ public class GlusterServersResource extends AbstractServersResource {
 			status = new Status(Status.STATUS_CODE_PART_SUCCESS, errMsg.toString());
 		}
 		return new GlusterServerListResponse(status, glusterServers);
-	}
-
-	@GET
-	@Produces(MediaType.TEXT_XML)
-	public GlusterServerListResponse getGlusterServers(
-			@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
-		return getServerDetails(clusterName);
 	}
 
 	@GET

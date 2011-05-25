@@ -137,7 +137,7 @@ public class GlusterDataModelManager {
 	}
 
 	private void initializeVolumes(Cluster cluster) {
-		VolumesClient volumeClient = new VolumesClient(securityToken);
+		VolumesClient volumeClient = new VolumesClient(clusterName);
 		VolumeListResponse response = volumeClient.getAllVolumes();
 		if (!response.getStatus().isSuccess()) {
 			throw new GlusterRuntimeException("Error fetching volume list: [" + response.getStatus() + "]");

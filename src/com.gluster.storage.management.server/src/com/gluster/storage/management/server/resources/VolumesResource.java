@@ -20,9 +20,9 @@
  */
 package com.gluster.storage.management.server.resources;
 
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_BRICKS;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_OPERATION;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SOURCE;
-import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_BRICKS;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_TARGET;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_START;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_STOP;
@@ -71,8 +71,10 @@ import javax.ws.rs.core.StreamingOutput;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.RESTConstants;
+import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Brick;
+import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.LogMessage;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
@@ -98,14 +100,17 @@ public class VolumesResource {
 	private static final String VOLUME_BRICK_LOG_SCRIPT = "get_volume_brick_log.py";
 
 	@InjectParam
-	private static ServerUtil serverUtil;
+	private GlusterServersResource glusterServersResource; 
+	
+	@InjectParam
+	private ServerUtil serverUtil;
 
 	@InjectParam
-	private static GlusterUtil glusterUtil;
+	private GlusterUtil glusterUtil;
 
-	private static final FileUtil fileUtil = new FileUtil();
+	private FileUtil fileUtil = new FileUtil();
 	
-	private static GlusterCoreUtil glusterCoreUtil = new GlusterCoreUtil();
+	private GlusterCoreUtil glusterCoreUtil = new GlusterCoreUtil();
 
 	@InjectParam
 	private VolumeOptionsDefaults volumeOptionsDefaults;
@@ -113,13 +118,21 @@ public class VolumesResource {
 	@GET
 	@Produces(MediaType.TEXT_XML)
 	public VolumeListResponse getAllVolumes(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
+		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		if(onlineServer == null) {
+			return new VolumeListResponse(Status.STATUS_SUCCESS, new ArrayList<Volume>());
+		}
+		
 		try {
-			// TODO: pass cluster name to getAllVolumes
-			return new VolumeListResponse(Status.STATUS_SUCCESS, glusterUtil.getAllVolumes());
-		} catch (Exception e) {
-			// TODO: log the error
-			e.printStackTrace();
-			return new VolumeListResponse(new Status(Status.STATUS_CODE_FAILURE, e.getMessage()), null);
+			return new VolumeListResponse(Status.STATUS_SUCCESS, glusterUtil.getAllVolumes(onlineServer.getName()));
+		} catch(ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			if(onlineServer == null) {
+				return new VolumeListResponse(Status.STATUS_SUCCESS, new ArrayList<Volume>());
+			}
+			
+			return new VolumeListResponse(Status.STATUS_SUCCESS, glusterUtil.getAllVolumes(onlineServer.getName()));
 		}
 	}
 
@@ -141,13 +154,28 @@ public class VolumesResource {
 		return status;
 	}
 
+	@SuppressWarnings("rawtypes")
 	@GET
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
 	@Produces(MediaType.TEXT_XML)
-	public Volume getVolume(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+	public GenericResponse getVolume(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName) {
-		// TODO: Pass cluster name to getVolume
-		return glusterUtil.getVolume(volumeName);
+		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		if(onlineServer == null) {
+			return new GenericResponse<Volume>(new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster [" + clusterName + "]"), null);
+		}
+		
+		try {
+			return new GenericResponse<Volume>(Status.STATUS_SUCCESS, glusterUtil.getVolume(volumeName, onlineServer.getName()));
+		} catch(ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			if(onlineServer == null) {
+				return new GenericResponse<Volume>(new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster [" + clusterName + "]"), null);
+			}
+			
+			return new GenericResponse<Volume>(Status.STATUS_SUCCESS, glusterUtil.getVolume(volumeName, onlineServer.getName()));
+		}
 	}
 
 	@PUT
@@ -171,22 +199,32 @@ public class VolumesResource {
 	public Status deleteVolume(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@QueryParam(QUERY_PARAM_VOLUME_NAME) String volumeName,
 			@QueryParam(QUERY_PARAM_DELETE_OPTION) boolean deleteFlag) {
-		// TODO: Delete volume on given cluster
-		Volume volume = glusterUtil.getVolume(volumeName);
-		Status status = glusterUtil.deleteVolume(volumeName);
-
-		String deleteOption = "";
-		if (deleteFlag) {
-			deleteOption = "-d";
+		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		if(onlineServer == null) {
+			return new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster [" + clusterName + "]");
 		}
+		
+		Volume volume = null;
+		try {
+			volume = glusterUtil.getVolume(volumeName, onlineServer.getName());
+		} catch(ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			if(onlineServer == null) {
+				return new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster [" + clusterName + "]");
+			}
+			volume = glusterUtil.getVolume(volumeName, onlineServer.getName());
+		}
+		
+		Status status = glusterUtil.deleteVolume(volumeName, onlineServer.getName());
 
 		if (status.isSuccess()) {
 			List<String> disks = volume.getDisks();
-			Status postDeleteStatus = postDelete(volumeName, disks, deleteOption);
+			Status postDeleteStatus = postDelete(volumeName, disks, deleteFlag);
 
 			if (!postDeleteStatus.isSuccess()) {
 				status.setCode(Status.STATUS_CODE_PART_SUCCESS);
-				status.setMessage("Error while post deletion operation: " + postDeleteStatus);
+				status.setMessage("Error in post-delete operation: " + postDeleteStatus);
 			}
 		}
 		return status;
@@ -218,7 +256,7 @@ public class VolumesResource {
 		return status;
 	}
 
-	private Status postDelete(String volumeName, List<String> disks, String deleteFlag) {
+	private Status postDelete(String volumeName, List<String> disks, boolean deleteFlag) {
 		String serverName, diskName, diskInfo[];
 		Status result;
 		for (int i = 0; i < disks.size(); i++) {
@@ -226,7 +264,7 @@ public class VolumesResource {
 			serverName = diskInfo[0];
 			diskName = diskInfo[1];
 			result = (Status) serverUtil.executeOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
-					+ diskName + " " + volumeName + " " + deleteFlag, Status.class);
+					+ diskName + " " + volumeName + (deleteFlag ? " -d" : ""), Status.class);
 			if (!result.isSuccess()) {
 				return result;
 			}
@@ -384,7 +422,7 @@ public class VolumesResource {
 
 			@Override
 			public void write(OutputStream output) throws IOException, WebApplicationException {
-				Volume volume = getVolume(clusterName, volumeName);
+				Volume volume = (Volume)getVolume(clusterName, volumeName).getData();
 				try {
 					// TODO: pass clusterName to downloadLogs
 					File archiveFile = new File(downloadLogs(volume));
@@ -435,7 +473,7 @@ public class VolumesResource {
 
 		try {
 			// TODO: Fetch logs from brick(s) of given cluster only
-			Volume volume = getVolume(clusterName, volumeName);
+			Volume volume = (Volume)getVolume(clusterName, volumeName).getData();
 			if (brickName == null || brickName.isEmpty() || brickName.equals(CoreConstants.ALL)) {
 				logMessages = getLogsForAllBricks(volume, lineCount);
 			} else {

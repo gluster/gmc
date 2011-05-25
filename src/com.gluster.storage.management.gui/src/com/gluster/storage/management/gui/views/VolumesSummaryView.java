@@ -133,8 +133,11 @@ public class VolumesSummaryView extends ViewPart {
 	private void createSummarySection() {
 		Composite section = guiHelper.createSection(form, toolkit, AVAILABILITY, null, 2, false);
 
-		// Cluster cluster = GlusterDataModelManager.getInstance().getModel()
-		// .getCluster();
+		if(volumes.getEntities().size() == 0) {
+			toolkit.createLabel(section,
+					"This section will be populated after at least\none volume is created the storage cloud.");
+			return;
+		}
 
 		Double[] values = new Double[] { Double.valueOf(getVolumeCountByStatus(volumes, VOLUME_STATUS.ONLINE)),
 				Double.valueOf(getVolumeCountByStatus(volumes, VOLUME_STATUS.OFFLINE)) };

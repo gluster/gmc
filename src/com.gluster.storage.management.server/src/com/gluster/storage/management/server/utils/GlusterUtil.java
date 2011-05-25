@@ -93,14 +93,6 @@ public class GlusterUtil {
 		return null;
 	}
 
-	private GlusterServer getKnownServer(String knownServer) {
-		GlusterServer server = new GlusterServer(knownServer);
-		server.setStatus(SERVER_STATUS.ONLINE); //TODO: If pingable
-		//NOTE: No UUID assumed, it can be fetch while getting server details
-		return server;
-	}
-	
-
 	public GlusterServer getGlusterServer(GlusterServer onlineServer, String serverName) {
 		List<GlusterServer> servers = getGlusterServers(onlineServer);
 		for(GlusterServer server : servers) {
@@ -278,24 +270,23 @@ public class GlusterUtil {
 		return new Status(processUtil.executeCommand(command));
 	}
 
-	public Status deleteVolume(String volumeName) {
-		return new Status(processUtil.executeCommand("gluster", "--mode=script", "volume", "delete", volumeName));
+	public Status deleteVolume(String volumeName, String knownServer) {
+		return new Status(sshUtil.executeRemote(knownServer, "gluster --mode=script volume delete " + volumeName));
 	}
 
-	private String getVolumeInfo(String volumeName) {
-		ProcessResult result = new ProcessUtil().executeCommand("gluster", "volume", "info", volumeName);
+	private String getVolumeInfo(String volumeName, String knownServer) {
+		ProcessResult result = sshUtil.executeRemote(knownServer, "gluster volume info " + volumeName);
 		if (!result.isSuccess()) {
-			throw new GlusterRuntimeException("Command [gluster volume info] failed with error: ["
-					+ result.getExitValue() + "][" + result.getOutput() + "]");
+			throw new GlusterRuntimeException("Command [gluster volume info] failed on [" + knownServer
+					+ "] with error: " + result);
 		}
 		return result.getOutput();
 	}
 
-	private String getVolumeInfo() {
-		ProcessResult result = new ProcessUtil().executeCommand("gluster", "volume", "info");
+	private String getVolumeInfo(String knownServer) {
+		ProcessResult result = sshUtil.executeRemote(knownServer, "gluster volume info ");
 		if (!result.isSuccess()) {
-			throw new GlusterRuntimeException("Command [gluster volume info] failed with error: ["
-					+ result.getExitValue() + "][" + result.getOutput() + "]");
+			throw new GlusterRuntimeException("Command [gluster volume info] failed on [" + knownServer + "] with error: " + result);
 		}
 		return result.getOutput();
 	}
@@ -399,16 +390,16 @@ public class GlusterUtil {
 		return false;
 	}
 
-	public Volume getVolume(String volumeName) {
-		List<Volume> volumes = parseVolumeInfo(getVolumeInfo(volumeName));
+	public Volume getVolume(String volumeName, String knownServer) {
+		List<Volume> volumes = parseVolumeInfo(getVolumeInfo(volumeName, knownServer));
 		if (volumes.size() > 0) {
 			return volumes.get(0);
 		}
 		return null;
 	}
 
-	public List<Volume> getAllVolumes() {
-		return parseVolumeInfo(getVolumeInfo());
+	public List<Volume> getAllVolumes(String knownServer) {
+		return parseVolumeInfo(getVolumeInfo(knownServer));
 	}
 
 	private List<Volume> parseVolumeInfo(String volumeInfoText) {

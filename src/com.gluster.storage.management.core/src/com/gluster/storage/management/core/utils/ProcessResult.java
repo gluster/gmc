@@ -61,4 +61,9 @@ public class ProcessResult {
 	public boolean isSuccess() {
 		return exitValue == SUCCESS;
 	}
+	
+	@Override
+	public String toString() {
+		return "["+ getExitValue() + "][" + getOutput() + "]";
+	}
 }

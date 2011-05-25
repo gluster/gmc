@@ -31,6 +31,7 @@ import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.LogMessageListResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
@@ -88,8 +89,9 @@ public class VolumesClient extends AbstractClient {
 		return (VolumeListResponse) fetchResource(VolumeListResponse.class);
 	}
 
-	public Volume getVolume(String volumeName) {
-		return (Volume) fetchSubResource(volumeName, Volume.class);
+	@SuppressWarnings("unchecked")
+	public GenericResponse<Volume> getVolume(String volumeName) {
+		return (GenericResponse<Volume>)fetchSubResource(volumeName, GenericResponse.class);
 	}
 
 	public Status deleteVolume(Volume volume, boolean deleteOption) {
