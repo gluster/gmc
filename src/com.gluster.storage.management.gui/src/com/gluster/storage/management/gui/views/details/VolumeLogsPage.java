@@ -324,7 +324,7 @@ public class VolumeLogsPage extends Composite {
 	private void createDisksCombo(Composite composite) {
 		disksCombo = new Combo(composite, SWT.READ_ONLY);
 		disksCombo.setBounds(365, 15, 100, 20);
-		disksCombo.setItems(volume.getBricks().toArray(new String[0]));
+		disksCombo.setItems( volume.getBrickDirectories().toArray(new String[0]));
 		disksCombo.add(CoreConstants.ALL, 0);
 		toolkit.adapt(disksCombo);
 		toolkit.paintBordersFor(disksCombo);

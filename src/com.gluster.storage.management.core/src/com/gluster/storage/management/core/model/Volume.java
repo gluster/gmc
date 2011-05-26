@@ -282,4 +282,12 @@ public class Volume extends Entity {
 		return StringUtil.filterString(getName() + getVolumeTypeStr() + getTransportTypeStr() + getStatusStr()
 				+ getNumOfDisks(), filterString, caseSensitive);
 	}
+	
+	public List<String> getBrickDirectories() {
+		List<String> brickDirectories = new ArrayList<String>();
+		for(Brick brick : getBricks()) {
+			brickDirectories.add(brick.getQualifiedName());
+		}
+		return brickDirectories;
+	}
 }

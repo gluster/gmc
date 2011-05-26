@@ -407,7 +407,7 @@ public class VolumesResource {
 	@GET
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}/" + SUBRESOURCE_LOGS)
 	public LogMessageListResponse getLogs(@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName,
-			@QueryParam(QUERY_PARAM_DISK_NAME) String diskName, @QueryParam(QUERY_PARAM_LOG_SEVERITY) String severity,
+			@QueryParam(QUERY_PARAM_DISK_NAME) String brickName, @QueryParam(QUERY_PARAM_LOG_SEVERITY) String severity,
 			@QueryParam(QUERY_PARAM_FROM_TIMESTAMP) String fromTimestamp,
 			@QueryParam(QUERY_PARAM_TO_TIMESTAMP) String toTimestamp,
 			@QueryParam(QUERY_PARAM_LINE_COUNT) Integer lineCount, @QueryParam(QUERY_PARAM_DOWNLOAD) Boolean download) {
@@ -415,11 +415,12 @@ public class VolumesResource {
 
 		try {
 			Volume volume = getVolume(volumeName);
-			if (diskName == null || diskName.isEmpty()) {
+			if (brickName == null || brickName.isEmpty() || brickName.equals(CoreConstants.ALL)) {
 				logMessages = getLogsForAllBricks(volume, lineCount);
 			} else {
 				// fetch logs for given brick of the volume
-				logMessages = getBrickLogs(volume, getBrickForDisk(volume, diskName), lineCount);
+				// logMessages = getBrickLogs(volume, getBrickForDisk(volume, brickName), lineCount);
+				logMessages = getBrickLogs(volume, brickName, lineCount);
 			}
 		} catch (Exception e) {
 			return new LogMessageListResponse(new Status(e), null);
@@ -502,11 +503,6 @@ public class VolumesResource {
 			@FormParam(FORM_PARAM_SOURCE) String diskFrom, @FormParam(FORM_PARAM_TARGET) String diskTo,
 			@FormParam(FORM_PARAM_OPERATION) String operation) {
 		return glusterUtil.migrateDisk(volumeName, diskFrom, diskTo, operation);
-	}
-
-	private String getBrickForDisk(Volume volume, String diskName) {
-		int index = volume.getDisks().indexOf(diskName);
-		return volume.getBricks().get(index).getBrickDirectory();
 	}
 
 	private String getDiskForBrick(Volume volume, String brickName) {
