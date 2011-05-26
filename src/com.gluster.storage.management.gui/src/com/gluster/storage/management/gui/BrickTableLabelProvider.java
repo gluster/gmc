@@ -48,7 +48,11 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 			switch (status) {
 			case READY:
 				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
-			case OFFLINE:
+			case IO_ERROR:
+				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
+			case UNINITIALIZED:
+				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
+			case INITIALIZING:
 				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
 			default:
 				throw new GlusterRuntimeException("Invalid brick status [" + status + "]");
@@ -67,10 +71,10 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 	}
 
 	private String getDiskSpace(Disk disk) {
-		if (disk.isOffline()) {
-			return "NA";
-		} else {
+		if (disk.isReady()) {
 			return NumberUtil.formatNumber(disk.getSpace());
+		} else {
+			return "NA";
 		}
 	}
 

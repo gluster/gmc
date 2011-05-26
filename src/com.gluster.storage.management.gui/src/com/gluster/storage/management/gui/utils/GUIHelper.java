@@ -134,7 +134,7 @@ public class GUIHelper {
 		layout.verticalSpacing = 15;
 		layout.marginBottom = 20;
 		layout.marginTop = 5;
-
+		
 		client.setLayout(layout);
 		section.setClient(client);
 
