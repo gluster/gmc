@@ -1,5 +1,7 @@
 package com.gluster.storage.management.gui.views;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -20,8 +22,11 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
+import org.eclipse.ui.forms.widgets.FormText;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Hyperlink;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
@@ -136,10 +141,10 @@ public class VolumeSummaryView extends ViewPart {
 		lblAlert.redraw();
 	}
 
-	private Label setLabelStyle(Label label, String fontName, int size, int style) {
+	private FormText setFormTextStyle(FormText formText, String fontName, int size, int style ) { 
 		Font font = new Font(Display.getCurrent(), new FontData(fontName, size, style));
-		label.setFont(font);
-		return label;
+		formText.setFont(font);
+		return formText;
 	}
 
 	private void createVolumeMountingInfoSection() {
@@ -151,17 +156,43 @@ public class VolumeSummaryView extends ViewPart {
 		String nfsMountInfo = "mount -t nfs " + firstOnlineServer + ":/" + volume.getName() + " <mount-point>";
 		String info = "Server can be any server name in the storage cloud eg. <" + onlineServers + ">"; //TODO: if more than 10 servers... 
 		
-		Composite section = guiHelper.createSection(form, toolkit, "Mounting Information", null, 2, false);
-
+		Composite section = guiHelper.createSection(form, toolkit, "Mounting Information", null, 3, false);
+		
 		toolkit.createLabel(section, glusterFs, SWT.NORMAL);
-		setLabelStyle(toolkit.createLabel(section, glusterFsMountInfo, SWT.NONE), COURIER_FONT, 10, SWT.NONE);
+		FormText glusterfsMountText = setFormTextStyle(toolkit.createFormText(section, true),  COURIER_FONT, 10, SWT.NONE);
+		glusterfsMountText.setText(glusterFsMountInfo, false, false);
+		glusterfsMountText.setLayoutData(new GridData(GridData.BEGINNING, GridData.VERTICAL_ALIGN_CENTER, false, false, 2, 0)); // Label spanned two column
 
 		// TODO: Check required if nfs is optional
 		toolkit.createLabel(section, nfs, SWT.NORMAL);
-		setLabelStyle(toolkit.createLabel(section, nfsMountInfo, SWT.NONE), COURIER_FONT, 10, SWT.NONE);
+		FormText glusterNfsMountText = setFormTextStyle(toolkit.createFormText(section, true),  COURIER_FONT, 10, SWT.NONE);
+		glusterNfsMountText.setText(nfsMountInfo, false, false);
+		glusterNfsMountText.setLayoutData(new GridData(GridData.BEGINNING, GridData.VERTICAL_ALIGN_CENTER, false, false, 2, 0));
+		
+		toolkit.createLabel(section, "");
+		Label infoLabel = toolkit.createLabel(section, info, SWT.NONE);
+		infoLabel.setLayoutData(new GridData(GridData.BEGINNING, GridData.VERTICAL_ALIGN_CENTER, false, false, 2, 0));
+		
+		//TODO: implement a logic to identify the corresponding glusterfs client download link
+		String message = "You can download gluster FS client from";
+		String glusterClientDownloadlinkText = "here.";
+		final String glusterClientDownloadlink = "http://www.gluster.com";
 
 		toolkit.createLabel(section, "");
-		toolkit.createLabel(section, info, SWT.NONE);
+		toolkit.createLabel(section, message );
+		Hyperlink link = toolkit.createHyperlink(section, glusterClientDownloadlinkText, SWT.NORMAL);
+		link.addHyperlinkListener(new HyperlinkAdapter() {
+			public void linkActivated(HyperlinkEvent e) {
+				try {
+					System.out.println(e.getLabel() + " [" + e.getHref() + "]");
+					PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(new URL( glusterClientDownloadlink ));
+				} catch (PartInitException e1) {
+					e1.printStackTrace();
+				} catch (MalformedURLException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
 	}
 
 	private String getOnlineServers(int maxServers) {

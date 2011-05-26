@@ -50,6 +50,10 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
 			case IO_ERROR:
 				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
+			case UNINITIALIZED:
+				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
+			case INITIALIZING:
+				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
 			default:
 				throw new GlusterRuntimeException("Invalid brick status [" + status + "]");
 			}
