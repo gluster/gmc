@@ -69,7 +69,7 @@ public class DiskTableLabelProvider extends TableLabelProviderAdapter {
 		}
 	}
 
-	private String getDiskSpace(Disk disk) {
+	private String getDiskFreeSpace(Disk disk) {
 		if (disk.hasErrors() || disk.isUninitialized()) {
 			return "NA";
 		} else {
@@ -88,7 +88,7 @@ public class DiskTableLabelProvider extends TableLabelProviderAdapter {
 		
 		return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? brick.getServerName()
 				: columnIndex == DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? brick.getBrickDirectory()
-				: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? getDiskSpace(disk)
+				: columnIndex == DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDiskFreeSpace(disk)
 				: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal() ? getDiskSpaceInUse(disk)
 				: columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? disk.getStatusStr() : "Invalid");
 	}

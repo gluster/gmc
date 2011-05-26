@@ -88,6 +88,7 @@ public class VolumeOptionsPage extends Composite {
 
 		setupPageLayout();
 		filterText = guiHelper.createFilterText(toolkit, this);
+		createAddButton();
 		setupOptionsTableViewer(filterText);
 		
 		createAddButton();

@@ -51,10 +51,11 @@ import com.richclientgui.toolbox.duallists.TableColumnData;
 
 public class BricksSelectionPage extends Composite {
 	private enum DISK_TABLE_COLUMN_INDICES {
-		SERVER, BRICK_DIRECTORY, SPACE, SPACE_USED
+		SERVER, BRICK_DIRECTORY, FREE_SPACE, SPACE_USED
 	}
 
-	private static final String[] DISK_TABLE_COLUMNS_NAMES = { "Server", "Brick Directory", "Space (GB)", "Used Space (GB)" };
+	private static final String[] DISK_TABLE_COLUMNS_NAMES = { "Server", "Brick Directory", "Free Space (GB)",
+			"Used Space (GB)" };
 
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 	private CustomTableDualListComposite<Disk> dualTableViewer;
@@ -68,14 +69,15 @@ public class BricksSelectionPage extends Composite {
 
 	private Button btnDown;
 
-	public BricksSelectionPage(final Composite parent, int style, List<Disk> allDisks, List<Disk> selectedDisks, String volumeName) {
+	public BricksSelectionPage(final Composite parent, int style, List<Disk> allDisks, List<Disk> selectedDisks,
+			String volumeName) {
 		super(parent, style);
 
 		createPage(allDisks, selectedDisks, volumeName);
 
 		parent.layout();
 	}
-	
+
 	public void addDiskSelectionListener(ListContentChangedListener<Disk> listener) {
 		dualTableViewer.addChosenListChangedSelectionListener(listener);
 	}
@@ -91,9 +93,10 @@ public class BricksSelectionPage extends Composite {
 
 				Disk disk = (Disk) element;
 				return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? disk.getServerName()
-						: columnIndex == DISK_TABLE_COLUMN_INDICES.BRICK_DIRECTORY.ordinal() ? disk.getMountPoint() + "/" + volumeName
-								: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? NumberUtil
-										.formatNumber(disk.getSpace())
+						: columnIndex == DISK_TABLE_COLUMN_INDICES.BRICK_DIRECTORY.ordinal() ? disk.getMountPoint()
+								+ "/" + volumeName
+								: columnIndex == DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? NumberUtil
+										.formatNumber(disk.getFreeSpace())
 										: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE_USED.ordinal() ? NumberUtil
 												.formatNumber(disk.getSpaceInUse()) : "Invalid");
 			}
@@ -101,14 +104,14 @@ public class BricksSelectionPage extends Composite {
 	}
 
 	private int indexOf(List<Disk> disks, Disk searchDisk) {
-		for(Disk disk : disks) {
-			if(disk.getQualifiedName().equals(searchDisk.getQualifiedName())) {
+		for (Disk disk : disks) {
+			if (disk.getQualifiedName().equals(searchDisk.getQualifiedName())) {
 				return disks.indexOf(disk);
 			}
 		}
 		return -1;
 	}
-	
+
 	private void createPage(List<Disk> allDisks, List<Disk> selectedDisks, String volumeName) {
 		setupPageLayout();
 
@@ -135,9 +138,9 @@ public class BricksSelectionPage extends Composite {
 			public void widgetSelected(SelectionEvent e) {
 				chosenDisks = getChosenDisks();
 				List<Disk> selectedDisks = getSelectedChosenDisks();
-				
+
 				chosenBricksContentProvider.removeElements(chosenDisks);
-				for(Disk disk : selectedDisks) {
+				for (Disk disk : selectedDisks) {
 					int index = chosenDisks.indexOf(disk);
 					Disk diskAbove = chosenDisks.get(index - 1);
 					chosenDisks.set(index - 1, disk);
@@ -153,15 +156,15 @@ public class BricksSelectionPage extends Composite {
 		btnDown.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false));
 		btnDown.setImage(guiHelper.getImage(IImageKeys.ARROW_DOWN));
 		btnDown.addSelectionListener(new SelectionAdapter() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 
 				chosenDisks = getChosenDisks();
 				List<Disk> selectedDisks = getSelectedChosenDisks();
-				
+
 				chosenBricksContentProvider.removeElements(chosenDisks);
-				for(Disk disk : selectedDisks) {
+				for (Disk disk : selectedDisks) {
 					int index = chosenDisks.indexOf(disk);
 					Disk diskBelow = chosenDisks.get(index + 1);
 					chosenDisks.set(index + 1, disk);
@@ -170,7 +173,7 @@ public class BricksSelectionPage extends Composite {
 				chosenBricksContentProvider.addElements(chosenDisks);
 				dualTableViewer.refreshChosenViewer();
 				updateButtons();
-				
+
 			}
 		});
 	}
@@ -179,7 +182,7 @@ public class BricksSelectionPage extends Composite {
 		TableItem[] selectedItems = dualTableViewer.getChosenTable().getSelection();
 		List<Disk> selectedDisks = new ArrayList<Disk>();
 		for (TableItem item : selectedItems) {
-			selectedDisks.add((Disk)item.getData());
+			selectedDisks.add((Disk) item.getData());
 		}
 		return selectedDisks;
 	}
@@ -234,9 +237,11 @@ public class BricksSelectionPage extends Composite {
 		chosenBricksContentProvider = new RemovableContentProvider<Disk>(selectedDisks);
 		dualTableViewer.setChosenContentProvider(chosenBricksContentProvider);
 		dualTableViewer.setChosenLabelProvider(diskLabelProvider);
-		
+
 		dualTableViewer.getChosenTable().addSelectionListener(new SelectionAdapter() {
-			/* (non-Javadoc)
+			/*
+			 * (non-Javadoc)
+			 * 
 			 * @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
 			 */
 			@Override
@@ -251,12 +256,12 @@ public class BricksSelectionPage extends Composite {
 		btnDown.setEnabled(true);
 		List<Disk> selectedChosenDisks = getSelectedChosenDisks();
 		List<Disk> chosenDisks = getChosenDisks();
-		for(Disk disk : selectedChosenDisks) {
-			int index = chosenDisks.indexOf(disk); 
-			if(index == 0) {
+		for (Disk disk : selectedChosenDisks) {
+			int index = chosenDisks.indexOf(disk);
+			if (index == 0) {
 				btnUp.setEnabled(false);
 			}
-			if(index == chosenDisks.size() - 1) {
+			if (index == chosenDisks.size() - 1) {
 				btnDown.setEnabled(false);
 			}
 		}
@@ -296,14 +301,13 @@ public class BricksSelectionPage extends Composite {
 
 		setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 	}
-	
-	
+
 	public List<Disk> getChosenDisks() {
 		Object[] disksArr = (Object[]) chosenBricksContentProvider.getElements(dualTableViewer);
 		if (disksArr != null) {
 			List<Disk> disks = new ArrayList<Disk>();
 			for (Object disk : disksArr) {
-				disks.add( (Disk)disk ); 
+				disks.add((Disk) disk);
 			}
 			return disks;
 		}
@@ -312,16 +316,17 @@ public class BricksSelectionPage extends Composite {
 
 	public List<Brick> getChosenBricks(String volumeName) {
 		Object[] bricksArr = (Object[]) chosenBricksContentProvider.getElements(dualTableViewer);
-		
+
 		if (bricksArr != null) {
 			List<Brick> bricks = new ArrayList<Brick>();
 			for (Object disk : bricksArr) {
-				bricks.add( new Brick( ((Disk) disk).getServerName(), BRICK_STATUS.ONLINE, ((Disk) disk).getName(), ((Disk) disk).getMountPoint() + "/" + volumeName)); // Assumption mount point is not having trailing "/"
+				bricks.add(new Brick(((Disk) disk).getServerName(), BRICK_STATUS.ONLINE, ((Disk) disk).getName(),
+						((Disk) disk).getMountPoint() + "/" + volumeName)); // Assumption mount point is not having
+																			// trailing "/"
 			}
 			return bricks;
 		}
 		return null;
 	}
 
-	
 }

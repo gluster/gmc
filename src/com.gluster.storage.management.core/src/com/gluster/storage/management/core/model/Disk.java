@@ -45,6 +45,10 @@ public class Disk extends Entity {
 	public Double getSpace() {
 		return space;
 	}
+	
+	public Double getFreeSpace() {
+		return getSpace() - getSpaceInUse();
+	}
 
 	public void setSpace(Double space) {
 		this.space = space;
@@ -61,7 +65,7 @@ public class Disk extends Entity {
 	public boolean isReady() {
 		return getStatus() == DISK_STATUS.READY;
 	}
-
+	
 	public DISK_STATUS getStatus() {
 		return status;
 	}
