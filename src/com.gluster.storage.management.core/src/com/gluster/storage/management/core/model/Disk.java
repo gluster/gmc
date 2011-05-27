@@ -34,6 +34,7 @@ public class Disk extends Entity {
 
 	private String serverName;
 	private String mountPoint;
+	private String description;
 	private Double space;
 	private Double spaceInUse;
 	private DISK_STATUS status;
@@ -100,6 +101,14 @@ public class Disk extends Entity {
 
 	public String getMountPoint() {
 		return mountPoint;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getDescription() {
+		return description;
 	}
 
 	public Disk(Server server, String name, String mountPoint, Double space, Double spaceInUse, DISK_STATUS status) {
