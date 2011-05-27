@@ -103,6 +103,10 @@ public class Server extends Entity {
 		return diskSpaceInUse;
 	}
 	
+	public double getFreeDiskSpace() {
+		return getTotalDiskSpace() - getDiskSpaceInUse();
+	}
+	
 	/**
 	 * Total disk space in use is automatically calculated, and hence this method should never be called. It is required
 	 * only to make sure that the element "diskSpaceInUse" gets added to the XML tag when jersey converts the server
