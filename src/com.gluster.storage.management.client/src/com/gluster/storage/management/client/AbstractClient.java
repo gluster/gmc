@@ -161,7 +161,7 @@ public abstract class AbstractClient {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Object postRequest(Class responseClass, Form form) {
-		return resource.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).header("Authorization", authHeader)
+		return resource.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).header(HTTP_HEADER_AUTH, authHeader)
 				.accept(MediaType.TEXT_XML).post(responseClass, form);
 	}
 
@@ -179,7 +179,7 @@ public abstract class AbstractClient {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected Object postRequest(String subResourceName, Class responseClass, Form form) {
 		return resource.path(subResourceName).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-				.header("Authorization", authHeader).accept(MediaType.TEXT_XML).post(responseClass, form);
+				.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML).post(responseClass, form);
 	}
 
 	/**
@@ -195,7 +195,21 @@ public abstract class AbstractClient {
 	 */
 	protected Object putRequest(String subResourceName, Class responseClass, Form form) {
 		return resource.path(subResourceName).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-				.header("Authorization", authHeader).accept(MediaType.TEXT_XML).put(responseClass, form);
+				.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML).put(responseClass, form);
+	}
+
+	/**
+	 * Submits given Form using PUT method to the given sub-resource and returns the object received as response
+	 * 
+	 * @param responseClass
+	 *            Class of the object expected as response
+	 * @param form
+	 *            Form to be submitted
+	 * @return Object of given class received as response
+	 */
+	protected Object putRequest(Class responseClass, Form form) {
+		return resource.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).header(HTTP_HEADER_AUTH, authHeader)
+				.accept(MediaType.TEXT_XML).put(responseClass, form);
 	}
 
 	/**
@@ -209,7 +223,7 @@ public abstract class AbstractClient {
 	 */
 	protected Object putRequest(String subResourceName, Class responseClass) {
 		return resource.path(subResourceName).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-				.header("Authorization", authHeader).accept(MediaType.TEXT_XML).put(responseClass);
+				.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML).put(responseClass);
 	}
 
 	/**

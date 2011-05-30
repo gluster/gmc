@@ -19,6 +19,7 @@
 package com.gluster.storage.management.client;
 
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_CLUSTER_NAME;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SERVER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
 
 import java.util.List;
@@ -56,6 +57,13 @@ public class ClustersClient extends AbstractClient {
 		Form form = new Form();
 		form.add(FORM_PARAM_CLUSTER_NAME, clusterName);
 		return (Status)postRequest(Status.class, form);
+	}
+	
+	public Status registerCluster(String clusterName, String knownServer) {
+		Form form = new Form();
+		form.add(FORM_PARAM_CLUSTER_NAME, clusterName);
+		form.add(FORM_PARAM_SERVER_NAME, knownServer);
+		return (Status)putRequest(Status.class, form);
 	}
 	
 	public Status deleteCluster(String clusterName) {

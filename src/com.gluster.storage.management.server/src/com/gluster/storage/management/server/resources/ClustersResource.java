@@ -19,6 +19,7 @@
 package com.gluster.storage.management.server.resources;
 
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_CLUSTER_NAME;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SERVER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
 
@@ -35,10 +36,14 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.gluster.storage.management.core.exceptions.ConnectionException;
+import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.response.StringListResponse;
 import com.gluster.storage.management.server.data.ClusterInfo;
 import com.gluster.storage.management.server.data.PersistenceDao;
+import com.gluster.storage.management.server.data.ServerInfo;
+import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.sun.jersey.api.core.InjectParam;
 
 /**
@@ -49,6 +54,12 @@ public class ClustersResource {
 
 	@InjectParam
 	private PersistenceDao clusterDao;
+	
+	@InjectParam
+	private GlusterServersResource glusterServersResource;
+	
+	@InjectParam
+	private GlusterUtil glusterUtil;
 
 	public void setClusterDao(PersistenceDao clusterDao) {
 		this.clusterDao = clusterDao;
@@ -84,6 +95,30 @@ public class ClustersResource {
 			txn.rollback();
 			return new Status(Status.STATUS_CODE_FAILURE, "Exception while trying to save cluster [" + clusterName
 					+ "]: [" + e.getMessage() + "]");
+		}
+	}
+	
+	public Status registerCluster(@FormParam(FORM_PARAM_CLUSTER_NAME) String clusterName,
+			@FormParam(FORM_PARAM_SERVER_NAME) String knownServer) {
+		EntityTransaction txn = clusterDao.startTransaction();
+		ClusterInfo cluster = new ClusterInfo();
+		cluster.setName(clusterName);
+		
+		GlusterServer server = new GlusterServer(knownServer);
+		try {
+			List<GlusterServer> glusterServers = glusterUtil.getGlusterServers(server);
+			List<ServerInfo> servers = new ArrayList<ServerInfo>();
+			for(GlusterServer glusterServer : glusterServers) {
+				ServerInfo serverInfo = new ServerInfo();
+				serverInfo.setName(glusterServer.getName());
+				serverInfo.setCluster(cluster);
+				servers.add(serverInfo);
+			}
+			cluster.setServers(servers);
+			clusterDao.save(cluster);
+			return Status.STATUS_SUCCESS;
+		} catch(Exception e) {
+			return new Status(e);
 		}
 	}
 

@@ -24,8 +24,11 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.layout.GridData;
@@ -36,6 +39,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.GUIHelper;
@@ -44,14 +48,31 @@ import com.gluster.storage.management.gui.utils.GUIHelper;
  * Cluster selection dialog, which prompts for the cluster name to be managed
  */
 public class ClusterSelectionDialog extends Dialog {
+	protected enum CLUSTER_MODE { SELECT, CREATE, REGISTER };
+	
 	private Combo clusterNameCombo = null;
+	private Text newClusterNameText = null;
+	private Text existingClusterNameText = null;
+	private Text serverNameText = null;
 	private Button okButton;
 
 	private final GUIHelper guiHelper = GUIHelper.getInstance();
 	private Composite composite;
-	private ControlDecoration errorDecoration;
+	private ControlDecoration newClusterNameErrorDecoration;
+	private ControlDecoration existingClusterNameErrorDecoration;
+	private ControlDecoration serverNameErrorDecoration;
 	private List<String> clusters;
+	private Button selectButton;
+	private Button createButton;
+	private Button registerButton;
+	private Composite clusterSelectionComposite;
+	private Composite clusterCreationComposite;
+	private Composite clusterRegisterComposite;
+	private StackLayout stackLayout;
+
 	private String clusterName;
+	private CLUSTER_MODE clusterMode;
+	private String serverName;
 
 	public ClusterSelectionDialog(Shell parentShell, List<String> clusters) {
 		super(parentShell);
@@ -79,24 +100,20 @@ public class ClusterSelectionDialog extends Dialog {
 	}
 
 	private void createClusterNameLabel(Composite composite) {
-		Label userIdLabel = new Label(composite, SWT.NONE);
-		userIdLabel.setText("&Cluster to Manage:");
-		userIdLabel.setLayoutData(new GridData(GridData.END, GridData.CENTER, false, false));
+		Label clusterNameLabel = new Label(composite, SWT.NONE);
+		clusterNameLabel.setText("Cluster &Name:");
+		clusterNameLabel.setLayoutData(new GridData(GridData.END, GridData.CENTER, false, false));
 	}
 
 	private void createClusterNameCombo(Composite composite) {
-		clusterNameCombo = new Combo(composite, SWT.BORDER);
+		clusterNameCombo = new Combo(composite, SWT.READ_ONLY);
 		clusterNameCombo.setItems(clusters.toArray(new String[0]));
 		clusterNameCombo.select(0);
-
-//		GridData layoutData = new GridData(SWT.FILL, GridData.FILL, true, false);
-//		layoutData.widthHint = convertWidthInCharsToPixels(32);
-//		clusterNameCombo.setLayoutData(layoutData);
 	}
 
 	private void configureDialogLayout(Composite composite) {
 		GridLayout layout = (GridLayout) composite.getLayout();
-		layout.numColumns = 2;
+		layout.numColumns = 3;
 		layout.marginLeft = 20;
 		layout.marginRight = 20;
 		layout.marginTop = 20;
@@ -123,11 +140,189 @@ public class ClusterSelectionDialog extends Dialog {
 		composite = (Composite) super.createDialogArea(parent);
 		configureDialogLayout(composite);
 
-		createClusterNameLabel(composite);
-		createClusterNameCombo(composite);
-		createErrorDecoration();
+		createRadioButtons();
+		createSubComposites();
 
 		return composite;
+	}
+
+	private void createSubComposites() {
+		Composite subComposite = new Composite(composite, SWT.NONE);
+		GridData data = new GridData();
+		data.horizontalSpan = 3;
+		subComposite.setLayoutData(data);
+		stackLayout = new StackLayout();
+		subComposite.setLayout(stackLayout);
+		
+		createClusterSelectionComposite(subComposite, stackLayout);
+		createClusterCreationComposite(subComposite);
+		createClusterRegisterComposite(subComposite);
+		
+		createRadioButtonListeners(subComposite);
+		if(clusters.size() > 0) {
+			selectButton.setSelection(true);
+		} else {
+			createButton.setSelection(true);
+		}
+	}
+
+	private void createClusterRegisterComposite(Composite composite) {
+		clusterRegisterComposite = new Composite(composite, SWT.NONE);
+		GridLayout layout = new GridLayout(2, false);
+		clusterRegisterComposite.setLayout(layout);
+
+		createClusterNameLabel(clusterRegisterComposite);
+		existingClusterNameText = createText(clusterRegisterComposite);
+		existingClusterNameText.setToolTipText("Enter a name for the cluster being registered.");
+		existingClusterNameErrorDecoration = createErrorDecoration(existingClusterNameText, "Please enter a cluster name!");
+		existingClusterNameErrorDecoration.show();
+		
+		createClusterServerLabel(clusterRegisterComposite);
+		serverNameText = createText(clusterRegisterComposite);
+		serverNameText.setToolTipText("Enter host name / IP address of one of the servers of the cluster.");
+		serverNameErrorDecoration = createErrorDecoration(serverNameText, "Please enter a server name!");
+		serverNameErrorDecoration.show();
+	}
+
+	private void createClusterServerLabel(Composite composite) {
+		Label serverNameLabel = new Label(composite, SWT.NONE);
+		serverNameLabel.setText("Server Na&me:");
+		serverNameLabel.setLayoutData(new GridData(GridData.END, GridData.CENTER, false, false));
+	}
+
+	private void createClusterCreationComposite(Composite subComposite) {
+		clusterCreationComposite = new Composite(subComposite, SWT.NONE);
+		GridLayout layout = new GridLayout(2, false);
+		clusterCreationComposite.setLayout(layout);
+
+		createClusterNameLabel(clusterCreationComposite);
+		newClusterNameText = createText(clusterCreationComposite);
+		newClusterNameText.setToolTipText("Enter name of the cluster to be created");
+		newClusterNameErrorDecoration = createErrorDecoration(newClusterNameText, "Please enter cluster name!");
+		newClusterNameErrorDecoration.show();
+	}
+
+	private Text createText(Composite parent) {
+		Text text = new Text(parent, SWT.NONE);
+		GridData layoutData = new GridData(SWT.FILL, GridData.FILL, true, false);
+		int width = convertWidthInCharsToPixels(32);
+		layoutData.widthHint = width;
+		layoutData.minimumWidth = width;
+		text.setLayoutData(layoutData);
+		
+		text.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				validate();
+			}
+		});
+		
+		return text;
+	}
+
+	private void createClusterSelectionComposite(Composite subComposite, StackLayout stackLayout) {
+		clusterSelectionComposite = new Composite(subComposite, SWT.NONE);
+		GridLayout layout = new GridLayout(2, false);
+		clusterSelectionComposite.setLayout(layout);
+		createClusterNameLabel(clusterSelectionComposite);
+		createClusterNameCombo(clusterSelectionComposite);
+		stackLayout.topControl = clusterSelectionComposite;
+	}
+
+	private void createRadioButtons() {
+		{
+			if (clusters.size() > 0) {
+				selectButton = new Button(composite, SWT.RADIO);
+				selectButton.setText("&Select");
+			}
+		}
+		{
+			createButton = new Button(composite, SWT.RADIO);
+			createButton.setText("&Create");
+		}
+		{
+			registerButton = new Button(composite, SWT.RADIO);
+			registerButton.setText("&Register");
+		}
+	}
+	
+	private void validate() {
+		okButton.setEnabled(false);
+		
+		if(selectButton.getSelection()) {
+			okButton.setEnabled(true);
+			return;
+		}
+		
+		if(createButton.getSelection()) {
+			String newClusterName = newClusterNameText.getText().trim(); 
+			if(newClusterName.isEmpty()) {
+				newClusterNameErrorDecoration.setDescriptionText("Please enter a cluster name!");
+				newClusterNameErrorDecoration.show();
+			} else if(clusters.contains(newClusterName)) {
+				newClusterNameErrorDecoration.setDescriptionText("Cluster [" + newClusterName + "] already exists!");
+				newClusterNameErrorDecoration.show();
+			} else {
+				okButton.setEnabled(true);
+				newClusterNameErrorDecoration.hide();
+			}
+		}
+		
+		if(registerButton.getSelection()) {
+			okButton.setEnabled(true);
+			String clusterName = existingClusterNameText.getText().trim(); 
+			if(existingClusterNameText.getText().trim().isEmpty()) {
+				existingClusterNameErrorDecoration.setDescriptionText("Please enter a cluster name!");
+				existingClusterNameErrorDecoration.show();
+				okButton.setEnabled(false);
+			} else if(clusters.contains(clusterName)) {
+				existingClusterNameErrorDecoration.setDescriptionText("Cluster [" + clusterName + "] already exists!");
+				existingClusterNameErrorDecoration.show();
+				okButton.setEnabled(false);
+			} else {
+				existingClusterNameErrorDecoration.hide();
+			}
+			
+			if(serverNameText.getText().trim().isEmpty()) {
+				serverNameErrorDecoration.show();
+				okButton.setEnabled(false);
+			} else {
+				serverNameErrorDecoration.hide();
+			}
+		}
+	}
+
+	private void createRadioButtonListeners(final Composite parent) {
+		if (clusters.size() > 0) {
+			selectButton.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					stackLayout.topControl = clusterSelectionComposite;
+					clusterNameCombo.select(0);
+					validate();
+					parent.layout();
+					clusterNameCombo.setFocus();
+				}
+			});
+		}
+		createButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				stackLayout.topControl = clusterCreationComposite;
+				validate();
+				parent.layout();
+				newClusterNameText.setFocus();
+			}
+		});
+		registerButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				stackLayout.topControl = clusterRegisterComposite;
+				validate();
+				parent.layout();
+				existingClusterNameText.setFocus();
+			}
+		});
 	}
 
 	@Override
@@ -138,10 +333,11 @@ public class ClusterSelectionDialog extends Dialog {
 		setupDataBinding();
 	}
 	
-	private void createErrorDecoration() {
-		errorDecoration = guiHelper.createErrorDecoration(clusterNameCombo);
-		errorDecoration.setDescriptionText("Please select an existing cluster name, or enter a new one!");
+	private ControlDecoration createErrorDecoration(Text text, String message) {
+		ControlDecoration errorDecoration = guiHelper.createErrorDecoration(text);
+		errorDecoration.setDescriptionText(message);
 		errorDecoration.hide();
+		return errorDecoration;
 	}
 
 	/**
@@ -156,10 +352,10 @@ public class ClusterSelectionDialog extends Dialog {
 			public void modifyText(ModifyEvent e) {
 				if(clusterNameCombo.getText().trim().isEmpty()) {
 					okButton.setEnabled(false);
-					errorDecoration.show();
+					newClusterNameErrorDecoration.show();
 				} else {
 					okButton.setEnabled(true);
-					errorDecoration.hide();
+					newClusterNameErrorDecoration.hide();
 				}
 			}
 		});
@@ -167,11 +363,29 @@ public class ClusterSelectionDialog extends Dialog {
 	
 	@Override
 	protected void okPressed() {
-		clusterName = clusterNameCombo.getText();
+		if(selectButton.getSelection()) {
+			clusterMode = CLUSTER_MODE.SELECT;
+			clusterName = clusterNameCombo.getText();
+		} else if(createButton.getSelection()) {
+			clusterMode = CLUSTER_MODE.CREATE;
+			clusterName = newClusterNameText.getText().trim();
+		} else if(registerButton.getSelection()) {
+			clusterMode = CLUSTER_MODE.REGISTER;
+			clusterName = existingClusterNameText.getText().trim();
+			serverName = serverNameText.getText().trim();
+		}
 		super.okPressed();
 	}
 
 	public String getClusterName() {
 		return clusterName;
+	}
+
+	public CLUSTER_MODE getClusterMode() {
+		return clusterMode;
+	}
+
+	public String getServerName() {
+		return serverName;
 	}
 }

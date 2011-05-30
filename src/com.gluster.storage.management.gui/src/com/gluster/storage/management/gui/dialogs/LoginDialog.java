@@ -51,6 +51,7 @@ import com.gluster.storage.management.core.model.ConnectionDetails;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.response.StringListResponse;
 import com.gluster.storage.management.gui.IImageKeys;
+import com.gluster.storage.management.gui.dialogs.ClusterSelectionDialog.CLUSTER_MODE;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.validators.StringRequiredValidator;
 
@@ -212,13 +213,17 @@ public class LoginDialog extends Dialog {
 				cancelPressed();
 				return;
 			}
+			
 			try {
+				CLUSTER_MODE mode = clusterDialog.getClusterMode();
 				String clusterName = clusterDialog.getClusterName();
-				if(clusterNames.contains(clusterName)) {
+				switch(mode) {
+				case SELECT:
 					GlusterDataModelManager.getInstance().initializeModel(usersClient.getSecurityToken(),
-						clusterName);
-				} else {
-					Status status = createCluster(clustersClient, clusterName);
+							clusterName);
+					break;
+				case CREATE:
+					Status status = clustersClient.createCluster(clusterName);
 					if(!status.isSuccess()) {
 						MessageDialog.openError(getShell(), "Cluster Creation Failed!", status.toString());
 						setReturnCode(RETURN_CODE_ERROR);
@@ -226,6 +231,9 @@ public class LoginDialog extends Dialog {
 					}
 					GlusterDataModelManager.getInstance().initializeModelWithNewCluster(usersClient.getSecurityToken(),
 							clusterName);
+					break;
+				case REGISTER:
+					break;
 				}
 				super.okPressed();
 					
@@ -237,10 +245,6 @@ public class LoginDialog extends Dialog {
 		} else {
 			MessageDialog.openError(getShell(), "Authentication Failed", "Invalid User ID or password");
 		}
-	}
-
-	private Status createCluster(ClustersClient clustersClient, String clusterName) {
-		return clustersClient.createCluster(clusterName);
 	}
 
 	private List<String> getClusterNames(ClustersClient clustersClient) {
