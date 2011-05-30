@@ -217,7 +217,7 @@ def getServerDetails():
     return serverTag
 
 def main():
-    print getServerDetails().toprettyxml()
+    print getServerDetails().toxml()
     sys.exit(0)
 
 if __name__ == "__main__":
