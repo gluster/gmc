@@ -368,7 +368,7 @@ public class ClusterSelectionDialog extends Dialog {
 	
 	@Override
 	protected void okPressed() {
-		if(selectButton.getSelection()) {
+		if(selectButton != null && selectButton.getSelection()) {
 			clusterMode = CLUSTER_MODE.SELECT;
 			clusterName = clusterNameCombo.getText();
 		} else if(createButton.getSelection()) {
