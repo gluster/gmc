@@ -88,6 +88,7 @@ public class GlusterServersResource extends AbstractServersResource {
 		ClusterInfo cluster = clusterDao.findBy("name = ?1", clusterName).get(0);
 		for(ServerInfo serverInfo : cluster.getServers()) {
 			GlusterServer server = new GlusterServer(serverInfo.getName());
+			server.setStatus(SERVER_STATUS.ONLINE);
 			try {
 				fetchServerDetails(server);
 				// server is online. add it to cache and return

@@ -110,8 +110,6 @@ public class VolumesResource {
 
 	private FileUtil fileUtil = new FileUtil();
 	
-	private GlusterCoreUtil glusterCoreUtil = new GlusterCoreUtil();
-
 	@InjectParam
 	private VolumeOptionsDefaults volumeOptionsDefaults;
 
@@ -140,12 +138,28 @@ public class VolumesResource {
 	@Consumes(MediaType.TEXT_XML)
 	@Produces(MediaType.TEXT_XML)
 	public Status createVolume(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName, Volume volume) {
-		// TODO: Create volume on given cluster
-		// Create the directories for the volume
-		List<String> brickDirectories = glusterCoreUtil.getQualifiedBrickList(volume.getBricks());
-		Status status = glusterUtil.createVolume(volume, brickDirectories);
+		List<String> brickDirectories = GlusterCoreUtil.getQualifiedBrickList(volume.getBricks());
+
+		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		if(onlineServer == null) {
+			return new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster [" + clusterName + "]");
+		}
+		
+		Status status = null;
+		try {
+			status = glusterUtil.createVolume(volume, brickDirectories, onlineServer.getName());
+		} catch(ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			if(onlineServer == null) {
+				return new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster [" + clusterName + "]");
+			}
+			status = glusterUtil.createVolume(volume, brickDirectories, onlineServer.getName());
+		}
+
 		if (status.isSuccess()) {
-			Status optionsStatus = glusterUtil.createOptions(volume);
+			// volume created. set the options.
+			Status optionsStatus = glusterUtil.createOptions(volume, onlineServer.getName());
 			if (!optionsStatus.isSuccess()) {
 				status.setCode(Status.STATUS_CODE_PART_SUCCESS);
 				status.setMessage("Error while setting volume options: " + optionsStatus);
@@ -183,14 +197,31 @@ public class VolumesResource {
 	@Produces(MediaType.TEXT_XML)
 	public Status performOperation(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_OPERATION) String operation) {
-		// TODO: Perform the operation on given cluster
+		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		if(onlineServer == null) {
+			return new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster [" + clusterName + "]");
+		}
+
+		try {
+			return performOperation(volumeName, operation, onlineServer);
+		} catch (ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			if(onlineServer == null) {
+				return new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster [" + clusterName + "]");
+			}
+			return performOperation(volumeName, operation, onlineServer);
+		}
+	}
+
+	private Status performOperation(String volumeName, String operation, GlusterServer onlineServer) {
 		if (operation.equals(FORM_PARAM_VALUE_START)) {
-			return glusterUtil.startVolume(volumeName);
+			return glusterUtil.startVolume(volumeName, onlineServer.getName());
+		} else if (operation.equals(FORM_PARAM_VALUE_STOP)) {
+			return glusterUtil.stopVolume(volumeName, onlineServer.getName());
+		} else {
+			return new Status(Status.STATUS_CODE_FAILURE, "Invalid operation code [" + operation + "]");
 		}
-		if (operation.equals(FORM_PARAM_VALUE_STOP)) {
-			return glusterUtil.stopVolume(volumeName);
-		}
-		return new Status(Status.STATUS_CODE_FAILURE, "Invalid operation code [" + operation + "]");
 	}
 
 	@DELETE
@@ -238,16 +269,25 @@ public class VolumesResource {
 			@QueryParam(QUERY_PARAM_DELETE_OPTION) boolean deleteFlag) {
 		List<String> brickList = Arrays.asList(bricks.split(",")); // Convert from comma separated string (query parameter)
 
-		// TODO: pass clusterName to removeBricks
-		Status status = glusterUtil.removeBricks(volumeName, brickList);
+		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		if(onlineServer == null) {
+			return new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster [" + clusterName + "]");
+		}
 
-		String deleteOption = "";
-		if (deleteFlag) {
-			deleteOption = "-d";
+		Status status = null;
+		try {
+			status = glusterUtil.removeBricks(volumeName, brickList, onlineServer.getName());
+		} catch(ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			if(onlineServer == null) {
+				return new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster [" + clusterName + "]");
+			}
+			status = glusterUtil.removeBricks(volumeName, brickList, onlineServer.getName());
 		}
 
 		if (status.isSuccess()) {
-			Status cleanupStatus = cleanupDirectories(brickList, volumeName, brickList.size(), deleteOption);
+			Status cleanupStatus = cleanupDirectories(brickList, volumeName, brickList.size(), deleteFlag);
 			if (!cleanupStatus.isSuccess()) {
 				// append cleanup error to prepare brick error
 				status.setMessage(status.getMessage() + CoreConstants.NEWLINE + cleanupStatus.getMessage());
@@ -279,8 +319,21 @@ public class VolumesResource {
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName,
 			@FormParam(RESTConstants.FORM_PARAM_OPTION_KEY) String key,
 			@FormParam(RESTConstants.FORM_PARAM_OPTION_VALUE) String value) {
-		// TODO: pass cluster name to setOption
-		return glusterUtil.setOption(volumeName, key, value);
+		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		if(onlineServer == null) {
+			return new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster [" + clusterName + "]");
+		}
+
+		try {
+			return glusterUtil.setOption(volumeName, key, value, onlineServer.getName());
+		} catch(ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			if(onlineServer == null) {
+				return new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster [" + clusterName + "]");
+			}
+			return glusterUtil.setOption(volumeName, key, value, onlineServer.getName());
+		}
 	}
 
 	@PUT
@@ -288,8 +341,22 @@ public class VolumesResource {
 	@Produces(MediaType.TEXT_XML)
 	public Status resetOptions(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName) {
-		// TODO: pass clusterName to resetOptions
-		return glusterUtil.resetOptions(volumeName);
+		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		if (onlineServer == null) {
+			return new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster [" + clusterName + "]");
+		}
+
+		try {
+			return glusterUtil.resetOptions(volumeName, onlineServer.getName());
+		} catch (ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			if (onlineServer == null) {
+				return new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster [" + clusterName
+						+ "]");
+			}
+			return glusterUtil.resetOptions(volumeName, onlineServer.getName());
+		}
 	}
 
 	@GET
@@ -302,56 +369,7 @@ public class VolumesResource {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private Status prepareBrick(String serverName, String diskName, String volumeName) {
-		Object response = serverUtil.executeOnServer(true, serverName, PREPARE_BRICK_SCRIPT + " " + diskName + " "
-				+ volumeName, GenericResponse.class);
-		if (response instanceof GenericResponse) {
-			return ((GenericResponse) response).getStatus();
-		} else {
-			// in case of script failure on server, a Status object will be returned
-			return (Status) response;
-		}
-	}
-
-	private Status createDirectories(List<String> disks, String volumeName) {
-		List<String> bricks = new ArrayList<String>();
-		Status status = null;
-		for (int i = 0; i < disks.size(); i++) {
-			String disk = disks.get(i);
-
-			String[] diskParts = disk.split(":");
-			String serverName = diskParts[0];
-			String diskName = diskParts[1];
-
-			status = prepareBrick(serverName, diskName, volumeName);
-			if (status.isSuccess()) {
-				String brickDir = status.getMessage().trim();
-				bricks.add(serverName + ":" + brickDir);
-			} else {
-				// Brick preparation failed. Cleanup directories already created and return failure status
-				Status cleanupStatus = cleanupDirectories(disks, volumeName, i + 1, "-d"); // delete permanently
-				if (!cleanupStatus.isSuccess()) {
-					// append cleanup error to prepare brick error
-					status.setMessage(status.getMessage() + CoreConstants.NEWLINE + cleanupStatus.getMessage());
-				}
-				return status;
-			}
-		}
-		status.setMessage(bricksAsString(bricks));
-		return status;
-	}
-
-	// TODO Can be removed and use StringUtil.ListToString(List<String> list, String delimiter)
-	private String bricksAsString(List<String> bricks) {
-		String bricksStr = "";
-		for (String brickInfo : bricks) {
-			bricksStr += brickInfo + " ";
-		}
-		return bricksStr.trim();
-	}
-
-	@SuppressWarnings("rawtypes")
-	private Status cleanupDirectories(List<String> disks, String volumeName, int maxIndex, String deleteFlag) {
+	private Status cleanupDirectories(List<String> disks, String volumeName, int maxIndex, boolean deleteFlag) {
 		String serverName, diskName, diskInfo[];
 		Status result;
 		for (int i = 0; i < maxIndex; i++) {
@@ -360,7 +378,7 @@ public class VolumesResource {
 			diskName = diskInfo[1];
 
 			Object response = serverUtil.executeOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
-					+ diskName + " " + volumeName + " " + deleteFlag, GenericResponse.class);
+					+ diskName + " " + volumeName + " " + (deleteFlag ? "-d" :  ""), GenericResponse.class);
 			if (response instanceof GenericResponse) {
 				result = ((GenericResponse) response).getStatus();
 				if (!result.isSuccess()) {
@@ -376,20 +394,15 @@ public class VolumesResource {
 		return new Status(Status.STATUS_CODE_SUCCESS, "Directories cleaned up successfully!");
 	}
 
-	private List<LogMessage> getBrickLogs(Volume volume, String brickName, Integer lineCount)
+	private List<LogMessage> getBrickLogs(Volume volume, Brick brick, Integer lineCount)
 			throws GlusterRuntimeException {
-		// brick name format is <serverName>:<brickDirectory>
-		String[] brickParts = brickName.split(":");
-		String serverName = brickParts[0];
-		String brickDir = brickParts[1];
-
-		String logDir = glusterUtil.getLogLocation(volume.getName(), brickName);
-		String logFileName = glusterUtil.getLogFileNameForBrickDir(brickDir);
+		String logDir = glusterUtil.getLogLocation(volume.getName(), brick.getQualifiedName(), brick.getServerName());
+		String logFileName = glusterUtil.getLogFileNameForBrickDir(brick.getBrickDirectory());
 		String logFilePath = logDir + CoreConstants.FILE_SEPARATOR + logFileName;
 
 		// Usage: get_volume_disk_log.py <volumeName> <diskName> <lineCount>
-		Object responseObj = serverUtil.executeOnServer(true, serverName, VOLUME_BRICK_LOG_SCRIPT + " " + logFilePath
-				+ " " + lineCount, LogMessageListResponse.class);
+		Object responseObj = serverUtil.executeOnServer(true, brick.getServerName(), VOLUME_BRICK_LOG_SCRIPT + " "
+				+ logFilePath + " " + lineCount, LogMessageListResponse.class);
 		Status status = null;
 		LogMessageListResponse response = null;
 		if (responseObj instanceof LogMessageListResponse) {
@@ -406,7 +419,7 @@ public class VolumesResource {
 		// populate disk and trim other fields
 		List<LogMessage> logMessages = response.getLogMessages();
 		for (LogMessage logMessage : logMessages) {
-			logMessage.setDisk(getDiskForBrick(volume, brickName));
+			logMessage.setDisk(brick.getDiskName());
 			logMessage.setMessage(logMessage.getMessage().trim());
 			logMessage.setSeverity(logMessage.getSeverity().trim());
 		}
@@ -442,7 +455,7 @@ public class VolumesResource {
 		String tempDirPath = tempDir.getPath();
 
 		for (Brick brick : volume.getBricks()) {
-			String logDir = glusterUtil.getLogLocation(volume.getName(), brick.getBrickDirectory());
+			String logDir = glusterUtil.getLogLocation(volume.getName(), brick.getBrickDirectory(), brick.getServerName());
 			String logFileName = glusterUtil.getLogFileNameForBrickDir(brick.getBrickDirectory());
 			String logFilePath = logDir + CoreConstants.FILE_SEPARATOR + logFileName;
 
@@ -478,7 +491,12 @@ public class VolumesResource {
 				logMessages = getLogsForAllBricks(volume, lineCount);
 			} else {
 				// fetch logs for given brick of the volume
-				logMessages = getBrickLogs(volume, brickName, lineCount);
+				for(Brick brick : volume.getBricks()) {
+					if(brick.getQualifiedName().equals(brickName)) {
+						logMessages = getBrickLogs(volume, brick, lineCount);
+						break;
+					}
+				}
 			}
 		} catch (Exception e) {
 			return new LogMessageListResponse(new Status(e), null);
@@ -534,7 +552,7 @@ public class VolumesResource {
 		logMessages = new ArrayList<LogMessage>();
 		// fetch logs for every brick of the volume
 		for (Brick brick : volume.getBricks()) {
-			logMessages.addAll(getBrickLogs(volume, brick.getBrickDirectory(), lineCount));
+			logMessages.addAll(getBrickLogs(volume, brick, lineCount));
 		}
 
 		// Sort the log messages based on log timestamp
@@ -552,7 +570,21 @@ public class VolumesResource {
 	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + RESOURCE_DISKS)
 	public Status addBricks(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_BRICKS) String bricks) {
-		return glusterUtil.addBricks(volumeName, Arrays.asList(bricks.split(",")));
+		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		if(onlineServer == null) {
+			return new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster [" + clusterName + "]");
+		}
+
+		try {
+			return glusterUtil.addBricks(volumeName, Arrays.asList(bricks.split(",")), onlineServer.getName());
+		} catch(ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			if(onlineServer == null) {
+				return new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster [" + clusterName + "]");
+			}
+			return glusterUtil.addBricks(volumeName, Arrays.asList(bricks.split(",")), onlineServer.getName());
+		}
 	}
 
 	@PUT
@@ -560,13 +592,21 @@ public class VolumesResource {
 	public Status replaceDisk(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_SOURCE) String diskFrom,
 			@FormParam(FORM_PARAM_TARGET) String diskTo, @FormParam(FORM_PARAM_OPERATION) String operation) {
-		// TODO: Migrate disk on given cluster only
-		return glusterUtil.migrateDisk(volumeName, diskFrom, diskTo, operation);
-	}
-
-	private String getDiskForBrick(Volume volume, String brickName) {
-		int index = volume.getBricks().indexOf(brickName);
-		return volume.getDisks().get(index);
+		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		if(onlineServer == null) {
+			return new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster [" + clusterName + "]");
+		}
+		
+		try {
+			return glusterUtil.migrateDisk(volumeName, diskFrom, diskTo, operation, onlineServer.getName());
+		} catch(ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			if(onlineServer == null) {
+				return new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster [" + clusterName + "]");
+			}
+			return glusterUtil.migrateDisk(volumeName, diskFrom, diskTo, operation, onlineServer.getName());
+		}
 	}
 
 	public static void main(String[] args) throws ClassNotFoundException {

@@ -30,6 +30,7 @@ import com.gluster.storage.management.core.utils.StringUtil;
 @XmlRootElement
 public class LogMessage implements Filterable {
 	private Date timestamp;
+	// TODO: Replace disk with brick, rename class as VolumeLogMessage
 	private String disk;
 	private String severity;
 	private String message;

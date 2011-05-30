@@ -63,7 +63,6 @@ public class GlusterUtil {
 	private static final String VOLUME_LOG_LOCATION_PFX = "log file location:";
 	private static final String VOLUME_TYPE_DISTRIBUTE = "Distribute";
 	private static final String VOLUME_TYPE_REPLICATE = "Replicate";
-	private static final ProcessUtil processUtil = new ProcessUtil();
 
 	@Autowired
 	private SshUtil sshUtil;
@@ -177,7 +176,6 @@ public class GlusterUtil {
 	 */
 	private String getPeerStatus(String knownServer) {
 		String output;
-		// ProcessResult result = processUtil.executeCommand("gluster", "peer", "status");
 		ProcessResult result = getSshUtil().executeRemote(knownServer, "gluster peer status");
 		if (!result.isSuccess()) {
 			output = null;
@@ -190,19 +188,19 @@ public class GlusterUtil {
 		return new Status(sshUtil.executeRemote(existingServer, "gluster peer probe " + newServer));
 	}
 
-	public Status startVolume(String volumeName) {
-		return new Status(processUtil.executeCommand("gluster", "volume", "start", volumeName));
+	public Status startVolume(String volumeName, String knownServer) {
+		return new Status(sshUtil.executeRemote(knownServer, "gluster volume start " + volumeName));
 	}
 
-	public Status stopVolume(String volumeName) {
-		return new Status(processUtil.executeCommand("gluster", "--mode=script", "volume", "stop", volumeName));
+	public Status stopVolume(String volumeName, String knownServer) {
+		return new Status(sshUtil.executeRemote(knownServer, "gluster --mode=script volume stop " + volumeName));
 	}
 
-	public Status resetOptions(String volumeName) {
-		return new Status(processUtil.executeCommand("gluster", "volume", "reset", volumeName));
+	public Status resetOptions(String volumeName, String knownServer) {
+		return new Status(sshUtil.executeRemote(knownServer, "gluster volume reset " + volumeName));
 	}
 
-	public Status createVolume(Volume volume, List<String> brickDirectories) {
+	public Status createVolume(Volume volume, List<String> brickDirectories, String knownServer) {
 		int count = 1; // replica or stripe count
 		String volumeType = null;
 		VOLUME_TYPE volType = volume.getVolumeType();
@@ -217,39 +215,35 @@ public class GlusterUtil {
 		String transportTypeStr = null;
 		TRANSPORT_TYPE transportType = volume.getTransportType();
 		transportTypeStr = (transportType == TRANSPORT_TYPE.ETHERNET) ? "tcp" : "rdma";
-		List<String> command = prepareVolumeCreateCommand(volume, brickDirectories, count, volumeType, transportTypeStr);
-		ProcessResult result = processUtil.executeCommand(command);
+		String command = prepareVolumeCreateCommand(volume, brickDirectories, count, volumeType, transportTypeStr);
+		ProcessResult result = sshUtil.executeRemote(knownServer, command);
 		if (!result.isSuccess()) {
 			return new Status(result);
 		}
 
-		return createOptions(volume);
+		return createOptions(volume, knownServer);
 	}
 
-	private List<String> prepareVolumeCreateCommand(Volume volume, List<String> brickDirectories, int count,
+	private String prepareVolumeCreateCommand(Volume volume, List<String> brickDirectories, int count,
 			String volumeType, String transportTypeStr) {
-		List<String> command = new ArrayList<String>();
-		command.add("gluster");
-		command.add("volume");
-		command.add("create");
-		command.add(volume.getName());
-		if (volumeType != null) {
-			command.add(volumeType);
-			command.add("" + count);
+		StringBuilder command = new StringBuilder("gluster volume create " + volume.getName() + " ");
+		if(volumeType != null) {
+			command.append(volumeType + " " + count + " ");
 		}
-		command.add("transport");
-		command.add(transportTypeStr);
-		command.addAll(brickDirectories);
-		return command;
+		command.append("transport " + transportTypeStr);
+		for(String brickDir : brickDirectories) {
+			command.append(" " + brickDir);
+		}
+		return command.toString();
 	}
 
-	public Status createOptions(Volume volume) {
+	public Status createOptions(Volume volume, String knownServer) {
 		Map<String, String> options = volume.getOptions();
 		if (options != null) {
 			for (Entry<String, String> option : options.entrySet()) {
 				String key = option.getKey();
 				String value = option.getValue();
-				Status status = setOption(volume.getName(), key, value);
+				Status status = setOption(volume.getName(), key, value, knownServer);
 				if (!status.isSuccess()) {
 					return status;
 				}
@@ -258,16 +252,9 @@ public class GlusterUtil {
 		return Status.STATUS_SUCCESS;
 	}
 
-	public Status setOption(String volumeName, String key, String value) {
-		List<String> command = new ArrayList<String>();
-		command.add("gluster");
-		command.add("volume");
-		command.add("set");
-		command.add(volumeName);
-		command.add(key);
-		command.add(value);
-
-		return new Status(processUtil.executeCommand(command));
+	public Status setOption(String volumeName, String key, String value, String knownServer) {
+		return new Status(sshUtil.executeRemote(knownServer, "gluster volume set " + volumeName + " " + key + " "
+				+ value));
 	}
 
 	public Status deleteVolume(String volumeName, String knownServer) {
@@ -464,19 +451,17 @@ public class GlusterUtil {
 		return volumes;
 	}
 
-	public Status addBricks(String volumeName, List<String> bricks) {
-		List<String> command = new ArrayList<String>();
-		command.add("gluster");
-		command.add("volume");
-		command.add("add-brick");
-		command.add(volumeName);
-		command.addAll(bricks);
-		return new Status(processUtil.executeCommand(command));
+	public Status addBricks(String volumeName, List<String> bricks, String knownServer) {
+		StringBuilder command = new StringBuilder("gluster volume add-brick " + volumeName);
+		for(String brickDir : bricks) {
+			command.append(" " + brickDir);
+		}
+		return new Status(sshUtil.executeRemote(knownServer, command.toString()));
 	}
 
-	public String getLogLocation(String volumeName, String brickName) {
-		ProcessResult result = new ProcessUtil().executeCommand("gluster", "volume", "log", "locate", volumeName,
-				brickName);
+	public String getLogLocation(String volumeName, String brickName, String knownServer) {
+		ProcessResult result = sshUtil.executeRemote(knownServer, "gluster volume log locate " + volumeName + " "
+				+ brickName);
 		if (!result.isSuccess()) {
 			throw new GlusterRuntimeException("Command [gluster volume info] failed with error: ["
 					+ result.getExitValue() + "][" + result.getOutput() + "]");
@@ -499,19 +484,17 @@ public class GlusterUtil {
 		return logFileName;
 	}
 
-	public Status migrateDisk(String volumeName, String fromBrick, String toBrick, String operation) {
-		return new Status(processUtil.executeCommand("gluster", "volume", "replace-brick", volumeName, fromBrick,
-				toBrick, operation));
+	public Status migrateDisk(String volumeName, String fromBrick, String toBrick, String operation, String knownServer) {
+		return new Status(sshUtil.executeRemote(knownServer, "gluster volume replace-brick " + volumeName + " "
+				+ fromBrick + " " + toBrick + " " + operation));
 	}
 
-	public Status removeBricks(String volumeName, List<String> bricks) {
-		List<String> command = new ArrayList<String>();
-		command.add("gluster");
-		command.add("volume");
-		command.add("remove-brick");
-		command.add(volumeName);
-		command.addAll(bricks);
-		return new Status(processUtil.executeCommand(command));
+	public Status removeBricks(String volumeName, List<String> bricks, String knownServer) {
+		StringBuilder command = new StringBuilder("gluster volume remove-brick " + volumeName);
+		for(String brickDir : bricks) {
+			command.append(" " + brickDir);
+		}
+		return new Status(sshUtil.executeRemote(knownServer, command.toString()));
 	}
 
 	public Status removeServer(String existingServer, String serverName) {
@@ -524,7 +507,7 @@ public class GlusterUtil {
 		List<String> disks = new ArrayList<String>();
 		disks.add("server1:sda");
 		disks.add("server1:sdb");
-		Status status = new GlusterUtil().addBricks("Volume3", disks);
+		Status status = new GlusterUtil().addBricks("Volume3", disks, "localhost");
 		System.out.println(status);
 	}
 }
