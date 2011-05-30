@@ -31,6 +31,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -80,6 +81,7 @@ public class ClustersResource {
 		return new StringListResponse(clusterList);
 	}
 
+	@SuppressWarnings("unchecked")
 	@POST
 	@Produces(MediaType.TEXT_XML)
 	public Status createCluster(@FormParam(FORM_PARAM_CLUSTER_NAME) String clusterName) {
@@ -98,6 +100,10 @@ public class ClustersResource {
 		}
 	}
 	
+	
+	@SuppressWarnings("unchecked")
+	@PUT
+	@Produces(MediaType.TEXT_XML)
 	public Status registerCluster(@FormParam(FORM_PARAM_CLUSTER_NAME) String clusterName,
 			@FormParam(FORM_PARAM_SERVER_NAME) String knownServer) {
 		EntityTransaction txn = clusterDao.startTransaction();
@@ -118,6 +124,7 @@ public class ClustersResource {
 			clusterDao.save(cluster);
 			return Status.STATUS_SUCCESS;
 		} catch(Exception e) {
+			txn.rollback();
 			return new Status(e);
 		}
 	}

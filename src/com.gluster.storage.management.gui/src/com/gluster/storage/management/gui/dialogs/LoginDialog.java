@@ -217,10 +217,10 @@ public class LoginDialog extends Dialog {
 			try {
 				CLUSTER_MODE mode = clusterDialog.getClusterMode();
 				String clusterName = clusterDialog.getClusterName();
+				GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance(); 
 				switch(mode) {
 				case SELECT:
-					GlusterDataModelManager.getInstance().initializeModel(usersClient.getSecurityToken(),
-							clusterName);
+					modelManager.initializeModel(usersClient.getSecurityToken(), clusterName);
 					break;
 				case CREATE:
 					Status status = clustersClient.createCluster(clusterName);
@@ -229,10 +229,11 @@ public class LoginDialog extends Dialog {
 						setReturnCode(RETURN_CODE_ERROR);
 						return;
 					}
-					GlusterDataModelManager.getInstance().initializeModelWithNewCluster(usersClient.getSecurityToken(),
-							clusterName);
+					modelManager.initializeModelWithNewCluster(usersClient.getSecurityToken(), clusterName);
 					break;
 				case REGISTER:
+					clustersClient.registerCluster(clusterName, clusterDialog.getServerName());
+					modelManager.initializeModel(usersClient.getSecurityToken(), clusterName);
 					break;
 				}
 				super.okPressed();
