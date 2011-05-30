@@ -162,9 +162,11 @@ public class ClusterSelectionDialog extends Dialog {
 		if(clusters.size() > 0) {
 			selectButton.setSelection(true);
 			stackLayout.topControl = clusterSelectionComposite;
+			clusterNameCombo.setFocus();
 		} else {
 			createButton.setSelection(true);
 			stackLayout.topControl = clusterCreationComposite;
+			newClusterNameText.setFocus();
 		}
 		subComposite.layout();
 	}
@@ -252,7 +254,7 @@ public class ClusterSelectionDialog extends Dialog {
 	private void validate() {
 		okButton.setEnabled(false);
 		
-		if(selectButton.getSelection()) {
+		if(selectButton != null && selectButton.getSelection()) {
 			okButton.setEnabled(true);
 			return;
 		}
