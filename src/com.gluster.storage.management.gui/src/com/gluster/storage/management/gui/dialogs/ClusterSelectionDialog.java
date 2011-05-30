@@ -161,9 +161,12 @@ public class ClusterSelectionDialog extends Dialog {
 		createRadioButtonListeners(subComposite);
 		if(clusters.size() > 0) {
 			selectButton.setSelection(true);
+			stackLayout.topControl = clusterSelectionComposite;
 		} else {
 			createButton.setSelection(true);
+			stackLayout.topControl = clusterCreationComposite;
 		}
+		subComposite.layout();
 	}
 
 	private void createClusterRegisterComposite(Composite composite) {
