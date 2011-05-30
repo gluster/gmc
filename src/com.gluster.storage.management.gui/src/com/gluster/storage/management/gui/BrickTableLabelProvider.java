@@ -63,7 +63,7 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 	}
 
 	private String getDiskSpaceInUse(Disk disk) {
-		if (disk.isReady()) {
+		if (disk.isReady() && disk.getSpaceInUse() != null) {
 			return NumberUtil.formatNumber(disk.getSpaceInUse());
 		} else {
 			return "NA";
@@ -71,10 +71,18 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 	}
 
 	private String getDiskFreeSpace(Disk disk) {
-		if (disk.isReady()) {
+		if (disk.isReady() && disk.getFreeSpace() != null) {
 			return NumberUtil.formatNumber(disk.getFreeSpace());
 		} else {
-			return "NA";			
+			return "NA";
+		}
+	}
+	
+	private String getDiskSpace( Disk disk) {
+		if (disk.isReady() && disk.getSpace() != null && disk.getSpace() != 0.0) {
+			return NumberUtil.formatNumber(disk.getSpace());
+		} else {
+			return "NA";
 		}
 	}
 
@@ -86,11 +94,10 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 
 		Brick brick = (Brick) element;
 		Disk disk = GlusterDataModelManager.getInstance().getDiskDetails(brick.getDiskName());
-		
 		return (columnIndex == BRICK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? brick.getServerName()
 				: columnIndex == BRICK_TABLE_COLUMN_INDICES.BRICK.ordinal() ? brick.getBrickDirectory()
+				: columnIndex == BRICK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? getDiskSpace(disk)
 				: columnIndex == BRICK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDiskFreeSpace(disk)
-				: columnIndex == BRICK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal() ? getDiskSpaceInUse(disk)
 				: columnIndex == BRICK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? brick.getStatusStr() : "Invalid");
 	}
 }

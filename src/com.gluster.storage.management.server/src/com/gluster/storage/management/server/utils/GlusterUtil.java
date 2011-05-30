@@ -342,7 +342,10 @@ public class GlusterUtil {
 
 	private void addBrickToVolume(Volume volume, String serverName, String brickDir) {
 		// TODO: Brick status should be same as the server status (online/offline)
+System.out.println(brickDir);
 		volume.addBrick(new Brick(serverName, BRICK_STATUS.ONLINE, brickDir.split("/")[2].trim(), brickDir));
+	 
+		// volume.getBricks().get(0).getName();
 		//
 		// try {
 		// volume.addDisk(serverName + ":" + brickDir.split("/")[2].trim());
@@ -448,6 +451,7 @@ public class GlusterUtil {
 		if (volume != null) {// Adding the last volume parsed
 			volumes.add(volume);
 		}
+	
 		return volumes;
 	}
 

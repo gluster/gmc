@@ -226,7 +226,7 @@ public class GlusterDataModelManager {
 	public List<Brick> getOnlineBricks(Volume volume) {
 		List<Brick> onlineBricks = new ArrayList<Brick>();
 		for (Brick brick : volume.getBricks()) {
-			if (isOnlineDisk(brick.getDiskName())) {
+			if (!isOnlineDisk(brick.getDiskName())) {
 				onlineBricks.add(brick);
 			}
 		}
