@@ -33,11 +33,11 @@ import com.gluster.storage.management.gui.DiskTableLabelProvider;
 public class DisksPage extends AbstractDisksPage {
 
 	public enum DISK_TABLE_COLUMN_INDICES {
-		SERVER, DISK, TOTAL_SPACE, FREE_SPACE, STATUS
+		SERVER, DISK, FREE_SPACE, TOTAL_SPACE, STATUS
 	};
 
-	private static final String[] DISK_TABLE_COLUMN_NAMES = new String[] { "Server", "Disk", "Space (GB)",
-			"Free Space (GB)", "Status" };
+	private static final String[] DISK_TABLE_COLUMN_NAMES = new String[] { "Server", "Disk", "Free Space (GB)",
+			"Total Space (GB)", "Status" };
 
 	public DisksPage(final Composite parent, int style, IWorkbenchSite site, List<Disk> disks) {
 		super(parent, style, site, disks);
@@ -53,8 +53,8 @@ public class DisksPage extends AbstractDisksPage {
 
 		guiHelper.setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.SERVER.ordinal(), SWT.CENTER, 100);
 		guiHelper.setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.DISK.ordinal(), SWT.CENTER, 100);
-		guiHelper.setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal(), SWT.CENTER, 90);
 		guiHelper.setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal(), SWT.CENTER, 90);
+		guiHelper.setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal(), SWT.CENTER, 90);
 		// guiHelper.setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal(), SWT.CENTER, 90);
 	}
 

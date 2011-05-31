@@ -49,10 +49,10 @@ public class MigrateDiskPage1 extends WizardPage {
 	private static final String PAGE_NAME = "migrate.disk.page.1";
 
 	private enum DISK_TABLE_COLUMN_INDICES {
-		SERVER, BRICK_DIRECTORY, SPACE, SPACE_IN_USE
+		SERVER, BRICK_DIRECTORY, FREE_SPACE, TOTAL_SPACE
 	}
 
-	private static final String[] DISK_TABLE_COLUMN_NAMES = { "Server", "Brick Directory", "Space (GB)", "Used Space (GB)" };
+	private static final String[] DISK_TABLE_COLUMN_NAMES = { "Server", "Brick Directory", "Free Space (GB)", "Total Space (GB)" };
 
 	private Volume volume;
 	private Brick fromBrick;
@@ -73,10 +73,10 @@ public class MigrateDiskPage1 extends WizardPage {
 				Disk disk = (Disk) element;
 				return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? disk.getServerName()
 						: columnIndex == DISK_TABLE_COLUMN_INDICES.BRICK_DIRECTORY.ordinal() ? disk.getMountPoint() + "/" + volumeName
-								: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? NumberUtil
-										.formatNumber(disk.getSpace())
-										: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal() ? NumberUtil
-												.formatNumber(disk.getSpaceInUse()) : "Invalid");
+								: columnIndex == DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? NumberUtil
+										.formatNumber(disk.getFreeSpace())
+										: columnIndex == DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? NumberUtil
+												.formatNumber(disk.getSpace()) : "Invalid");
 			}
 		};
 	}
@@ -90,8 +90,8 @@ public class MigrateDiskPage1 extends WizardPage {
 
 		setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.SERVER, SWT.CENTER, 100);
 		setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.BRICK_DIRECTORY, SWT.CENTER, 100);
-		setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.SPACE, SWT.CENTER, 90);
-		setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE, SWT.CENTER, 90);
+		setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.FREE_SPACE, SWT.CENTER, 90);
+		setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE, SWT.CENTER, 90);
 	}
 
 	/**

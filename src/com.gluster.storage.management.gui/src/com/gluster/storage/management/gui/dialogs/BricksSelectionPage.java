@@ -51,11 +51,11 @@ import com.richclientgui.toolbox.duallists.TableColumnData;
 
 public class BricksSelectionPage extends Composite {
 	private enum DISK_TABLE_COLUMN_INDICES {
-		SERVER, BRICK_DIRECTORY, FREE_SPACE, SPACE_USED
+		SERVER, BRICK_DIRECTORY, FREE_SPACE, TOTAL_SPACE
 	}
 
 	private static final String[] DISK_TABLE_COLUMNS_NAMES = { "Server", "Brick Directory", "Free Space (GB)",
-			"Used Space (GB)" };
+			"Total Space (GB)" };
 
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 	private CustomTableDualListComposite<Disk> dualTableViewer;
@@ -97,8 +97,8 @@ public class BricksSelectionPage extends Composite {
 								+ "/" + volumeName
 								: columnIndex == DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? NumberUtil
 										.formatNumber(disk.getFreeSpace())
-										: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE_USED.ordinal() ? NumberUtil
-												.formatNumber(disk.getSpaceInUse()) : "Invalid");
+										: columnIndex == DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? NumberUtil
+												.formatNumber(disk.getSpace()) : "Invalid");
 			}
 		};
 	}

@@ -94,8 +94,8 @@ public class DiskTableLabelProvider extends TableLabelProviderAdapter {
 		Disk disk = (Disk) element;
 		return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? disk.getServerName()
 				: columnIndex == DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? disk.getName()
+				: columnIndex == DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDiskFreeSpace(disk)		
 				: columnIndex == DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? getTotalDiskSpace(disk)
-				: columnIndex == DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDiskFreeSpace(disk)
 				// : columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal() ? getDiskSpaceInUse(disk)
 				: columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? disk.getStatusStr() : "Invalid");
 	}

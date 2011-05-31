@@ -28,6 +28,7 @@ import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Event;
+import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
@@ -214,8 +215,15 @@ public class GlusterDataModelManager {
 		 */
 		Disk disk = null;
 		List<Disk> volumeDisks = new ArrayList<Disk>();
-		for (String volumeDisk : volume.getDisks()) {
-			disk = getDisk(volumeDisk);
+		for (Brick brick : volume.getBricks()) {
+			disk = getDisk(brick.getDiskName());
+			// disk = new Disk();
+			// disk.setServerName(brick.getServerName());
+			// disk.setName(brick.getDiskName());
+			// disk.setStatus(DISK_STATUS.READY);
+			// disk.setMountPoint("/export/" + disk.getName());
+			// disk.setSpace(250d);
+			// disk.setSpaceInUse(186.39);
 			if (disk != null && disk.isReady()) {
 				volumeDisks.add(disk);
 			}
@@ -226,7 +234,7 @@ public class GlusterDataModelManager {
 	public List<Brick> getOnlineBricks(Volume volume) {
 		List<Brick> onlineBricks = new ArrayList<Brick>();
 		for (Brick brick : volume.getBricks()) {
-			if (!isOnlineDisk(brick.getDiskName())) {
+			if (isOnlineDisk(brick.getDiskName())) {
 				onlineBricks.add(brick);
 			}
 		}

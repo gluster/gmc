@@ -96,8 +96,8 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 		Disk disk = GlusterDataModelManager.getInstance().getDiskDetails(brick.getDiskName());
 		return (columnIndex == BRICK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? brick.getServerName()
 				: columnIndex == BRICK_TABLE_COLUMN_INDICES.BRICK.ordinal() ? brick.getBrickDirectory()
-				: columnIndex == BRICK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? getDiskSpace(disk)
-				: columnIndex == BRICK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDiskFreeSpace(disk)
+				: columnIndex == BRICK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDiskFreeSpace(disk)		
+				: columnIndex == BRICK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? getDiskSpace(disk)
 				: columnIndex == BRICK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? brick.getStatusStr() : "Invalid");
 	}
 }

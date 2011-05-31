@@ -31,10 +31,9 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.ViewPart;
 
-import com.gluster.storage.management.core.model.Alert;
-import com.gluster.storage.management.core.model.Brick;
-import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.core.model.Alert;
+import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.RunningTask;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;

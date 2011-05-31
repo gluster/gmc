@@ -34,11 +34,11 @@ import com.gluster.storage.management.gui.BrickTableLabelProvider;
 public class BricksPage extends AbstractBricksPage {
 
 	public enum BRICK_TABLE_COLUMN_INDICES {
-		SERVER, BRICK, SPACE, FREE_SPACE, STATUS
+		SERVER, BRICK, FREE_SPACE, TOTAL_SPACE, STATUS
 	};
 
-	private static final String[] DISK_TABLE_COLUMN_NAMES = new String[] { "Server", "Brick Directory", "Space (GB)",
-			"Free Space (GB)", "Status" };
+	private static final String[] DISK_TABLE_COLUMN_NAMES = new String[] { "Server", "Brick Directory", "Free Space (GB)",
+			"Total Space (GB)", "Status" };
 
 	public BricksPage(final Composite parent, int style, IWorkbenchSite site, List<Brick> bricks) {
 		super(parent, style, site, bricks);
@@ -54,8 +54,9 @@ public class BricksPage extends AbstractBricksPage {
 
 		guiHelper.setColumnProperties(table, BRICK_TABLE_COLUMN_INDICES.SERVER.ordinal(), SWT.CENTER, 100);
 		guiHelper.setColumnProperties(table, BRICK_TABLE_COLUMN_INDICES.BRICK.ordinal(), SWT.CENTER, 100);
-		guiHelper.setColumnProperties(table, BRICK_TABLE_COLUMN_INDICES.SPACE.ordinal(), SWT.CENTER, 90);
 		guiHelper.setColumnProperties(table, BRICK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal(), SWT.CENTER, 90);
+		guiHelper.setColumnProperties(table, BRICK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal(), SWT.CENTER, 90);
+		
 	}
 
 	@Override

@@ -35,7 +35,6 @@ import org.eclipse.ui.part.ViewPart;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Alert;
-import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Event;

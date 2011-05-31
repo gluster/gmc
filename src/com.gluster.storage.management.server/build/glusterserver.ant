@@ -19,7 +19,7 @@
 		<delete dir="${WEB-INF}/classes" />
 		<mkdir dir="${WEB-INF}/classes" />
 		<mkdir dir="${WEB-INF}/classes/spring" />
-		<mkdir dir="${WEB-INF}/classes/data" />
+		<mkdir dir="${WEB-INF}/classes/META-INF" />
 	</target>
 
 	<target name="compile" depends="init">
@@ -34,9 +34,9 @@
 				<include name="**/*.xml" />
 			</fileset>
 		</copy>
-		<copy todir="${WEB-INF}/classes/data">
-			<fileset dir="${basedir}/src/data" casesensitive="yes">
-				<include name="**/*.sql" />
+		<copy todir="${WEB-INF}/classes/META-INF">
+			<fileset dir="${basedir}/src/META-INF" casesensitive="yes">
+				<include name="**/*.xml" />
 			</fileset>
 		</copy>
 		<!-- TODO: make debug option configurable in jenkins -->
