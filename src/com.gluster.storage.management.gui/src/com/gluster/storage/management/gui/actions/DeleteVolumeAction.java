@@ -52,7 +52,7 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 			return;
 		}
 
-		VolumesClient client = new VolumesClient(modelManager.getSecurityToken());
+		VolumesClient client = new VolumesClient();
 
 		Status status;
 		if (volume.getStatus() == VOLUME_STATUS.ONLINE) { // To stop the volume service, if running

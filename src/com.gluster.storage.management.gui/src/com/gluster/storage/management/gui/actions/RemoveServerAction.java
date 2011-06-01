@@ -56,7 +56,7 @@ public class RemoveServerAction extends AbstractActionDelegate {
 			return;
 		}
 
-		GlusterServersClient client = new GlusterServersClient(modelManager.getSecurityToken());
+		GlusterServersClient client = new GlusterServersClient();
 		Status status = client.removeServer(server.getName());
 
 		if (status.isSuccess()) {
