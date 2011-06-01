@@ -20,6 +20,7 @@ package com.gluster.storage.management.server.resources;
 
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_SERVER_NAME;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SERVER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_SERVERS;
 
@@ -161,7 +162,7 @@ public class GlusterServersResource extends AbstractServersResource {
 	@Produces(MediaType.TEXT_XML)
 	public GlusterServerResponse getGlusterServer(
 			@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
-			@PathParam("serverName") String serverName) {
+			@PathParam(PATH_PARAM_SERVER_NAME) String serverName) {
 		GlusterServer server = glusterUtil.getGlusterServer(getOnlineServer(clusterName), serverName);
 		Status status = Status.STATUS_SUCCESS;
 		if(server.isOnline()) {
@@ -199,7 +200,7 @@ public class GlusterServersResource extends AbstractServersResource {
 	@POST
 	@Produces(MediaType.TEXT_XML)
 	public GlusterServerResponse addServer(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
-			@FormParam("serverName") String serverName) {
+			@FormParam(FORM_PARAM_SERVER_NAME) String serverName) {
 		ClusterInfo cluster = getCluster(clusterName);
 		if(cluster == null) {
 			return new GlusterServerResponse(new Status(Status.STATUS_CODE_FAILURE, "Cluster [" + clusterName
@@ -216,7 +217,8 @@ public class GlusterServersResource extends AbstractServersResource {
 							+ "Please reset it back to the standard default password and try again."), null);
 		}
 		
-		if(!cluster.getServers().isEmpty()) {
+		List<ServerInfo> servers = cluster.getServers();
+		if(servers != null && !servers.isEmpty()) {
 			Status status = performAddServer(clusterName, serverName);
 			if(!status.isSuccess()) {
 				return new GlusterServerResponse(status, null);
@@ -226,23 +228,24 @@ public class GlusterServersResource extends AbstractServersResource {
 			// gluster CLI operation required. just add it to the cluster-server mapping
 		}
 		
-		// fetch server details
-		GlusterServerResponse serverResponse = getGlusterServer(clusterName, serverName);
-		
-		try {
-			// install public key (this will also disable password based ssh login)
-			sshUtil.installPublicKey(serverName);
-		} catch(Exception e) {
-			return new GlusterServerResponse(new Status(Status.STATUS_CODE_PART_SUCCESS,
-					"Public key could not be installed! Error: [" + e.getMessage()
-							+ "]"), serverResponse.getGlusterServer());
-		}
-
 		try {
 			addServerToCluster(clusterName, serverName);
 		} catch (Exception e) {
-			return new GlusterServerResponse(new Status(Status.STATUS_CODE_PART_SUCCESS, e.getMessage()),
-					serverResponse.getGlusterServer());
+			return new GlusterServerResponse(new Status(Status.STATUS_CODE_PART_SUCCESS, e.getMessage()), null);
+		}
+
+		// fetch server details
+		GlusterServerResponse serverResponse = getGlusterServer(clusterName, serverName);
+		
+		if (!publicKeyInstalled) {
+			try {
+				// install public key (this will also disable password based ssh login)
+				sshUtil.installPublicKey(serverName);
+			} catch (Exception e) {
+				return new GlusterServerResponse(new Status(Status.STATUS_CODE_PART_SUCCESS,
+						"Public key could not be installed! Error: [" + e.getMessage() + "]"),
+						serverResponse.getGlusterServer());
+			}
 		}
 
 		return serverResponse;
@@ -251,8 +254,11 @@ public class GlusterServersResource extends AbstractServersResource {
 	private void addServerToCluster(String clusterName, String serverName) {
 		EntityTransaction txn = clusterDao.startTransaction();
 		ClusterInfo cluster = getCluster(clusterName);
-		cluster.addServer(new ServerInfo(serverName));
+		ServerInfo server = new ServerInfo(serverName);
+		server.setCluster(cluster);
 		try {
+			clusterDao.save(server);
+			cluster.addServer(server);
 			clusterDao.update(cluster);
 			txn.commit();
 		} catch (Exception e) {

@@ -84,6 +84,7 @@ public class GlusterDataModelManager {
 	public void initializeModelWithNewCluster(String securityToken, String clusterName) {
 		model = new GlusterDataModel("Gluster Data Model");
 		setSecurityToken(securityToken);
+		setClusterName(clusterName);
 
 		Cluster cluster = new Cluster(clusterName, model);
 

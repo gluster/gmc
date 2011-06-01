@@ -291,7 +291,11 @@ public class SshUtil {
 	public ProcessResult executeRemoteWithPassword(String serverName, String command) {
 		return executeCommand(getConnectionWithPassword(serverName), command);
 	}
-
+	
+	private ProcessResult executeRemoteWithPubKey(String serverName, String command) {
+		return executeCommand(getConnection(serverName), command);
+	}
+	
 	/**
 	 * Executes given command on remote machine using public key authentication
 	 * 
@@ -300,7 +304,12 @@ public class SshUtil {
 	 * @return Result of remote execution
 	 */
 	public ProcessResult executeRemote(String serverName, String command) {
-		return executeCommand(getConnection(serverName), command);
+		try {
+			return executeRemoteWithPubKey(serverName, command);
+		} catch(ConnectionException e) {
+			// Couldn't connect with public key. Try with default password.
+			return executeRemoteWithPassword(serverName, command);
+		}
 	}
 
 	/**
