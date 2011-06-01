@@ -26,24 +26,26 @@ public abstract class AbstractClient {
 	private String securityToken;
 	private String authHeader;
 
+	/**
+	 * This constructor will work only after the data model manager has been initialized.
+	 */
 	public AbstractClient() {
-		createResource();
+		this(GlusterDataModelManager.getInstance().getSecurityToken(), GlusterDataModelManager.getInstance().getClusterName());
 	}
 
-	private void createResource() {
-		URI baseURI = new ClientUtil().getServerBaseURI();
-		resource = Client.create(new DefaultClientConfig()).resource(baseURI).path(getResourcePath());
+	/**
+	 * This constructor will work only after the data model manager has been initialized.
+	 */
+	public AbstractClient(String clusterName) {
+		this(GlusterDataModelManager.getInstance().getSecurityToken(), clusterName);
 	}
 
 	public AbstractClient(String securityToken, String clusterName) {
 		this.clusterName = clusterName;
 		setSecurityToken(securityToken);
+		URI baseURI = new ClientUtil().getServerBaseURI();
 		// this must be after setting clusterName as sub-classes may refer to cluster name in the getResourcePath method
-		createResource();
-	}
-
-	public AbstractClient(String clusterName) {
-		this(GlusterDataModelManager.getInstance().getSecurityToken(), clusterName);
+		resource = Client.create(new DefaultClientConfig()).resource(baseURI).path(getResourcePath());
 	}
 
 	/**

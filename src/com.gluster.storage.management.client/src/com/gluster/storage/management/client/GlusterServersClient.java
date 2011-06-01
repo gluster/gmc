@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011 Gluster, Inc. <http://www.gluster.com>
+* Copyright (c) 2011 Gluster, Inc. <http://www.gluster.com>
  * This file is part of Gluster Management Console.
  *
  * Gluster Management Console is free software; you can redistribute it and/or 
@@ -18,12 +18,14 @@
  *******************************************************************************/
 package com.gluster.storage.management.client;
 
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_SERVERS;
+
 import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.gluster.storage.management.core.constants.RESTConstants;
-import static com.gluster.storage.management.core.constants.RESTConstants.*;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Status;
@@ -34,6 +36,11 @@ import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class GlusterServersClient extends AbstractClient {
+	
+	public GlusterServersClient() {
+		super();
+	}
+	
 	public GlusterServersClient(String clusterName) {
 		super(clusterName);
 	}
@@ -88,7 +95,6 @@ public class GlusterServersClient extends AbstractClient {
 			 GlusterServerResponse response = glusterServersClient.addServer(srv);
 			 System.out.println(response.getGlusterServer().getName());
 			 System.out.println(response.getStatus().isSuccess());
-			
 		}
 	}
 }

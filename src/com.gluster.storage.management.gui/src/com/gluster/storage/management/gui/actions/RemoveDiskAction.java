@@ -47,7 +47,7 @@ public class RemoveDiskAction extends AbstractActionDelegate {
 		}
 		BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
 			public void run() {
-				VolumesClient client = new VolumesClient(modelManager.getSecurityToken());
+				VolumesClient client = new VolumesClient();
 				Status status = client.removeBricks(volume.getName(), bricks, confirmDelete);
 
 				if (status.isSuccess()) {

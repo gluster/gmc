@@ -66,7 +66,7 @@ public class OptionValueEditingSupport extends EditingSupport {
 
 			@Override
 			public void run() {
-				VolumesClient client = new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken());
+				VolumesClient client = new VolumesClient();
 				Status status = client.setVolumeOption(volume.getName(), entry.getKey(), (String) value);
 				if (status.isSuccess()) {
 					entry.setValue((String)value);

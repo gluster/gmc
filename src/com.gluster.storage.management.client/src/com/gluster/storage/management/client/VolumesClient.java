@@ -42,6 +42,10 @@ import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class VolumesClient extends AbstractClient {
+	public VolumesClient() {
+		super();
+	}
+	
 	public VolumesClient(String clusterName) {
 		super(clusterName);
 	}

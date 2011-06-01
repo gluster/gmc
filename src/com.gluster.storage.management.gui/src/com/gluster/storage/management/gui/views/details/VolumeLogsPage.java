@@ -168,7 +168,7 @@ public class VolumeLogsPage extends Composite {
 		btnGo.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				VolumesClient client = new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken());
+				VolumesClient client = new VolumesClient();
 
 				Date fromTimestamp = null;
 				Date toTimestamp = null;

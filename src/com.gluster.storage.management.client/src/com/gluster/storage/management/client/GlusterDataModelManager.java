@@ -120,8 +120,7 @@ public class GlusterDataModelManager {
 	}
 
 	private void initializeGlusterServers(Cluster cluster) {
-		GlusterServerListResponse glusterServerListResponse = new GlusterServersClient(clusterName)
-				.getServers();
+		GlusterServerListResponse glusterServerListResponse = new GlusterServersClient().getServers();
 		if (!glusterServerListResponse.getStatus().isSuccess()) {
 			throw new GlusterRuntimeException(glusterServerListResponse.getStatus().getMessage());
 		}
@@ -138,7 +137,7 @@ public class GlusterDataModelManager {
 	}
 
 	private void initializeVolumes(Cluster cluster) {
-		VolumesClient volumeClient = new VolumesClient(clusterName);
+		VolumesClient volumeClient = new VolumesClient();
 		VolumeListResponse response = volumeClient.getAllVolumes();
 		if (!response.getStatus().isSuccess()) {
 			throw new GlusterRuntimeException("Error fetching volume list: [" + response.getStatus() + "]");
@@ -147,7 +146,7 @@ public class GlusterDataModelManager {
 	}
 
 	private void initializeVolumeOptionsDefaults() {
-		VolumeOptionInfoListResponse response = new VolumesClient(clusterName).getVolumeOptionsDefaults();
+		VolumeOptionInfoListResponse response = new VolumesClient().getVolumeOptionsDefaults();
 		if (!response.getStatus().isSuccess()) {
 			throw new GlusterRuntimeException("Error fetching volume option defaults: ["
 					+ response.getStatus().getMessage() + "]");
