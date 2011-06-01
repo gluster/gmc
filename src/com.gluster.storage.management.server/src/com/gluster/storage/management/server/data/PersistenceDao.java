@@ -73,6 +73,11 @@ public class PersistenceDao<T> {
 	public Object getSingleResultFromSQL(String sqlQuery) {
 		return getEntityManager().createNativeQuery(sqlQuery).getSingleResult();
 	}
+	
+	@SuppressWarnings("rawtypes")
+	public List findBySQL(String sqlQuery) {
+		return getEntityManager().createNativeQuery(sqlQuery).getResultList();
+	}
 
 	public T findById(int id) {
 		return getEntityManager().find(type, id);
@@ -94,7 +99,7 @@ public class PersistenceDao<T> {
 		return createQuery("select t from " + type.getName() + " t where " + whereClause, params).getResultList();
 	}
 
-	public void save(T obj) {
+	public void save(Object obj) {
 		getEntityManager().persist(obj);
 	}
 

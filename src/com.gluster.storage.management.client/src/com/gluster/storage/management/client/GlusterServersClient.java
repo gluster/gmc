@@ -70,7 +70,7 @@ public class GlusterServersClient extends AbstractClient {
 
 	public GlusterServerResponse addServer(Server discoveredServer) {
 		Form form = new Form();
-		form.add("serverName", discoveredServer.getName());
+		form.add(RESTConstants.FORM_PARAM_SERVER_NAME, discoveredServer.getName());
 		return (GlusterServerResponse)postRequest(GlusterServerResponse.class, form);
 	}
 	
