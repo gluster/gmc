@@ -32,14 +32,12 @@ import com.gluster.storage.management.server.data.ClusterInfo;
 import com.gluster.storage.management.server.data.PersistenceDao;
 import com.gluster.storage.management.server.resources.DiscoveredServersResource;
 import com.gluster.storage.management.server.utils.ServerUtil;
-import com.sun.jersey.spi.resource.Singleton;
 
 /**
  * Task for auto-discovery of servers eligible to be added to the Gluster cluster. This task runs periodically and keeps
  * the discovered server list at a common place. The server resource can then pick it and send to client whenever
  * demanded.
  */
-@Singleton
 @Component
 public class ServerDiscoveryTask {
 	private static final String SCRIPT_NAME_SFX = "-discover-servers.py";

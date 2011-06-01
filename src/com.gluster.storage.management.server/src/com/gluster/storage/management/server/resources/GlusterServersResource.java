@@ -79,18 +79,26 @@ public class GlusterServersResource extends AbstractServersResource {
 		}
 	}
 	
-	// uses cache
 	public GlusterServer getOnlineServer(String clusterName) {
+		return getOnlineServer(clusterName, "");
+	}
+	
+	// uses cache
+	public GlusterServer getOnlineServer(String clusterName, String exceptServerName) {
 		GlusterServer server = clusterServerCache.get(clusterName);
-		if(server != null) {
+		if(server != null && !server.getName().equals(exceptServerName)) {
 			return server;
 		}
 		
-		return getNewOnlineServer(clusterName);
+		return getNewOnlineServer(clusterName, exceptServerName);
 	}
-	
-	// Doesn't use cache
+
 	public GlusterServer getNewOnlineServer(String clusterName) {
+		return getNewOnlineServer(clusterName, "");
+	}
+
+	// Doesn't use cache
+	public GlusterServer getNewOnlineServer(String clusterName, String exceptServerName) {
 		// no known online server for this cluster. find one.
 		ClusterInfo cluster = getCluster(clusterName);
 		if(cluster == null) {
@@ -100,11 +108,11 @@ public class GlusterServersResource extends AbstractServersResource {
 		for(ServerInfo serverInfo : cluster.getServers()) {
 			GlusterServer server = new GlusterServer(serverInfo.getName());
 			fetchServerDetails(server);
-			if(server.isOnline()) {
+			if(server.isOnline() && !server.getName().equals(exceptServerName)) {
 				// server is online. add it to cache and return
 				clusterServerCache.put(clusterName, server);
+				return server;
 			}
-			return server;
 		}
 		
 		// no online server found.
@@ -115,19 +123,32 @@ public class GlusterServersResource extends AbstractServersResource {
 	@Produces(MediaType.TEXT_XML)
 	public GlusterServerListResponse getGlusterServers(
 			@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
-		GlusterServer onlineServer = getOnlineServer(clusterName);
-		if(onlineServer == null) {
-			return new GlusterServerListResponse(Status.STATUS_SUCCESS, new ArrayList<GlusterServer>());
+		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();
+		
+		ClusterInfo cluster = getCluster(clusterName);
+		if(cluster == null) {
+			return new GlusterServerListResponse(new Status(Status.STATUS_CODE_FAILURE, "Cluster [" + clusterName
+					+ "] doesn't exist!"), null);
 		}
 		
-		List<GlusterServer> glusterServers;
+		if(cluster.getServers().size() == 0) {
+			return new GlusterServerListResponse(Status.STATUS_SUCCESS, glusterServers);
+		}
+		
+		GlusterServer onlineServer = getOnlineServer(clusterName);
+		if(onlineServer == null) {
+			return new GlusterServerListResponse(new Status(Status.STATUS_CODE_FAILURE,
+					"No online server found in cluster [" + clusterName + "]"), glusterServers);
+		}
+		
 		try {
 			glusterServers = glusterUtil.getGlusterServers(onlineServer);
 		} catch(ConnectionException e) {
 			// online server has gone offline! try with a different one.
 			onlineServer = getNewOnlineServer(clusterName);
 			if(onlineServer == null) {
-				return new GlusterServerListResponse(Status.STATUS_SUCCESS, new ArrayList<GlusterServer>());
+				return new GlusterServerListResponse(new Status(Status.STATUS_CODE_FAILURE,
+						"No online server found in cluster [" + clusterName + "]"), glusterServers);
 			}
 			
 			glusterServers = glusterUtil.getGlusterServers(onlineServer);
@@ -320,8 +341,8 @@ public class GlusterServersResource extends AbstractServersResource {
 			// remove the cached online server for this cluster if present
 			clusterServerCache.remove(clusterName);
 		} else {
-			GlusterServer onlineServer = getOnlineServer(clusterName);
-
+			// get an online server that is not same as the server being removed
+			GlusterServer onlineServer = getOnlineServer(clusterName, serverName);
 			if (onlineServer == null) {
 				return new Status(Status.STATUS_CODE_FAILURE, "No online server found in cluster [" + clusterName + "]");
 			}
@@ -330,7 +351,7 @@ public class GlusterServersResource extends AbstractServersResource {
 				return glusterUtil.removeServer(onlineServer.getName(), serverName);
 			} catch (ConnectionException e) {
 				// online server has gone offline! try with a different one.
-				onlineServer = getNewOnlineServer(clusterName);
+				onlineServer = getNewOnlineServer(clusterName, serverName);
 				if (onlineServer == null) {
 					return new Status(Status.STATUS_CODE_FAILURE, "No online server found in cluster [" + clusterName
 							+ "]");
