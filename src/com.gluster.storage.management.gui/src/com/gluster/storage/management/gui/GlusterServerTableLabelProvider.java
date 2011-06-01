@@ -70,6 +70,8 @@ public class GlusterServerTableLabelProvider extends TableLabelProviderAdapter {
 			: columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.TOTAL_MEMORY.ordinal() ? "" + server.getTotalMemory()
 			//: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.MEMORY_IN_USE.ordinal() ? "" + server.getMemoryInUse()
 			: columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.TOTAL_DISK_SPACE.ordinal() ? NumberUtil.formatNumber(server.getTotalDiskSpace())
-			: columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.IP_ADDRESSES.ordinal() ? server.getIpAddressesAsString() : "Invalid");
+			: columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.IP_ADDRESSES.ordinal() ? server.getIpAddressesAsString() 
+			: columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.AVAILABLE_DISK_SPACE.ordinal() ? NumberUtil.formatNumber(server.getFreeDiskSpace())
+			: "Invalid");
 	}
 }

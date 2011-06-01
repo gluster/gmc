@@ -394,4 +394,8 @@ public class GUIHelper {
 	public void clearStatusMessage() {
 		Application.getApplication().getStatusLineManager().setMessage(null);
 	}
+	
+	public String getDiskToolTip(Disk disk) {
+		return disk.getQualifiedName() + " - " + disk.getDescription();
+	}
 }

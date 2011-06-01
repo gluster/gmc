@@ -20,7 +20,6 @@ package com.gluster.storage.management.gui;
 
 import org.eclipse.swt.graphics.Image;
 
-import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Disk;
@@ -35,12 +34,13 @@ public class DiskTableLabelProvider extends TableLabelProviderAdapter {
 	@Override
 	public Image getColumnImage(Object element, int columnIndex) {
 		
-		if (!(element instanceof Brick)) {
+		if (!(element instanceof Disk)) {
 			return null;
 		}
 
-		Brick brick = (Brick) element;
-		Disk disk = GlusterDataModelManager.getInstance().getDisk(brick.getDiskName());
+		// Brick brick = (Brick) element;
+		// Disk disk = GlusterDataModelManager.getInstance().getDisk(brick.getDiskName());
+		Disk disk = (Disk) element;
 		
 		if (columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
 			DISK_STATUS status = disk.getStatus();
@@ -73,23 +73,30 @@ public class DiskTableLabelProvider extends TableLabelProviderAdapter {
 		if (disk.hasErrors() || disk.isUninitialized()) {
 			return "NA";
 		} else {
+			return NumberUtil.formatNumber(disk.getFreeSpace());
+		}
+	}
+	
+	private String getTotalDiskSpace(Disk disk) {
+		if (disk.hasErrors() || disk.isUninitialized()) {
+			return "NA";
+		} else {
 			return NumberUtil.formatNumber(disk.getSpace());
 		}
 	}
 
 	@Override
 	public String getColumnText(Object element, int columnIndex) {
-		if (!(element instanceof Brick)) {
+		if (!(element instanceof Disk)) {
 			return null;
 		}
 
-		Brick brick = (Brick) element;
-		Disk disk = GlusterDataModelManager.getInstance().getDisk(brick.getDiskName());
-		
-		return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? brick.getServerName()
-				: columnIndex == DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? brick.getBrickDirectory()
-				: columnIndex == DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDiskFreeSpace(disk)
-				: columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal() ? getDiskSpaceInUse(disk)
+		Disk disk = (Disk) element;
+		return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? disk.getServerName()
+				: columnIndex == DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? disk.getName()
+				: columnIndex == DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDiskFreeSpace(disk)		
+				: columnIndex == DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? getTotalDiskSpace(disk)
+				// : columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal() ? getDiskSpaceInUse(disk)
 				: columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? disk.getStatusStr() : "Invalid");
 	}
 }
