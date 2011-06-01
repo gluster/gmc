@@ -54,6 +54,7 @@ import com.gluster.storage.management.server.data.PersistenceDao;
 import com.gluster.storage.management.server.data.ServerInfo;
 import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.SshUtil;
+import com.sun.jersey.api.core.InjectParam;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Component
@@ -63,6 +64,9 @@ public class GlusterServersResource extends AbstractServersResource {
 
 	public static final String HOSTNAMETAG = "hostname:";
 	private LRUCache<String, GlusterServer> clusterServerCache = new LRUCache<String, GlusterServer>(3);
+	
+	@InjectParam
+	private DiscoveredServersResource discoveredServersResource;
 	
 	@Autowired
 	private PersistenceDao<ClusterInfo> clusterDao;
@@ -250,10 +254,15 @@ public class GlusterServersResource extends AbstractServersResource {
 		}
 		
 		try {
+			// add the cluster-server mapping
 			addServerToCluster(clusterName, serverName);
 		} catch (Exception e) {
 			return new GlusterServerResponse(new Status(Status.STATUS_CODE_PART_SUCCESS, e.getMessage()), null);
 		}
+		
+		// since the server is added to a cluster, it should not more be considered as a
+		// discovered server available to other clusters
+		discoveredServersResource.removeDiscoveredServer(serverName);
 
 		// fetch server details
 		GlusterServerResponse serverResponse = getGlusterServer(clusterName, serverName);
@@ -374,6 +383,10 @@ public class GlusterServersResource extends AbstractServersResource {
 		} catch (Exception e) {
 			return new Status(Status.STATUS_CODE_PART_SUCCESS, e.getMessage());
 		}
+		
+		// since the server is removed from the cluster, it is now available to be added to other clusters. 
+		// Hence add it back to the discovered servers list.
+		discoveredServersResource.addDiscoveredServer(serverName);
 		
 		return status;
 	}

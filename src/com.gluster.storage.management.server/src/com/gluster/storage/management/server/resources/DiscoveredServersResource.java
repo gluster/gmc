@@ -28,7 +28,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
@@ -38,11 +37,12 @@ import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.ServerListResponse;
 import com.gluster.storage.management.core.response.StringListResponse;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_DISCOVERED_SERVERS;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Component
 @Singleton
-@Path("/discoveredservers")
+@Path(RESOURCE_PATH_DISCOVERED_SERVERS)
 public class DiscoveredServersResource extends AbstractServersResource {
 	private List<String> discoveredServerNames = new ArrayList<String>();
 	
@@ -50,6 +50,20 @@ public class DiscoveredServersResource extends AbstractServersResource {
 		return discoveredServerNames;
 	}
 	
+	public void setDiscoveredServerNames(List<String> discoveredServerNames) {
+		synchronized (discoveredServerNames) {
+			this.discoveredServerNames = discoveredServerNames;
+		}
+	}
+	
+	public void removeDiscoveredServer(String serverName) {
+		discoveredServerNames.remove(serverName);
+	}
+	
+	public void addDiscoveredServer(String serverName) {
+		discoveredServerNames.add(serverName);
+	}
+
 	@GET
 	@Produces(MediaType.TEXT_XML)
 	@SuppressWarnings("rawtypes")
@@ -86,12 +100,6 @@ public class DiscoveredServersResource extends AbstractServersResource {
 		return new ServerListResponse(status, discoveredServers);
 	}
 	
-	public void setDiscoveredServerNames(List<String> discoveredServerNames) {
-		synchronized (discoveredServerNames) {
-			this.discoveredServerNames = discoveredServerNames;
-		}
-	}
-
 	@Path("/{serverName}")
 	@GET
 	@Produces(MediaType.TEXT_XML)
