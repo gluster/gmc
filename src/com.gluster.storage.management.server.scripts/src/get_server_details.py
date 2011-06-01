@@ -27,6 +27,7 @@ from Protocol import *
 from NetworkUtils import *
 from Disk import *
 from XmlHandler import ResponseXml
+from optparse import OptionParser
 
 def getDiskSizeInfo(partition):
     # get values from df output
@@ -96,7 +97,7 @@ def getDiskSizeInfo(partition):
     
     return total, used, free
 
-def getServerDetails():
+def getServerDetails(listall):
     serverName = socket.gethostname()
     responseDom = ResponseXml()
     #responseDom.appendTagRoute("status.code", "0")
@@ -188,6 +189,9 @@ def getServerDetails():
     diskSpaceInUse = 0
     diskTag = responseDom.createTag("disks")
     for disk in disks:
+        if not listall:
+            if not disk['mount_point'].startswith("/export/"):
+                continue
         if disk['interface'] in ['usb', 'mmc']:
             continue
         partitionTag = responseDom.createTag("disk", None)
@@ -217,7 +221,16 @@ def getServerDetails():
     return serverTag
 
 def main():
-    print getServerDetails().toxml()
+    ME = os.path.basename(sys.argv[0])
+    parser = OptionParser(version="%s %s" % (ME, Globals.GLUSTER_PLATFORM_VERSION))
+
+    parser.add_option("-N", "--only-data-disks",
+                      action="store_false", dest="listall", default=True,
+                      help="List only data disks")
+
+    (options, args) = parser.parse_args()
+    print getServerDetails(options.listall).toxml()
+        
     sys.exit(0)
 
 if __name__ == "__main__":
