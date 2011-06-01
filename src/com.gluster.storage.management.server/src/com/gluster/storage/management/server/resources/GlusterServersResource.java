@@ -220,6 +220,7 @@ public class GlusterServersResource extends AbstractServersResource {
 							+ "]: [" + e.getMessage() + "]"), null);
 		}
 
+		// TODO: Install ssh key on new server
 		return getGlusterServer(clusterName, serverName);
 	}
 
@@ -253,6 +254,8 @@ public class GlusterServersResource extends AbstractServersResource {
 			}
 			return glusterUtil.removeServer(onlineServer.getName(), serverName);
 		}
+		
+		// TODO: Remove the server from cluster-server mapping
 	}
 
 	private void setGlusterUtil(GlusterUtil glusterUtil) {

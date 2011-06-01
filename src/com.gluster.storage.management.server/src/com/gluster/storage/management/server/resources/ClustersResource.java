@@ -120,8 +120,7 @@ public class ClustersResource {
 			List<GlusterServer> glusterServers = glusterUtil.getGlusterServers(server);
 			List<ServerInfo> servers = new ArrayList<ServerInfo>();
 			for(GlusterServer glusterServer : glusterServers) {
-				ServerInfo serverInfo = new ServerInfo();
-				serverInfo.setName(glusterServer.getName());
+				ServerInfo serverInfo = new ServerInfo(glusterServer.getName());
 				serverInfo.setCluster(cluster);
 				servers.add(serverInfo);
 			}
