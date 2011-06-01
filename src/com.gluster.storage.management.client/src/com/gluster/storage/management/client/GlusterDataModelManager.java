@@ -388,7 +388,7 @@ public class GlusterDataModelManager {
 	
 	private Boolean isDiskUsed(Volume volume, Disk disk) {
 		for(Brick brick: volume.getBricks()) {
-			if (disk.getName().equals(brick.getDiskName())) {
+			if (disk.getName().equals(brick.getDiskName()) && disk.getServerName().equals(brick.getServerName())) {
 				return true;
 			}
 		}
