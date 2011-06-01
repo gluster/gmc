@@ -27,8 +27,8 @@ import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.Disk;
-import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
+import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
@@ -385,5 +385,25 @@ public class GlusterDataModelManager {
 		}
 		throw new GlusterRuntimeException("Couldn't find entry for option [" + optionKey + "] on volume ["
 				+ volume.getName());
+	}
+	
+	private Boolean isDiskUsed(Volume volume, Disk disk) {
+		for(Brick brick: volume.getBricks()) {
+			if (disk.getName().equals(brick.getDiskName())) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public String getDiskStatus(Disk disk) {
+		if (disk.getStatus() == DISK_STATUS.READY) {
+			for (Volume volume : model.getCluster().getVolumes()) {
+				if (isDiskUsed(volume, disk)) {
+					return "In use";
+				}
+			}
+		}
+		return disk.getStatusStr();
 	}
 }
