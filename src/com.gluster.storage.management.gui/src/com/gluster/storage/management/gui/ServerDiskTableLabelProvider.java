@@ -20,6 +20,7 @@ package com.gluster.storage.management.gui;
 
 import org.eclipse.swt.graphics.Image;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Disk;
@@ -30,7 +31,7 @@ import com.gluster.storage.management.gui.views.details.ServerDisksPage.SERVER_D
 
 public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 	private GUIHelper guiHelper = GUIHelper.getInstance();
-	
+	private GlusterDataModelManager glusterDataModelManager = GlusterDataModelManager.getInstance();
 	
 	@Override
 	public Image getColumnImage(Object element, int columnIndex) {
@@ -73,7 +74,7 @@ public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 			return NumberUtil.formatNumber(disk.getSpace());
 		}
 	}
-
+	
 	@Override
 	public String getColumnText(Object element, int columnIndex) {
 		if (!(element instanceof Disk)) {
@@ -84,7 +85,7 @@ public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 		String columnText = (columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? disk.getName()
 			: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? getDiskSpace(disk) 
 			: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal() ? getDiskSpaceInUse(disk)
-			: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? disk.getStatusStr()
+			: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? glusterDataModelManager.getDiskStatus(disk) // disk.getStatusStr()
 			: "Invalid");
 		return ((columnText == null || columnText.trim().equals("")) ? CoreConstants.NA : columnText); 
 	}
