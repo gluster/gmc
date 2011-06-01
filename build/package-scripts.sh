@@ -12,8 +12,7 @@ prepare-script-dir()
 get-scripts()
 {
 	cd ${DIR_NAME}
-	cp ../src/com.gluster.storage.management.server.scripts/src/common/*.py .
-	cp ../src/com.gluster.storage.management.server.scripts/src/nodes/*.py .
+	cp ../src/com.gluster.storage.management.server.scripts/src/*.py .
 	cd -
 }
 
