@@ -41,6 +41,7 @@ import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
@@ -64,6 +65,9 @@ public class GlusterServersResource extends AbstractServersResource {
 	
 	@Autowired
 	private PersistenceDao<ClusterInfo> clusterDao;
+	
+	@Autowired
+	private SshUtil sshUtil;
 	
 	protected void fetchServerDetails(GlusterServer server) {
 		try {
@@ -170,6 +174,28 @@ public class GlusterServersResource extends AbstractServersResource {
 		return new GlusterServerResponse(status, server);
 	}
 
+	private Status performAddServer(String clusterName, String serverName) {
+		GlusterServer onlineServer = getOnlineServer(clusterName);
+		if(onlineServer == null) {
+			return new Status(Status.STATUS_CODE_FAILURE,
+					"No online server found in cluster [" + clusterName + "]");
+		}
+		
+		Status status;
+		try {
+			status = glusterUtil.addServer(serverName, onlineServer.getName());
+		} catch(ConnectionException e) {
+			onlineServer = getNewOnlineServer(clusterName);
+			if(onlineServer == null) {
+				return new Status(Status.STATUS_CODE_FAILURE,
+						"No online server found in cluster [" + clusterName + "]");
+			}
+			status = glusterUtil.addServer(serverName, onlineServer.getName());
+		}
+
+		return status;
+	}
+	
 	@POST
 	@Produces(MediaType.TEXT_XML)
 	public GlusterServerResponse addServer(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
@@ -180,33 +206,51 @@ public class GlusterServersResource extends AbstractServersResource {
 					+ "] doesn't exist!"), null);
 		}
 		
+		boolean publicKeyInstalled = sshUtil.isPublicKeyInstalled(serverName);
+		if(!publicKeyInstalled && !sshUtil.hasDefaultPassword(serverName)) {
+			// public key not installed, default password doesn't work. return with error.
+			return new GlusterServerResponse(new Status(Status.STATUS_CODE_FAILURE,
+					"Gluster Management Gateway uses the default password to set up keys on the server."
+							+ CoreConstants.NEWLINE + "However it seems that the password on server [" + serverName
+							+ "] has been changed manually." + CoreConstants.NEWLINE
+							+ "Please reset it back to the standard default password and try again."), null);
+		}
+		
 		if(!cluster.getServers().isEmpty()) {
-			GlusterServer onlineServer = getOnlineServer(clusterName);
-			if(onlineServer == null) {
-				return new GlusterServerResponse(new Status(Status.STATUS_CODE_FAILURE,
-						"No online server found in cluster [" + clusterName + "]"), null);
-			}
-			
-			Status status;
-			try {
-				status = glusterUtil.addServer(serverName, onlineServer.getName());
-			} catch(ConnectionException e) {
-				onlineServer = getNewOnlineServer(clusterName);
-				if(onlineServer == null) {
-					return new GlusterServerResponse(new Status(Status.STATUS_CODE_FAILURE,
-							"No online server found in cluster [" + clusterName + "]"), null);
-				}
-				status = glusterUtil.addServer(serverName, onlineServer.getName());
-			}
-
-			if (!status.isSuccess()) {
+			Status status = performAddServer(clusterName, serverName);
+			if(!status.isSuccess()) {
 				return new GlusterServerResponse(status, null);
 			}
 		} else {
-			// this is the first server to be added to the cluster, which means
-			// no gluster operation required. just add it to the cluster-server mapping
+			// this is the first server to be added to the cluster, which means no
+			// gluster CLI operation required. just add it to the cluster-server mapping
 		}
 		
+		// fetch server details
+		GlusterServerResponse serverResponse = getGlusterServer(clusterName, serverName);
+		
+		try {
+			// install public key (this will also disable password based ssh login)
+			sshUtil.installPublicKey(serverName);
+		} catch(Exception e) {
+			return new GlusterServerResponse(new Status(Status.STATUS_CODE_PART_SUCCESS,
+					"Public key could not be installed! Error: [" + e.getMessage()
+							+ "]"), serverResponse.getGlusterServer());
+		}
+
+		try {
+			addServerToCluster(clusterName, serverName);
+		} catch (Exception e){
+			return new GlusterServerResponse(new Status(Status.STATUS_CODE_PART_SUCCESS,
+					"Exception while trying to save cluster-server mapping [" + clusterName + "][" + serverName
+							+ "]: [" + e.getMessage() + "]"), serverResponse.getGlusterServer());
+		}
+
+		return serverResponse;
+	}
+
+	private void addServerToCluster(String clusterName, String serverName) {
+		ClusterInfo cluster;
 		EntityTransaction txn = clusterDao.startTransaction();
 		// Inside a transaction, we must fetch the ClusterInfo object again.
 		cluster = getCluster(clusterName);
@@ -215,13 +259,8 @@ public class GlusterServersResource extends AbstractServersResource {
 			txn.commit();
 		} catch (Exception e) {
 			txn.rollback();
-			return new GlusterServerResponse(new Status(Status.STATUS_CODE_FAILURE,
-					"Exception while trying to save cluster-server mapping [" + clusterName + "][" + serverName
-							+ "]: [" + e.getMessage() + "]"), null);
+			throw new GlusterRuntimeException("Couldn't commit transaction! Error: " + e.getMessage(), e);
 		}
-
-		// TODO: Install ssh key on new server
-		return getGlusterServer(clusterName, serverName);
 	}
 
 	private ClusterInfo getCluster(String clusterName) {

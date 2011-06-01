@@ -20,6 +20,8 @@ package com.gluster.storage.management.server.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
@@ -30,12 +32,14 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.ssh2.ChannelCondition;
 import ch.ethz.ssh2.Connection;
+import ch.ethz.ssh2.SCPClient;
 import ch.ethz.ssh2.Session;
 import ch.ethz.ssh2.StreamGobbler;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
+import com.gluster.storage.management.core.utils.FileUtil;
 import com.gluster.storage.management.core.utils.LRUCache;
 import com.gluster.storage.management.core.utils.ProcessResult;
 
@@ -44,12 +48,77 @@ import com.gluster.storage.management.core.utils.ProcessResult;
  */
 @Component
 public class SshUtil {
+	private static final String TEMP_DIR = "/tmp/";
+	private static final String SSH_AUTHORIZED_KEYS_DIR = "/root/.ssh/";
+	private static final String SSH_AUTHORIZED_KEYS_FILE = "authorized_keys";
+	private static final String SSH_AUTHORIZED_KEYS_PATH = SSH_AUTHORIZED_KEYS_DIR + SSH_AUTHORIZED_KEYS_FILE;
 	private LRUCache<String, Connection> sshConnCache = new LRUCache<String, Connection>(10);
-	private static final File PEM_FILE = new File(CoreConstants.USER_HOME + "/" + ".ssh/id_rsa");
+	private static final File PEM_FILE = new File(CoreConstants.USER_HOME + File.separator + ".ssh/id_rsa");
+	private static final File PUBLIC_KEY_FILE = new File(CoreConstants.USER_HOME + File.separator + ".ssh/id_rsa.pub");
+
 	// TODO: Make user name configurable
 	private static final String USER_NAME = "root";
 	// TODO: Make default password configurable
 	private static final String DEFAULT_PASSWORD = "syst3m";
+
+	public boolean hasDefaultPassword(String serverName) {
+		try {
+			getConnectionWithPassword(serverName);
+			return true;
+		} catch(ConnectionException e) {
+			return false;
+		}
+	}
+	
+	public boolean isPublicKeyInstalled(String serverName) {
+		try {
+			getConnection(serverName);
+			return true;
+		} catch(ConnectionException e) {
+			return false;
+		}
+	}
+	
+	public synchronized void installPublicKey(String serverName) {
+		Connection conn = getConnectionWithPassword(serverName);
+		SCPClient scpClient = new SCPClient(conn);
+
+		// delete file if it exists
+		File localTempFile = new File(TEMP_DIR + SSH_AUTHORIZED_KEYS_FILE);
+		if(localTempFile.exists()) {
+			localTempFile.delete();
+		}
+		try {
+			
+			// get authorized_keys from server
+			scpClient.get(SSH_AUTHORIZED_KEYS_PATH, TEMP_DIR);
+		} catch (IOException e) {
+			// file doesn't exist. it will get created.
+		}
+		
+		byte[] publicKeyData;
+		try {
+			publicKeyData = new FileUtil().readFileAsByteArray(PUBLIC_KEY_FILE);
+		} catch (Exception e) {
+			throw new GlusterRuntimeException("Couldn't load public key file [" + PUBLIC_KEY_FILE + "]", e);
+		}
+		
+		try {
+			// append it
+			FileOutputStream outputStream = new FileOutputStream(localTempFile, true);
+			outputStream.write(CoreConstants.NEWLINE.getBytes());
+			outputStream.write(publicKeyData);
+			outputStream.close();
+		} catch (Exception e) {
+			throw new GlusterRuntimeException("Couldnt append file [" + localTempFile + "] with public key!", e);
+		}
+		
+		try {
+			scpClient.put(localTempFile.getAbsolutePath(), SSH_AUTHORIZED_KEYS_FILE, SSH_AUTHORIZED_KEYS_DIR, "0600");
+		} catch (IOException e) {
+			throw new GlusterRuntimeException("Couldn't add public key to server [" + serverName + "]", e);
+		}
+	}
 
 	private Connection getConnectionWithPassword(String serverName) {
 		Connection conn = createConnection(serverName);
@@ -253,18 +322,5 @@ public class SshUtil {
 		for (Connection conn : sshConnCache.values()) {
 			conn.close();
 		}
-	}
-
-	public static void main(String[] args) {
-		SshUtil sshUtil = new SshUtil();
-		System.out.println(new Date());
-		ProcessResult result = sshUtil.executeRemote("dev.gluster.com", "/bin/pwd");
-		System.out.println(result.getOutput());
-		result = sshUtil.executeRemote("dev.gluster.com", "/bin/pwd1");
-		System.out.println(new Date() + " - " + result.getExitValue() + " - " + result.getOutput());
-		result = sshUtil.executeRemote("dev.gluster.com", "/bin/ls -lrt");
-		System.out.println(new Date() + " - " + result.getExitValue() + " - " + result.getOutput());
-
-		sshUtil.cleanup();
 	}
 }
