@@ -28,7 +28,8 @@ def isinpeer():
     command = "gluster peer status"
     status = Utils.runCommand(command, output=True, root=True)
     if status["Status"] == 0:
-        return True
+        if status["Stdout"].strip().upper() != "NO PEERS PRESENT":
+            return True
         #lines = status["Stdout"].split("\n")
         #for line in lines:
         #    if string.upper(line).startswith("HOSTNAME: %s" % string.upper(socket.gethostname)):
