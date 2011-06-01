@@ -106,7 +106,6 @@ public class ClustersResource {
 	}
 	
 	
-	@SuppressWarnings("unchecked")
 	@PUT
 	@Produces(MediaType.TEXT_XML)
 	public Status registerCluster(@FormParam(FORM_PARAM_CLUSTER_NAME) String clusterName,
@@ -122,6 +121,7 @@ public class ClustersResource {
 			for(GlusterServer glusterServer : glusterServers) {
 				ServerInfo serverInfo = new ServerInfo(glusterServer.getName());
 				serverInfo.setCluster(cluster);
+				clusterDao.save(serverInfo);
 				servers.add(serverInfo);
 			}
 			cluster.setServers(servers);
