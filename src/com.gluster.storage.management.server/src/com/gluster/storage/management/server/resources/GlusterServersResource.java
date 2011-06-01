@@ -26,6 +26,7 @@ import static com.gluster.storage.management.core.constants.RESTConstants.RESOUR
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.EntityTransaction;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -66,6 +67,7 @@ public class GlusterServersResource extends AbstractServersResource {
 	
 	protected void fetchServerDetails(GlusterServer server) {
 		try {
+			server.setStatus(SERVER_STATUS.ONLINE);
 			super.fetchServerDetails(server);
 		} catch(ConnectionException e) {
 			server.setStatus(SERVER_STATUS.OFFLINE);
@@ -85,18 +87,19 @@ public class GlusterServersResource extends AbstractServersResource {
 	// Doesn't use cache
 	public GlusterServer getNewOnlineServer(String clusterName) {
 		// no known online server for this cluster. find one.
-		ClusterInfo cluster = clusterDao.findBy("name = ?1", clusterName).get(0);
+		ClusterInfo cluster = getCluster(clusterName);
+		if(cluster == null) {
+			return null;
+		}
+		
 		for(ServerInfo serverInfo : cluster.getServers()) {
 			GlusterServer server = new GlusterServer(serverInfo.getName());
-			server.setStatus(SERVER_STATUS.ONLINE);
-			try {
-				fetchServerDetails(server);
+			fetchServerDetails(server);
+			if(server.isOnline()) {
 				// server is online. add it to cache and return
 				clusterServerCache.put(clusterName, server);
-				return server;
-			} catch(ConnectionException e) {
-				// server is offline. check the next server.
 			}
+			return server;
 		}
 		
 		// no online server found.
@@ -171,30 +174,62 @@ public class GlusterServersResource extends AbstractServersResource {
 	@Produces(MediaType.TEXT_XML)
 	public GlusterServerResponse addServer(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@FormParam("serverName") String serverName) {
-		GlusterServer onlineServer = getOnlineServer(clusterName);
-		if(onlineServer == null) {
-			return new GlusterServerResponse(new Status(Status.STATUS_CODE_FAILURE,
-					"No online server found in cluster [" + clusterName + "]"), null);
+		ClusterInfo cluster = getCluster(clusterName);
+		if(cluster == null) {
+			return new GlusterServerResponse(new Status(Status.STATUS_CODE_FAILURE, "Cluster [" + clusterName
+					+ "] doesn't exist!"), null);
 		}
 		
-		Status status;
-		try {
-			status = glusterUtil.addServer(serverName, onlineServer.getName());
-		} catch(ConnectionException e) {
-			onlineServer = getNewOnlineServer(clusterName);
+		if(!cluster.getServers().isEmpty()) {
+			GlusterServer onlineServer = getOnlineServer(clusterName);
 			if(onlineServer == null) {
 				return new GlusterServerResponse(new Status(Status.STATUS_CODE_FAILURE,
 						"No online server found in cluster [" + clusterName + "]"), null);
 			}
-			status = glusterUtil.addServer(serverName, onlineServer.getName());
-		}
+			
+			Status status;
+			try {
+				status = glusterUtil.addServer(serverName, onlineServer.getName());
+			} catch(ConnectionException e) {
+				onlineServer = getNewOnlineServer(clusterName);
+				if(onlineServer == null) {
+					return new GlusterServerResponse(new Status(Status.STATUS_CODE_FAILURE,
+							"No online server found in cluster [" + clusterName + "]"), null);
+				}
+				status = glusterUtil.addServer(serverName, onlineServer.getName());
+			}
 
-		if (!status.isSuccess()) {
-			return new GlusterServerResponse(status, null);
+			if (!status.isSuccess()) {
+				return new GlusterServerResponse(status, null);
+			}
+		} else {
+			// this is the first server to be added to the cluster, which means
+			// no gluster operation required. just add it to the cluster-server mapping
 		}
 		
-		return new GlusterServerResponse(Status.STATUS_SUCCESS, getGlusterServer(clusterName, serverName)
-				.getGlusterServer());
+		EntityTransaction txn = clusterDao.startTransaction();
+		// Inside a transaction, we must fetch the ClusterInfo object again.
+		cluster = getCluster(clusterName);
+		cluster.addServer(new ServerInfo(serverName));
+		try {
+			txn.commit();
+		} catch (Exception e) {
+			txn.rollback();
+			return new GlusterServerResponse(new Status(Status.STATUS_CODE_FAILURE,
+					"Exception while trying to save cluster-server mapping [" + clusterName + "][" + serverName
+							+ "]: [" + e.getMessage() + "]"), null);
+		}
+
+		return getGlusterServer(clusterName, serverName);
+	}
+
+	private ClusterInfo getCluster(String clusterName) {
+		List<ClusterInfo> clusters = clusterDao.findBy("name = ?1", clusterName);
+		if(clusters.size() == 0) {
+			return null;
+		}
+
+		return clusters.get(0);
 	}
 
 	@DELETE

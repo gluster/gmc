@@ -37,6 +37,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.springframework.stereotype.Component;
+
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Status;
@@ -46,10 +48,13 @@ import com.gluster.storage.management.server.data.PersistenceDao;
 import com.gluster.storage.management.server.data.ServerInfo;
 import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.sun.jersey.api.core.InjectParam;
+import com.sun.jersey.spi.resource.Singleton;
 
 /**
  *
  */
+@Component
+@Singleton
 @Path(RESOURCE_PATH_CLUSTERS)
 public class ClustersResource {
 

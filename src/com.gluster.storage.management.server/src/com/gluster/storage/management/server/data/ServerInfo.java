@@ -39,6 +39,10 @@ public class ServerInfo {
 	@JoinColumn(name="cluster_id")
 	private ClusterInfo cluster;
 
+	public ServerInfo(String name) {
+		setName(name);
+	}
+	
 	public void setId(Integer id) {
 		this.id = id;
 	}

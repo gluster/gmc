@@ -62,6 +62,10 @@ public class ClusterInfo {
 	public List<ServerInfo> getServers() {
 		return servers;
 	}
+	
+	public void addServer(ServerInfo server) {
+		servers.add(server);
+	}
 
 	public static void main(String args[]) {
 		AnnotationConfiguration config = new AnnotationConfiguration();
