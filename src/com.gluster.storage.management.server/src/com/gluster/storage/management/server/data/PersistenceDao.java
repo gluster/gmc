@@ -107,7 +107,7 @@ public class PersistenceDao<T> {
 		return getEntityManager().merge(obj);
 	}
 
-	public void delete(T obj) {
+	public void delete(Object obj) {
 		getEntityManager().remove(obj);
 	}
 }

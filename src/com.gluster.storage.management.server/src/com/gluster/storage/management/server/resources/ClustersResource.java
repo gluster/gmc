@@ -126,6 +126,7 @@ public class ClustersResource {
 			}
 			cluster.setServers(servers);
 			clusterDao.save(cluster);
+			txn.commit();
 			return Status.STATUS_SUCCESS;
 		} catch(Exception e) {
 			txn.rollback();

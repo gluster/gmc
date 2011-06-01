@@ -317,6 +317,11 @@ public class GlusterDataModelManager {
 		for (ClusterListener listener : listeners) {
 			listener.serverRemoved(server);
 		}
+		
+		// add it to discovered servers list
+		Server removedServer = new Server();
+		removedServer.copyFrom(server);
+		addDiscoveredServer(removedServer);
 	}
 
 	public void deleteVolume(Volume volume) {

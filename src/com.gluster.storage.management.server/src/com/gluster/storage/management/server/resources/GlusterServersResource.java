@@ -275,6 +275,7 @@ public class GlusterServersResource extends AbstractServersResource {
 		for(ServerInfo server : servers) {
 			if(server.getName().equals(serverName)) {
 				servers.remove(server);
+				clusterDao.delete(server);
 				break;
 			}
 		}
@@ -302,30 +303,55 @@ public class GlusterServersResource extends AbstractServersResource {
 	@Path("{" + PATH_PARAM_SERVER_NAME + "}")
 	public Status removeServer(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_SERVER_NAME) String serverName) {
-		GlusterServer onlineServer = getOnlineServer(clusterName);
-		if(onlineServer == null) {
-			return new Status(Status.STATUS_CODE_FAILURE,
-					"No online server found in cluster [" + clusterName + "]");
+		ClusterInfo cluster = getCluster(clusterName);
+		if(cluster == null) {
+			return new Status(Status.STATUS_CODE_FAILURE, "Cluster [" + clusterName + "] doesn't exist!");
+		}
+
+		List<ServerInfo> servers = cluster.getServers();
+		if(servers == null || servers.isEmpty()) {
+			return new Status(Status.STATUS_CODE_FAILURE, "Server [" + serverName + "] is not attached to cluster ["
+					+ clusterName + "]!");
 		}
 		
-		Status status;
-		try {
-			return glusterUtil.removeServer(onlineServer.getName(), serverName);
-		} catch(ConnectionException e) {
-			onlineServer = getNewOnlineServer(clusterName);
-			if(onlineServer == null) {
-				return new Status(Status.STATUS_CODE_FAILURE,
-						"No online server found in cluster [" + clusterName + "]");
+		Status status = Status.STATUS_SUCCESS;
+		if(servers.size() == 1) {
+			// Only one server mapped to the cluster, no "peer detach" required.
+			// remove the cached online server for this cluster if present
+			clusterServerCache.remove(clusterName);
+		} else {
+			GlusterServer onlineServer = getOnlineServer(clusterName);
+
+			if (onlineServer == null) {
+				return new Status(Status.STATUS_CODE_FAILURE, "No online server found in cluster [" + clusterName + "]");
 			}
-			status = glusterUtil.removeServer(onlineServer.getName(), serverName);
-		}
-		
-		if (status.isSuccess()) {
+
 			try {
-				removeServerFromCluster(clusterName, serverName);
-			} catch (Exception e) {
-				return new Status(Status.STATUS_CODE_PART_SUCCESS, e.getMessage());
+				return glusterUtil.removeServer(onlineServer.getName(), serverName);
+			} catch (ConnectionException e) {
+				// online server has gone offline! try with a different one.
+				onlineServer = getNewOnlineServer(clusterName);
+				if (onlineServer == null) {
+					return new Status(Status.STATUS_CODE_FAILURE, "No online server found in cluster [" + clusterName
+							+ "]");
+				}
+				status = glusterUtil.removeServer(onlineServer.getName(), serverName);
+				if(!status.isSuccess()) {
+					return status;
+				}
 			}
+			
+			if(onlineServer.getName().equals(serverName)) {
+				// since the cached server has been removed from the cluster, remove it from the cache
+				clusterServerCache.remove(clusterName);
+			}
+		}
+		
+		
+		try {
+			removeServerFromCluster(clusterName, serverName);
+		} catch (Exception e) {
+			return new Status(Status.STATUS_CODE_PART_SUCCESS, e.getMessage());
 		}
 		
 		return status;

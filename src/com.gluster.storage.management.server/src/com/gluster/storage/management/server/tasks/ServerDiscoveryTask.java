@@ -21,7 +21,6 @@
 package com.gluster.storage.management.server.tasks;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +28,8 @@ import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.utils.ProcessResult;
+import com.gluster.storage.management.server.data.ClusterInfo;
+import com.gluster.storage.management.server.data.PersistenceDao;
 import com.gluster.storage.management.server.resources.DiscoveredServersResource;
 import com.gluster.storage.management.server.utils.ServerUtil;
 import com.sun.jersey.spi.resource.Singleton;
@@ -51,18 +52,26 @@ public class ServerDiscoveryTask {
 
 	@Autowired
 	private String environment;
+	
+	@Autowired
+	private PersistenceDao<ClusterInfo> clusterDao;
 
 	public void discoverServers() {
 		List<String> serverNameList = new ArrayList<String>();
 		
 		ProcessResult result = serverUtil.executeGlusterScript(true, environment + SCRIPT_NAME_SFX, new ArrayList<String>());
 		if(result.isSuccess()) {
+			List<String> existingServers = clusterDao.findBySQL("select name from server_info");
 			String serverNames = result.getOutput();
 			String[] parts = serverNames.split(CoreConstants.NEWLINE);
-			serverNameList = Arrays.asList(parts);
-		} else {
-			// TODO: User logger to log the message
-			System.err.println("Server Discovery Script failed: " + result);
+			for(String serverName : parts) {
+				// The server discovery mechanism will return every server that has not been "peer probed". However we
+				// need to filter out those servers that are the "first" server of a new cluster, and hence are still
+				// not peer probed.
+				if(!existingServers.contains(serverName)) {
+					serverNameList.add(serverName);
+				}
+			}
 		}
 		
 		discoveredServersResource.setDiscoveredServerNames(serverNameList);

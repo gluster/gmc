@@ -28,14 +28,13 @@ import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.GlusterServer;
-import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.utils.StringUtil;
 
 public class RemoveServerAction extends AbstractActionDelegate {
 
-	private Server server;
+	private GlusterServer server;
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 
 	@Override
@@ -64,9 +63,6 @@ public class RemoveServerAction extends AbstractActionDelegate {
 			showInfoDialog(actionDesc, "Server removed successfully");
 			GlusterServer glusterServer = (GlusterServer) server;
 			GlusterDataModelManager.getInstance().removeGlusterServer(glusterServer);
-			if (glusterServer.isOnline()) {
-				GlusterDataModelManager.getInstance().addDiscoveredServer(server);
-			}
 		} else {
 			showErrorDialog(actionDesc, "Server could not be removed. Error: [" + status + "]");
 		}
@@ -94,8 +90,8 @@ public class RemoveServerAction extends AbstractActionDelegate {
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		super.selectionChanged(action, selection);
-		if (selectedEntity instanceof Server) {
-			server = (Server) selectedEntity;
+		if (selectedEntity instanceof GlusterServer) {
+			server = (GlusterServer) selectedEntity;
 		}
 	}
 }
