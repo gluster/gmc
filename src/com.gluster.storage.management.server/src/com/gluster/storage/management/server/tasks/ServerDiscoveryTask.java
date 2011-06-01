@@ -24,8 +24,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.servlet.ServletContext;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,17 +41,11 @@ import com.sun.jersey.spi.resource.Singleton;
 @Singleton
 @Component
 public class ServerDiscoveryTask {
-	private static final String ENV_AWS = "aws";
-	private static final String ENV_VMWARE = "vmware";
-	private static final String ENV_PHYCAL = "physical";
 	private static final String SCRIPT_NAME_SFX = "-discover-servers.py";
 	
 	@Autowired
 	private ServerUtil serverUtil;
 	
-	@Autowired
-	private ServletContext servletContext;
-
 	@Autowired
 	private DiscoveredServersResource discoveredServersResource;
 
@@ -68,6 +60,9 @@ public class ServerDiscoveryTask {
 			String serverNames = result.getOutput();
 			String[] parts = serverNames.split(CoreConstants.NEWLINE);
 			serverNameList = Arrays.asList(parts);
+		} else {
+			// TODO: User logger to log the message
+			System.err.println("Server Discovery Script failed: " + result);
 		}
 		
 		discoveredServersResource.setDiscoveredServerNames(serverNameList);
