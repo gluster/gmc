@@ -217,13 +217,14 @@ public class LoginDialog extends Dialog {
 			try {
 				CLUSTER_MODE mode = clusterDialog.getClusterMode();
 				String clusterName = clusterDialog.getClusterName();
-				GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance(); 
+				GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+				Status status = null;
 				switch(mode) {
 				case SELECT:
 					modelManager.initializeModel(usersClient.getSecurityToken(), clusterName);
 					break;
 				case CREATE:
-					Status status = clustersClient.createCluster(clusterName);
+					status = clustersClient.createCluster(clusterName);
 					if(!status.isSuccess()) {
 						MessageDialog.openError(getShell(), "Cluster Creation Failed!", status.toString());
 						setReturnCode(RETURN_CODE_ERROR);
@@ -232,7 +233,12 @@ public class LoginDialog extends Dialog {
 					modelManager.initializeModelWithNewCluster(usersClient.getSecurityToken(), clusterName);
 					break;
 				case REGISTER:
-					clustersClient.registerCluster(clusterName, clusterDialog.getServerName());
+					status = clustersClient.registerCluster(clusterName, clusterDialog.getServerName());
+					if(!status.isSuccess()) {
+						MessageDialog.openError(getShell(), "Cluster Registration Failed!", status.toString());
+						setReturnCode(RETURN_CODE_ERROR);
+						return;
+					}
 					modelManager.initializeModel(usersClient.getSecurityToken(), clusterName);
 					break;
 				}

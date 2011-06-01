@@ -37,16 +37,20 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.gluster.storage.management.core.exceptions.ConnectionException;
+import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.response.GlusterServerResponse;
 import com.gluster.storage.management.core.response.StringListResponse;
 import com.gluster.storage.management.server.data.ClusterInfo;
 import com.gluster.storage.management.server.data.PersistenceDao;
 import com.gluster.storage.management.server.data.ServerInfo;
 import com.gluster.storage.management.server.utils.GlusterUtil;
+import com.gluster.storage.management.server.utils.SshUtil;
 import com.sun.jersey.api.core.InjectParam;
 import com.sun.jersey.spi.resource.Singleton;
 
@@ -66,6 +70,9 @@ public class ClustersResource {
 	
 	@InjectParam
 	private GlusterUtil glusterUtil;
+	
+	@Autowired
+	private SshUtil sshUtil;
 
 	public void setClusterDao(PersistenceDao clusterDao) {
 		this.clusterDao = clusterDao;
@@ -106,7 +113,6 @@ public class ClustersResource {
 	}
 	
 	
-	@SuppressWarnings("unchecked")
 	@PUT
 	@Produces(MediaType.TEXT_XML)
 	public Status registerCluster(@FormParam(FORM_PARAM_CLUSTER_NAME) String clusterName,
@@ -120,8 +126,13 @@ public class ClustersResource {
 			List<GlusterServer> glusterServers = glusterUtil.getGlusterServers(server);
 			List<ServerInfo> servers = new ArrayList<ServerInfo>();
 			for(GlusterServer glusterServer : glusterServers) {
-				ServerInfo serverInfo = new ServerInfo(glusterServer.getName());
+				String serverName = glusterServer.getName();
+				
+				checkAndSetupPublicKey(serverName);
+
+				ServerInfo serverInfo = new ServerInfo(serverName);
 				serverInfo.setCluster(cluster);
+				clusterDao.save(serverInfo);
 				servers.add(serverInfo);
 			}
 			cluster.setServers(servers);
@@ -132,6 +143,24 @@ public class ClustersResource {
 			txn.rollback();
 			return new Status(e);
 		}
+	}
+
+	private void checkAndSetupPublicKey(String serverName) {
+		if(sshUtil.isPublicKeyInstalled(serverName)) {
+			return;
+		}
+		
+		if(!sshUtil.hasDefaultPassword(serverName)) {
+			// public key not installed, default password doesn't work. can't install public key
+			throw new GlusterRuntimeException(
+					"Gluster Management Gateway uses the default password to set up keys on the server."
+							+ CoreConstants.NEWLINE + "However it seems that the password on server [" + serverName
+							+ "] has been changed manually." + CoreConstants.NEWLINE
+							+ "Please reset it back to the standard default password and try again.");
+		}
+		
+		// install public key (this will also disable password based ssh login)
+		sshUtil.installPublicKey(serverName);
 	}
 
 	@SuppressWarnings("unchecked")
