@@ -37,7 +37,7 @@ public class StartVolumeAction extends AbstractActionDelegate {
 			return; // Volume already online. Don't do anything.
 		}
 
-		VolumesClient client = new VolumesClient(modelManager.getSecurityToken());
+		VolumesClient client = new VolumesClient();
 		final Status status = client.startVolume(volume.getName());
 		final String actionDesc = action.getDescription();
 		if (status.isSuccess()) {

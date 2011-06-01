@@ -305,7 +305,7 @@ public class VolumeSummaryView extends ViewPart {
 			BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
 				@Override
 				public void run() {
-					Status status = (new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken()))
+					Status status = (new VolumesClient())
 							.setVolumeOption(volume.getName(), Volume.OPTION_AUTH_ALLOW, newACL);
 
 					if (status.isSuccess()) {

@@ -61,7 +61,7 @@ public class AddDiskWizard extends Wizard {
 	@Override
 	public boolean performFinish() {
 		List<Brick> bricks = page.getChosenBricks(volume.getName());
-		VolumesClient volumeClient = new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken());
+		VolumesClient volumeClient = new VolumesClient();
 		try {
 			List<String> brickList = getBrickList(bricks);
 			Status status = volumeClient.addBricks(volume.getName(), brickList);

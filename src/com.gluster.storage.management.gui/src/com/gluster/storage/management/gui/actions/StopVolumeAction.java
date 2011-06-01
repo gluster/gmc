@@ -56,7 +56,7 @@ public class StopVolumeAction extends AbstractActionDelegate {
 	}
 
 	private Status stopVolume() {
-		return new VolumesClient(modelManager.getSecurityToken()).stopVolume(volume.getName());
+		return new VolumesClient().stopVolume(volume.getName());
 	}
 
 	@Override

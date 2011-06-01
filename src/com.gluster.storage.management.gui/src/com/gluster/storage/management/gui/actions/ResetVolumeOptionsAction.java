@@ -42,7 +42,7 @@ public class ResetVolumeOptionsAction extends AbstractActionDelegate {
 	}
 	
 	private Status resetVolumeOptions() {
-		return new VolumesClient(modelManager.getSecurityToken()).resetVolumeOptions(volume.getName());
+		return new VolumesClient().resetVolumeOptions(volume.getName());
 	}
 
 	/*

@@ -45,8 +45,7 @@ public class CreateVolumeWizard extends Wizard {
 		CreateVolumePage1 page = (CreateVolumePage1) getPage(CreateVolumePage1.PAGE_NAME);
 
 		Volume newVolume = page.getVolume();
-		GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
-		VolumesClient volumesClient = new VolumesClient(modelManager.getSecurityToken());
+		VolumesClient volumesClient = new VolumesClient();
 		Status status = volumesClient.createVolume(newVolume);
 
 		if (status.isSuccess()) {
@@ -65,7 +64,7 @@ public class CreateVolumeWizard extends Wizard {
 			}
 			
 			// update the model
-			modelManager.addVolume(newVolume);
+			GlusterDataModelManager.getInstance().addVolume(newVolume);
 			if (warning) {
 				MessageDialog.openWarning(getShell(), dialogTitle, message);
 			} else {

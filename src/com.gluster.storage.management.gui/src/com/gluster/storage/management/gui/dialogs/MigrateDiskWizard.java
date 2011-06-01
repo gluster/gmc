@@ -51,7 +51,7 @@ public class MigrateDiskWizard extends Wizard {
 		Disk targetDisk = page.getTargetDisk();
 		// TODO add custom confirm dialog
 		
-		VolumesClient volumesClient = new VolumesClient(GlusterDataModelManager.getInstance().getSecurityToken());
+		VolumesClient volumesClient = new VolumesClient();
 		volumesClient.startMigration(volume.getName(), sourceDisk.getQualifiedName(), targetDisk.getQualifiedName());
 		
 		return true;

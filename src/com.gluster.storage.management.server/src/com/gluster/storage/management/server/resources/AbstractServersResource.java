@@ -45,7 +45,7 @@ public class AbstractServersResource {
 	 */
 	protected void fetchServerDetails(Server server) {
 		// fetch standard server details like cpu, disk, memory details
-		Object response = serverUtil.executeOnServer(true, server.getName(), "get_server_details.py", Server.class);
+		Object response = serverUtil.executeOnServer(true, server.getName(), "get_server_details.py --only-data-disks", Server.class);
 		if (response instanceof Status) {
 			// TODO: check if this happened because the server is not reachable, and if yes, set it's status as offline
 			throw new GlusterRuntimeException(((Status)response).getMessage());
