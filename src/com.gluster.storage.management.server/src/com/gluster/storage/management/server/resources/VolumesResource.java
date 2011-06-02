@@ -156,15 +156,6 @@ public class VolumesResource {
 			}
 			status = glusterUtil.createVolume(volume, brickDirectories, onlineServer.getName());
 		}
-
-		if (status.isSuccess()) {
-			// volume created. set the options.
-			Status optionsStatus = glusterUtil.createOptions(volume, onlineServer.getName());
-			if (!optionsStatus.isSuccess()) {
-				status.setCode(Status.STATUS_CODE_PART_SUCCESS);
-				status.setMessage("Error while setting volume options: " + optionsStatus);
-			}
-		}
 		return status;
 	}
 

@@ -220,8 +220,12 @@ public class GlusterUtil {
 		if (!result.isSuccess()) {
 			return new Status(result);
 		}
-
-		return createOptions(volume, knownServer);
+		Status status = createOptions(volume, knownServer);
+		if (!status.isSuccess()) { // Return partial success if set volume option failed.
+			status.setCode(Status.STATUS_CODE_PART_SUCCESS);
+			status.setMessage("Error while setting volume options: " + status);
+		} 
+		return status; 
 	}
 
 	private String prepareVolumeCreateCommand(Volume volume, List<String> brickDirectories, int count,
