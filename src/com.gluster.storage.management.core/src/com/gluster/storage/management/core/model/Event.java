@@ -20,12 +20,12 @@ package com.gluster.storage.management.core.model;
 
 public class Event {
 	public enum EVENT_TYPE {
-		DISK_ADDED,
-		DISK_REMOVED,
+		BRICKS_ADDED,
+		BRICKS_REMOVED,
 		NETWORK_INTERFACE_ADDED,
 		NETWORK_INTERFACE_REMOVED,
 		VOLUME_STATUS_CHANGED,
-		VOLUME_OPTIONS_RESET, 
+		VOLUME_OPTIONS_RESET,
 		VOLUME_OPTION_SET
 	}
 	

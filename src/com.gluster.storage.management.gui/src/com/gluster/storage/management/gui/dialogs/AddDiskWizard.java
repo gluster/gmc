@@ -72,6 +72,10 @@ public class AddDiskWizard extends Wizard {
 				List<Disk> disks = page.getChosenDisks();
 				volume.addDisks(GlusterCoreUtil.getQualifiedDiskNames(disks));
 				volume.addBricks(bricks);
+				
+				// Update model with new bricks in the volume
+				GlusterDataModelManager.getInstance().addBricks(volume, bricks);
+				
 				MessageDialog.openInformation(getShell(), "Add brick(s) to Volume", "Volume [" + volume.getName()
 						+ "] is expanded with bricks [" + StringUtil.ListToString(brickList, ", ") + "]");
 				return status.isSuccess();
