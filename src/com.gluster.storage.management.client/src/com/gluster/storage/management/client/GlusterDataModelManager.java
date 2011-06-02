@@ -80,15 +80,15 @@ public class GlusterDataModelManager {
 	public static GlusterDataModelManager getInstance() {
 		return instance;
 	}
-	
+
 	public void initializeModelWithNewCluster(String securityToken, String clusterName) {
 		model = new GlusterDataModel("Gluster Data Model");
 		setSecurityToken(securityToken);
-		
+
 		Cluster cluster = new Cluster(clusterName, model);
 
 		cluster.setServers(new ArrayList<GlusterServer>());
-		cluster.setVolumes(new ArrayList<Volume>());		
+		cluster.setVolumes(new ArrayList<Volume>());
 
 		initializeAutoDiscoveredServers(cluster);
 		// initializeDisks();
@@ -103,7 +103,7 @@ public class GlusterDataModelManager {
 		model = new GlusterDataModel("Gluster Data Model");
 		setSecurityToken(securityToken);
 		setClusterName(clusterName);
-		
+
 		Cluster cluster = new Cluster(clusterName, model);
 
 		initializeGlusterServers(cluster);
@@ -323,6 +323,12 @@ public class GlusterDataModelManager {
 		}
 	}
 
+	public void addBricks(Volume volume, List<Brick> bricks) {
+		for (ClusterListener listener : listeners) {
+			listener.volumeChanged(volume, new Event(EVENT_TYPE.BRICKS_ADDED, bricks));
+		}
+	}
+
 	public void setVolumeOption(Volume volume, Entry<String, String> entry) {
 		volume.setOption(entry.getKey(), (String) entry.getValue());
 		for (ClusterListener listener : listeners) {
@@ -385,16 +391,16 @@ public class GlusterDataModelManager {
 		throw new GlusterRuntimeException("Couldn't find entry for option [" + optionKey + "] on volume ["
 				+ volume.getName());
 	}
-	
+
 	private Boolean isDiskUsed(Volume volume, Disk disk) {
-		for(Brick brick: volume.getBricks()) {
+		for (Brick brick : volume.getBricks()) {
 			if (disk.getName().equals(brick.getDiskName()) && disk.getServerName().equals(brick.getServerName())) {
 				return true;
 			}
 		}
 		return false;
 	}
-	
+
 	public String getDiskStatus(Disk disk) {
 		if (disk.getStatus() == DISK_STATUS.READY) {
 			for (Volume volume : model.getCluster().getVolumes()) {

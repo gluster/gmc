@@ -230,7 +230,7 @@ public class Volume extends Entity {
 	}
 	
 	public void addBricks(List<Brick> bricks) {
-		bricks.addAll(bricks);
+		this.bricks.addAll(bricks);
 	}
 	
 	
