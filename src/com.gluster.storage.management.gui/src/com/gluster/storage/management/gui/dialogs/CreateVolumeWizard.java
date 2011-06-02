@@ -47,10 +47,10 @@ public class CreateVolumeWizard extends Wizard {
 		Volume newVolume = page.getVolume();
 		VolumesClient volumesClient = new VolumesClient();
 		Status status = volumesClient.createVolume(newVolume);
-
+		String message = "";
+		boolean warning = false;
 		if (status.isSuccess()) {
-			String message = "Volume created successfully!";
-			boolean warning = false;
+			message = "Volume created successfully!";
 			newVolume.setStatus(VOLUME_STATUS.OFFLINE);
 			if (page.startVolumeAfterCreation()) {
 				Status volumeStartStatus = volumesClient.startVolume(newVolume.getName());
@@ -72,8 +72,33 @@ public class CreateVolumeWizard extends Wizard {
 			}
 		} else {
 			if (status.isPartSuccess()) {
-				MessageDialog.openWarning(getShell(), dialogTitle, "Volume created, but following error(s) occured: "
+				newVolume.setStatus(VOLUME_STATUS.OFFLINE);
+				boolean error = false;
+				if (page.startVolumeAfterCreation()) {
+					if (MessageDialog.openConfirm(getShell(), dialogTitle,
+							"Volume created, but following error(s) occured: " + status
+									+ "\n\nDo you still want to start the volume [" + newVolume.getName()  + "]?")) { 
+						Status volumeStartStatus = volumesClient.startVolume(newVolume.getName());
+						if (volumeStartStatus.isSuccess()) {
+							newVolume.setStatus(VOLUME_STATUS.ONLINE);
+							message = "Volume [" + newVolume.getName() + "] started successfully!"; // Only start operation
+						} else {
+							message = "Volume couldn't be started. Error: " + volumeStartStatus;
+							error = true;
+						}
+					}
+					if (error) {
+						MessageDialog.openWarning(getShell(), dialogTitle, message);
+					} else {
+						MessageDialog.openInformation(getShell(), dialogTitle, message);
+					}
+				
+				} else { // Start volume is not checked
+					MessageDialog.openWarning(getShell(), dialogTitle, "Volume created, but following error(s) occured: "
 						+ status);
+				}
+				GlusterDataModelManager.getInstance().addVolume(newVolume); 
+				
 			} else {
 				MessageDialog.openError(getShell(), dialogTitle, "Volume creation failed! " + status);
 			}
