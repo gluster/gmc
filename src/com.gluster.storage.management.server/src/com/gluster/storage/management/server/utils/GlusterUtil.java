@@ -506,7 +506,7 @@ System.out.println(brickDir);
 	}
 
 	public Status removeServer(String existingServer, String serverName) {
-		return new Status(sshUtil.executeRemote(existingServer, "gluster peer detach " + serverName));
+		return new Status(sshUtil.executeRemote(existingServer, "gluster --mode=script peer detach " + serverName));
 	}
 
 	public static void main(String args[]) {

@@ -75,9 +75,7 @@ public class GlusterServersClient extends AbstractClient {
 	}
 	
 	public Status removeServer(String serverName) {
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-		queryParams.add(RESTConstants.QUERY_PARAM_SERVER_NAME, serverName);
-		return (Status) deleteResource(Status.class, queryParams);
+		return (Status) deleteSubResource(serverName,  Status.class);
 	}
 
 	public static void main(String[] args) {

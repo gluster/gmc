@@ -290,6 +290,15 @@ public class GlusterDataModelManager {
 			listener.serverAdded(server);
 		}
 	}
+	
+	public void addDiscoveredServer(Server server) {
+		Cluster cluster = model.getCluster();
+		cluster.addDiscoveredServer(server);
+		
+		for (ClusterListener listener : listeners) {
+			listener.discoveredServerAdded(server);;
+		}
+	}
 
 	public void removeDiscoveredServer(Server server) {
 		Cluster cluster = model.getCluster();
@@ -297,6 +306,15 @@ public class GlusterDataModelManager {
 
 		for (ClusterListener listener : listeners) {
 			listener.discoveredServerRemoved(server);
+		}
+	}
+	
+	public void removeGlusterServer(GlusterServer server) {
+		Cluster cluster = model.getCluster();
+		cluster.removeServer(server);
+		
+		for (ClusterListener listener : listeners) {
+			listener.serverRemoved(server);
 		}
 	}
 

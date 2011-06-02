@@ -27,6 +27,7 @@ import org.eclipse.jface.viewers.ISelection;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.model.Cluster;
+import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
@@ -61,6 +62,11 @@ public class RemoveServerAction extends AbstractActionDelegate {
 
 		if (status.isSuccess()) {
 			showInfoDialog(actionDesc, "Server removed successfully");
+			GlusterServer glusterServer = (GlusterServer) server;
+			GlusterDataModelManager.getInstance().removeGlusterServer(glusterServer);
+			if (glusterServer.isOnline()) {
+				GlusterDataModelManager.getInstance().addDiscoveredServer(server);
+			}
 		} else {
 			showErrorDialog(actionDesc, "Server could not be removed. Error: [" + status + "]");
 		}
