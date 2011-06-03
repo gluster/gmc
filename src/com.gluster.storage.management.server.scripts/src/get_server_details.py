@@ -168,7 +168,15 @@ def getServerDetails(listall):
         responseDom.appendTagRoute("server.name", serverName)
         syslog.syslog(syslog.LOG_ERR, "Error finding memory information of server:%s" % serverName)
         return None
-        
+
+    # refreshing hal data
+    rv = Utils.runCommandFG(["lshal"], stdout=True, root=True)
+    if rv["Stderr"]:
+        error = Common.stripEmptyLines(rv["Stderr"])
+        Common.log(syslog.LOG_ERR, "failed to execute lshal command. Error: %s" % error)
+        print "failed to get disk details"
+        return None
+
     diskObj = Disk()
     ## disks = diskObj.getDiskList()
     disks = diskObj.getMountableDiskList()
