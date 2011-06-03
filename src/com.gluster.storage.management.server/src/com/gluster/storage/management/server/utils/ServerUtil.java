@@ -63,10 +63,6 @@ public class ServerUtil {
 		this.sshUtil = sshUtil;
 	}
 
-	public SshUtil getSshUtil() {
-		return sshUtil;
-	}
-
 	public ProcessResult executeGlusterScript(boolean runInForeground, String scriptName, List<String> arguments) {
 		List<String> command = new ArrayList<String>();
 
@@ -119,7 +115,8 @@ public class ServerUtil {
 	}
 
 	private String executeOnServer(String serverName, String commandWithArgs) {
-		ProcessResult result = getSshUtil().executeRemote(serverName, commandWithArgs);
+		ProcessResult result = sshUtil.executeRemote(serverName, commandWithArgs);
+		
 		if (!result.isSuccess()) {
 			throw new GlusterRuntimeException("Command [" + commandWithArgs + "] failed on [" + serverName
 					+ "] with error [" + result.getExitValue() + "][" + result.getOutput() + "]");

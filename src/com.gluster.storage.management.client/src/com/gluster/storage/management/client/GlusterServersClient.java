@@ -70,14 +70,12 @@ public class GlusterServersClient extends AbstractClient {
 
 	public GlusterServerResponse addServer(Server discoveredServer) {
 		Form form = new Form();
-		form.add("serverName", discoveredServer.getName());
+		form.add(RESTConstants.FORM_PARAM_SERVER_NAME, discoveredServer.getName());
 		return (GlusterServerResponse)postRequest(GlusterServerResponse.class, form);
 	}
 	
 	public Status removeServer(String serverName) {
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-		queryParams.add(RESTConstants.QUERY_PARAM_SERVER_NAME, serverName);
-		return (Status) deleteResource(Status.class, queryParams);
+		return (Status) deleteSubResource(serverName,  Status.class);
 	}
 
 	public static void main(String[] args) {

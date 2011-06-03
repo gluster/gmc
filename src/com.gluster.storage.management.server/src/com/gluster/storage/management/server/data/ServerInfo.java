@@ -39,6 +39,9 @@ public class ServerInfo {
 	@JoinColumn(name="cluster_id")
 	private ClusterInfo cluster;
 
+	public ServerInfo() {
+	}
+	
 	public ServerInfo(String name) {
 		setName(name);
 	}
