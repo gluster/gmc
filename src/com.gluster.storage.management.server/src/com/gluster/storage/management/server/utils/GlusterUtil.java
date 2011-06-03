@@ -498,7 +498,7 @@ System.out.println(brickDir);
 	}
 
 	public Status removeBricks(String volumeName, List<String> bricks, String knownServer) {
-		StringBuilder command = new StringBuilder("gluster volume remove-brick " + volumeName);
+		StringBuilder command = new StringBuilder("gluster --mode=script volume remove-brick " + volumeName);
 		for(String brickDir : bricks) {
 			command.append(" " + brickDir);
 		}
