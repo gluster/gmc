@@ -93,7 +93,6 @@ public class ClustersResource {
 		return new StringListResponse(clusterList);
 	}
 
-	@SuppressWarnings("unchecked")
 	@POST
 	@Produces(MediaType.TEXT_XML)
 	public Status createCluster(@FormParam(FORM_PARAM_CLUSTER_NAME) String clusterName) {
