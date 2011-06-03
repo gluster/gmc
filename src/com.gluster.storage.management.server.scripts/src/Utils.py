@@ -159,7 +159,9 @@ def isString(value):
 
 
 def getTempFileName():
-    return tempfile.mkstemp(prefix="GSP_")[1]
+    filedesc, filename = tempfile.mkstemp(prefix="GSP_")
+    os.close(filedesc)
+    return filename
 
 
 def runCommandBG(command, stdinFileObj=None, stdoutFileObj=None, stderrFileObj=None,
