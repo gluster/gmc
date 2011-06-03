@@ -28,7 +28,7 @@ public class VolumeBricksView extends ViewPart {
 	 * @param parent
 	 */
 	private void createPage(Composite parent) {
-		page = new BricksPage(parent, SWT.NONE, getSite(), GlusterDataModelManager.getInstance().getOnlineBricks(volume));
+		page = new BricksPage(parent, SWT.NONE, getSite(), volume.getBricks());
 		parent.layout(); // IMP: lays out the form properly
 	}
 
