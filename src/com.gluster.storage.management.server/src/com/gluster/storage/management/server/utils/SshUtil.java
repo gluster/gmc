@@ -55,6 +55,7 @@ public class SshUtil {
 	private LRUCache<String, Connection> sshConnCache = new LRUCache<String, Connection>(10);
 	private static final File PEM_FILE = new File(CoreConstants.USER_HOME + File.separator + ".ssh/id_rsa");
 	private static final File PUBLIC_KEY_FILE = new File(CoreConstants.USER_HOME + File.separator + ".ssh/id_rsa.pub");
+	private static final String SCRIPT_DISABLE_SSH_PASSWORD_AUTH = "disable-ssh-password-auth.sh";
 
 	// TODO: Make user name configurable
 	private static final String USER_NAME = "root";
@@ -89,7 +90,6 @@ public class SshUtil {
 			localTempFile.delete();
 		}
 		try {
-			
 			// get authorized_keys from server
 			scpClient.get(SSH_AUTHORIZED_KEYS_PATH, TEMP_DIR);
 		} catch (IOException e) {
@@ -119,7 +119,15 @@ public class SshUtil {
 			throw new GlusterRuntimeException("Couldn't add public key to server [" + serverName + "]", e);
 		}
 		
-		// TODO: Disable password based ssh connections
+		disableSshPasswordLogin(serverName, scpClient);
+	}
+
+	private void disableSshPasswordLogin(String serverName, SCPClient scpClient) {
+		ProcessResult result = executeRemote(serverName, SCRIPT_DISABLE_SSH_PASSWORD_AUTH);
+		if(!result.isSuccess()) {
+			throw new GlusterRuntimeException("Couldn't disable SSH password authentication on [" + serverName
+					+ "]. Error: " + result);
+		}
 	}
 
 	private Connection getConnectionWithPassword(String serverName) {
