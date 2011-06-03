@@ -53,9 +53,9 @@ def getDiskSizeInfo(partition):
         if len(tokens) < 4:
             continue
         if tokens[0] == partition:
-            total = int(tokens[1]) / 1024.0
-            used = int(tokens[2]) / 1024.0
-            free = int(tokens[3]) / 1024.0
+            total = int(tokens[1]) / (1024.0 * 1024.0)
+            used = int(tokens[2]) / (1024.0 * 1024.0)
+            free = int(tokens[3]) / (1024.0 * 1024.0)
             break
 
     if total:
@@ -92,7 +92,7 @@ def getDiskSizeInfo(partition):
         if len(tokens) < 4:
             continue
         if tokens[0] == str(number):
-            total = int(tokens[3].split('kB')[0]) / 1024.0
+            total = int(tokens[3].split('kB')[0]) / (1024.0 * 1024.0)
             break
     
     return total, used, free
