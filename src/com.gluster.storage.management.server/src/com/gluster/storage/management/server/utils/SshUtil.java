@@ -118,6 +118,8 @@ public class SshUtil {
 		} catch (IOException e) {
 			throw new GlusterRuntimeException("Couldn't add public key to server [" + serverName + "]", e);
 		}
+		
+		// TODO: Disable password based ssh connections
 	}
 
 	private Connection getConnectionWithPassword(String serverName) {
