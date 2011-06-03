@@ -347,6 +347,12 @@ public class GlusterDataModelManager {
 			listener.volumeChanged(volume, new Event(EVENT_TYPE.BRICKS_ADDED, bricks));
 		}
 	}
+	
+	public void removeBricks(Volume volume, List<Brick> bricks) {
+		for (ClusterListener listener : listeners) {
+			listener.volumeChanged(volume, new Event(EVENT_TYPE.BRICKS_REMOVED, bricks));
+		}
+	}
 
 	public void setVolumeOption(Volume volume, Entry<String, String> entry) {
 		volume.setOption(entry.getKey(), (String) entry.getValue());

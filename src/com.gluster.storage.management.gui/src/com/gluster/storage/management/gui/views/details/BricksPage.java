@@ -58,7 +58,7 @@ public class BricksPage extends AbstractBricksPage {
 		final ClusterListener clusterListener = new DefaultClusterListener() {
 			@Override
 			public void volumeChanged(Volume volume, Event event) {
-				if (event.getEventType() == EVENT_TYPE.BRICKS_ADDED) {
+				if (event.getEventType() == EVENT_TYPE.BRICKS_ADDED || event.getEventType() == EVENT_TYPE.BRICKS_REMOVED) {
 					tableViewer.refresh();
 					parent.update();
 				}
