@@ -30,10 +30,7 @@ def isinpeer():
     if status["Status"] == 0:
         if status["Stdout"].strip().upper() != "NO PEERS PRESENT":
             return True
-        #lines = status["Stdout"].split("\n")
-        #for line in lines:
-        #    if string.upper(line).startswith("HOSTNAME: %s" % string.upper(socket.gethostname)):
-        #        return True
+        return False
     Utils.log("command [%s] failed with [%d:%s]" % (command, status["Status"], os.strerror(status["Status"])))
     return False
 
@@ -50,11 +47,11 @@ def response(multiCastGroup, port):
 
     #TODO: Remove infinite loop and make this as a deamon (service)
     while True:
-        if isinpeer():
-            time.sleep(5)
-            continue
         request = socketRequest.recvfrom(1024)
         if request and request[0].upper() == "SERVERDISCOVERY":
+            if isinpeer():
+                time.sleep(5)
+                continue
             socketSend.sendto(socket.gethostname(), (multiCastGroup, port))
             request = None
 
