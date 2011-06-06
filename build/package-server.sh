@@ -13,7 +13,8 @@ prepare-dist-dir()
 get-server-war()
 {
 	cd ${WAR_NAME}
-	WAR_FILE=`find -L ${SERVER_DIST_DIR} -name ${WAR_NAME}`
+	#WAR_FILE=`find -L ${SERVER_DIST_DIR} -name ${WAR_NAME}`
+	WAR_FILE=`find ${SERVER_DIST_DIR} -name ${WAR_NAME}`
 	jar xvf ${WAR_FILE}
 	cd -
 }
