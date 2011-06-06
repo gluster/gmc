@@ -19,21 +19,21 @@
 package com.gluster.storage.management.gui;
 
 
-import com.gluster.storage.management.core.model.LogMessage;
+import com.gluster.storage.management.core.model.VolumeLogMessage;
 import com.gluster.storage.management.core.utils.DateUtil;
 import com.gluster.storage.management.gui.views.details.VolumeLogsPage.LOG_TABLE_COLUMN_INDICES;
 
 public class VolumeLogTableLabelProvider extends TableLabelProviderAdapter {
 	@Override
 	public String getColumnText(Object element, int columnIndex) {
-		if (!(element instanceof LogMessage)) {
+		if (!(element instanceof VolumeLogMessage)) {
 			return null;
 		}
 
-		LogMessage logMessage = (LogMessage) element;
+		VolumeLogMessage logMessage = (VolumeLogMessage) element;
 		return (columnIndex == LOG_TABLE_COLUMN_INDICES.DATE.ordinal() ? DateUtil.formatDate(logMessage.getTimestamp()) 
 			: columnIndex == LOG_TABLE_COLUMN_INDICES.TIME.ordinal() ? DateUtil.formatTime(logMessage.getTimestamp())
-			: columnIndex == LOG_TABLE_COLUMN_INDICES.DISK.ordinal() ? logMessage.getDisk()
+			: columnIndex == LOG_TABLE_COLUMN_INDICES.BRICK.ordinal() ? logMessage.getBrickDirectory()
 			: columnIndex == LOG_TABLE_COLUMN_INDICES.SEVERITY.ordinal() ? "" + logMessage.getSeverity()
 			: columnIndex == LOG_TABLE_COLUMN_INDICES.MESSAGE.ordinal() ? logMessage.getMessage() : "Invalid");
 	}

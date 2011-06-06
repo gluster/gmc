@@ -76,10 +76,10 @@ public class RunningTaskResource {
 		// MigrateDisk
 		task = new RunningTask();
 		task.setId("0003");
-		task.setType(RunningTask.TASK_TYPES.DISK_MIGRATE);
+		task.setType(RunningTask.TASK_TYPES.BRICK_MIGRATE);
 		task.setReference("Volume3:server1:sda1"); // Disk reference
 		task.setTaskInfo(task.getTaskType(task.getType()) + " for volume [" + task.getReference().split(":")[0]
-				+ "] disk [" + task.getReference().split(":")[1] + ":" + task.getReference().split(":")[2] + "]");
+				+ "] brick [" + task.getReference().split(":")[1] + ":" + task.getReference().split(":")[2] + "]");
 		task.setStatus(taskStatus);
 		runningTasks.add(task);
 

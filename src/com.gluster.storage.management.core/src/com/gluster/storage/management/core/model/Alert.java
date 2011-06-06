@@ -6,11 +6,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class Alert {
 
 	public enum ALERT_TYPES {
-		CPU_USAGE_ALERT, MEMORY_USAGE_ALERT, DISK_USAGE_ALERT, OFFLINE_VOLUME_DISKS_ALERT, OFFLINE_SERVERS_ALERT
+		CPU_USAGE_ALERT, MEMORY_USAGE_ALERT, DISK_USAGE_ALERT, OFFLINE_VOLUME_BRICKS_ALERT, OFFLINE_SERVERS_ALERT
 	};
 
 	public static final String[] ALERT_TYPE_STR = { "High CPU Usage", "High Memory Usage", "Low Disk Space",
-			"Offline Disk", "Offline Server" };
+			"Offline Brick", "Offline Server" };
 
 	protected String id;
 	protected ALERT_TYPES type;

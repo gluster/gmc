@@ -96,7 +96,7 @@ public class VolumesSummaryView extends ViewPart {
 	}
 
 	private void addAlertLabel(Composite section, Alert alert) {
-		if (alert.getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_DISKS_ALERT) {
+		if (alert.getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT) {
 			CLabel lblAlert = new CLabel(section, SWT.NONE);
 			lblAlert.setImage((alert.getType() == Alert.ALERT_TYPES.DISK_USAGE_ALERT) ? guiHelper
 					.getImage(IImageKeys.LOW_DISK_SPACE) : guiHelper.getImage(IImageKeys.DISK_OFFLINE));
@@ -118,14 +118,14 @@ public class VolumesSummaryView extends ViewPart {
 
 	private void addRunningTaskLabel(Composite section, RunningTask task) {
 		// Task related to Volumes context
-		if (task.getType() == RunningTask.TASK_TYPES.DISK_MIGRATE
+		if (task.getType() == RunningTask.TASK_TYPES.BRICK_MIGRATE
 				|| task.getType() == RunningTask.TASK_TYPES.VOLUME_REBALANCE) {
 			if (task.getStatus().isPercentageSupported()) {
 				// TODO Progress bar
 			}
 			CLabel lblAlert = new CLabel(section, SWT.NONE);
 			lblAlert.setText(task.getTaskInfo());
-			lblAlert.setImage((task.getType() == RunningTask.TASK_TYPES.DISK_MIGRATE) ? guiHelper
+			lblAlert.setImage((task.getType() == RunningTask.TASK_TYPES.BRICK_MIGRATE) ? guiHelper
 					.getImage(IImageKeys.DISK_MIGRATE) : guiHelper.getImage(IImageKeys.VOLUME_REBALANCE));
 			lblAlert.redraw();
 		}

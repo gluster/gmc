@@ -127,7 +127,7 @@ public class VolumeSummaryView extends ViewPart {
 		List<Alert> alerts = GlusterDataModelManager.getInstance().getModel().getCluster().getAlerts();
 
 		for (int i = 0; i < alerts.size(); i++) {
-			if (alerts.get(i).getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_DISKS_ALERT
+			if (alerts.get(i).getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT
 					&& alerts.get(i).getReference().split(":")[0].trim().equals(volume.getName())) {
 				addAlertLabel(section, alerts.get(i));
 			}

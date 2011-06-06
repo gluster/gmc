@@ -51,7 +51,7 @@ import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.constants.GlusterConstants.VOLUME_LOG_LEVELS;
-import com.gluster.storage.management.core.model.LogMessage;
+import com.gluster.storage.management.core.model.VolumeLogMessage;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.response.LogMessageListResponse;
@@ -68,10 +68,10 @@ public class VolumeLogsPage extends Composite {
 	private Volume volume;
 
 	public enum LOG_TABLE_COLUMN_INDICES {
-		DATE, TIME, DISK, SEVERITY, MESSAGE
+		DATE, TIME, BRICK, SEVERITY, MESSAGE
 	};
 
-	private static final String[] LOG_TABLE_COLUMN_NAMES = new String[] { "Date", "Time", "Disk", "Severity", "Message" };
+	private static final String[] LOG_TABLE_COLUMN_NAMES = new String[] { "Date", "Time", "Brick", "Severity", "Message" };
 	private TableViewer tableViewer;
 	private Combo disksCombo;
 	private Combo severityCombo;
@@ -189,8 +189,8 @@ public class VolumeLogsPage extends Composite {
 						severityCombo.getText(), fromTimestamp, toTimestamp, Integer.parseInt(lineCountText.getText()));
 				Status status = response.getStatus();
 				if (status.isSuccess()) {
-					List<LogMessage> logMessages = response.getLogMessages();
-					tableViewer.setInput(logMessages.toArray(new LogMessage[0]));
+					List<VolumeLogMessage> logMessages = response.getLogMessages();
+					tableViewer.setInput(logMessages.toArray(new VolumeLogMessage[0]));
 					tableViewer.refresh();
 				} else {
 					MessageDialog.openError(getShell(), "Volume Logs", "Error while fetching volume logs: [" + status
@@ -373,7 +373,7 @@ public class VolumeLogsPage extends Composite {
 
 		setColumnProperties(table, LOG_TABLE_COLUMN_INDICES.DATE, SWT.CENTER, 50);
 		setColumnProperties(table, LOG_TABLE_COLUMN_INDICES.TIME, SWT.CENTER, 50);
-		setColumnProperties(table, LOG_TABLE_COLUMN_INDICES.DISK, SWT.CENTER, 50);
+		setColumnProperties(table, LOG_TABLE_COLUMN_INDICES.BRICK, SWT.CENTER, 50);
 		setColumnProperties(table, LOG_TABLE_COLUMN_INDICES.SEVERITY, SWT.CENTER, 50);
 		setColumnProperties(table, LOG_TABLE_COLUMN_INDICES.MESSAGE, SWT.LEFT, 100);
 	}

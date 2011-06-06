@@ -75,9 +75,9 @@ import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.GlusterServer;
-import com.gluster.storage.management.core.model.LogMessage;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.VolumeLogMessage;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.LogMessageListResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
@@ -385,7 +385,7 @@ public class VolumesResource {
 		return new Status(Status.STATUS_CODE_SUCCESS, "Directories cleaned up successfully!");
 	}
 
-	private List<LogMessage> getBrickLogs(Volume volume, Brick brick, Integer lineCount)
+	private List<VolumeLogMessage> getBrickLogs(Volume volume, Brick brick, Integer lineCount)
 			throws GlusterRuntimeException {
 		String logDir = glusterUtil.getLogLocation(volume.getName(), brick.getQualifiedName(), brick.getServerName());
 		String logFileName = glusterUtil.getLogFileNameForBrickDir(brick.getBrickDirectory());
@@ -408,9 +408,10 @@ public class VolumesResource {
 		}
 
 		// populate disk and trim other fields
-		List<LogMessage> logMessages = response.getLogMessages();
-		for (LogMessage logMessage : logMessages) {
+		List<VolumeLogMessage> logMessages = response.getLogMessages();
+		for (VolumeLogMessage logMessage : logMessages) {
 			logMessage.setDisk(brick.getDiskName());
+			logMessage.setBrickDirectory(brick.getBrickDirectory());
 			logMessage.setMessage(logMessage.getMessage().trim());
 			logMessage.setSeverity(logMessage.getSeverity().trim());
 		}
@@ -473,7 +474,7 @@ public class VolumesResource {
 			@QueryParam(QUERY_PARAM_TO_TIMESTAMP) String toTimestamp,
 			@QueryParam(QUERY_PARAM_LINE_COUNT) Integer lineCount, 
 			@QueryParam(QUERY_PARAM_DOWNLOAD) Boolean download) {
-		List<LogMessage> logMessages = null;
+		List<VolumeLogMessage> logMessages = null;
 
 		try {
 			// TODO: Fetch logs from brick(s) of given cluster only
@@ -498,7 +499,7 @@ public class VolumesResource {
 		return new LogMessageListResponse(Status.STATUS_SUCCESS, logMessages);
 	}
 
-	private void filterLogsByTime(List<LogMessage> logMessages, String fromTimestamp, String toTimestamp) {
+	private void filterLogsByTime(List<VolumeLogMessage> logMessages, String fromTimestamp, String toTimestamp) {
 		Date fromTime = null, toTime = null;
 
 		if (fromTimestamp != null && !fromTimestamp.isEmpty()) {
@@ -509,8 +510,8 @@ public class VolumesResource {
 			toTime = DateUtil.stringToDate(toTimestamp);
 		}
 
-		List<LogMessage> messagesToRemove = new ArrayList<LogMessage>();
-		for (LogMessage logMessage : logMessages) {
+		List<VolumeLogMessage> messagesToRemove = new ArrayList<VolumeLogMessage>();
+		for (VolumeLogMessage logMessage : logMessages) {
 			Date logTimestamp = logMessage.getTimestamp();
 			if (fromTime != null && logTimestamp.before(fromTime)) {
 				messagesToRemove.add(logMessage);
@@ -524,13 +525,13 @@ public class VolumesResource {
 		logMessages.removeAll(messagesToRemove);
 	}
 
-	private void filterLogsBySeverity(List<LogMessage> logMessages, String severity) {
+	private void filterLogsBySeverity(List<VolumeLogMessage> logMessages, String severity) {
 		if (severity == null || severity.isEmpty()) {
 			return;
 		}
 
-		List<LogMessage> messagesToRemove = new ArrayList<LogMessage>();
-		for (LogMessage logMessage : logMessages) {
+		List<VolumeLogMessage> messagesToRemove = new ArrayList<VolumeLogMessage>();
+		for (VolumeLogMessage logMessage : logMessages) {
 			if (!logMessage.getSeverity().equals(severity)) {
 				messagesToRemove.add(logMessage);
 			}
@@ -538,18 +539,18 @@ public class VolumesResource {
 		logMessages.removeAll(messagesToRemove);
 	}
 
-	private List<LogMessage> getLogsForAllBricks(Volume volume, Integer lineCount) {
-		List<LogMessage> logMessages;
-		logMessages = new ArrayList<LogMessage>();
+	private List<VolumeLogMessage> getLogsForAllBricks(Volume volume, Integer lineCount) {
+		List<VolumeLogMessage> logMessages;
+		logMessages = new ArrayList<VolumeLogMessage>();
 		// fetch logs for every brick of the volume
 		for (Brick brick : volume.getBricks()) {
 			logMessages.addAll(getBrickLogs(volume, brick, lineCount));
 		}
 
 		// Sort the log messages based on log timestamp
-		Collections.sort(logMessages, new Comparator<LogMessage>() {
+		Collections.sort(logMessages, new Comparator<VolumeLogMessage>() {
 			@Override
-			public int compare(LogMessage message1, LogMessage message2) {
+			public int compare(VolumeLogMessage message1, VolumeLogMessage message2) {
 				return message1.getTimestamp().compareTo(message2.getTimestamp());
 			}
 		});
