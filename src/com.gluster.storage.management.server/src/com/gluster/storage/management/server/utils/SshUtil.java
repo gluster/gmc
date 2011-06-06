@@ -80,6 +80,17 @@ public class SshUtil {
 		}
 	}
 	
+	public void getFile(String serverName, String remoteFile, String localDir) {
+		try {
+			Connection conn = getConnection(serverName);
+			SCPClient scpClient = new SCPClient(conn);
+			scpClient.get(remoteFile, localDir);
+		} catch (IOException e) {
+			throw new GlusterRuntimeException("Error while fetching file [" + remoteFile + "] from server ["
+					+ serverName + "]", e);
+		}
+	}
+	
 	public synchronized void installPublicKey(String serverName) {
 		Connection conn = getConnectionWithPassword(serverName);
 		SCPClient scpClient = new SCPClient(conn);

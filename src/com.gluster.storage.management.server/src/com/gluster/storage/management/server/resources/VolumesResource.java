@@ -427,15 +427,24 @@ public class VolumesResource {
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}/" + RESOURCE_LOGS + "/" + RESOURCE_DOWNLOAD)
-	public StreamingOutput getLogs(@PathParam(PATH_PARAM_CLUSTER_NAME) final String clusterName,
+	public StreamingOutput downloadLogs(@PathParam(PATH_PARAM_CLUSTER_NAME) final String clusterName,
 			@PathParam(PATH_PARAM_VOLUME_NAME) final String volumeName) {
+		final ClusterInfo cluster = clusterService.getCluster(clusterName);
+		if(cluster == null) {
+			throw new GlusterRuntimeException("Cluster [" + clusterName + "] doesn't exist!");
+		}
+
+		final Volume volume = (Volume)getVolume(clusterName, volumeName).getData();
+		if(volume == null) {
+			throw new GlusterRuntimeException("Volume [" + volumeName + "] doesn't exist in cluster [" + clusterName
+					+ "]!");
+		}
+		
 		return new StreamingOutput() {
 
 			@Override
 			public void write(OutputStream output) throws IOException, WebApplicationException {
-				Volume volume = (Volume)getVolume(clusterName, volumeName).getData();
 				try {
-					// TODO: pass clusterName to downloadLogs
 					File archiveFile = new File(downloadLogs(volume));
 					output.write(fileUtil.readFileAsByteArray(archiveFile));
 					archiveFile.delete();
@@ -457,8 +466,7 @@ public class VolumesResource {
 			String logFileName = glusterUtil.getLogFileNameForBrickDir(brick.getBrickDirectory());
 			String logFilePath = logDir + CoreConstants.FILE_SEPARATOR + logFileName;
 
-			String logContents = serverUtil.getFileFromServer(brick.getServerName(), logFilePath);
-			fileUtil.createTextFile(tempDirPath + CoreConstants.FILE_SEPARATOR + logFileName, logContents);
+			serverUtil.getFileFromServer(brick.getServerName(), logFilePath, tempDirPath);
 		}
 
 		String gzipPath = fileUtil.getTempDirName() + CoreConstants.FILE_SEPARATOR + volume.getName() + "-logs.tar.gz";
@@ -479,7 +487,7 @@ public class VolumesResource {
 			@QueryParam(QUERY_PARAM_FROM_TIMESTAMP) String fromTimestamp,
 			@QueryParam(QUERY_PARAM_TO_TIMESTAMP) String toTimestamp,
 			@QueryParam(QUERY_PARAM_LINE_COUNT) Integer lineCount) {
-		List<LogMessage> logMessages = null;
+		List<VolumeLogMessage> logMessages = null;
 
 		ClusterInfo cluster = clusterService.getCluster(clusterName);
 		if(cluster == null) {
