@@ -34,7 +34,7 @@ public class GlusterDummyModel {
 	private GlusterServer server1, server2, server3, server4, server5;
 	private Volume volume1, volume2, volume3, volume4, volume5;
 	private Disk s1da, s1db, s2da, s2db, s2dc, s2dd, s3da, s4da, s5da, s5db;
-	private static List<LogMessage> logMessages = new ArrayList<LogMessage>();
+	private static List<VolumeLogMessage> logMessages = new ArrayList<VolumeLogMessage>();
 	private static GlusterDummyModel instance = new GlusterDummyModel();
 	private GlusterDataModel model;
 
@@ -212,21 +212,21 @@ public class GlusterDummyModel {
 		cluster.setAutoDiscoveredServers(servers);
 	}
 
-	private void addMessages(List<LogMessage> messages, Disk disk, String severity, int count) {
+	private void addMessages(List<VolumeLogMessage> messages, Disk disk, String severity, int count) {
 		for (int i = 1; i <= count; i++) {
 			String message = severity + "message" + i;
-			messages.add(new LogMessage(new Date(), disk.getQualifiedName(), severity, message));
+			messages.add(new VolumeLogMessage(new Date(), disk.getMountPoint(), severity, message));
 		}
 	}
 
-	private void addMessagesForDisk(List<LogMessage> logMessages, Disk disk) {
+	private void addMessagesForDisk(List<VolumeLogMessage> logMessages, Disk disk) {
 		addMessages(logMessages, disk, "SEVERE", 5);
 		addMessages(logMessages, disk, "WARNING", 5);
 		addMessages(logMessages, disk, "DEBUG", 5);
 		addMessages(logMessages, disk, "INFO", 5);
 	}
 
-	public List<LogMessage> createDummyLogMessages() {
+	public List<VolumeLogMessage> createDummyLogMessages() {
 		addMessagesForDisk(logMessages, s1da);
 		addMessagesForDisk(logMessages, s1db);
 		addMessagesForDisk(logMessages, s2da);
@@ -239,7 +239,7 @@ public class GlusterDummyModel {
 		return logMessages;
 	}
 
-	public static List<LogMessage> getDummyLogMessages() {
+	public static List<VolumeLogMessage> getDummyLogMessages() {
 		return logMessages;
 	}
 

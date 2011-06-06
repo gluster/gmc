@@ -10,28 +10,28 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.gluster.storage.management.core.model.LogMessage;
+import com.gluster.storage.management.core.model.VolumeLogMessage;
 import com.gluster.storage.management.core.model.Status;
 
 @XmlRootElement(name = "response")
 public class LogMessageListResponse extends AbstractResponse {
-	private List<LogMessage> logMessages = new ArrayList<LogMessage>();
+	private List<VolumeLogMessage> logMessages = new ArrayList<VolumeLogMessage>();
 	
 	public LogMessageListResponse() {
 	}
 	
-	public LogMessageListResponse(Status status, List<LogMessage> logMessages) {
+	public LogMessageListResponse(Status status, List<VolumeLogMessage> logMessages) {
 		setStatus(status);
 		setLogMessages(logMessages);
 	}
 
 	@XmlElementWrapper(name = "logMessages")
-	@XmlElement(name = "logMessage", type = LogMessage.class)
-	public List<LogMessage> getLogMessages() {
+	@XmlElement(name = "logMessage", type = VolumeLogMessage.class)
+	public List<VolumeLogMessage> getLogMessages() {
 		return logMessages;
 	}
 
-	public void setLogMessages(List<LogMessage> logMessages) {
+	public void setLogMessages(List<VolumeLogMessage> logMessages) {
 		this.logMessages = logMessages;
 	}
 
