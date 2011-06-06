@@ -28,17 +28,18 @@ import com.gluster.storage.management.core.model.adapters.VolumeLogDateAdapter;
 import com.gluster.storage.management.core.utils.StringUtil;
 
 @XmlRootElement
-public class LogMessage implements Filterable {
+public class VolumeLogMessage implements Filterable {
 	private Date timestamp;
 	// TODO: Replace disk with brick, rename class as VolumeLogMessage
+	private String brick;
 	private String disk;
 	private String severity;
 	private String message;
 
-	public LogMessage() {
+	public VolumeLogMessage() {
 	}
 	
-	public LogMessage(String logMessage) {
+	public VolumeLogMessage(String logMessage) {
 		// TODO: Parse the log message and extract fields 
 	}
 	
@@ -75,17 +76,27 @@ public class LogMessage implements Filterable {
 	public void setMessage(String message) {
 		this.message = message;
 	}
+	
+	public void setBrickDirectory(String brickDirectory) {
+		this.brick = brickDirectory;
+	}
 
-	public LogMessage(Date timestamp, String disk, String severity, String message) {
+	public String getBrickDirectory() {
+		return brick;
+	}
+
+	public VolumeLogMessage(Date timestamp, String disk, String brickDirectory, String severity, String message) {
 		setTimestamp(timestamp);
 		setDisk(disk);
+		setBrickDirectory(brickDirectory);
 		setSeverity(severity);
 		setMessage(message);
 	}
-
+	
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
 		return StringUtil.filterString(getSeverity() + getTimestamp() + getDisk() + getMessage(), filterString,
 				caseSensitive);
 	}
+
 }

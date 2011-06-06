@@ -184,7 +184,7 @@ public class ClusterSummaryView extends ViewPart {
 		CLabel lblAlert = new CLabel(section, SWT.FLAT);
 		Image alertImage = null;
 		switch (alert.getType()) {
-		case OFFLINE_VOLUME_DISKS_ALERT:
+		case OFFLINE_VOLUME_BRICKS_ALERT:
 			alertImage = guiHelper.getImage(IImageKeys.DISK_OFFLINE);
 			break;
 		case DISK_USAGE_ALERT:
@@ -293,7 +293,7 @@ public class ClusterSummaryView extends ViewPart {
 		case DISK_FORMAT:
 			taskImage = guiHelper.getImage(IImageKeys.DISK);
 			break;
-		case DISK_MIGRATE:
+		case BRICK_MIGRATE:
 			taskImage = guiHelper.getImage(IImageKeys.DISK_MIGRATE);
 			break;
 		case VOLUME_REBALANCE:
