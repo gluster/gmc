@@ -57,7 +57,7 @@ public class RESTConstants {
 	public static final String PATH_PARAM_CLUSTER_NAME = "clusterName";
 	public static final String PATH_PARAM_SERVER_NAME = "serverName";
 	
-	public static final String QUERY_PARAM_DISK_NAME = "diskName";
+	public static final String QUERY_PARAM_BRICK_NAME = "brickName";
 	public static final String QUERY_PARAM_DISKS = "disks";
 	public static final String QUERY_PARAM_BRICKS = "bricks";
 	public static final String QUERY_PARAM_LINE_COUNT = "lineCount";

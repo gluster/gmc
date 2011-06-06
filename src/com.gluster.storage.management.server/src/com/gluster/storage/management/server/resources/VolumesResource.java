@@ -29,8 +29,8 @@ import static com.gluster.storage.management.core.constants.RESTConstants.FORM_P
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_VOLUME_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_BRICKS;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_BRICK_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DELETE_OPTION;
-import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DISK_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DOWNLOAD;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_FROM_TIMESTAMP;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_LINE_COUNT;
@@ -69,6 +69,8 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
@@ -87,6 +89,8 @@ import com.gluster.storage.management.core.utils.FileUtil;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
+import com.gluster.storage.management.server.data.ClusterInfo;
+import com.gluster.storage.management.server.services.ClusterService;
 import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.ServerUtil;
 import com.sun.jersey.api.core.InjectParam;
@@ -102,11 +106,14 @@ public class VolumesResource {
 	@InjectParam
 	private GlusterServersResource glusterServersResource; 
 	
-	@InjectParam
+	@Autowired
 	private ServerUtil serverUtil;
 
-	@InjectParam
+	@Autowired
 	private GlusterUtil glusterUtil;
+	
+	@Autowired
+	private ClusterService clusterService;
 
 	private FileUtil fileUtil = new FileUtil();
 	
@@ -467,7 +474,7 @@ public class VolumesResource {
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}/" + RESOURCE_LOGS)
 	public LogMessageListResponse getLogs(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName, 
-			@QueryParam(QUERY_PARAM_DISK_NAME) String brickName,
+			@QueryParam(QUERY_PARAM_BRICK_NAME) String brickName,
 			@QueryParam(QUERY_PARAM_LOG_SEVERITY) String severity,
 			@QueryParam(QUERY_PARAM_FROM_TIMESTAMP) String fromTimestamp,
 			@QueryParam(QUERY_PARAM_TO_TIMESTAMP) String toTimestamp,
@@ -475,9 +482,19 @@ public class VolumesResource {
 			@QueryParam(QUERY_PARAM_DOWNLOAD) Boolean download) {
 		List<VolumeLogMessage> logMessages = null;
 
+		ClusterInfo cluster = clusterService.getCluster(clusterName);
+		if(cluster == null) {
+			return new LogMessageListResponse(new Status(Status.STATUS_CODE_FAILURE, "Cluster [" + clusterName
+					+ "] doesn't exist!"), null);
+		}
+
 		try {
-			// TODO: Fetch logs from brick(s) of given cluster only
 			Volume volume = (Volume)getVolume(clusterName, volumeName).getData();
+			if(volume == null) {
+				return new LogMessageListResponse(new Status(Status.STATUS_CODE_FAILURE, "Volume [" + volumeName
+						+ "] doesn't exist in cluster [" + clusterName + "]!"), null);
+			}
+			
 			if (brickName == null || brickName.isEmpty() || brickName.equals(CoreConstants.ALL)) {
 				logMessages = getLogsForAllBricks(volume, lineCount);
 			} else {

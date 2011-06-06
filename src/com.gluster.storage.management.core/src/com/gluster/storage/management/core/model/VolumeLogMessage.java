@@ -71,6 +71,7 @@ public class VolumeLogMessage implements Filterable {
 		this.brick = brickDirectory;
 	}
 
+
 	public String getBrickDirectory() {
 		return brick;
 	}
