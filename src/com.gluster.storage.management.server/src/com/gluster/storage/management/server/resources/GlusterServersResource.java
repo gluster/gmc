@@ -307,7 +307,7 @@ public class GlusterServersResource extends AbstractServersResource {
 			}
 
 			try {
-				return glusterUtil.removeServer(onlineServer.getName(), serverName);
+				status = glusterUtil.removeServer(onlineServer.getName(), serverName);
 			} catch (ConnectionException e) {
 				// online server has gone offline! try with a different one.
 				onlineServer = getNewOnlineServer(clusterName, serverName);
