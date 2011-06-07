@@ -18,6 +18,8 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.actions;
 
+import java.util.Set;
+
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
@@ -26,8 +28,10 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
+import org.eclipse.ui.internal.UIPlugin;
 
 import com.gluster.storage.management.core.model.Entity;
+import com.gluster.storage.management.gui.utils.GUIHelper;
 
 /**
  * All action delegates in the application should extend from this class. It provides common functionality of grabbing
@@ -36,6 +40,8 @@ import com.gluster.storage.management.core.model.Entity;
  */
 public abstract class AbstractActionDelegate implements IWorkbenchWindowActionDelegate {
 	protected IWorkbenchWindow window;
+	
+	// the latest selected entity
 	protected Entity selectedEntity;
 
 	@Override
@@ -78,6 +84,10 @@ public abstract class AbstractActionDelegate implements IWorkbenchWindowActionDe
 			return Display.getDefault().getActiveShell();
 		}
 		return window.getShell();
+	}
+	
+	protected IWorkbenchWindow getWindow() {
+		return window == null ? UIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow() : window;
 	}
 
 	protected void showInfoDialog(final String title, final String message) {
