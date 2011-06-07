@@ -161,8 +161,8 @@ public class ServerUtil {
 	// }
 	// }
 
-	public String getFileFromServer(String serverName, String fileName) {
-		return executeOnServer(serverName, "get_file " + fileName);
+	public void getFileFromServer(String serverName, String remoteFileName, String localDirName) {
+		sshUtil.getFile(serverName, remoteFileName, localDirName);
 	}
 
 	/**

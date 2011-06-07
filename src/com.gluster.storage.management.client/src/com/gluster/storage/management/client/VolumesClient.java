@@ -144,7 +144,7 @@ public class VolumesClient extends AbstractClient {
 	}
 
 	public void downloadLogs(String volumeName, String filePath) {
-		downloadSubResource((volumeName) + "/" + RESTConstants.RESOURCE_LOGS + "/" + RESTConstants.RESOURCE_DOWNLOAD, filePath);
+		downloadSubResource(volumeName + "/" + RESTConstants.RESOURCE_LOGS + "/" + RESTConstants.RESOURCE_DOWNLOAD, filePath);
 	}
 
 	public Status removeBricks(String volumeName, List<Brick> BrickList, boolean deleteOption) {
