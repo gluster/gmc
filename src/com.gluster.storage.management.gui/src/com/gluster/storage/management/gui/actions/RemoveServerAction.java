@@ -19,57 +19,120 @@
 package com.gluster.storage.management.gui.actions;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.GlusterServersClient;
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.utils.StringUtil;
+import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public class RemoveServerAction extends AbstractActionDelegate {
-
-	private GlusterServer server;
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 
 	@Override
-	protected void performAction(IAction action) {
-		final String actionDesc = action.getDescription();
+	protected void performAction(final IAction action) {
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				final String actionDesc = action.getDescription();
 
-		List<String> configuredVolumes = getServerVolumeNames(server.getName());
+				Set<GlusterServer> selectedServers = GUIHelper.getInstance().getSelectedEntities(getWindow(),
+						GlusterServer.class);
 
-		if (configuredVolumes.size() > 0) {
-			String volumes = StringUtil.ListToString(configuredVolumes, ", ");
-			showErrorDialog(actionDesc, "Server cannot be removed as it is being used by following volumes: ["
-					+ volumes + "]");
+				if (!validate(action, selectedServers)) {
+					return;
+				}
+
+				boolean confirmed = showConfirmDialog(actionDesc, "Are you sure you want to remove the server(s) "
+						+ selectedServers + " ?");
+				if (!confirmed) {
+					return;
+				}
+
+				Set<GlusterServer> successServers = new HashSet<GlusterServer>();
+				String errMsg = "";
+				for (GlusterServer server : selectedServers) {
+					GlusterServersClient client = new GlusterServersClient();
+					Status status = client.removeServer(server.getName());
+					if (status.isSuccess()) {
+						GlusterServer glusterServer = (GlusterServer) server;
+						modelManager.removeGlusterServer(glusterServer);
+						successServers.add(server);
+					} else {
+						errMsg += "[" + server.getName() + "] : " + status;
+					}
+				}
+
+				showStatusMessage(action.getDescription(), selectedServers, successServers, errMsg);
+			}
+		});
+	}
+
+	private void showStatusMessage(String dialogTitle, Set<GlusterServer> selectedServers, Set<GlusterServer> successServers,
+			String errMsg) {
+		if (successServers.size() == selectedServers.size()) {
+			if(selectedServers.size() == 1) {
+				showInfoDialog(dialogTitle, "Server [" + selectedServers.iterator().next() + "] removed successfully!");
+			} else {
+				showInfoDialog(dialogTitle, "Following servers removed successfully: " + CoreConstants.NEWLINE
+						+ selectedServers);
+			}
 			return;
 		}
-
-		boolean confirmed = showConfirmDialog(actionDesc,
-				"Are you sure you want to remove this server [" + server.getName() + "] ?");
-		if (!confirmed) {
-			return;
-		}
-
-		GlusterServersClient client = new GlusterServersClient();
-		Status status = client.removeServer(server.getName());
-
-		if (status.isSuccess()) {
-			showInfoDialog(actionDesc, "Server removed successfully");
-			GlusterServer glusterServer = (GlusterServer) server;
-			GlusterDataModelManager.getInstance().removeGlusterServer(glusterServer);
+		
+		if (successServers.size() == 0) {
+			errMsg = "Server Removal Failed! Error(s):" + CoreConstants.NEWLINE + errMsg;
 		} else {
-			showErrorDialog(actionDesc, "Server could not be removed. Error: [" + status + "]");
+			errMsg = "Following servers removed successfully : " + CoreConstants.NEWLINE + successServers
+					+ CoreConstants.NEWLINE + "Following errors occurred on other selected servers: "
+					+ CoreConstants.NEWLINE + errMsg;
 		}
+		showErrorDialog(dialogTitle, errMsg);
+	}
+
+	private boolean validate(IAction action, Set<GlusterServer> selectedServers) {
+		Map<GlusterServer, List<String>> usedServers = new HashMap<GlusterServer, List<String>>();
+		for (GlusterServer server : selectedServers) {
+			List<String> configuredVolumes = getServerVolumeNames(server.getName());
+
+			if (configuredVolumes.size() > 0) {
+				usedServers.put(server, configuredVolumes);
+			}
+		}
+
+		if (usedServers.size() > 0) {
+			if (usedServers.size() == 1) {
+				showErrorDialog(action.getDescription(), "Server [" + usedServers.keySet().iterator().next()
+						+ "] cannot be removed as it is being used by volume(s): " + CoreConstants.NEWLINE
+						+ usedServers.values().iterator().next() + "]");
+			} else {
+				String serverList = "";
+				for (Entry<GlusterServer, List<String>> entry : usedServers.entrySet()) {
+					serverList += entry.getKey() + " -> " + entry.getValue() + CoreConstants.NEWLINE;
+				}
+				showErrorDialog(action.getDescription(),
+						"Following servers cannot be removed as they are being used by volume(s): "
+								+ CoreConstants.NEWLINE + serverList + "]");
+			}
+			return false;
+		}
+		return true;
 	}
 
 	private List<String> getServerVolumeNames(String serverName) {
-		Cluster cluster = GlusterDataModelManager.getInstance().getModel().getCluster();
+		Cluster cluster = modelManager.getModel().getCluster();
 		List<String> volumeNames = new ArrayList<String>();
 		for (Volume volume : cluster.getVolumes()) {
 			for (String brick : volume.getDisks()) {
@@ -82,16 +145,6 @@ public class RemoveServerAction extends AbstractActionDelegate {
 		return volumeNames;
 	}
 
-	@Override
 	public void dispose() {
-		System.out.println("Disposing [" + this.getClass().getSimpleName() + "]");
-	}
-
-	@Override
-	public void selectionChanged(IAction action, ISelection selection) {
-		super.selectionChanged(action, selection);
-		if (selectedEntity instanceof GlusterServer) {
-			server = (GlusterServer) selectedEntity;
-		}
 	}
 }
