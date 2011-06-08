@@ -30,39 +30,49 @@ public class RemoveDiskAction extends AbstractActionDelegate {
 	boolean confirmDelete = false;
 
 	@Override
-	protected void performAction(IAction action) {
-		final String actionDesc = action.getDescription();
-		List<String> brickList = getBrickList(bricks);
-		Integer deleteOption = new MessageDialog(getShell(), "Remove Bricks(s)", GUIHelper.getInstance().getImage(
-				IImageKeys.VOLUME), "Are you sure you want to remove following bricks from volume [" + volume.getName()
-				+ "] ? \n" + StringUtil.ListToString(brickList, ", "), MessageDialog.QUESTION, new String[] { "Cancel",
-				"Remove bricks, delete data", "Remove bricks, keep data" }, 2).open();
-		if (deleteOption <= 0) { // By Cancel button(0) or Escape key(-1)
-			return;
-		}
+	protected void performAction(final IAction action) {
+		Display.getDefault().asyncExec(new Runnable() {
 
-		if (deleteOption == 1) {
-			confirmDelete = true;
-		}
-		BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
+			@Override
 			public void run() {
-				VolumesClient client = new VolumesClient();
-				Status status = client.removeBricks(volume.getName(), bricks, confirmDelete);
 
-				if (status.isSuccess()) {
-					
-					// Remove the bricks from the volume object 
-					for (Brick brick : bricks) {
-						volume.removeBrick(brick);
-					}
-					// Update model with removed bricks in the volume
-					modelManager.removeBricks(volume, bricks);
-					
-					showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] bricks(s) removed successfully!");
-				} else {
-					showErrorDialog(actionDesc, "Volume [" + volume.getName()
-							+ "] bricks(s) could not be removed! Error: [" + status + "]");
+				final String actionDesc = action.getDescription();
+				List<String> brickList = getBrickList(bricks);
+				Integer deleteOption = new MessageDialog(getShell(), "Remove Bricks(s)", GUIHelper.getInstance()
+						.getImage(IImageKeys.VOLUME), "Are you sure you want to remove following bricks from volume ["
+						+ volume.getName() + "] ? \n" + StringUtil.ListToString(brickList, ", "),
+						MessageDialog.QUESTION, new String[] { "Cancel", "Remove bricks, delete data",
+								"Remove bricks, keep data" }, -1).open();
+				if (deleteOption <= 0) { // By Cancel button(0) or Escape key(-1)
+					return;
 				}
+
+				if (deleteOption == 1) {
+					confirmDelete = true;
+				}
+				BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
+					public void run() {
+						VolumesClient client = new VolumesClient();
+						Status status = client.removeBricks(volume.getName(), bricks, confirmDelete);
+
+						if (status.isSuccess()) {
+
+							// Remove the bricks from the volume object
+							for (Brick brick : bricks) {
+								volume.removeBrick(brick);
+							}
+							// Update model with removed bricks in the volume
+							modelManager.removeBricks(volume, bricks);
+
+							showInfoDialog(actionDesc, "Volume [" + volume.getName()
+									+ "] bricks(s) removed successfully!");
+						} else {
+							showErrorDialog(actionDesc, "Volume [" + volume.getName()
+									+ "] bricks(s) could not be removed! Error: [" + status + "]");
+						}
+					}
+				});
+
 			}
 		});
 
