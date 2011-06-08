@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
@@ -146,5 +147,16 @@ public class RemoveServerAction extends AbstractActionDelegate {
 	}
 
 	public void dispose() {
+	}
+	
+	@Override
+	public void selectionChanged(IAction action, ISelection selection) {
+		Set<GlusterServer> selectedServers = GUIHelper.getInstance().getSelectedEntities(getWindow(),
+				GlusterServer.class);
+		if(selectedServers == null || selectedServers.isEmpty()) {
+			action.setEnabled(false);
+		} else {
+			action.setEnabled(true);
+		}
 	}
 }

@@ -666,22 +666,6 @@
                toolbarPath="Normal"
                tooltip="Create a new Volume">
          </action>
-         <action
-               allowLabelUpdate="false"
-               class="com.gluster.storage.management.gui.actions.AddServerAction"
-               definitionId="com.gluster.storage.management.gui.commands.AddServer"
-               icon="icons/server-add.png"
-               id="com.gluster.storage.management.gui.actions.AddServerAction"
-               label="Add &amp;Server(s)"
-               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
-               mode="FORCE_TEXT"
-               pulldown="false"
-               retarget="false"
-               state="false"
-               style="push"
-               toolbarPath="Normal"
-               tooltip="Add Server(s) to Cluster">
-         </action>
          <menu
                id="com.gluster.storage.management.gui.menu.cluster"
                label="&amp;Gluster">
@@ -711,22 +695,6 @@
                toolbarPath="Normal"
                tooltip="Remove Server(s)">
          </action>
-         <action
-               allowLabelUpdate="false"
-               class="com.gluster.storage.management.gui.actions.AddServerAction"
-               definitionId="com.gluster.storage.management.gui.commands.AddServer"
-               icon="icons/server-add.png"
-               id="com.gluster.storage.management.gui.actions.AddServerAction"
-               label="&amp;Add Server(s)"
-               menubarPath="com.gluster.storage.management.gui.menu.servers/servers"
-               mode="FORCE_TEXT"
-               pulldown="false"
-               retarget="false"
-               state="false"
-               style="push"
-               toolbarPath="Normal"
-               tooltip="Add Server(s) to Cluster">
-         </action>
          <menu
                id="com.gluster.storage.management.gui.menu.servers"
                label="&amp;Gluster"
@@ -747,7 +715,7 @@
                definitionId="com.gluster.storage.management.gui.commands.RemoveServer"
                icon="icons/server-remove.png"
                id="com.gluster.storage.management.gui.actions.RemoveServerAction"
-               label="&amp;Remove Server"
+               label="&amp;Remove Server(s)"
                menubarPath="com.gluster.storage.management.gui.menu.glusterserver/glusterserver"
                mode="FORCE_TEXT"
                pulldown="false"
@@ -807,7 +775,7 @@
                definitionId="com.gluster.storage.management.gui.commands.AddServer"
                icon="icons/server-add.png"
                id="com.gluster.storage.management.gui.actions.AddServerAction"
-               label="&amp;Add Server"
+               label="&amp;Add Server(s)"
                menubarPath="com.gluster.storage.management.gui.menu.discoveredserver/discoveredserver"
                mode="FORCE_TEXT"
                pulldown="false"
@@ -1101,7 +1069,7 @@
          <action
                class="com.gluster.storage.management.gui.actions.RemoveServerAction"
                definitionId="com.gluster.storage.management.gui.commands.RemoveServer"
-               enablesFor="1"
+               enablesFor="+"
                icon="icons/server-remove.png"
                id="com.gluster.storage.management.gui.actions.RemoveServerAction"
                label="&amp;Remove Server"
@@ -1115,6 +1083,7 @@
                allowLabelUpdate="false"
                class="com.gluster.storage.management.gui.actions.MigrateDiskAction"
                definitionId="com.gluster.storage.management.gui.commands.MigrateDisk"
+               enablesFor="1"
                icon="icons/disk-migrate.png"
                id="com.gluster.storage.management.gui.actions.MigrateDiskAction"
                label="&amp;Migrate Disk"
@@ -1131,6 +1100,7 @@
                allowLabelUpdate="false"
                class="com.gluster.storage.management.gui.actions.DeleteVolumeAction"
                definitionId="com.gluster.storage.management.gui.commands.DeleteVolume"
+               enablesFor="1"
                icon="icons/volume-delete.png"
                id="com.gluster.storage.management.gui.actions.DeleteVolumeAction"
                label="&amp;Delete Volume"
@@ -1147,6 +1117,7 @@
                allowLabelUpdate="false"
                class="com.gluster.storage.management.gui.actions.RebalanceVolumeAction"
                definitionId="com.gluster.storage.management.gui.commands.RebalanceVolume"
+               enablesFor="1"
                icon="icons/volume-rebalance.png"
                id="com.gluster.storage.management.gui.actions.RebalanceVolumeAction"
                label="&amp;Rebalance Volume"
@@ -1163,6 +1134,7 @@
                allowLabelUpdate="false"
                class="com.gluster.storage.management.gui.actions.StopVolumeAction"
                definitionId="com.gluster.storage.management.gui.commands.StopVolume"
+               enablesFor="+"
                icon="icons/volume-stop.png"
                id="com.gluster.storage.management.gui.actions.StopVolumeAction"
                label="S&amp;top Volume"
@@ -1179,6 +1151,7 @@
                allowLabelUpdate="false"
                class="com.gluster.storage.management.gui.actions.StartVolumeAction"
                definitionId="com.gluster.storage.management.gui.commands.StartVolume"
+               enablesFor="+"
                icon="icons/volume-start.png"
                id="com.gluster.storage.management.gui.actions.StartVolumeAction"
                label="&amp;Start Volume"

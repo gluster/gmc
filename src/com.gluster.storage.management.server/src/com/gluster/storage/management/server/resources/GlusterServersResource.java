@@ -227,6 +227,16 @@ public class GlusterServersResource extends AbstractServersResource {
 	@Produces(MediaType.TEXT_XML)
 	public GlusterServerResponse addServer(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@FormParam(FORM_PARAM_SERVER_NAME) String serverName) {
+		if(clusterName.isEmpty()) {
+			return new GlusterServerResponse(
+					new Status(Status.STATUS_CODE_FAILURE, "Cluster name should not be empty!"), null);
+		}
+		
+		if(serverName == null || serverName.isEmpty()) {
+			return new GlusterServerResponse(new Status(Status.STATUS_CODE_FAILURE, "Form parameter ["
+					+ FORM_PARAM_SERVER_NAME + "] is mandatory!"), null);
+		}
+		
 		ClusterInfo cluster = clusterService.getCluster(clusterName);
 		if(cluster == null) {
 			return new GlusterServerResponse(new Status(Status.STATUS_CODE_FAILURE, "Cluster [" + clusterName
@@ -287,6 +297,15 @@ public class GlusterServersResource extends AbstractServersResource {
 	@Path("{" + PATH_PARAM_SERVER_NAME + "}")
 	public Status removeServer(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_SERVER_NAME) String serverName) {
+		if (clusterName.isEmpty()) {
+			return new Status(Status.STATUS_CODE_FAILURE, "Cluster name should not be empty!");
+		}
+		
+		if(serverName == null || serverName.isEmpty()) {
+			return new Status(Status.STATUS_CODE_FAILURE, "Form parameter [" + FORM_PARAM_SERVER_NAME
+					+ "] is mandatory!");
+		}
+		
 		ClusterInfo cluster = clusterService.getCluster(clusterName);
 		if(cluster == null) {
 			return new Status(Status.STATUS_CODE_FAILURE, "Cluster [" + clusterName + "] doesn't exist!");
