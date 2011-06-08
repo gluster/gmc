@@ -58,6 +58,9 @@ public class UsersClient extends AbstractClient {
 				throw e;
 			}
 		} catch (Exception e) {
+			// authentication failed. clear security token.
+			setSecurityToken(null);
+			
 			Throwable cause = e.getCause();
 			if(cause != null && cause instanceof ConnectException) {
 				return new Status(Status.STATUS_CODE_FAILURE, "Couldn't connect to Gluster Management Gateway!");

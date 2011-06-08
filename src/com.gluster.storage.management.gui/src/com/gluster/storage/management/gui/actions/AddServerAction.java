@@ -28,11 +28,8 @@ import org.eclipse.swt.widgets.Display;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.constants.CoreConstants;
-import com.gluster.storage.management.core.model.Entity;
-import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.response.GlusterServerResponse;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
@@ -106,16 +103,13 @@ public class AddServerAction extends AbstractActionDelegate {
 		System.out.println("Disposing [" + this.getClass().getSimpleName() + "]");
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
-		super.selectionChanged(action, selection);
-
-		if (selectedEntity != null && selectedEntity instanceof Entity) {
+		Set<Server> selectedServers = GUIHelper.getInstance().getSelectedEntities(getWindow(), Server.class);
+		if (selectedServers == null || selectedServers.isEmpty()) {
+			action.setEnabled(false);
+		} else {
 			action.setEnabled(true);
-			if (selectedEntity instanceof EntityGroup && ((EntityGroup) selectedEntity).getEntityType() == Volume.class) {
-				action.setEnabled(false);
-			}
 		}
 	}
 }
