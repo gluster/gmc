@@ -92,14 +92,14 @@ public class VolumeOptionsPage extends Composite {
 
 		setupPageLayout();
 		filterText = guiHelper.createFilterText(toolkit, this);
-		
-		createAddButtonOnTop();
+
+		addTopButton = createAddButton();
 		setupOptionsTableViewer(filterText);
 
-		createAddButtonOnBottom();
+		addBottomButton = createAddButton();
 
 		if (defaultVolumeOptions.size() == volume.getOptions().size()) {
-			enableOrDisableButtons(false);
+			setAddButtonsEnabled(false);
 		}
 
 		tableViewer.setInput(volume.getOptions().entrySet());
@@ -108,9 +108,14 @@ public class VolumeOptionsPage extends Composite {
 		registerListeners(parent);
 	}
 
-	private void createAddButtonOnTop() {
-		addTopButton = toolkit.createButton(this, "&Add", SWT.FLAT);
-		addTopButton.addSelectionListener(new SelectionAdapter() {
+	private void setAddButtonsEnabled(boolean enable) {
+		addTopButton.setEnabled(enable);
+		addBottomButton.setEnabled(enable);
+	}
+
+	private Button createAddButton() {
+		Button button = toolkit.createButton(this, "&Add", SWT.FLAT);
+		button.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				// add an empty option to be filled up by user
@@ -121,7 +126,7 @@ public class VolumeOptionsPage extends Composite {
 				keyColumn.getViewer().editElement(getEntry(""), 0); // edit newly created entry
 
 				// disable the add button AND search filter textbox till user fills up the new option
-				enableOrDisableButtons(false);
+				setAddButtonsEnabled(false);
 				filterText.setEnabled(false);
 			}
 
@@ -140,57 +145,17 @@ public class VolumeOptionsPage extends Composite {
 			@Override
 			public void modifyText(ModifyEvent e) {
 				if (filterText.getText().length() > 0) {
-					enableOrDisableButtons(false);
+					setAddButtonsEnabled(false);
 				} else {
-					enableOrDisableButtons(true);
-				}
-			}
-		});
-	}
-
-	private void enableOrDisableButtons(boolean flag) {
-		addTopButton.setEnabled(flag);
-		addBottomButton.setEnabled(flag);
-	}
-
-	private void createAddButtonOnBottom() {
-		addBottomButton = toolkit.createButton(this, "&Add", SWT.FLAT);
-		addBottomButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				// add an empty option to be filled up by user
-				volume.setOption("", "");
-
-				tableViewer.refresh();
-				tableViewer.setSelection(new StructuredSelection(getEntry("")));
-				keyColumn.getViewer().editElement(getEntry(""), 0); // edit newly created entry
-
-				// disable the add button AND search filter textbox till user fills up the new option
-				enableOrDisableButtons(false);
-				filterText.setEnabled(false);
-			}
-
-			private Entry<String, String> getEntry(String key) {
-				for (Entry<String, String> entry : volume.getOptions().entrySet()) {
-					if (entry.getKey().equals(key)) {
-						return entry;
+					if (defaultVolumeOptions.size() == volume.getOptions().size()) {
+						setAddButtonsEnabled(false);
+					} else {
+						setAddButtonsEnabled(true);
 					}
 				}
-				return null;
 			}
 		});
-
-		// Make sure that add button is enabled only when search filter textbox is empty
-		filterText.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-				if (filterText.getText().length() > 0) {
-					enableOrDisableButtons(false);
-				} else {
-					enableOrDisableButtons(true);
-				}
-			}
-		});
+		return button;
 	}
 
 	private void registerListeners(final Composite parent) {
@@ -248,12 +213,12 @@ public class VolumeOptionsPage extends Composite {
 					if (isNewOption(volume, eventEntry.getKey())) {
 						// option has been set successfully by the user. re-enable the add button and search filter
 						// textbox
-						enableOrDisableButtons(true);
+						setAddButtonsEnabled(true);
 						filterText.setEnabled(true);
 					}
-					
+
 					if (defaultVolumeOptions.size() == volume.getOptions().size()) {
-						enableOrDisableButtons(false);
+						setAddButtonsEnabled(false);
 					}
 
 					if (tableViewer.getTable().getItemCount() < volume.getOptions().size()) {

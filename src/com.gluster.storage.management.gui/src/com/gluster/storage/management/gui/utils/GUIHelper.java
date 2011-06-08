@@ -18,7 +18,9 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.utils;
 
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
@@ -355,10 +357,12 @@ public class GUIHelper {
 	 *            Type of the selected object to look for
 	 * @return The selected object of given type if found, else null
 	 */
+	@SuppressWarnings("rawtypes")
 	public Object getSelectedEntity(IWorkbenchSite site, Class expectedType) {
 		return getSelectedEntity(site.getWorkbenchWindow(), expectedType);
 	}
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Object getSelectedEntity(IWorkbenchWindow window, Class expectedType) {
 		ISelection selection = window.getSelectionService().getSelection(NavigationView.ID);
 		if (selection instanceof IStructuredSelection) {
@@ -371,6 +375,36 @@ public class GUIHelper {
 			}
 		}
 		return null;
+	}
+	
+	/**
+	 * Fetches the currently selected objects from the workbench site and returns those of given type. If none of the
+	 * selected objects are of given type, returns null
+	 * 
+	 * @param site
+	 *            The workbench site
+	 * @param expectedType
+	 *            Type of the selected objects to look for
+	 * @return The selected objects of given type if found, else null
+	 */
+	public <T> Set<T> getSelectedEntities(IWorkbenchSite site, Class<T> expectedType) {
+		return getSelectedEntities(site.getWorkbenchWindow(), expectedType);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> Set<T> getSelectedEntities(IWorkbenchWindow window, Class<T> expectedType) {
+		Set<T> selectedEntities = new HashSet<T>();
+		ISelection selection = window.getSelectionService().getSelection();
+		if (selection instanceof IStructuredSelection) {
+			Iterator<Object> iter = ((IStructuredSelection) selection).iterator();
+			while (iter.hasNext()) {
+				Object selectedObj = iter.next();
+				if (selectedObj.getClass() == expectedType) {
+					selectedEntities.add((T) selectedObj);
+				}
+			}
+		}
+		return selectedEntities;
 	}
 
 	

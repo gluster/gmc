@@ -18,6 +18,8 @@
  *******************************************************************************/
 package com.gluster.storage.management.client;
 
+import java.net.ConnectException;
+
 import javax.ws.rs.core.Response;
 
 import com.gluster.storage.management.core.model.Status;
@@ -42,22 +44,25 @@ public class UsersClient extends AbstractClient {
 		setSecurityToken(generateSecurityToken(user, password));
 		try {
 			Status authStatus = (Status) fetchSubResource(user, Status.class);
-			if(!authStatus.isSuccess()) {
+			if (!authStatus.isSuccess()) {
 				// authentication failed. clear security token.
 				setSecurityToken(null);
 			}
 			return authStatus;
-		} catch (Exception e) {
-			if (e instanceof UniformInterfaceException
-					&& ((UniformInterfaceException) e).getResponse().getStatus() == Response.Status.UNAUTHORIZED
-							.getStatusCode()) {
+		} catch (UniformInterfaceException e) {
+			if ((e.getResponse().getStatus() == Response.Status.UNAUTHORIZED.getStatusCode())) {
 				// authentication failed. clear security token.
 				setSecurityToken(null);
 				return new Status(Status.STATUS_CODE_FAILURE, "Invalid user id or password!");
 			} else {
-				return new Status(Status.STATUS_CODE_FAILURE, "Exception during authentication: [" + e.getMessage()
-						+ "]");
+				throw e;
 			}
+		} catch (Exception e) {
+			Throwable cause = e.getCause();
+			if(cause != null && cause instanceof ConnectException) {
+				return new Status(Status.STATUS_CODE_FAILURE, "Couldn't connect to Gluster Management Gateway!");
+			}
+			return new Status(Status.STATUS_CODE_FAILURE, "Exception during authentication: [" + e.getMessage() + "]");
 		}
 	}
 
