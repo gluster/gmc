@@ -215,7 +215,7 @@ public class GlusterDummyModel {
 	private void addMessages(List<VolumeLogMessage> messages, Disk disk, String severity, int count) {
 		for (int i = 1; i <= count; i++) {
 			String message = severity + "message" + i;
-			messages.add(new VolumeLogMessage(new Date(), disk.getQualifiedName(), disk.getMountPoint(), severity, message));
+			messages.add(new VolumeLogMessage(new Date(), disk.getMountPoint(), severity, message));
 		}
 	}
 
