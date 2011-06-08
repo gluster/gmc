@@ -18,8 +18,10 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.utils;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.jface.action.Action;
@@ -30,11 +32,17 @@ import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.CheckStateChangedEvent;
+import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnLayoutData;
 import org.eclipse.jface.viewers.ColumnWeightData;
+import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
@@ -72,6 +80,7 @@ import org.eclipse.ui.progress.IProgressConstants;
 
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Disk;
+import com.gluster.storage.management.core.utils.JavaUtil;
 import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.views.NavigationView;
@@ -406,7 +415,30 @@ public class GUIHelper {
 		}
 		return selectedEntities;
 	}
-
+	
+	public void configureCheckboxTableViewer(final CheckboxTableViewer tableViewer) {
+		tableViewer.addCheckStateListener(new ICheckStateListener() {
+			
+			@Override
+			public void checkStateChanged(CheckStateChangedEvent event) {
+				tableViewer.setSelection(new StructuredSelection(tableViewer.getCheckedElements()));
+			}
+		});
+		
+		tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+			
+			@SuppressWarnings("unchecked")
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				List<Object> checkedElements = Arrays.asList(tableViewer.getCheckedElements());
+				List<Object> selectedElements = ((IStructuredSelection)event.getSelection()).toList();
+		
+				if (JavaUtil.listsDiffer(checkedElements, selectedElements)) {
+					tableViewer.setSelection(new StructuredSelection(tableViewer.getCheckedElements()));
+				}
+			}
+		});
+	}
 	
 	public void showProgressView() {
 		try {

@@ -1,4 +1,4 @@
-/*******************************************************************************
+ /*******************************************************************************
  * Copyright (c) 2011 Gluster, Inc. <http://www.gluster.com>
  * This file is part of Gluster Management Console.
  *
@@ -18,17 +18,10 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.views.pages;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.jface.layout.TableColumnLayout;
-import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ColumnWeightData;
-import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -45,7 +38,9 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
-import com.gluster.storage.management.core.model.Entity;
+import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.core.model.ClusterListener;
+import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.gui.EntityGroupContentProvider;
@@ -55,7 +50,7 @@ import com.gluster.storage.management.gui.utils.GUIHelper;
 public class ServersPage extends Composite {
 
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
-	private TableViewer tableViewer;
+	private CheckboxTableViewer tableViewer;
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 
 	public enum SERVER_TABLE_COLUMN_INDICES {
@@ -88,6 +83,10 @@ public class ServersPage extends Composite {
 		setupPage(site, servers);
 		parent.layout(); // Important - this actually paints the table
 
+		createListeners(parent);
+	}
+
+	private void createListeners(final Composite parent) {
 		/**
 		 * Ideally not required. However the table viewer is not getting laid out properly on performing
 		 * "maximize + restore" So this is a hack to make sure that the table is laid out again on re-size of the window
@@ -97,6 +96,33 @@ public class ServersPage extends Composite {
 			@Override
 			public void paintControl(PaintEvent e) {
 				parent.layout();
+			}
+		});
+		
+		final ClusterListener clusterListener = new DefaultClusterListener() {
+			@Override
+			public void discoveredServerRemoved(Server server) {
+				refreshViewer();
+			}
+			
+			@Override
+			public void discoveredServerAdded(Server server) {
+				refreshViewer();
+			}
+			
+			private void refreshViewer() {
+				tableViewer.refresh();
+				parent.update();
+			}
+		};
+		
+		final GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+		modelManager.addClusterListener(clusterListener);
+		addDisposeListener(new DisposeListener() {			
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				toolkit.dispose();
+				modelManager.removeClusterListener(clusterListener);
 			}
 		});
 	}
@@ -135,21 +161,17 @@ public class ServersPage extends Composite {
 		// setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.DISK_SPACE_IN_USE, SWT.CENTER, 90);
 	}
 
-	private TableViewer createServerTableViewer(Composite parent) {
+	private CheckboxTableViewer createServerTableViewer(Composite parent) {
 		final CheckboxTableViewer tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
 		// TableViewer tableViewer = new TableViewer(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
 		tableViewer.setLabelProvider(new ServerTableLabelProvider());
 		tableViewer.setContentProvider(new EntityGroupContentProvider<Server>());
 
 		setupServerTable(parent, tableViewer.getTable());
-		
-		tableViewer.addCheckStateListener(new ICheckStateListener() {
-			
-			@Override
-			public void checkStateChanged(CheckStateChangedEvent event) {
-				tableViewer.setSelection(new StructuredSelection(tableViewer.getCheckedElements()));
-			}
-		});
+
+		// make sure that table selection is driven by checkbox selection
+		guiHelper.configureCheckboxTableViewer(tableViewer);
+
 		return tableViewer;
 	}
 
