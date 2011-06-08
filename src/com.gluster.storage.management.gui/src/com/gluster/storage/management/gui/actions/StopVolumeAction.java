@@ -19,40 +19,52 @@
 package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
+import com.gluster.storage.management.gui.IImageKeys;
+import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public class StopVolumeAction extends AbstractActionDelegate {
 	private Volume volume;
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 
 	@Override
-	protected void performAction(IAction action) {
-		final String actionDesc = action.getDescription();
-		if (volume.getStatus() == VOLUME_STATUS.OFFLINE) {
-			showWarningDialog(actionDesc, "Volume [" + volume.getName() + "] is already offline!");
-			return; // Volume already offline. Don't do anything.
-		}
+	protected void performAction(final IAction action) {
+		Display.getDefault().asyncExec(new Runnable() {
 
-		boolean confirmed = showConfirmDialog(actionDesc,
-				"Are you sure you want to stop the volume [" + volume.getName() + "] ?");
-		if (!confirmed) {
-			return;
-		}
+			@Override
+			public void run() {
+				final String actionDesc = action.getDescription();
+				if (volume.getStatus() == VOLUME_STATUS.OFFLINE) {
+					showWarningDialog(actionDesc, "Volume [" + volume.getName() + "] is already offline!");
+					return; // Volume already offline. Don't do anything.
+				}
 
-		final Status status = stopVolume();
-		if (status.isSuccess()) {
-			showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] stopped successfully!");
-			modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
-		} else {
-			showErrorDialog(actionDesc, "Volume [" + volume.getName() + "] could not be stopped! Error: [" + status
-					+ "]");
-		}
+				Integer deleteOption = new MessageDialog(getShell(), "Stop Volume", GUIHelper.getInstance().getImage(
+						IImageKeys.VOLUME), "Are you sure you want to stop the volume [" + volume.getName() + "] ?",
+						MessageDialog.QUESTION, new String[] { "No", "Yes" }, -1).open();
+
+				if (deleteOption <= 0) {
+					return;
+				}
+
+				final Status status = stopVolume();
+				if (status.isSuccess()) {
+					showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] stopped successfully!");
+					modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
+				} else {
+					showErrorDialog(actionDesc, "Volume [" + volume.getName() + "] could not be stopped! Error: ["
+							+ status + "]");
+				}
+			}
+		});
 	}
 
 	private Status stopVolume() {
