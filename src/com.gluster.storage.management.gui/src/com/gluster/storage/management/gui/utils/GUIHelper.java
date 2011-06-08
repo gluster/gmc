@@ -363,14 +363,14 @@ public class GUIHelper {
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public Object getSelectedEntity(IWorkbenchWindow window, Class expectedType) {
+	public <T> T getSelectedEntity(IWorkbenchWindow window, Class<T> expectedType) {
 		ISelection selection = window.getSelectionService().getSelection(NavigationView.ID);
 		if (selection instanceof IStructuredSelection) {
 			Iterator<Object> iter = ((IStructuredSelection) selection).iterator();
 			while (iter.hasNext()) {
 				Object selectedObj = iter.next();
 				if (selectedObj.getClass() == expectedType) {
-					return selectedObj;
+					return (T)selectedObj;
 				}
 			}
 		}
