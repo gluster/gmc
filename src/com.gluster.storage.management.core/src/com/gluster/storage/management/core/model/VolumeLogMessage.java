@@ -30,9 +30,7 @@ import com.gluster.storage.management.core.utils.StringUtil;
 @XmlRootElement
 public class VolumeLogMessage implements Filterable {
 	private Date timestamp;
-	// TODO: Replace disk with brick, rename class as VolumeLogMessage
 	private String brick;
-	private String disk;
 	private String severity;
 	private String message;
 
@@ -51,14 +49,6 @@ public class VolumeLogMessage implements Filterable {
 
 	public void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
-	}
-
-	public String getDisk() {
-		return disk;
-	}
-
-	public void setDisk(String disk) {
-		this.disk = disk;
 	}
 
 	public String getSeverity() {
@@ -81,13 +71,13 @@ public class VolumeLogMessage implements Filterable {
 		this.brick = brickDirectory;
 	}
 
+
 	public String getBrickDirectory() {
 		return brick;
 	}
 
-	public VolumeLogMessage(Date timestamp, String disk, String brickDirectory, String severity, String message) {
+	public VolumeLogMessage(Date timestamp, String brickDirectory, String severity, String message) {
 		setTimestamp(timestamp);
-		setDisk(disk);
 		setBrickDirectory(brickDirectory);
 		setSeverity(severity);
 		setMessage(message);
@@ -95,7 +85,7 @@ public class VolumeLogMessage implements Filterable {
 	
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
-		return StringUtil.filterString(getSeverity() + getTimestamp() + getDisk() + getMessage(), filterString,
+		return StringUtil.filterString(getSeverity() + getTimestamp() + getBrickDirectory() + getMessage(), filterString,
 				caseSensitive);
 	}
 

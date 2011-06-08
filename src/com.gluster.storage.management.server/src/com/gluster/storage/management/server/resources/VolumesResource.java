@@ -31,6 +31,7 @@ import static com.gluster.storage.management.core.constants.RESTConstants.PATH_P
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_BRICKS;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_BRICK_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DELETE_OPTION;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DOWNLOAD;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_FROM_TIMESTAMP;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_LINE_COUNT;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_LOG_SEVERITY;
@@ -414,7 +415,6 @@ public class VolumesResource {
 		// populate disk and trim other fields
 		List<VolumeLogMessage> logMessages = response.getLogMessages();
 		for (VolumeLogMessage logMessage : logMessages) {
-			logMessage.setDisk(brick.getDiskName());
 			logMessage.setBrickDirectory(brick.getBrickDirectory());
 			logMessage.setMessage(logMessage.getMessage().trim());
 			logMessage.setSeverity(logMessage.getSeverity().trim());
@@ -484,7 +484,8 @@ public class VolumesResource {
 			@QueryParam(QUERY_PARAM_LOG_SEVERITY) String severity,
 			@QueryParam(QUERY_PARAM_FROM_TIMESTAMP) String fromTimestamp,
 			@QueryParam(QUERY_PARAM_TO_TIMESTAMP) String toTimestamp,
-			@QueryParam(QUERY_PARAM_LINE_COUNT) Integer lineCount) {
+			@QueryParam(QUERY_PARAM_LINE_COUNT) Integer lineCount, 
+			@QueryParam(QUERY_PARAM_DOWNLOAD) Boolean download) {
 		List<VolumeLogMessage> logMessages = null;
 
 		ClusterInfo cluster = clusterService.getCluster(clusterName);

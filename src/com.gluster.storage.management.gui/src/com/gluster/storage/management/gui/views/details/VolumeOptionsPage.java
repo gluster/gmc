@@ -18,6 +18,7 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.views.details;
 
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang.WordUtils;
@@ -68,19 +69,22 @@ public class VolumeOptionsPage extends Composite {
 	private Volume volume;
 	private DefaultClusterListener clusterListener;
 	private Text filterText;
+	private List<VolumeOptionInfo> defaultVolumeOptions = GlusterDataModelManager.getInstance()
+			.getVolumeOptionsDefaults();
 
 	public enum OPTIONS_TABLE_COLUMN_INDICES {
 		OPTION_KEY, OPTION_VALUE
 	};
 
 	private static final String[] OPTIONS_TABLE_COLUMN_NAMES = new String[] { "Option Key", "Option Value" };
-	private Button addButton;
+	private Button addTopButton;
+	private Button addBottomButton;
 	private TableViewerColumn keyColumn;
 	private OptionKeyEditingSupport keyEditingSupport;
 
 	public VolumeOptionsPage(final Composite parent, int style, Volume volume) {
 		super(parent, style);
-		
+
 		this.volume = volume;
 
 		toolkit.adapt(this);
@@ -88,61 +92,76 @@ public class VolumeOptionsPage extends Composite {
 
 		setupPageLayout();
 		filterText = guiHelper.createFilterText(toolkit, this);
-		createAddButton();
+
+		addTopButton = createAddButton();
 		setupOptionsTableViewer(filterText);
-		
-		createAddButton();
+
+		addBottomButton = createAddButton();
+
+		if (defaultVolumeOptions.size() == volume.getOptions().size()) {
+			setAddButtonsEnabled(false);
+		}
 
 		tableViewer.setInput(volume.getOptions().entrySet());
-		
+
 		parent.layout(); // Important - this actually paints the table
 		registerListeners(parent);
 	}
 
-	private void createAddButton() {
-		addButton = toolkit.createButton(this, "&Add", SWT.FLAT);
-		addButton.addSelectionListener(new SelectionAdapter() {
+	private void setAddButtonsEnabled(boolean enable) {
+		addTopButton.setEnabled(enable);
+		addBottomButton.setEnabled(enable);
+	}
+
+	private Button createAddButton() {
+		Button button = toolkit.createButton(this, "&Add", SWT.FLAT);
+		button.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				// add an empty option to be filled up by user
 				volume.setOption("", "");
-				
+
 				tableViewer.refresh();
 				tableViewer.setSelection(new StructuredSelection(getEntry("")));
-				keyColumn.getViewer().editElement(getEntry(""), 0); // edit newly created entry				
-				
+				keyColumn.getViewer().editElement(getEntry(""), 0); // edit newly created entry
+
 				// disable the add button AND search filter textbox till user fills up the new option
-				addButton.setEnabled(false);
+				setAddButtonsEnabled(false);
 				filterText.setEnabled(false);
 			}
 
 			private Entry<String, String> getEntry(String key) {
-				for(Entry<String, String> entry : volume.getOptions().entrySet()) {
-					if(entry.getKey().equals(key)) {
+				for (Entry<String, String> entry : volume.getOptions().entrySet()) {
+					if (entry.getKey().equals(key)) {
 						return entry;
 					}
 				}
 				return null;
 			}
 		});
-		
+
 		// Make sure that add button is enabled only when search filter textbox is empty
 		filterText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				if(filterText.getText().length() > 0) {
-					addButton.setEnabled(false);
+				if (filterText.getText().length() > 0) {
+					setAddButtonsEnabled(false);
 				} else {
-					addButton.setEnabled(true);
+					if (defaultVolumeOptions.size() == volume.getOptions().size()) {
+						setAddButtonsEnabled(false);
+					} else {
+						setAddButtonsEnabled(true);
+					}
 				}
 			}
 		});
+		return button;
 	}
 
 	private void registerListeners(final Composite parent) {
 		addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
-				if(!addButton.isEnabled()) {
+				if (!(addTopButton.isEnabled() || addBottomButton.isEnabled())) {
 					// user has selected key, but not added value. Since this is not a valid entry,
 					// remove the last option (without value) from the volume
 					volume.getOptions().remove(keyEditingSupport.getEntryBeingAdded().getKey());
@@ -164,12 +183,12 @@ public class VolumeOptionsPage extends Composite {
 				parent.layout();
 			}
 		});
-		
+
 		parent.addDisposeListener(new DisposeListener() {
-			
+
 			@Override
 			public void widgetDisposed(DisposeEvent e) {
-				if(!addButton.isEnabled()) {
+				if (!(addTopButton.isEnabled() || addBottomButton.isEnabled())) {
 					// user has selected key, but not added value. Since this is not a valid entry,
 					// remove the last option (without value) from the volume
 					Entry<String, String> entryBeingAdded = keyEditingSupport.getEntryBeingAdded();
@@ -178,27 +197,31 @@ public class VolumeOptionsPage extends Composite {
 			}
 		});
 
-		
 		clusterListener = new DefaultClusterListener() {
 			@SuppressWarnings("unchecked")
 			@Override
 			public void volumeChanged(Volume volume, Event event) {
 				super.volumeChanged(volume, event);
-				if(event.getEventType() == EVENT_TYPE.VOLUME_OPTIONS_RESET) {
-					if(!tableViewer.getControl().isDisposed()) {
+				if (event.getEventType() == EVENT_TYPE.VOLUME_OPTIONS_RESET) {
+					if (!tableViewer.getControl().isDisposed()) {
 						tableViewer.refresh();
 					}
 				}
-				
-				if(event.getEventType() == EVENT_TYPE.VOLUME_OPTION_SET) {
-					Entry<String, String> eventEntry = (Entry<String, String>)event.getEventData();
+
+				if (event.getEventType() == EVENT_TYPE.VOLUME_OPTION_SET) {
+					Entry<String, String> eventEntry = (Entry<String, String>) event.getEventData();
 					if (isNewOption(volume, eventEntry.getKey())) {
-						// option has been set successfully by the user. re-enable the add button and search filter textbox
-						addButton.setEnabled(true);
+						// option has been set successfully by the user. re-enable the add button and search filter
+						// textbox
+						setAddButtonsEnabled(true);
 						filterText.setEnabled(true);
 					}
-					
-					if(tableViewer.getTable().getItemCount() < volume.getOptions().size()) {
+
+					if (defaultVolumeOptions.size() == volume.getOptions().size()) {
+						setAddButtonsEnabled(false);
+					}
+
+					if (tableViewer.getTable().getItemCount() < volume.getOptions().size()) {
 						// new volume set from outside this page. refresh the viewer.
 						tableViewer.refresh();
 					} else {
@@ -209,14 +232,14 @@ public class VolumeOptionsPage extends Composite {
 			}
 
 			private boolean isNewOption(Volume volume, String optionKey) {
-				if(filterText.getText().length() > 0) {
+				if (filterText.getText().length() > 0) {
 					// user has been filtering the contents. adding new option is allowed only when contents are NOT
 					// filtered. Thus it's impossible that this is a newly added option
 					return false;
 				}
-				
+
 				// if this is the last option in the volume options, it must be the new option
-				return optionKey.equals(volume.getOptions().keySet().toArray()[volume.getOptions().size()-1]);
+				return optionKey.equals(volume.getOptions().keySet().toArray()[volume.getOptions().size() - 1]);
 			}
 		};
 		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
@@ -240,7 +263,7 @@ public class VolumeOptionsPage extends Composite {
 		setColumnProperties(table, OPTIONS_TABLE_COLUMN_INDICES.OPTION_KEY, SWT.CENTER, 100);
 		setColumnProperties(table, OPTIONS_TABLE_COLUMN_INDICES.OPTION_VALUE, SWT.CENTER, 100);
 	}
-	
+
 	private TableColumnLayout createTableColumnLayout() {
 		TableColumnLayout tableColumnLayout = new TableColumnLayout();
 		ColumnLayoutData defaultColumnLayoutData = new ColumnWeightData(100);
@@ -250,7 +273,7 @@ public class VolumeOptionsPage extends Composite {
 
 		return tableColumnLayout;
 	}
-	
+
 	private TableColumn createValueColumn() {
 		TableViewerColumn valueColumn = new TableViewerColumn(tableViewer, SWT.NONE);
 		valueColumn.getColumn()
@@ -262,10 +285,10 @@ public class VolumeOptionsPage extends Composite {
 				return ((Entry<String, String>) element).getValue();
 			}
 		});
-		
+
 		// User can edit value of a volume option
 		valueColumn.setEditingSupport(new OptionValueEditingSupport(valueColumn.getViewer(), volume));
-		
+
 		return valueColumn.getColumn();
 	}
 
@@ -278,26 +301,26 @@ public class VolumeOptionsPage extends Composite {
 			public String getText(Object element) {
 				return ((Entry<String, String>) element).getKey();
 			}
-			
+
 			@SuppressWarnings("unchecked")
 			@Override
 			public String getToolTipText(Object element) {
 				String key = ((Entry<String, String>) element).getKey();
-				if(key.isEmpty()) {
+				if (key.isEmpty()) {
 					return "Click to select a volume option key";
 				}
-				
+
 				VolumeOptionInfo optionInfo = GlusterDataModelManager.getInstance().getVolumeOptionInfo(key);
-				// Wrap the description before adding to tooltip so that long descriptions are displayed properly 
+				// Wrap the description before adding to tooltip so that long descriptions are displayed properly
 				return WordUtils.wrap(optionInfo.getDescription(), 60) + CoreConstants.NEWLINE + "Default value: "
 						+ optionInfo.getDefaultValue();
 			}
 		});
-		
+
 		// Editing support required when adding new key
 		keyEditingSupport = new OptionKeyEditingSupport(keyColumn.getViewer(), volume);
 		keyColumn.setEditingSupport(keyEditingSupport);
-		
+
 		return keyColumn.getColumn();
 	}
 
