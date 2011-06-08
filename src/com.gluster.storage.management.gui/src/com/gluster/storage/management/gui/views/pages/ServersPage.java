@@ -18,10 +18,16 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.views.pages;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jface.layout.TableColumnLayout;
+import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ColumnWeightData;
+import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
@@ -39,6 +45,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
+import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.gui.EntityGroupContentProvider;
@@ -129,13 +136,20 @@ public class ServersPage extends Composite {
 	}
 
 	private TableViewer createServerTableViewer(Composite parent) {
-		TableViewer tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
+		final CheckboxTableViewer tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
 		// TableViewer tableViewer = new TableViewer(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
 		tableViewer.setLabelProvider(new ServerTableLabelProvider());
 		tableViewer.setContentProvider(new EntityGroupContentProvider<Server>());
 
 		setupServerTable(parent, tableViewer.getTable());
-
+		
+		tableViewer.addCheckStateListener(new ICheckStateListener() {
+			
+			@Override
+			public void checkStateChanged(CheckStateChangedEvent event) {
+				tableViewer.setSelection(new StructuredSelection(tableViewer.getCheckedElements()));
+			}
+		});
 		return tableViewer;
 	}
 

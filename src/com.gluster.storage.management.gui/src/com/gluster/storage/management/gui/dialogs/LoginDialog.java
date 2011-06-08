@@ -200,7 +200,8 @@ public class LoginDialog extends Dialog {
 		String password = connectionDetails.getPassword();
 
 		UsersClient usersClient = new UsersClient();
-		if (usersClient.authenticate(user, password).isSuccess()) {
+		Status loginStatus = usersClient.authenticate(user, password); 
+		if (loginStatus.isSuccess()) {
 			close();
 			ClustersClient clustersClient = new ClustersClient(usersClient.getSecurityToken());
 			List<String> clusterNames = getClusterNames(clustersClient);
@@ -250,7 +251,7 @@ public class LoginDialog extends Dialog {
 				close();
 			}
 		} else {
-			MessageDialog.openError(getShell(), "Authentication Failed", "Invalid User ID or password");
+			MessageDialog.openError(getShell(), "Authentication Failed", loginStatus.getMessage());
 		}
 	}
 

@@ -80,4 +80,9 @@ public class Entity extends PlatformObject implements Filterable {
 	public boolean filter(String filterString, boolean caseSensitive) {
 		return StringUtil.filterString(getName(), filterString, caseSensitive);
 	}
+	
+	@Override
+	public String toString() {
+		return name;
+	}
 }

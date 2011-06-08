@@ -206,7 +206,11 @@ public class GlusterServersResource extends AbstractServersResource {
 		
 		Status status;
 		try {
-			status = glusterUtil.addServer(serverName, onlineServer.getName());
+			status = glusterUtil.addServer(onlineServer.getName(), serverName);
+			if(status.isSuccess()) {
+				// other peer probe to ensure that host names appear in peer probe on both sides
+				status = glusterUtil.addServer(serverName, onlineServer.getName());
+			}
 		} catch(ConnectionException e) {
 			onlineServer = getNewOnlineServer(clusterName);
 			if(onlineServer == null) {
@@ -307,7 +311,7 @@ public class GlusterServersResource extends AbstractServersResource {
 			}
 
 			try {
-				return glusterUtil.removeServer(onlineServer.getName(), serverName);
+				status = glusterUtil.removeServer(onlineServer.getName(), serverName);
 			} catch (ConnectionException e) {
 				// online server has gone offline! try with a different one.
 				onlineServer = getNewOnlineServer(clusterName, serverName);

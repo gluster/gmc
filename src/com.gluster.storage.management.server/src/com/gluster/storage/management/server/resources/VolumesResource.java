@@ -69,8 +69,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
@@ -106,20 +104,20 @@ public class VolumesResource {
 	@InjectParam
 	private GlusterServersResource glusterServersResource; 
 	
-	@Autowired
+	@InjectParam
 	private ServerUtil serverUtil;
 
-	@Autowired
+	@InjectParam
 	private GlusterUtil glusterUtil;
 	
-	@Autowired
+	@InjectParam
 	private ClusterService clusterService;
 
-	private FileUtil fileUtil = new FileUtil();
-	
 	@InjectParam
 	private VolumeOptionsDefaults volumeOptionsDefaults;
 
+	private FileUtil fileUtil = new FileUtil();
+	
 	@GET
 	@Produces(MediaType.TEXT_XML)
 	public VolumeListResponse getAllVolumes(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
