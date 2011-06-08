@@ -65,7 +65,6 @@ public class ResetVolumeOptionsAction extends AbstractActionDelegate {
 		volume = GUIHelper.getInstance().getSelectedEntity(getWindow(), Volume.class);
 		
 		if (volume instanceof Volume) {
-			//showInfoDialog("Debug", volume.getName());
 			action.setEnabled(volume.getOptions().size() > 0);
 		} else {
 			action.setEnabled(false);
