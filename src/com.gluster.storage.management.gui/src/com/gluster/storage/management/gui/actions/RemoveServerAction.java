@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Display;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Status;
@@ -106,7 +107,7 @@ public class RemoveServerAction extends AbstractActionDelegate {
 	private boolean validate(IAction action, Set<GlusterServer> selectedServers) {
 		Map<GlusterServer, List<String>> usedServers = new HashMap<GlusterServer, List<String>>();
 		for (GlusterServer server : selectedServers) {
-			List<String> configuredVolumes = getServerVolumeNames(server.getName());
+			List<String> configuredVolumes = modelManager.getVolumesOfServer(server.getName());
 
 			if (configuredVolumes.size() > 0) {
 				usedServers.put(server, configuredVolumes);
@@ -130,20 +131,6 @@ public class RemoveServerAction extends AbstractActionDelegate {
 			return false;
 		}
 		return true;
-	}
-
-	private List<String> getServerVolumeNames(String serverName) {
-		Cluster cluster = modelManager.getModel().getCluster();
-		List<String> volumeNames = new ArrayList<String>();
-		for (Volume volume : cluster.getVolumes()) {
-			for (String brick : volume.getDisks()) {
-				if (serverName.equals(brick.split(":")[0])) {
-					volumeNames.add(volume.getName());
-					break;
-				}
-			}
-		}
-		return volumeNames;
 	}
 
 	public void dispose() {
