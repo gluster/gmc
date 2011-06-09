@@ -205,6 +205,7 @@ public class VolumeOptionsPage extends Composite {
 				if (event.getEventType() == EVENT_TYPE.VOLUME_OPTIONS_RESET) {
 					if (!tableViewer.getControl().isDisposed()) {
 						tableViewer.refresh();
+						setAddButtonsEnabled(true);
 					}
 				}
 

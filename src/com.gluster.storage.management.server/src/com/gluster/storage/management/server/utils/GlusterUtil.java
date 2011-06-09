@@ -258,7 +258,7 @@ public class GlusterUtil {
 
 	public Status setOption(String volumeName, String key, String value, String knownServer) {
 		return new Status(sshUtil.executeRemote(knownServer, "gluster volume set " + volumeName + " " + key + " "
-				+ value));
+				+ "\"" + value + "\""));
 	}
 
 	public Status deleteVolume(String volumeName, String knownServer) {
