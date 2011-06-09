@@ -314,7 +314,19 @@ public class SshUtil {
 	}
 	
 	private ProcessResult executeRemoteWithPubKey(String serverName, String command) {
-		return executeCommand(getConnection(serverName), command);
+		try {
+			return executeCommand(getConnection(serverName), command);
+		} catch(GlusterRuntimeException e) {
+			Throwable cause = e.getCause();
+			if(cause != null && cause instanceof IOException) {
+				// cached ssh connection might have gone bad.
+				// remove it and try with a new one
+				sshConnCache.remove(serverName);
+				return executeCommand(getConnection(serverName), command);
+			} else {
+				throw e;
+			}
+		}
 	}
 	
 	/**

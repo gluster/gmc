@@ -1,10 +1,21 @@
 package com.gluster.storage.management.client;
 
+import static com.gluster.storage.management.client.constants.ClientConstants.ALGORITHM_SUNX509;
+import static com.gluster.storage.management.client.constants.ClientConstants.KEYSTORE_TYPE_JKS;
+import static com.gluster.storage.management.client.constants.ClientConstants.PROTOCOL_TLS;
+import static com.gluster.storage.management.client.constants.ClientConstants.TRUSTED_KEYSTORE;
+import static com.gluster.storage.management.client.constants.ClientConstants.TRUSTED_KEYSTORE_ACCESS;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
+import java.security.KeyStore;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManagerFactory;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -15,6 +26,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.representation.Form;
+import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public abstract class AbstractClient {
@@ -43,9 +55,55 @@ public abstract class AbstractClient {
 	public AbstractClient(String securityToken, String clusterName) {
 		this.clusterName = clusterName;
 		setSecurityToken(securityToken);
-		URI baseURI = new ClientUtil().getServerBaseURI();
+		
+		SSLContext context = initializeSSLContext();		
+		DefaultClientConfig config = createClientConfig(context);
+
 		// this must be after setting clusterName as sub-classes may refer to cluster name in the getResourcePath method
-		resource = Client.create(new DefaultClientConfig()).resource(baseURI).path(getResourcePath());
+		resource = Client.create(config).resource(ClientUtil.getServerBaseURI()).path(getResourcePath());
+	}
+
+	private DefaultClientConfig createClientConfig(SSLContext context) {
+		DefaultClientConfig config = new DefaultClientConfig();
+		config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES,
+				new HTTPSProperties(createHostnameVerifier(), context));
+		return config;
+	}
+
+	private HostnameVerifier createHostnameVerifier() {
+		HostnameVerifier hostnameVerifier = new HostnameVerifier() {
+			@Override
+			public boolean verify(String arg0, SSLSession arg1) {
+				return true;
+			}
+		};
+		return hostnameVerifier;
+	}
+
+	private SSLContext initializeSSLContext() {
+		SSLContext context = null;
+		try {
+			context = SSLContext.getInstance(PROTOCOL_TLS);
+			
+			KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE_JKS);
+			keyStore.load(loadResource(TRUSTED_KEYSTORE), TRUSTED_KEYSTORE_ACCESS.toCharArray());
+
+			KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(ALGORITHM_SUNX509);
+			keyManagerFactory.init(keyStore, TRUSTED_KEYSTORE_ACCESS.toCharArray());
+			
+			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(ALGORITHM_SUNX509); 
+		    trustManagerFactory.init(keyStore); 
+			
+			context.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+		} catch (Exception e) {
+			throw new GlusterRuntimeException(
+					"Couldn't initialize SSL Context with Gluster Management Gateway! Error: " + e, e);
+		}
+		return context;
+	}
+	
+	private InputStream loadResource(String resourcePath) {
+		return this.getClass().getClassLoader().getResourceAsStream(resourcePath);
 	}
 
 	/**

@@ -30,7 +30,7 @@ import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 
 public class FileUtil {
-	public String readFileAsString(File file) {
+	public static String readFileAsString(File file) {
 		try {
 			return new String(readFileAsByteArray(file), CoreConstants.ENCODING_UTF8);
 		} catch (Exception e) {
@@ -39,7 +39,7 @@ public class FileUtil {
 		}
 	}
 
-	public byte[] readFileAsByteArray(File file) throws FileNotFoundException, IOException {
+	public static byte[] readFileAsByteArray(File file) throws FileNotFoundException, IOException {
 		FileInputStream fileInputStream = new FileInputStream(file);
 		byte[] data = new byte[fileInputStream.available()];
 		fileInputStream.read(data);
@@ -47,11 +47,7 @@ public class FileUtil {
 		return data;
 	}
 	
-	public InputStream loadResource(String resourcePath) {
-		return this.getClass().getClassLoader().getResourceAsStream(resourcePath);
-	}
-	
-	public void createTextFile(String fileName, String contents) {
+	public static void createTextFile(String fileName, String contents) {
 		try {
 			FileWriter writer = new FileWriter(fileName);
 			writer.write(contents);
@@ -61,7 +57,7 @@ public class FileUtil {
 		}
 	}
 	
-	public String getTempDirName() {
+	public static String getTempDirName() {
 		return System.getProperty("java.io.tmpdir");
 	}
 	
@@ -72,7 +68,7 @@ public class FileUtil {
 	 * @return  the new directory
 	 * @throws IOException if there is an error creating the temporary directory
 	 */
-	public File createTempDir()
+	public static File createTempDir()
 	{
 	    final File sysTempDir = new File(getTempDirName());
 	    File newTempDir;
@@ -111,7 +107,7 @@ public class FileUtil {
 	 *            the file or dir to delete
 	 * @return true if all files are successfully deleted
 	 */
-	public boolean recursiveDelete(File fileOrDir)
+	public static boolean recursiveDelete(File fileOrDir)
 	{
 	    if(fileOrDir.isDirectory())
 	    {
