@@ -23,6 +23,8 @@ import struct
 import syslog
 import Globals
 import Common
+import time
+from XmlHandler import *
 
 class TimeoutException(Exception):
     pass
@@ -50,7 +52,12 @@ def serverDiscoveryRequest(multiCastGroup, port):
         while True:
             response = socketReceive.recvfrom(200)
             if response and response[0].upper() != "SERVERDISCOVERY":
-                servers.append(response[0])
+                dom = XDOM()
+                dom.parseString(response[0])
+                responsetime = dom.getTextByTagRoute("response.time")
+                servername = dom.getTextByTagRoute("response.servername")
+                if time.time() - float(responsetime) < 60:
+                    servers.append(servername)
             signal.signal(signal.SIGALRM, timeoutSignal)
             signal.alarm(3)
     except TimeoutException:
