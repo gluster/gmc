@@ -32,12 +32,15 @@ public class StringUtil {
 	}
 
 	public static String ListToString(List<String> list, String delimiter) {
+		if (list.size() == 0) {
+			return "";
+		}
 		StringBuilder output = new StringBuilder();
 		for (String element : list) {
 			output.append(element).append(delimiter);
 		}
 		String outputStr = output.toString();
-		int endIndex = (list.size() > 1) ? outputStr.length() - (delimiter.length() + 1) : outputStr.length() - delimiter.length();
+		int endIndex = outputStr.length() - delimiter.length();
 		return outputStr.substring(0, endIndex);
 	}
 
@@ -47,5 +50,19 @@ public class StringUtil {
 			enumAsArray.add(value.toString());
 		}
 		return enumAsArray;
+	}
+
+	public static void main(String args[]) {
+		
+		//Test case for "ListToString"
+		List<String> string = new ArrayList<String>();
+		// Empty list
+		System.out.println(StringUtil.ListToString(string, ", "));
+		// Only one
+		string.add("test");
+		System.out.println(StringUtil.ListToString(string, ",:"));
+		// Multiple
+		string.add("welcome to java");
+		System.out.println(StringUtil.ListToString(string, ""));
 	}
 }
