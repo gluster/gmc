@@ -25,28 +25,26 @@ import Utils
 import Common
 from optparse import OptionParser
 
-def clearVolumeDirectory(disk, volumeName, todelete):
-
-    # Retrieving disk uuid
-    diskUuid = DiskUtils.getUuidByDiskPartition(DiskUtils.getDevice(disk))
-
+def clearVolumeDirectory(diskMountPoint, volumeName, todelete):
     rs = ResponseXml()
-    if not diskUuid:
-        Common.log(syslog.LOG_ERR, "failed to find disk:%s uuid" % disk)
+    if not DiskUtils.checkDiskMountPoint(diskMountPoint):
+        Common.log(syslog.LOG_ERR, "failed to find disk mount point %s" % diskMountPoint) 
         rs.appendTagRoute("status.code", "-1")
-        rs.appendTagRoute("status.message", "Error: Unable to find disk uuid")
+        rs.appendTagRoute("status.message", "Error: Mount point does not exists")
         return rs.toprettyxml()
 
-    # Retrieving disk mount point using disk uuid
-    diskMountPoint = DiskUtils.getMountPointByUuid(diskUuid)
     if not os.path.exists(diskMountPoint):
-        Common.log(syslog.LOG_ERR, "failed to retrieve disk:%s mount point" % disk) 
-        rs.appendTagRoute("status.code", "-1")
-        rs.appendTagRoute("status.message", "Error: Failed to retrieve disk details")
+        rs.appendTagRoute("status.code", "-2")
+        rs.appendTagRoute("status.message", "Error: Mount point path does not exists")
         return rs.toprettyxml()
 
     # clear volume directory from the disk
     volumeDirectory = "%s/%s" % (diskMountPoint, volumeName)
+    if not os.path.exists(volumeDirectory):
+        rs.appendTagRoute("status.code", "-3")
+        rs.appendTagRoute("status.message", "Error: Volume directory does not exists")
+        return rs.toprettyxml()
+
     newVolumeDirectoryName = "%s_%s" % (volumeDirectory, time.time())
     command = ["sudo", "mv", "-f", volumeDirectory, newVolumeDirectoryName]
     rv = Utils.runCommandFG(command, stdout=True, root=True)
@@ -88,14 +86,13 @@ def main():
     (options, args) = parser.parse_args()
 
     if len(args) != 2:
-        print >> sys.stderr, "usage: %s <disk name> <volume name> [-d/--delete]" % sys.argv[0]
+        print >> sys.stderr, "usage: %s <disk mount point> <volume name> [-d/--delete]" % sys.argv[0]
         sys.exit(-1)
 
-    disk = args[0]
+    diskMountPoint = args[0]
     volumeName = args[1]
-    print clearVolumeDirectory(disk, volumeName, options.deletedir)
+    print clearVolumeDirectory(diskMountPoint, volumeName, options.deletedir)
     sys.exit(0)
 
 if __name__ == "__main__":
     main()
-
