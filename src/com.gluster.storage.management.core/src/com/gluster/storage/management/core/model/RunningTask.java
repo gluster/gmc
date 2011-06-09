@@ -23,10 +23,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class RunningTask {
 	public enum TASK_TYPES {
-		DISK_FORMAT, DISK_MIGRATE, VOLUME_REBALANCE
+		DISK_FORMAT, BRICK_MIGRATE, VOLUME_REBALANCE
 	};
 
-	public String[] TASK_TYPE_STR = { "Formatting Disk", "Disk Migration", "Volume Rebalance" };
+	public String[] TASK_TYPE_STR = { "Formatting Disk", "Brick Migration", "Volume Rebalance" };
 
 	protected String id;
 	protected TASK_TYPES type;

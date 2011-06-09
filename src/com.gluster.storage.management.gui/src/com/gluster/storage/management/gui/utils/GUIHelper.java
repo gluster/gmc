@@ -18,7 +18,11 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.utils;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
@@ -28,11 +32,17 @@ import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.CheckStateChangedEvent;
+import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnLayoutData;
 import org.eclipse.jface.viewers.ColumnWeightData;
+import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
@@ -70,6 +80,7 @@ import org.eclipse.ui.progress.IProgressConstants;
 
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Disk;
+import com.gluster.storage.management.core.utils.JavaUtil;
 import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.views.NavigationView;
@@ -355,24 +366,79 @@ public class GUIHelper {
 	 *            Type of the selected object to look for
 	 * @return The selected object of given type if found, else null
 	 */
+	@SuppressWarnings("rawtypes")
 	public Object getSelectedEntity(IWorkbenchSite site, Class expectedType) {
 		return getSelectedEntity(site.getWorkbenchWindow(), expectedType);
 	}
 	
-	public Object getSelectedEntity(IWorkbenchWindow window, Class expectedType) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public <T> T getSelectedEntity(IWorkbenchWindow window, Class<T> expectedType) {
 		ISelection selection = window.getSelectionService().getSelection(NavigationView.ID);
 		if (selection instanceof IStructuredSelection) {
 			Iterator<Object> iter = ((IStructuredSelection) selection).iterator();
 			while (iter.hasNext()) {
 				Object selectedObj = iter.next();
 				if (selectedObj.getClass() == expectedType) {
-					return selectedObj;
+					return (T)selectedObj;
 				}
 			}
 		}
 		return null;
 	}
+	
+	/**
+	 * Fetches the currently selected objects from the workbench site and returns those of given type. If none of the
+	 * selected objects are of given type, returns null
+	 * 
+	 * @param site
+	 *            The workbench site
+	 * @param expectedType
+	 *            Type of the selected objects to look for
+	 * @return The selected objects of given type if found, else null
+	 */
+	public <T> Set<T> getSelectedEntities(IWorkbenchSite site, Class<T> expectedType) {
+		return getSelectedEntities(site.getWorkbenchWindow(), expectedType);
+	}
 
+	@SuppressWarnings("unchecked")
+	public <T> Set<T> getSelectedEntities(IWorkbenchWindow window, Class<T> expectedType) {
+		Set<T> selectedEntities = new HashSet<T>();
+		ISelection selection = window.getSelectionService().getSelection();
+		if (selection instanceof IStructuredSelection) {
+			Iterator<Object> iter = ((IStructuredSelection) selection).iterator();
+			while (iter.hasNext()) {
+				Object selectedObj = iter.next();
+				if (selectedObj.getClass() == expectedType) {
+					selectedEntities.add((T) selectedObj);
+				}
+			}
+		}
+		return selectedEntities;
+	}
+	
+	public void configureCheckboxTableViewer(final CheckboxTableViewer tableViewer) {
+		tableViewer.addCheckStateListener(new ICheckStateListener() {
+			
+			@Override
+			public void checkStateChanged(CheckStateChangedEvent event) {
+				tableViewer.setSelection(new StructuredSelection(tableViewer.getCheckedElements()));
+			}
+		});
+		
+		tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+			
+			@SuppressWarnings("unchecked")
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				List<Object> checkedElements = Arrays.asList(tableViewer.getCheckedElements());
+				List<Object> selectedElements = ((IStructuredSelection)event.getSelection()).toList();
+		
+				if (JavaUtil.listsDiffer(checkedElements, selectedElements)) {
+					tableViewer.setSelection(new StructuredSelection(tableViewer.getCheckedElements()));
+				}
+			}
+		});
+	}
 	
 	public void showProgressView() {
 		try {

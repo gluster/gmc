@@ -120,8 +120,8 @@ public class VolumesClient extends AbstractClient {
 	 * 
 	 * @param volumeName
 	 *            Name of volume whose logs are to be fetched
-	 * @param diskName
-	 *            Name of the disk whose logs are to be fetched. Pass ALL to fetch log messages from all disks of the
+	 * @param brickName
+	 *            Name of the brick whose logs are to be fetched. Pass ALL to fetch log messages from all bricks of the
 	 *            volume.
 	 * @param severity
 	 *            Log severity {@link GlusterConstants#VOLUME_LOG_LEVELS_ARR}. Pass ALL to fetch log messages of all
@@ -134,9 +134,9 @@ public class VolumesClient extends AbstractClient {
 	 *            Number of most recent log messages to be fetched (from each disk)
 	 * @return Log Message List response received from the Gluster Management Server.
 	 */
-	public LogMessageListResponse getLogs(String volumeName, String diskName, String severity, Date fromTimestamp,
+	public LogMessageListResponse getLogs(String volumeName, String brickName, String severity, Date fromTimestamp,
 			Date toTimestamp, int messageCount) {
-		MultivaluedMap<String, String> queryParams = prepareGetLogQueryParams(diskName, severity, fromTimestamp,
+		MultivaluedMap<String, String> queryParams = prepareGetLogQueryParams(brickName, severity, fromTimestamp,
 				toTimestamp, messageCount);
 
 		return (LogMessageListResponse) fetchSubResource(volumeName + "/" + RESTConstants.RESOURCE_LOGS,
@@ -144,7 +144,7 @@ public class VolumesClient extends AbstractClient {
 	}
 
 	public void downloadLogs(String volumeName, String filePath) {
-		downloadSubResource((volumeName) + "/" + RESTConstants.RESOURCE_LOGS + "/" + RESTConstants.RESOURCE_DOWNLOAD, filePath);
+		downloadSubResource(volumeName + "/" + RESTConstants.RESOURCE_LOGS + "/" + RESTConstants.RESOURCE_DOWNLOAD, filePath);
 	}
 
 	public Status removeBricks(String volumeName, List<Brick> BrickList, boolean deleteOption) {
@@ -169,12 +169,12 @@ public class VolumesClient extends AbstractClient {
 		return queryParams;
 	}
 
-	private MultivaluedMap<String, String> prepareGetLogQueryParams(String diskName, String severity,
+	private MultivaluedMap<String, String> prepareGetLogQueryParams(String brickName, String severity,
 			Date fromTimestamp, Date toTimestamp, int messageCount) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.add(RESTConstants.QUERY_PARAM_LINE_COUNT, "" + messageCount);
-		if (!diskName.equals(CoreConstants.ALL)) {
-			queryParams.add(RESTConstants.QUERY_PARAM_DISK_NAME, diskName);
+		if (!brickName.equals(CoreConstants.ALL)) {
+			queryParams.add(RESTConstants.QUERY_PARAM_BRICK_NAME, brickName);
 		}
 
 		if (!severity.equals(CoreConstants.ALL)) {

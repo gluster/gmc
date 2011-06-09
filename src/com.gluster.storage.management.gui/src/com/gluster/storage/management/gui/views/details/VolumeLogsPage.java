@@ -51,7 +51,7 @@ import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.constants.GlusterConstants.VOLUME_LOG_LEVELS;
-import com.gluster.storage.management.core.model.LogMessage;
+import com.gluster.storage.management.core.model.VolumeLogMessage;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.response.LogMessageListResponse;
@@ -68,12 +68,12 @@ public class VolumeLogsPage extends Composite {
 	private Volume volume;
 
 	public enum LOG_TABLE_COLUMN_INDICES {
-		DATE, TIME, DISK, SEVERITY, MESSAGE
+		DATE, TIME, BRICK, SEVERITY, MESSAGE
 	};
 
-	private static final String[] LOG_TABLE_COLUMN_NAMES = new String[] { "Date", "Time", "Disk", "Severity", "Message" };
+	private static final String[] LOG_TABLE_COLUMN_NAMES = new String[] { "Date", "Time", "Brick", "Severity", "Message" };
 	private TableViewer tableViewer;
-	private Combo disksCombo;
+	private Combo bricksCombo;
 	private Combo severityCombo;
 	private DateTime fromDate;
 	private DateTime fromTime;
@@ -110,8 +110,8 @@ public class VolumeLogsPage extends Composite {
 		createLineCountLabel(composite);
 		createLineCountText(composite);
 
-		createDiskLabel(composite);
-		createDisksCombo(composite);
+		createBricksLabel(composite);
+		createBricksCombo(composite);
 
 		createSeverityLabel(composite);
 		createSeverityCombo(composite);
@@ -185,12 +185,12 @@ public class VolumeLogsPage extends Composite {
 					return;
 				}
 
-				LogMessageListResponse response = client.getLogs(volume.getName(), disksCombo.getText(),
+				LogMessageListResponse response = client.getLogs(volume.getName(), bricksCombo.getText(),
 						severityCombo.getText(), fromTimestamp, toTimestamp, Integer.parseInt(lineCountText.getText()));
 				Status status = response.getStatus();
 				if (status.isSuccess()) {
-					List<LogMessage> logMessages = response.getLogMessages();
-					tableViewer.setInput(logMessages.toArray(new LogMessage[0]));
+					List<VolumeLogMessage> logMessages = response.getLogMessages();
+					tableViewer.setInput(logMessages.toArray(new VolumeLogMessage[0]));
 					tableViewer.refresh();
 				} else {
 					MessageDialog.openError(getShell(), "Volume Logs", "Error while fetching volume logs: [" + status
@@ -321,17 +321,17 @@ public class VolumeLogsPage extends Composite {
 		lblSeverity.setBounds(480, 15, 70, 20);
 	}
 
-	private void createDisksCombo(Composite composite) {
-		disksCombo = new Combo(composite, SWT.READ_ONLY);
-		disksCombo.setBounds(365, 15, 100, 20);
-		disksCombo.setItems( volume.getBrickDirectories().toArray(new String[0]));
-		disksCombo.add(CoreConstants.ALL, 0);
-		toolkit.adapt(disksCombo);
-		toolkit.paintBordersFor(disksCombo);
-		disksCombo.select(0);
+	private void createBricksCombo(Composite composite) {
+		bricksCombo = new Combo(composite, SWT.READ_ONLY);
+		bricksCombo.setBounds(365, 15, 100, 20);
+		bricksCombo.setItems( volume.getBrickDirectories().toArray(new String[0]));
+		bricksCombo.add(CoreConstants.ALL, 0);
+		toolkit.adapt(bricksCombo);
+		toolkit.paintBordersFor(bricksCombo);
+		bricksCombo.select(0);
 	}
 
-	private void createDiskLabel(Composite composite) {
+	private void createBricksLabel(Composite composite) {
 		Label lblMessagesAndFilter = toolkit.createLabel(composite, "messages, and filter on bricks", SWT.NONE);
 		lblMessagesAndFilter.setBounds(160, 15, 200, 20);
 	}
@@ -373,7 +373,7 @@ public class VolumeLogsPage extends Composite {
 
 		setColumnProperties(table, LOG_TABLE_COLUMN_INDICES.DATE, SWT.CENTER, 50);
 		setColumnProperties(table, LOG_TABLE_COLUMN_INDICES.TIME, SWT.CENTER, 50);
-		setColumnProperties(table, LOG_TABLE_COLUMN_INDICES.DISK, SWT.CENTER, 50);
+		setColumnProperties(table, LOG_TABLE_COLUMN_INDICES.BRICK, SWT.CENTER, 50);
 		setColumnProperties(table, LOG_TABLE_COLUMN_INDICES.SEVERITY, SWT.CENTER, 50);
 		setColumnProperties(table, LOG_TABLE_COLUMN_INDICES.MESSAGE, SWT.LEFT, 100);
 	}

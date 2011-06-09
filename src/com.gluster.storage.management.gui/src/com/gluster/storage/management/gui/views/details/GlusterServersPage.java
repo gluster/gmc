@@ -22,7 +22,6 @@ import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -36,9 +35,14 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.core.model.ClusterListener;
+import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.EntityGroup;
+import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.gui.EntityGroupContentProvider;
 import com.gluster.storage.management.gui.GlusterServerTableLabelProvider;
@@ -47,7 +51,7 @@ import com.gluster.storage.management.gui.utils.GUIHelper;
 public class GlusterServersPage extends Composite {
 
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
-	private TableViewer tableViewer;
+	private CheckboxTableViewer tableViewer;
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 
 	public enum GLUSTER_SERVER_TABLE_COLUMN_INDICES {
@@ -57,28 +61,23 @@ public class GlusterServersPage extends Composite {
 	private static final String[] GLUSTER_SERVER_TABLE_COLUMN_NAMES = new String[] { "Name", 
 			"IP Address(es)", "Number\nof CPUs", "Total\nMemory (GB)", "Space (GB)", "Space\nAvailable (GB)", "Status" }; // Removed "Preferred\nNetwork", 
 
-	public GlusterServersPage(Composite parent, int style) {
+	public GlusterServersPage(IWorkbenchSite site, final Composite parent, int style, EntityGroup<GlusterServer> servers) {
 		super(parent, style);
-		addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				toolkit.dispose();
-			}
-		});
 
 		toolkit.adapt(this);
 		toolkit.paintBordersFor(this);
 
 		setupPageLayout();
 		Text filterText = guiHelper.createFilterText(toolkit, this);
-		setupServerTableViewer(filterText);
-	}
-
-	public GlusterServersPage(final Composite parent, int style, EntityGroup<GlusterServer> servers) {
-		this(parent, style);
+		setupServerTableViewer(site, filterText);
 
 		tableViewer.setInput(servers);
 		parent.layout(); // Important - this actually paints the table
 
+		createListeners(parent);
+	}
+
+	private void createListeners(final Composite parent) {
 		/**
 		 * Ideally not required. However the table viewer is not getting laid out properly on performing
 		 * "maximize + restore" So this is a hack to make sure that the table is laid out again on re-size of the window
@@ -88,6 +87,34 @@ public class GlusterServersPage extends Composite {
 			@Override
 			public void paintControl(PaintEvent e) {
 				parent.layout();
+			}
+		});
+		
+		final ClusterListener clusterListener = new DefaultClusterListener() {
+			
+			@Override
+			public void serverAdded(GlusterServer server) {
+				tableViewer.refresh();
+			}
+			
+			@Override
+			public void serverRemoved(GlusterServer server) {
+				tableViewer.refresh();
+			}
+			
+			@Override
+			public void serverChanged(GlusterServer server, Event event) {
+				tableViewer.update(server, null);
+			}
+		};
+		
+		final GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+		modelManager.addClusterListener(clusterListener);
+
+		addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				toolkit.dispose();
+				modelManager.removeClusterListener(clusterListener);
 			}
 		});
 	}
@@ -122,8 +149,8 @@ public class GlusterServersPage extends Composite {
 		//setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.DISK_SPACE_IN_USE, SWT.CENTER, 90);
 	}
 
-	private TableViewer createServerTableViewer(Composite parent) {
-		TableViewer tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
+	private CheckboxTableViewer createServerTableViewer(Composite parent) {
+		CheckboxTableViewer tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
 		//TableViewer tableViewer = new TableViewer(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
 		tableViewer.setLabelProvider(new GlusterServerTableLabelProvider());
 		tableViewer.setContentProvider(new EntityGroupContentProvider<GlusterServer>());
@@ -140,9 +167,14 @@ public class GlusterServersPage extends Composite {
 		return tableViewerComposite;
 	}
 
-	private void setupServerTableViewer(final Text filterText) {
+	private void setupServerTableViewer(IWorkbenchSite site, final Text filterText) {
 		Composite tableViewerComposite = createTableViewerComposite();
 		tableViewer = createServerTableViewer(tableViewerComposite);
+		site.setSelectionProvider(tableViewer);
+
+		// make sure that table selection is driven by checkbox selection
+		guiHelper.configureCheckboxTableViewer(tableViewer);
+
 		// Create a case insensitive filter for the table viewer using the filter text field
 		guiHelper.createFilter(tableViewer, filterText, false);
 	}

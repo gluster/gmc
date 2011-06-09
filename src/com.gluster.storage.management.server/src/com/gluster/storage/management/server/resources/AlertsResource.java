@@ -54,7 +54,7 @@ public class AlertsResource {
 		alert = new Alert();
 		alert.setId("0004");
 		alert.setReference("Volume3:server2:sda1"); // volume:[Disk name]
-		alert.setType(Alert.ALERT_TYPES.OFFLINE_VOLUME_DISKS_ALERT);
+		alert.setType(Alert.ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT);
 		alert.setMessage(alert.getAlertType(alert.getType()) + " in volume [" + alert.getReference().split(":")[0]
 				+ "] disk [" + alert.getReference().split(":")[1] + ":" + alert.getReference().split(":")[2] + "]");
 		alerts.add(alert);

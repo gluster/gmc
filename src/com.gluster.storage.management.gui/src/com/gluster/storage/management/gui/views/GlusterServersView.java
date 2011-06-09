@@ -52,7 +52,7 @@ public class GlusterServersView extends ViewPart implements IDoubleClickListener
 			servers = (EntityGroup<GlusterServer>)guiHelper.getSelectedEntity(getSite(), EntityGroup.class);
 		}
 		
-		page = new GlusterServersPage(parent, SWT.NONE, servers);
+		page = new GlusterServersPage(getSite(), parent, SWT.NONE, servers);
 		page.addDoubleClickListener(this);
 	}
 

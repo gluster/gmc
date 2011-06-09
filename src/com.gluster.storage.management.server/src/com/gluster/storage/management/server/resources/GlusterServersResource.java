@@ -18,16 +18,15 @@
  *******************************************************************************/
 package com.gluster.storage.management.server.resources;
 
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SERVER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_SERVER_NAME;
-import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SERVER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_SERVERS;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityTransaction;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -42,7 +41,6 @@ import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
-import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
@@ -50,8 +48,8 @@ import com.gluster.storage.management.core.response.GlusterServerListResponse;
 import com.gluster.storage.management.core.response.GlusterServerResponse;
 import com.gluster.storage.management.core.utils.LRUCache;
 import com.gluster.storage.management.server.data.ClusterInfo;
-import com.gluster.storage.management.server.data.PersistenceDao;
 import com.gluster.storage.management.server.data.ServerInfo;
+import com.gluster.storage.management.server.services.ClusterService;
 import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.SshUtil;
 import com.sun.jersey.api.core.InjectParam;
@@ -69,7 +67,7 @@ public class GlusterServersResource extends AbstractServersResource {
 	private DiscoveredServersResource discoveredServersResource;
 	
 	@Autowired
-	private PersistenceDao<ClusterInfo> clusterDao;
+	private ClusterService clusterService;
 	
 	@Autowired
 	private SshUtil sshUtil;
@@ -103,8 +101,7 @@ public class GlusterServersResource extends AbstractServersResource {
 
 	// Doesn't use cache
 	public GlusterServer getNewOnlineServer(String clusterName, String exceptServerName) {
-		// no known online server for this cluster. find one.
-		ClusterInfo cluster = getCluster(clusterName);
+		ClusterInfo cluster = clusterService.getCluster(clusterName);
 		if(cluster == null) {
 			return null;
 		}
@@ -129,7 +126,7 @@ public class GlusterServersResource extends AbstractServersResource {
 			@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
 		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();
 		
-		ClusterInfo cluster = getCluster(clusterName);
+		ClusterInfo cluster = clusterService.getCluster(clusterName);
 		if(cluster == null) {
 			return new GlusterServerListResponse(new Status(Status.STATUS_CODE_FAILURE, "Cluster [" + clusterName
 					+ "] doesn't exist!"), null);
@@ -209,7 +206,11 @@ public class GlusterServersResource extends AbstractServersResource {
 		
 		Status status;
 		try {
-			status = glusterUtil.addServer(serverName, onlineServer.getName());
+			status = glusterUtil.addServer(onlineServer.getName(), serverName);
+			if(status.isSuccess()) {
+				// other peer probe to ensure that host names appear in peer probe on both sides
+				status = glusterUtil.addServer(serverName, onlineServer.getName());
+			}
 		} catch(ConnectionException e) {
 			onlineServer = getNewOnlineServer(clusterName);
 			if(onlineServer == null) {
@@ -226,7 +227,17 @@ public class GlusterServersResource extends AbstractServersResource {
 	@Produces(MediaType.TEXT_XML)
 	public GlusterServerResponse addServer(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@FormParam(FORM_PARAM_SERVER_NAME) String serverName) {
-		ClusterInfo cluster = getCluster(clusterName);
+		if(clusterName.isEmpty()) {
+			return new GlusterServerResponse(
+					new Status(Status.STATUS_CODE_FAILURE, "Cluster name should not be empty!"), null);
+		}
+		
+		if(serverName == null || serverName.isEmpty()) {
+			return new GlusterServerResponse(new Status(Status.STATUS_CODE_FAILURE, "Form parameter ["
+					+ FORM_PARAM_SERVER_NAME + "] is mandatory!"), null);
+		}
+		
+		ClusterInfo cluster = clusterService.getCluster(clusterName);
 		if(cluster == null) {
 			return new GlusterServerResponse(new Status(Status.STATUS_CODE_FAILURE, "Cluster [" + clusterName
 					+ "] doesn't exist!"), null);
@@ -255,7 +266,7 @@ public class GlusterServersResource extends AbstractServersResource {
 		
 		try {
 			// add the cluster-server mapping
-			addServerToCluster(clusterName, serverName);
+			clusterService.mapServerToCluster(clusterName, serverName);
 		} catch (Exception e) {
 			return new GlusterServerResponse(new Status(Status.STATUS_CODE_PART_SUCCESS, e.getMessage()), null);
 		}
@@ -281,59 +292,21 @@ public class GlusterServersResource extends AbstractServersResource {
 		return serverResponse;
 	}
 
-	private void addServerToCluster(String clusterName, String serverName) {
-		EntityTransaction txn = clusterDao.startTransaction();
-		ClusterInfo cluster = getCluster(clusterName);
-		ServerInfo server = new ServerInfo(serverName);
-		server.setCluster(cluster);
-		try {
-			clusterDao.save(server);
-			cluster.addServer(server);
-			clusterDao.update(cluster);
-			txn.commit();
-		} catch (Exception e) {
-			txn.rollback();
-			throw new GlusterRuntimeException("Couldn't create cluster-server mapping [" + clusterName + "]["
-					+ serverName + "]! Error: " + e.getMessage(), e);
-		}
-	}
-	
-	private void removeServerFromCluster(String clusterName, String serverName) {
-		EntityTransaction txn = clusterDao.startTransaction();
-		ClusterInfo cluster = getCluster(clusterName);
-		List<ServerInfo> servers = cluster.getServers();
-		for(ServerInfo server : servers) {
-			if(server.getName().equals(serverName)) {
-				servers.remove(server);
-				clusterDao.delete(server);
-				break;
-			}
-		}
-		try {
-			clusterDao.update(cluster);
-			txn.commit();
-		} catch(Exception e) {
-			txn.rollback();
-			throw new GlusterRuntimeException("Couldn't unmap server [" + serverName + "] from cluster [" + clusterName
-					+ "]! Error: " + e.getMessage(), e);
-		}
-	}
-
-	private ClusterInfo getCluster(String clusterName) {
-		List<ClusterInfo> clusters = clusterDao.findBy("name = ?1", clusterName);
-		if(clusters.size() == 0) {
-			return null;
-		}
-
-		return clusters.get(0);
-	}
-
 	@DELETE
 	@Produces(MediaType.TEXT_XML)
 	@Path("{" + PATH_PARAM_SERVER_NAME + "}")
 	public Status removeServer(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_SERVER_NAME) String serverName) {
-		ClusterInfo cluster = getCluster(clusterName);
+		if (clusterName.isEmpty()) {
+			return new Status(Status.STATUS_CODE_FAILURE, "Cluster name should not be empty!");
+		}
+		
+		if(serverName == null || serverName.isEmpty()) {
+			return new Status(Status.STATUS_CODE_FAILURE, "Form parameter [" + FORM_PARAM_SERVER_NAME
+					+ "] is mandatory!");
+		}
+		
+		ClusterInfo cluster = clusterService.getCluster(clusterName);
 		if(cluster == null) {
 			return new Status(Status.STATUS_CODE_FAILURE, "Cluster [" + clusterName + "] doesn't exist!");
 		}
@@ -357,7 +330,7 @@ public class GlusterServersResource extends AbstractServersResource {
 			}
 
 			try {
-				return glusterUtil.removeServer(onlineServer.getName(), serverName);
+				status = glusterUtil.removeServer(onlineServer.getName(), serverName);
 			} catch (ConnectionException e) {
 				// online server has gone offline! try with a different one.
 				onlineServer = getNewOnlineServer(clusterName, serverName);
@@ -379,7 +352,7 @@ public class GlusterServersResource extends AbstractServersResource {
 		
 		
 		try {
-			removeServerFromCluster(clusterName, serverName);
+			clusterService.unmapServerFromCluster(clusterName, serverName);
 		} catch (Exception e) {
 			return new Status(Status.STATUS_CODE_PART_SUCCESS, e.getMessage());
 		}

@@ -213,7 +213,7 @@ public class CreateVolumePage1 extends WizardPage {
 	private void createDisksLabel(Composite container) {
 		Label lblDisks = new Label(container, SWT.RIGHT);
 		lblDisks.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblDisks.setText("Disks: ");
+		lblDisks.setText("Bricks: ");
 	}
 
 	private void createTransportTypeValueLabel(Composite container) {
@@ -340,15 +340,15 @@ public class CreateVolumePage1 extends WizardPage {
 		int diskCount = selectedDisks.size();
 		
 		if(diskCount  < 1) {
-			setError("At least one disk must be selected!");
+			setError("At least one brick must be selected!");
 		}
 
 		VOLUME_TYPE volumeType = (VOLUME_TYPE) ((IStructuredSelection) typeComboViewer
 				.getSelection()).getFirstElement();
 		if (volumeType == VOLUME_TYPE.DISTRIBUTED_MIRROR && diskCount % 2 != 0) {
-			setError("Mirror type volume requires disks in multiples of two");
+			setError("Mirror type volume requires bricks in multiples of two");
 		} else if (volumeType == VOLUME_TYPE.DISTRIBUTED_STRIPE && diskCount % 4 != 0) {
-			setError("Stripe type volume requires disks in multiples of four");
+			setError("Stripe type volume requires bricks in multiples of four");
 		}
 	}
 	
