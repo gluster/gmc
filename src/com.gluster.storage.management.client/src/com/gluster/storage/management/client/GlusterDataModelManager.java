@@ -441,4 +441,18 @@ public class GlusterDataModelManager {
 		}
 		return disk.getStatusStr();
 	}
+	
+	public List<String> getVolumesOfServer(String serverName) {
+		List<String> volumeNames = new ArrayList<String>();
+		Cluster cluster = model.getCluster();
+		for (Volume volume : cluster.getVolumes()) {
+			for (Brick brick : volume.getBricks()) {
+				if (serverName.equals(brick.getServerName())) {
+					volumeNames.add(volume.getName());
+					break;
+				}
+			}
+		}
+		return volumeNames;
+	}
 }

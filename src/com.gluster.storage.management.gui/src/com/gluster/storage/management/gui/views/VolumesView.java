@@ -22,26 +22,20 @@ package com.gluster.storage.management.gui.views;
 
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.ISelectionListener;
-import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.EntityGroup;
-import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.views.pages.ServersPage;
 import com.gluster.storage.management.gui.views.pages.VolumesPage;
 
 /**
  *
  */
-public class VolumesView extends ViewPart implements IDoubleClickListener, ISelectionListener {
+public class VolumesView extends ViewPart implements IDoubleClickListener {
 	public static final String ID = VolumesView.class.getName();
 	private static final GUIHelper guiHelper = GUIHelper.getInstance();
 	private EntityGroup<Volume> volumes;
@@ -52,6 +46,7 @@ public class VolumesView extends ViewPart implements IDoubleClickListener, ISele
 	 * 
 	 * @see org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public void createPartControl(Composite parent) {
 		if (volumes == null) {
@@ -63,7 +58,6 @@ public class VolumesView extends ViewPart implements IDoubleClickListener, ISele
 		
 		page = new VolumesPage(parent, getSite(), volumes);
 		page.addDoubleClickListener(this);
-		getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(NavigationView.ID, this);
 	}
 
 	/*
@@ -81,28 +75,6 @@ public class VolumesView extends ViewPart implements IDoubleClickListener, ISele
 		NavigationView clusterView = (NavigationView) guiHelper.getView(NavigationView.ID);
 		if (clusterView != null) {
 			clusterView.selectEntity((Entity) ((StructuredSelection) event.getSelection()).getFirstElement());
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.ui.ISelectionListener#selectionChanged(org.eclipse.ui.IWorkbenchPart,
-	 * org.eclipse.jface.viewers.ISelection)
-	 */
-	@Override
-	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		if (part instanceof NavigationView && selection instanceof TreeSelection) {
-			Entity selectedEntity = (Entity) ((TreeSelection) selection).getFirstElement();
-
-			if (volumes == selectedEntity || selectedEntity == null || !(selectedEntity instanceof EntityGroup)
-					|| ((EntityGroup) selectedEntity).getEntityType() != Volume.class) {
-				// entity selection has not changed. do nothing.
-				return;
-			}
-
-			volumes = (EntityGroup<Volume>) selectedEntity;
-			page.setInput(volumes);
 		}
 	}
 }

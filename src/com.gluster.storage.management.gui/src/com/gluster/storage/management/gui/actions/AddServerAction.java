@@ -65,13 +65,13 @@ public class AddServerAction extends AbstractActionDelegate {
 					}
 				}
 
-				showStatusMessage(action.getDescription(), selectedServers, successServers, errMsg, partErrMsg);
+				showStatusMessage(action.getDescription(), selectedServers, successServers, partSuccessServers, errMsg, partErrMsg);
 			}
 		});
 	}
 
 	private void showStatusMessage(String dialogTitle, Set<Server> selectedServers, Set<Server> successServers,
-			String errMsg, String partErrMsg) {
+			Set<Server> partSuccessServers, String errMsg, String partErrMsg) {
 		if (successServers.size() == selectedServers.size()) {
 			if (selectedServers.size() == 1) {
 				showInfoDialog(dialogTitle, "Server [" + selectedServers.iterator().next() + "] added successfully!");
@@ -83,15 +83,13 @@ public class AddServerAction extends AbstractActionDelegate {
 		}
 
 		String finalMsg = "";
-		if (successServers.size() == 0) {
+		if (successServers.size() == 0 && partSuccessServers.size() == 0) {
 			finalMsg = "Server Addition Failed! Error(s):" + CoreConstants.NEWLINE + errMsg;
 		} else {
-			finalMsg = "Following servers added successfully : "
-					+ CoreConstants.NEWLINE
-					+ successServers
-					+ (partErrMsg.isEmpty() ? "" : CoreConstants.NEWLINE
-							+ "Following servers were added to cluster, but with some errors: " + CoreConstants.NEWLINE
-							+ partErrMsg)
+			finalMsg = (successServers.isEmpty() ? "" : "Following servers added successfully : "
+					+ CoreConstants.NEWLINE + successServers + CoreConstants.NEWLINE)
+					+ (partSuccessServers.isEmpty() ? "" : "Following servers were added to cluster, but with some errors: "
+							+ CoreConstants.NEWLINE + partErrMsg + CoreConstants.NEWLINE)
 					+ (errMsg.isEmpty() ? "" : CoreConstants.NEWLINE
 							+ "Following errors occurred on other selected servers: " + CoreConstants.NEWLINE + errMsg);
 		}

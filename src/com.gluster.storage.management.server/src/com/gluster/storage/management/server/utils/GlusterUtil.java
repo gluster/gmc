@@ -468,18 +468,18 @@ System.out.println(brickDir);
 	}
 
 	public String getLogLocation(String volumeName, String brickName, String knownServer) {
-		ProcessResult result = sshUtil.executeRemote(knownServer, "gluster volume log locate " + volumeName + " "
-				+ brickName);
+		String command = "gluster volume log locate " + volumeName + " " + brickName;
+		ProcessResult result = sshUtil.executeRemote(knownServer, command);
 		if (!result.isSuccess()) {
-			throw new GlusterRuntimeException("Command [gluster volume info] failed with error: ["
-					+ result.getExitValue() + "][" + result.getOutput() + "]");
+			throw new GlusterRuntimeException("Command [" + command + "] failed with error: [" + result.getExitValue()
+					+ "][" + result.getOutput() + "]");
 		}
 		String output = result.getOutput();
 		if (output.startsWith(VOLUME_LOG_LOCATION_PFX)) {
 			return output.substring(VOLUME_LOG_LOCATION_PFX.length()).trim();
 		}
 
-		throw new GlusterRuntimeException("Couldn't parse output of [volume log locate] command. [" + output
+		throw new GlusterRuntimeException("Couldn't parse output of command [" + command + "]. Output [" + output
 				+ "] doesn't start with prefix [" + VOLUME_LOG_LOCATION_PFX + "]");
 	}
 

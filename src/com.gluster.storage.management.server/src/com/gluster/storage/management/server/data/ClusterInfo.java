@@ -18,6 +18,7 @@
  *******************************************************************************/
 package com.gluster.storage.management.server.data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Entity;
@@ -37,7 +38,7 @@ public class ClusterInfo {
 	private String name;
 	
 	@OneToMany(mappedBy="cluster")
-	private List<ServerInfo> servers;
+	private List<ServerInfo> servers = new ArrayList<ServerInfo>();
 
 	public void setId(Integer id) {
 		this.id = id;

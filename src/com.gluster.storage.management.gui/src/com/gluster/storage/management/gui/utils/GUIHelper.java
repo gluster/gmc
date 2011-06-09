@@ -366,12 +366,11 @@ public class GUIHelper {
 	 *            Type of the selected object to look for
 	 * @return The selected object of given type if found, else null
 	 */
-	@SuppressWarnings("rawtypes")
-	public Object getSelectedEntity(IWorkbenchSite site, Class expectedType) {
+	public <T> T getSelectedEntity(IWorkbenchSite site, Class<T> expectedType) {
 		return getSelectedEntity(site.getWorkbenchWindow(), expectedType);
 	}
 	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked" })
 	public <T> T getSelectedEntity(IWorkbenchWindow window, Class<T> expectedType) {
 		ISelection selection = window.getSelectionService().getSelection(NavigationView.ID);
 		if (selection instanceof IStructuredSelection) {
