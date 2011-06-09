@@ -116,8 +116,6 @@ public class VolumesResource {
 	@InjectParam
 	private VolumeOptionsDefaults volumeOptionsDefaults;
 
-	private FileUtil fileUtil = new FileUtil();
-
 	@GET
 	@Produces(MediaType.TEXT_XML)
 	public VolumeListResponse getAllVolumes(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
@@ -452,7 +450,7 @@ public class VolumesResource {
 			public void write(OutputStream output) throws IOException, WebApplicationException {
 				try {
 					File archiveFile = new File(downloadLogs(volume));
-					output.write(fileUtil.readFileAsByteArray(archiveFile));
+					output.write(FileUtil.readFileAsByteArray(archiveFile));
 					archiveFile.delete();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -464,11 +462,11 @@ public class VolumesResource {
 
 	private String downloadLogs(Volume volume) {
 		// create temporary directory
-		File tempDir = fileUtil.createTempDir();
+		File tempDir = FileUtil.createTempDir();
 		String tempDirPath = tempDir.getPath();
 
 		for (Brick brick : volume.getBricks()) {
-			String logDir = glusterUtil.getLogLocation(volume.getName(), brick.getBrickDirectory(),
+			String logDir = glusterUtil.getLogLocation(volume.getName(), brick.getQualifiedName(),
 					brick.getServerName());
 			String logFileName = glusterUtil.getLogFileNameForBrickDir(brick.getBrickDirectory());
 			String logFilePath = logDir + CoreConstants.FILE_SEPARATOR + logFileName;
@@ -476,11 +474,11 @@ public class VolumesResource {
 			serverUtil.getFileFromServer(brick.getServerName(), logFilePath, tempDirPath);
 		}
 
-		String gzipPath = fileUtil.getTempDirName() + CoreConstants.FILE_SEPARATOR + volume.getName() + "-logs.tar.gz";
+		String gzipPath = FileUtil.getTempDirName() + CoreConstants.FILE_SEPARATOR + volume.getName() + "-logs.tar.gz";
 		new ProcessUtil().executeCommand("tar", "czvf", gzipPath, "-C", tempDir.getParent(), tempDir.getName());
 
 		// delete the temp directory
-		fileUtil.recursiveDelete(tempDir);
+		FileUtil.recursiveDelete(tempDir);
 
 		return gzipPath;
 	}
