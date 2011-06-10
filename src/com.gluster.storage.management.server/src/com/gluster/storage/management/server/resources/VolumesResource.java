@@ -453,9 +453,9 @@ public class VolumesResource {
 					output.write(FileUtil.readFileAsByteArray(archiveFile));
 					archiveFile.delete();
 				} catch (Exception e) {
-					# TODO: Log the exception
+					// TODO: Log the exception
 					e.printStackTrace();
-					throw e;
+					throw new GlusterRuntimeException("Exception while downloading/archiving volume log files!", e);
 				}
 			}
 		};
