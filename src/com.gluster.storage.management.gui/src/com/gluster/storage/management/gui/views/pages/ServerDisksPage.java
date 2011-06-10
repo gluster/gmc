@@ -20,7 +20,7 @@ package com.gluster.storage.management.gui.views.pages;
 
 import java.util.List;
 
-import org.eclipse.jface.layout.TableColumnLayout;
+import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
@@ -28,7 +28,6 @@ import org.eclipse.ui.IWorkbenchSite;
 
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.gui.ServerDiskTableLabelProvider;
-import com.gluster.storage.management.gui.TableLabelProviderAdapter;
 
 public class ServerDisksPage extends AbstractDisksPage {
 	public ServerDisksPage(Composite parent, int style, IWorkbenchSite site, List<Disk> disks) {
@@ -43,26 +42,25 @@ public class ServerDisksPage extends AbstractDisksPage {
 			"Space in Use (GB)", "Status" };
 
 	@Override
-	protected void setupDiskTable(Composite parent, Table table) {
-		table.setHeaderVisible(true);
-		table.setLinesVisible(false);
-
-		TableColumnLayout tableColumnLayout = guiHelper.createTableColumnLayout(table, SERVER_DISK_TABLE_COLUMN_NAMES);
-		parent.setLayout(tableColumnLayout);
-
+	protected String[] getColumnNames() {
+		return SERVER_DISK_TABLE_COLUMN_NAMES;
+	}
+	
+	@Override
+	protected void setColumnProperties(Table table) {
 		guiHelper.setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.DISK.ordinal(), SWT.CENTER, 100);
 		guiHelper.setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.SPACE.ordinal(), SWT.CENTER, 90);
 		guiHelper.setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal(), SWT.CENTER, 90);
 		guiHelper.setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.STATUS.ordinal(), SWT.LEFT, 90);
 	}
-
+	
 	@Override
 	protected int getStatusColumnIndex() {
 		return SERVER_DISK_TABLE_COLUMN_INDICES.STATUS.ordinal();
 	}
 
 	@Override
-	protected TableLabelProviderAdapter getTableLabelProvider() {
+	protected IBaseLabelProvider getLabelProvider() {
 		return new ServerDiskTableLabelProvider();
 	}
 }

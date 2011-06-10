@@ -52,8 +52,9 @@ public abstract class AbstractTableViewerPage<T> extends Composite {
 	protected final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	protected CheckboxTableViewer tableViewer;
 	protected GUIHelper guiHelper = GUIHelper.getInstance();
-	private Hyperlink linkAll, linkNone;
 	protected Composite parent;
+	
+	private Hyperlink linkAll, linkNone;
 
 	public AbstractTableViewerPage(IWorkbenchSite site, final Composite parent, int style, Object model) {
 		super(parent, style);

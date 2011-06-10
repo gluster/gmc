@@ -20,8 +20,7 @@ package com.gluster.storage.management.gui.views.pages;
 
 import java.util.List;
 
-import org.eclipse.jface.layout.TableColumnLayout;
-import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
@@ -44,25 +43,24 @@ public class DisksPage extends AbstractDisksPage {
 	}
 
 	@Override
-	protected void setupDiskTable(Composite parent, Table table) {
-		table.setHeaderVisible(true);
-		table.setLinesVisible(false);
+	protected String[] getColumnNames() {
+		return DISK_TABLE_COLUMN_NAMES;
+	}
 
-		TableColumnLayout tableColumnLayout = guiHelper.createTableColumnLayout(table, DISK_TABLE_COLUMN_NAMES);
-		parent.setLayout(tableColumnLayout);
-
+	@Override
+	protected void setColumnProperties(Table table) {
 		guiHelper.setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.SERVER.ordinal(), SWT.CENTER, 100);
 		guiHelper.setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.DISK.ordinal(), SWT.CENTER, 100);
 		guiHelper.setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal(), SWT.CENTER, 90);
 		guiHelper.setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal(), SWT.CENTER, 90);
 		// guiHelper.setColumnProperties(table, DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal(), SWT.CENTER, 90);
 	}
-
+	
 	@Override
-	protected ITableLabelProvider getTableLabelProvider() {
+	protected IBaseLabelProvider getLabelProvider() {
 		return new DiskTableLabelProvider();
 	}
-
+	
 	@Override
 	protected int getStatusColumnIndex() {
 		return DISK_TABLE_COLUMN_INDICES.STATUS.ordinal();

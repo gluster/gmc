@@ -18,39 +18,28 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.views.pages;
 
+import java.util.List;
+
 import org.eclipse.jface.layout.TableColumnLayout;
-import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ColumnWeightData;
-import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.IBaseLabelProvider;
+import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchSite;
-import org.eclipse.ui.forms.widgets.FormToolkit;
 
+import com.gluster.storage.management.core.model.ClusterListener;
+import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.EntityGroupContentProvider;
 import com.gluster.storage.management.gui.VolumeTableLabelProvider;
-import com.gluster.storage.management.gui.utils.GUIHelper;
 
-public class VolumesPage extends Composite {
-
-	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
-	private TableViewer tableViewer;
-	private GUIHelper guiHelper = GUIHelper.getInstance();
-
+public class VolumesPage extends AbstractTableViewerPage<Volume> {
+	private List<Volume> volumes;
+	
 	public enum VOLUME_TABLE_COLUMN_INDICES {
 		NAME, VOLUME_TYPE, NUM_OF_DISKS, TRANSPORT_TYPE, VOLUME_STATUS
 	};
@@ -59,91 +48,37 @@ public class VolumesPage extends Composite {
 			"Number of\nBricks", "Transport Type", "Status" };
 
 	public VolumesPage(final Composite parent, IWorkbenchSite site, EntityGroup<Volume> volumes) {
-		super(parent, SWT.NONE);
-
-		addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				toolkit.dispose();
-			}
-		});
-
-		toolkit.adapt(this);
-		toolkit.paintBordersFor(this);
-
-		setupPageLayout();
-		setupVolumeTableViewer(site, volumes);
-
-		parent.layout(); // Important - this actually paints the table
-
-		/**
-		 * Ideally not required. However the table viewer is not getting laid out properly on performing
-		 * "maximize + restore" So this is a hack to make sure that the table is laid out again on re-size of the window
-		 */
-		addPaintListener(new PaintListener() {
-
-			@Override
-			public void paintControl(PaintEvent e) {
-				parent.layout();
-			}
-		});
+		super(site, parent, SWT.NONE, volumes);
 	}
 
-	public void addDoubleClickListener(IDoubleClickListener listener) {
-		tableViewer.addDoubleClickListener(listener);
+	@Override
+	protected String[] getColumnNames() {
+		return VOLUME_TABLE_COLUMN_NAMES;
 	}
-
-	private void setupPageLayout() {
-		final GridLayout layout = new GridLayout(1, false);
-		layout.verticalSpacing = 10;
-		layout.marginTop = 10;
-		setLayout(layout);
-	}
-
-	private void setupVolumeTable(Composite parent, Table table) {
-		table.setHeaderVisible(true);
-		table.setLinesVisible(true);
-
-		TableColumnLayout columnLayout = guiHelper.createTableColumnLayout(table, VOLUME_TABLE_COLUMN_NAMES);
-		parent.setLayout(columnLayout);
-
+	
+	@Override
+	protected void setColumnProperties(Table table) {
 		setColumnProperties(table, VOLUME_TABLE_COLUMN_INDICES.VOLUME_STATUS, SWT.CENTER, 50);
 		setColumnProperties(table, VOLUME_TABLE_COLUMN_INDICES.NUM_OF_DISKS, SWT.CENTER, 50);
 		setColumnProperties(table, VOLUME_TABLE_COLUMN_INDICES.TRANSPORT_TYPE, SWT.CENTER, 70);
 	}
-
-	private CheckboxTableViewer createVolumeTableViewer(Composite parent) {
-		CheckboxTableViewer tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION
-				| SWT.MULTI);
-		tableViewer.setLabelProvider(new VolumeTableLabelProvider());
-		tableViewer.setContentProvider(new EntityGroupContentProvider<Volume>());
-
-		setupVolumeTable(parent, tableViewer.getTable());
-
-		// make sure that table selection is driven by checkbox selection
-		guiHelper.configureCheckboxTableViewer(tableViewer);
-
-		return tableViewer;
+	
+	@Override
+	protected IBaseLabelProvider getLabelProvider() {
+		return new VolumeTableLabelProvider();
 	}
-
-	private Composite createTableViewerComposite() {
-		Composite tableViewerComposite = new Composite(this, SWT.NO);
-		tableViewerComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
-		tableViewerComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		return tableViewerComposite;
+	
+	@Override
+	protected IContentProvider getContentProvider() {
+		return new EntityGroupContentProvider<Volume>();
 	}
-
-	private void setupVolumeTableViewer(IWorkbenchSite site, EntityGroup<Volume> volumes) {
-		Text filterText = guiHelper.createFilterText(toolkit, this);
-
-		Composite tableViewerComposite = createTableViewerComposite();
-		tableViewer = createVolumeTableViewer(tableViewerComposite);
-		site.setSelectionProvider(tableViewer);
-
-		// Create a case insensitive filter for the table viewer using the filter text field
-		guiHelper.createFilter(tableViewer, filterText, false);
-		tableViewer.setInput(volumes);
+	
+	@Override
+	protected ClusterListener createClusterListener() {
+		// TODO: Override methods to handle volume related events
+		return new DefaultClusterListener();
 	}
-
+	
 	/**
 	 * Sets properties for alignment and weight of given column of given table
 	 * 
@@ -159,9 +94,9 @@ public class VolumesPage extends Composite {
 		TableColumnLayout tableColumnLayout = (TableColumnLayout) table.getParent().getLayout();
 		tableColumnLayout.setColumnData(column, new ColumnWeightData(weight));
 	}
-
-	public void setInput(EntityGroup<Volume> volumes) {
-		tableViewer.setInput(volumes);
-		tableViewer.refresh();
+	
+	@Override
+	protected List<Volume> getAllEntities() {
+		return volumes;
 	}
 }

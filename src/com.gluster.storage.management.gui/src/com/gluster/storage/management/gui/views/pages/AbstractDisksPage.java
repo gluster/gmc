@@ -21,8 +21,7 @@ package com.gluster.storage.management.gui.views.pages;
 import java.util.List;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.CheckboxTableViewer;
-import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TableEditor;
@@ -30,102 +29,55 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
-import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ImageHyperlink;
 
+import com.gluster.storage.management.core.model.ClusterListener;
+import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IEntityListener;
 import com.gluster.storage.management.gui.jobs.InitializeDiskJob;
-import com.gluster.storage.management.gui.utils.GUIHelper;
 
-public abstract class AbstractDisksPage extends Composite implements IEntityListener {
-	protected final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
-	protected CheckboxTableViewer tableViewer;
-	private IWorkbenchSite site;
-	protected static final GUIHelper guiHelper = GUIHelper.getInstance();
-
-	/**
-	 * Setup properties of the table e.g. column headers, widths, etc.
-	 * 
-	 * @param parent
-	 *            The parent composite. (TableColumnLayout has to be set on this)
-	 * @param table
-	 *            The table to be set up
-	 */
-	protected abstract void setupDiskTable(Composite parent, Table table);
-
-	/**
-	 * @return The label provider to be used with the disk table viewer
-	 */
-	protected abstract ITableLabelProvider getTableLabelProvider();
-
+public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> implements IEntityListener {
+	private List<Disk> disks;
+	
 	/**
 	 * @return Index of the "status" column in the table. Return -1 if status column is not displayed
 	 */
 	protected abstract int getStatusColumnIndex();
 
-	private void init(final Composite parent, IWorkbenchSite site, List<Disk> disks) {
-		addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				toolkit.dispose();
-			}
-		});
-
-		this.site = site;
-
-		setupPageLayout();
-		Text filterText = guiHelper.createFilterText(toolkit, this);
-		setupDiskTableViewer(createTableViewerComposite(), filterText);
-		site.setSelectionProvider(tableViewer);
-
-		tableViewer.setInput(disks);
-		setupStatusCellEditor(); // creates hyperlinks for "unitialized" disks
-
-		site.setSelectionProvider(tableViewer);
-		Application.getApplication().addEntityListener(this);
-
-		parent.layout(); // Important - this actually paints the table
-
-		toolkit.adapt(this);
-		toolkit.paintBordersFor(this);
-
-		/**
-		 * Ideally not required. However the table viewer is not getting laid out properly on performing
-		 * "maximize + restore" So this is a hack to make sure that the table is laid out again on re-size of the window
-		 */
-		addPaintListener(new PaintListener() {
-
-			@Override
-			public void paintControl(PaintEvent e) {
-				parent.layout();
-			}
-		});
-	}
-
 	public AbstractDisksPage(final Composite parent, int style, IWorkbenchSite site, List<Disk> disks) {
-		super(parent, style);
-		init(parent, site, disks);
+		super(site, parent, style, disks);
+		this.disks = disks;
+		
+		// creates hyperlinks for "unitialized" disks
+		setupStatusCellEditor(); 
+		// Listen for disk status change events
+		Application.getApplication().addEntityListener(this);
 	}
-
-	private void setupPageLayout() {
-		final GridLayout layout = new GridLayout(1, false);
-		layout.verticalSpacing = 10;
-		layout.marginTop = 10;
-		setLayout(layout);
+	
+	@Override
+	protected IContentProvider getContentProvider() {
+		return new ArrayContentProvider();
+	}
+	
+	@Override
+	protected List<Disk> getAllEntities() {
+		return disks;
+	}
+	
+	@Override
+	protected ClusterListener createClusterListener() {
+		return new DefaultClusterListener();
 	}
 
 	private void createInitializeLink(final TableItem item, final int rowNum, final Disk disk) {
@@ -151,7 +103,7 @@ public abstract class AbstractDisksPage extends Composite implements IEntityList
 				myLink = toolkit.createImageHyperlink(table, SWT.NONE);
 				// link.setImage(guiHelper.getImage(IImageKeys.DISK_UNINITIALIZED));
 				myLink.setText("Initialize");
-				myLink.addHyperlinkListener(new StatusLinkListener(myLink, myEditor, myItem, tableViewer, disk1, site));
+				myLink.addHyperlinkListener(new StatusLinkListener(myLink, myEditor, myItem, tableViewer, disk1));
 
 				myEditor.setEditor(myLink, item1, getStatusColumnIndex());
 
@@ -220,47 +172,18 @@ public abstract class AbstractDisksPage extends Composite implements IEntityList
 		}
 	}
 
-	private Composite createTableViewerComposite() {
-		Composite tableViewerComposite = new Composite(this, SWT.NO);
-		tableViewerComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
-		tableViewerComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		return tableViewerComposite;
-	}
-
-	private CheckboxTableViewer createDiskTableViewer(Composite parent) {
-		tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI );
-
-		tableViewer.setLabelProvider(getTableLabelProvider());
-		tableViewer.setContentProvider(new ArrayContentProvider());
-
-		setupDiskTable(parent, tableViewer.getTable());
-		
-		// make sure that table selection is driven by checkbox selection
-		guiHelper.configureCheckboxTableViewer(tableViewer);
-
-		return tableViewer;
-	}
-
-	private void setupDiskTableViewer(Composite parent, final Text filterText) {
-		tableViewer = createDiskTableViewer(parent);
-		// Create a case insensitive filter for the table viewer using the filter text field
-		guiHelper.createFilter(tableViewer, filterText, false);
-	}
-
 	private final class StatusLinkListener extends HyperlinkAdapter {
 		private final Disk disk;
 		private final TableEditor myEditor;
 		private final ImageHyperlink myLink;
 		private final TableViewer viewer;
-		private final IWorkbenchSite site;
 
 		private StatusLinkListener(ImageHyperlink link, TableEditor editor, TableItem item, TableViewer viewer,
-				Disk disk, IWorkbenchSite site) {
+				Disk disk) {
 			this.disk = disk;
 			this.viewer = viewer;
 			this.myEditor = editor;
 			this.myLink = link;
-			this.site = site;
 		}
 
 		private void updateStatus(final DISK_STATUS status, final boolean disposeEditor) {
