@@ -371,16 +371,16 @@ public class VolumesResource {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private Status cleanupDirectories(List<String> disks, String volumeName, int maxIndex, boolean deleteFlag) {
-		String serverName, diskName, diskInfo[];
+	private Status cleanupDirectories(List<String> bricks, String volumeName, int maxIndex, boolean deleteFlag) {
 		Status result;
 		for (int i = 0; i < maxIndex; i++) {
-			diskInfo = disks.get(i).split(":");
-			serverName = diskInfo[0];
-			diskName = diskInfo[1];
+			String[] brickInfo = bricks.get(i).split(":");
+			String serverName = brickInfo[0];
+			String brickDirectory = brickInfo[1];
 
+			String mountPoint = brickDirectory.substring(0, brickDirectory.lastIndexOf("/"));
 			Object response = serverUtil.executeOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
-					+ diskName + " " + volumeName + " " + (deleteFlag ? "-d" : ""), GenericResponse.class);
+					+ mountPoint + " " + volumeName + " " + (deleteFlag ? "-d" : ""), GenericResponse.class);
 			if (response instanceof GenericResponse) {
 				result = ((GenericResponse) response).getStatus();
 				if (!result.isSuccess()) {

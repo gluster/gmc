@@ -900,7 +900,19 @@
          </view>
          <view
                closeable="false"
-               id="com.gluster.storage.management.gui.views.VolumeDisksView"
+               id="com.gluster.storage.management.gui.views.VolumeBricksView"
+               minimized="false"
+               moveable="false"
+               ratio="0.30f"
+               relationship="stack"
+               relative="com.gluster.storage.management.gui.views.ClusterSummaryView"
+               showTitle="true"
+               standalone="false"
+               visible="false">
+         </view>
+         <view
+               closeable="false"
+               id="com.gluster.storage.management.gui.views.VolumeBricksView"
                minimized="false"
                moveable="false"
                ratio="0.30f"

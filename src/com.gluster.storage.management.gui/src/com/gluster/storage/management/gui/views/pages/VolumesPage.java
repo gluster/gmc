@@ -54,9 +54,9 @@ public class VolumesPage extends Composite {
 	public enum VOLUME_TABLE_COLUMN_INDICES {
 		NAME, VOLUME_TYPE, NUM_OF_DISKS, TRANSPORT_TYPE, VOLUME_STATUS
 	};
-	
-	private static final String[] VOLUME_TABLE_COLUMN_NAMES = new String[] { "Name",
-			"Volume Type", "Number of\nBricks", "Transport Type", "Status" };
+
+	private static final String[] VOLUME_TABLE_COLUMN_NAMES = new String[] { "Name", "Volume Type",
+			"Number of\nBricks", "Transport Type", "Status" };
 
 	public VolumesPage(final Composite parent, IWorkbenchSite site, EntityGroup<Volume> volumes) {
 		super(parent, SWT.NONE);
@@ -74,7 +74,7 @@ public class VolumesPage extends Composite {
 		setupVolumeTableViewer(site, volumes);
 
 		parent.layout(); // Important - this actually paints the table
-		
+
 		/**
 		 * Ideally not required. However the table viewer is not getting laid out properly on performing
 		 * "maximize + restore" So this is a hack to make sure that the table is laid out again on re-size of the window
@@ -85,9 +85,9 @@ public class VolumesPage extends Composite {
 			public void paintControl(PaintEvent e) {
 				parent.layout();
 			}
-		});		
+		});
 	}
-	
+
 	public void addDoubleClickListener(IDoubleClickListener listener) {
 		tableViewer.addDoubleClickListener(listener);
 	}
@@ -102,7 +102,7 @@ public class VolumesPage extends Composite {
 	private void setupVolumeTable(Composite parent, Table table) {
 		table.setHeaderVisible(true);
 		table.setLinesVisible(true);
-		
+
 		TableColumnLayout columnLayout = guiHelper.createTableColumnLayout(table, VOLUME_TABLE_COLUMN_NAMES);
 		parent.setLayout(columnLayout);
 
@@ -110,13 +110,17 @@ public class VolumesPage extends Composite {
 		setColumnProperties(table, VOLUME_TABLE_COLUMN_INDICES.NUM_OF_DISKS, SWT.CENTER, 50);
 		setColumnProperties(table, VOLUME_TABLE_COLUMN_INDICES.TRANSPORT_TYPE, SWT.CENTER, 70);
 	}
-	
-	private TableViewer createVolumeTableViewer(Composite parent) {
-		TableViewer tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
+
+	private CheckboxTableViewer createVolumeTableViewer(Composite parent) {
+		CheckboxTableViewer tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION
+				| SWT.MULTI);
 		tableViewer.setLabelProvider(new VolumeTableLabelProvider());
 		tableViewer.setContentProvider(new EntityGroupContentProvider<Volume>());
 
 		setupVolumeTable(parent, tableViewer.getTable());
+
+		// make sure that table selection is driven by checkbox selection
+		guiHelper.configureCheckboxTableViewer(tableViewer);
 
 		return tableViewer;
 	}
@@ -134,10 +138,10 @@ public class VolumesPage extends Composite {
 		Composite tableViewerComposite = createTableViewerComposite();
 		tableViewer = createVolumeTableViewer(tableViewerComposite);
 		site.setSelectionProvider(tableViewer);
-		
+
 		// Create a case insensitive filter for the table viewer using the filter text field
 		guiHelper.createFilter(tableViewer, filterText, false);
-		tableViewer.setInput(volumes);		
+		tableViewer.setInput(volumes);
 	}
 
 	/**
@@ -155,7 +159,7 @@ public class VolumesPage extends Composite {
 		TableColumnLayout tableColumnLayout = (TableColumnLayout) table.getParent().getLayout();
 		tableColumnLayout.setColumnData(column, new ColumnWeightData(weight));
 	}
-	
+
 	public void setInput(EntityGroup<Volume> volumes) {
 		tableViewer.setInput(volumes);
 		tableViewer.refresh();
