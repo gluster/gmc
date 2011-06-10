@@ -453,6 +453,7 @@ public class VolumesResource {
 					output.write(FileUtil.readFileAsByteArray(archiveFile));
 					archiveFile.delete();
 				} catch (Exception e) {
+					// TODO: Log the exception
 					e.printStackTrace();
 					throw new GlusterRuntimeException("Exception while downloading/archiving volume log files!", e);
 				}
@@ -472,6 +473,13 @@ public class VolumesResource {
 			String logFilePath = logDir + CoreConstants.FILE_SEPARATOR + logFileName;
 
 			serverUtil.getFileFromServer(brick.getServerName(), logFilePath, tempDirPath);
+
+			String fetchedLogFile = tempDirPath + File.separator + logFileName;
+			// append log file name with server name so that log files don't overwrite each other 
+			// in cases where the brick log file names are same on multiple servers
+			String localLogFile = tempDirPath + File.separator + brick.getServerName() + "-" + logFileName;
+
+			FileUtil.renameFile(fetchedLogFile, localLogFile);
 		}
 
 		String gzipPath = FileUtil.getTempDirName() + CoreConstants.FILE_SEPARATOR + volume.getName() + "-logs.tar.gz";

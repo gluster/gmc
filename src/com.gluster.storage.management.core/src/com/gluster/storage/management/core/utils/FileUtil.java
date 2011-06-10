@@ -107,20 +107,28 @@ public class FileUtil {
 	 *            the file or dir to delete
 	 * @return true if all files are successfully deleted
 	 */
-	public static boolean recursiveDelete(File fileOrDir)
+	public static void recursiveDelete(File fileOrDir)
 	{
 	    if(fileOrDir.isDirectory())
 	    {
 	        // recursively delete contents
 	        for(File innerFile: fileOrDir.listFiles())
 	        {
-	            if(!recursiveDelete(innerFile))
-	            {
-	                return false;
-	            }
+	        	recursiveDelete(innerFile);
 	        }
 	    }
 
-	    return fileOrDir.delete();
+	    if(!fileOrDir.delete()) {
+			throw new GlusterRuntimeException("Couldn't delete file/directory [" + fileOrDir + "]");
+		}
+	}
+
+	public static void renameFile(String fromPath, String toPath) {
+		File fromFile = new File(fromPath);
+		File toFile = new File(toPath);
+
+		if(!fromFile.renameTo(toFile)) {
+			throw new GlusterRuntimeException("Couldn't rename [" + fromFile + "] to [" + toFile + "]");
+		}
 	}
 }
