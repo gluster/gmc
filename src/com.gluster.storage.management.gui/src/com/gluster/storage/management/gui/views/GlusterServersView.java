@@ -46,10 +46,11 @@ public class GlusterServersView extends ViewPart implements IDoubleClickListener
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public void createPartControl(Composite parent) {
 		if (servers == null) {
-			servers = (EntityGroup<GlusterServer>)guiHelper.getSelectedEntity(getSite(), EntityGroup.class);
+			servers = (EntityGroup<GlusterServer>) guiHelper.getSelectedEntity(getSite(), EntityGroup.class);
 		}
 		
 		page = new GlusterServersPage(getSite(), parent, SWT.NONE, servers);

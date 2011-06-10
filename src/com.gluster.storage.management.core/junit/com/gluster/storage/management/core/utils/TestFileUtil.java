@@ -72,13 +72,4 @@ public class TestFileUtil {
 		assertTrue("File contents expected [" + fileContent + "], actual [" + readContent + "]",
 				readContent.equals(fileContent));
 	}
-
-	/**
-	 * Test method for {@link com.gluster.storage.management.core.utils.FileUtil#loadResource(java.lang.String)}.
-	 */
-	@Test
-	public final void testLoadResource() {
-		InputStream inputStream = fileUtil.loadResource("test/test.txt");
-		Assert.assertNotNull(inputStream);
-	}
 }

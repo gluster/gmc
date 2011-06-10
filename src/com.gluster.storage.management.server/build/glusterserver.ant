@@ -3,7 +3,7 @@
 	<echo message="buckminster.output=${buckminster.output}" />
 	<property name="WEB-INF" value="${basedir}/WebContent/WEB-INF" />
 	<property name="OUT" value="${buckminster.output}/glusterserver/" />
-	<property name="WAR_FILE_NAME" value="glustermc.war" />
+	<property name="WAR_FILE_NAME" value="glustermg.war" />
 	<property name="TEMP" value="${buckminster.output}/temp" />
 
 	<target name="help">

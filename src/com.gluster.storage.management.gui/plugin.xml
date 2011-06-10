@@ -16,7 +16,7 @@
       <perspective
             name="Gluster Perspective"
             class="com.gluster.storage.management.gui.Perspective"
-            id="com.gluster.storage.management.gui.perspective">
+            id="com.gluster.storage.management.gui.Perspective">
       </perspective>
    </extension>
    <extension
@@ -27,15 +27,6 @@
             icon="icons/world.png"
             id="com.gluster.storage.management.gui.views.NavigationView"
             name="Cluster Navigation Tree"
-            restorable="true">
-      </view>
-      <view
-            allowMultiple="false"
-            category="com.gluster.storage.management.gui.category"
-            class="com.gluster.storage.management.gui.views.DetailsView"
-            icon="icons/gluster_icon.png"
-            id="com.gluster.storage.management.gui.views.details.DetailsView"
-            name="Details"
             restorable="true">
       </view>
       <view

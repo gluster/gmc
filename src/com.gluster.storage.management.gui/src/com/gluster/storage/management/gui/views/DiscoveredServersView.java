@@ -22,12 +22,8 @@ package com.gluster.storage.management.gui.views;
 
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.ISelectionListener;
-import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.core.model.Entity;
@@ -39,7 +35,7 @@ import com.gluster.storage.management.gui.views.pages.ServersPage;
 /**
  *
  */
-public class DiscoveredServersView extends ViewPart implements IDoubleClickListener, ISelectionListener {
+public class DiscoveredServersView extends ViewPart implements IDoubleClickListener {
 	public static final String ID = DiscoveredServersView.class.getName();
 	private static final GUIHelper guiHelper = GUIHelper.getInstance();
 	private EntityGroup<Server> servers;
@@ -53,6 +49,7 @@ public class DiscoveredServersView extends ViewPart implements IDoubleClickListe
 	 * 
 	 * @see org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public void createPartControl(Composite parent) {
 		if (servers == null) {
@@ -64,7 +61,6 @@ public class DiscoveredServersView extends ViewPart implements IDoubleClickListe
 		
 		page = new ServersPage(parent, getSite(), servers);
 		page.addDoubleClickListener(this);
-		getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(NavigationView.ID, this);
 	}
 
 	/*
@@ -82,28 +78,6 @@ public class DiscoveredServersView extends ViewPart implements IDoubleClickListe
 		NavigationView clusterView = (NavigationView) guiHelper.getView(NavigationView.ID);
 		if (clusterView != null) {
 			clusterView.selectEntity((Entity) ((StructuredSelection) event.getSelection()).getFirstElement());
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.ui.ISelectionListener#selectionChanged(org.eclipse.ui.IWorkbenchPart,
-	 * org.eclipse.jface.viewers.ISelection)
-	 */
-	@Override
-	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		if (part instanceof NavigationView && selection instanceof TreeSelection) {
-			Entity selectedEntity = (Entity) ((TreeSelection) selection).getFirstElement();
-
-			if (servers == selectedEntity || selectedEntity == null || !(selectedEntity instanceof EntityGroup)
-					|| ((EntityGroup) selectedEntity).getEntityType() != Server.class) {
-				// entity selection has not changed. do nothing.
-				return;
-			}
-
-			servers = (EntityGroup<Server>) selectedEntity;
-			page.setInput(servers);
 		}
 	}
 }

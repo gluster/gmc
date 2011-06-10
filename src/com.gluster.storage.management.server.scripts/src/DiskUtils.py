@@ -210,6 +210,22 @@ def readFsTab(fsTabFile=Globals.FSTAB_FILE):
     return fsTabEntryList
         
 
+def checkDiskMountPoint(diskMountPoint):
+    try:
+        fstabEntries = open(Globals.FSTAB_FILE).readlines()
+    except IOError:
+        fstabEntries = []
+    found = False
+    for entry in fstabEntries:
+        entry = entry.strip()
+        if not entry:
+            continue
+        entries = entry.split()
+        if entries and len(entries) > 1 and entries[0].startswith("UUID=") and entries[1].upper() == diskMountPoint.upper():
+            return True
+    return False
+
+
 def getMountPointByUuid(partitionUuid):
     # check uuid in etc/fstab
     try:

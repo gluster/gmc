@@ -52,7 +52,8 @@ def response(multiCastGroup, port):
             if isinpeer():
                 time.sleep(5)
                 continue
-            socketSend.sendto(socket.gethostname(), (multiCastGroup, port))
+            socketSend.sendto("<response><servername>%s</servername><time>%s</time></response>" % (socket.gethostname(), time.time()), 
+                              (multiCastGroup, port))
             request = None
 
 def main():
