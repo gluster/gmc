@@ -55,7 +55,7 @@ import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public abstract class AbstractBricksPage extends Composite implements IEntityListener {
 	protected final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
-	protected TableViewer tableViewer;
+	protected CheckboxTableViewer tableViewer;
 	private IWorkbenchSite site;
 	protected static final GUIHelper guiHelper = GUIHelper.getInstance();
 
@@ -134,13 +134,16 @@ public abstract class AbstractBricksPage extends Composite implements IEntityLis
 		return tableViewerComposite;
 	}
 
-	private TableViewer createBrickTableViewer(Composite parent) {
+	private CheckboxTableViewer createBrickTableViewer(Composite parent) {
 		tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI );
 
 		tableViewer.setLabelProvider(getTableLabelProvider());
 		tableViewer.setContentProvider(new ArrayContentProvider());
 
 		setupDiskTable(parent, tableViewer.getTable());
+		
+		// make sure that table selection is driven by checkbox selection
+		guiHelper.configureCheckboxTableViewer(tableViewer);
 
 		return tableViewer;
 	}

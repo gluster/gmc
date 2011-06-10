@@ -39,26 +39,22 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchSite;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ImageHyperlink;
-import org.eclipse.ui.progress.IProgressConstants;
 
-import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Disk;
-import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
+import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IEntityListener;
-import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.jobs.InitializeDiskJob;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public abstract class AbstractDisksPage extends Composite implements IEntityListener {
 	protected final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
-	protected TableViewer tableViewer;
+	protected CheckboxTableViewer tableViewer;
 	private IWorkbenchSite site;
 	protected static final GUIHelper guiHelper = GUIHelper.getInstance();
 
@@ -231,13 +227,16 @@ public abstract class AbstractDisksPage extends Composite implements IEntityList
 		return tableViewerComposite;
 	}
 
-	private TableViewer createDiskTableViewer(Composite parent) {
+	private CheckboxTableViewer createDiskTableViewer(Composite parent) {
 		tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI );
 
 		tableViewer.setLabelProvider(getTableLabelProvider());
 		tableViewer.setContentProvider(new ArrayContentProvider());
 
 		setupDiskTable(parent, tableViewer.getTable());
+		
+		// make sure that table selection is driven by checkbox selection
+		guiHelper.configureCheckboxTableViewer(tableViewer);
 
 		return tableViewer;
 	}

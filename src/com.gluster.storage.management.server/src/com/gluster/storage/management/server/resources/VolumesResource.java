@@ -380,7 +380,8 @@ public class VolumesResource {
 			diskName = diskInfo[1];
 
 			Object response = serverUtil.executeOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
-					+ diskName + " " + volumeName + " " + (deleteFlag ? "-d" : ""), GenericResponse.class);
+					+ diskName.substring(0, diskName.lastIndexOf("/")) + " " + volumeName + " "
+					+ (deleteFlag ? "-d" : ""), GenericResponse.class);
 			if (response instanceof GenericResponse) {
 				result = ((GenericResponse) response).getStatus();
 				if (!result.isSuccess()) {
