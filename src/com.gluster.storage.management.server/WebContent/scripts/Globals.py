@@ -64,7 +64,7 @@ WEBDAV_DOCUMENT_ROOT_DIR = "/var/www/html"
 UPDATES_DIR              = "/UPDATES"
 TRANSPORT_HOME_DIR       = "/transport"
 GLUSTERFS_LOG_DIR        = "/var/log/glusterfs"
-LOG_DIR                  = "/var/log/glustermc"
+LOG_DIR                  = "/var/log/glustermg"
 
 GLUSTER_UPDATES_FILE        = "updates.xml"
 INSTALLER_STATUS_FILE       = "/var/log/install-server-status.log"
