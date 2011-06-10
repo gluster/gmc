@@ -18,7 +18,6 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.actions;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,29 +27,31 @@ import java.util.Set;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.PlatformUI;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.constants.CoreConstants;
-import com.gluster.storage.management.core.model.Brick;
-import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.utils.GUIHelper;
+import com.gluster.storage.management.gui.views.NavigationView;
 
 public class RemoveServerAction extends AbstractActionDelegate {
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+	private GUIHelper guiHelper = GUIHelper.getInstance();
 
 	@Override
 	protected void performAction(final IAction action) {
-		Display.getDefault().asyncExec(new Runnable() {
+		final Runnable removeServerThread = new Runnable() {
 			@Override
 			public void run() {
 				final String actionDesc = action.getDescription();
 
-				Set<GlusterServer> selectedServers = GUIHelper.getInstance().getSelectedEntities(getWindow(),
+				Set<GlusterServer> selectedServers = guiHelper.getSelectedEntities(getWindow(),
 						GlusterServer.class);
 
 				if (!validate(action, selectedServers)) {
@@ -66,6 +67,8 @@ public class RemoveServerAction extends AbstractActionDelegate {
 				Set<GlusterServer> successServers = new HashSet<GlusterServer>();
 				String errMsg = "";
 				for (GlusterServer server : selectedServers) {
+					guiHelper.setStatusMessage("Removing server [" + server.getName() + "]...");
+					
 					GlusterServersClient client = new GlusterServersClient();
 					Status status = client.removeServer(server.getName());
 					if (status.isSuccess()) {
@@ -77,7 +80,15 @@ public class RemoveServerAction extends AbstractActionDelegate {
 					}
 				}
 
+				guiHelper.clearStatusMessage();
 				showStatusMessage(action.getDescription(), selectedServers, successServers, errMsg);
+			}
+		};
+		
+		BusyIndicator.showWhile(Display.getDefault(), new Runnable() {			
+			@Override
+			public void run() {
+				Display.getDefault().asyncExec(removeServerThread);
 			}
 		});
 	}

@@ -23,6 +23,7 @@ import java.util.Set;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
@@ -34,10 +35,11 @@ import com.gluster.storage.management.core.response.GlusterServerResponse;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public class AddServerAction extends AbstractActionDelegate {
+	private GUIHelper guiHelper = GUIHelper.getInstance();
+	
 	@Override
 	protected void performAction(final IAction action) {
-		Display.getDefault().asyncExec(new Runnable() {
-
+		final Runnable addServerThread = new Runnable() {
 			@Override
 			public void run() {
 				GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
@@ -49,6 +51,7 @@ public class AddServerAction extends AbstractActionDelegate {
 				String errMsg = "";
 				String partErrMsg = "";
 				for (Server server : selectedServers) {
+					guiHelper.setStatusMessage("Adding server [" + server.getName() + "]...");
 					GlusterServerResponse response = glusterServersClient.addServer(server);
 					Status status = response.getStatus();
 					if (status.isSuccess()) {
@@ -65,7 +68,15 @@ public class AddServerAction extends AbstractActionDelegate {
 					}
 				}
 
+				guiHelper.clearStatusMessage();
 				showStatusMessage(action.getDescription(), selectedServers, successServers, partSuccessServers, errMsg, partErrMsg);
+			}
+		};
+		
+		BusyIndicator.showWhile(Display.getDefault(), new Runnable() {			
+			@Override
+			public void run() {
+				Display.getDefault().asyncExec(addServerThread);
 			}
 		});
 	}

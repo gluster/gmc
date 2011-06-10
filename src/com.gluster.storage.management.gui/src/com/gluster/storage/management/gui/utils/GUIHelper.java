@@ -290,15 +290,16 @@ public class GUIHelper {
 		final String tooltipMessage = "Start typing to filter table contents.";
 		final Text filterText = toolkit.createText(parent, "", SWT.FLAT);
 
-		GridData data = new GridData(SWT.LEFT, SWT.CENTER, false, false);
+		GridData data = new GridData(SWT.RIGHT, SWT.CENTER, false, false);
 		data.widthHint = 300;
 		filterText.setLayoutData(data);
 
-		ControlDecoration searchDecoration = new ControlDecoration(filterText, SWT.RIGHT);
+		ControlDecoration searchDecoration = new ControlDecoration(filterText, SWT.LEFT);
 		searchDecoration.setImage(getImage(IImageKeys.SEARCH));
 		searchDecoration.show();
 		searchDecoration.setShowHover(true);
 		searchDecoration.setDescriptionText(tooltipMessage);
+		searchDecoration.setMarginWidth(5);
 
 		filterText.setToolTipText(tooltipMessage);
 		return filterText;

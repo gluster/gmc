@@ -11,7 +11,7 @@ import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.views.details.DisksPage;
+import com.gluster.storage.management.gui.views.pages.DisksPage;
 
 public class DisksView extends ViewPart {
 	public static final String ID = DisksView.class.getName();

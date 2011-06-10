@@ -16,7 +16,7 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.gui.views.details;
+package com.gluster.storage.management.gui.views.pages;
 
 import java.util.List;
 

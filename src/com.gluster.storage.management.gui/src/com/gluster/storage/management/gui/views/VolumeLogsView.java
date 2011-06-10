@@ -6,7 +6,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.views.details.VolumeLogsPage;
+import com.gluster.storage.management.gui.views.pages.VolumeLogsPage;
 
 public class VolumeLogsView extends ViewPart {
 	VolumeLogsPage logsPage;

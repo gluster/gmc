@@ -41,7 +41,6 @@ import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
-import com.gluster.storage.management.gui.views.navigator.ClusterAdapterFactory;
 
 public class NavigationView extends ViewPart implements ISelectionListener {
 	public static final String ID = NavigationView.class.getName();

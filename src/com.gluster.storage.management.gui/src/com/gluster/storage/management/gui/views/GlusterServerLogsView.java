@@ -26,7 +26,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.views.details.ServerLogsPage;
+import com.gluster.storage.management.gui.views.pages.ServerLogsPage;
 
 public class GlusterServerLogsView extends ViewPart {
 	public static final String ID = GlusterServerLogsView.class.getName();
