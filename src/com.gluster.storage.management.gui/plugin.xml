@@ -900,7 +900,7 @@
          </view>
          <view
                closeable="false"
-               id="com.gluster.storage.management.gui.views.VolumeDisksView"
+               id="com.gluster.storage.management.gui.views.VolumeBricksView"
                minimized="false"
                moveable="false"
                ratio="0.30f"
