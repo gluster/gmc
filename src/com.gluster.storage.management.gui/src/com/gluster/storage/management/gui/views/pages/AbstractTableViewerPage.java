@@ -176,6 +176,7 @@ public abstract class AbstractTableViewerPage<T> extends Composite {
 		layoutData.grabExcessHorizontalSpace = true;
 		layoutData.horizontalAlignment = SWT.FILL;
 		layoutData.verticalAlignment = SWT.FILL;
+		layoutData.grabExcessVerticalSpace = true;
 		tableViewerComposite.setLayoutData(layoutData);
 		
 		return tableViewerComposite;
