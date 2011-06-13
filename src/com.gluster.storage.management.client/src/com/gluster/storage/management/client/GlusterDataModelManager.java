@@ -81,25 +81,6 @@ public class GlusterDataModelManager {
 		return instance;
 	}
 
-	public void initializeModelWithNewCluster(String securityToken, String clusterName) {
-		model = new GlusterDataModel("Gluster Data Model");
-		setSecurityToken(securityToken);
-		setClusterName(clusterName);
-
-		Cluster cluster = new Cluster(clusterName, model);
-
-		cluster.setServers(new ArrayList<GlusterServer>());
-		cluster.setVolumes(new ArrayList<Volume>());
-
-		initializeAutoDiscoveredServers(cluster);
-		// initializeDisks();
-
-		initializeRunningTasks(cluster);
-		initializeAlerts(cluster);
-
-		model.addCluster(cluster);
-	}
-
 	public void initializeModel(String securityToken, String clusterName) {
 		model = new GlusterDataModel("Gluster Data Model");
 		setSecurityToken(securityToken);

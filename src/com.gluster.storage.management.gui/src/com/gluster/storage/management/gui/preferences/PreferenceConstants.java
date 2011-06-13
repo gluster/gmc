@@ -22,6 +22,9 @@ package com.gluster.storage.management.gui.preferences;
  * Constant definitions for plug-in preferences
  */
 public class PreferenceConstants {
+	
+	public static final String P_SHOW_CLUSTER_SELECTION_DIALOG = "show.cluster.selection.dialog";
+	public static final String P_DEFAULT_CLUSTER_NAME = "default.cluster.name";
 
 	// TODO: Remove after proper preferences are added
 	public static final String P_PATH = "pathPreference";

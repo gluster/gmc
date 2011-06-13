@@ -24,6 +24,8 @@ import java.util.List;
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.UpdateValueStrategy;
 import org.eclipse.core.databinding.beans.PojoProperties;
+import org.eclipse.core.runtime.preferences.ConfigurationScope;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.databinding.swt.WidgetProperties;
 import org.eclipse.jface.dialogs.Dialog;
@@ -50,8 +52,10 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.ConnectionDetails;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.response.StringListResponse;
+import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.dialogs.ClusterSelectionDialog.CLUSTER_MODE;
+import com.gluster.storage.management.gui.preferences.PreferenceConstants;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.validators.StringRequiredValidator;
 
@@ -202,49 +206,46 @@ public class LoginDialog extends Dialog {
 		UsersClient usersClient = new UsersClient();
 		Status loginStatus = usersClient.authenticate(user, password); 
 		if (loginStatus.isSuccess()) {
+			// authentication successful. close the login dialog and open the next one.
 			close();
+			
 			ClustersClient clustersClient = new ClustersClient(usersClient.getSecurityToken());
-			List<String> clusterNames = getClusterNames(clustersClient);
-			ClusterSelectionDialog clusterDialog = new ClusterSelectionDialog(getParentShell(),
-					clusterNames);
-			int userAction = clusterDialog.open();
-			if (userAction == Window.CANCEL) {
-				MessageDialog.openError(getShell(), "Login Cancelled",
-						"User cancelled login at cluster selection. Application will close!");
-				cancelPressed();
-				return;
+
+			IEclipsePreferences preferences = new ConfigurationScope().getNode(Application.PLUGIN_ID);
+			boolean showClusterSelectionDialog = preferences.getBoolean(PreferenceConstants.P_SHOW_CLUSTER_SELECTION_DIALOG, true);
+
+			String clusterName = null; 
+			if(!showClusterSelectionDialog) {
+				clusterName = preferences.get(PreferenceConstants.P_DEFAULT_CLUSTER_NAME, null);
+				if(clusterName == null || clusterName.isEmpty()) {
+					// Cluster name not available in preferences. Hence we must show the cluster selection dialog.
+					showClusterSelectionDialog = true;
+				}
+			}
+			
+			CLUSTER_MODE mode;
+			String serverName = null;
+
+			if (showClusterSelectionDialog) {
+				ClusterSelectionDialog clusterDialog = new ClusterSelectionDialog(getParentShell(), getClusterNames(clustersClient));
+				int userAction = clusterDialog.open();
+				if (userAction == Window.CANCEL) {
+					MessageDialog.openError(getShell(), "Login Cancelled",
+							"User cancelled login at cluster selection. Application will close!");
+					cancelPressed();
+					return;
+				}
+				mode = clusterDialog.getClusterMode();
+				clusterName = clusterDialog.getClusterName();
+				serverName = clusterDialog.getServerName();
+			} else {
+				mode = CLUSTER_MODE.SELECT;
 			}
 			
 			try {
-				CLUSTER_MODE mode = clusterDialog.getClusterMode();
-				String clusterName = clusterDialog.getClusterName();
-				GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
-				Status status = null;
-				switch(mode) {
-				case SELECT:
-					modelManager.initializeModel(usersClient.getSecurityToken(), clusterName);
-					break;
-				case CREATE:
-					status = clustersClient.createCluster(clusterName);
-					if(!status.isSuccess()) {
-						MessageDialog.openError(getShell(), "Cluster Creation Failed!", status.toString());
-						setReturnCode(RETURN_CODE_ERROR);
-						return;
-					}
-					modelManager.initializeModelWithNewCluster(usersClient.getSecurityToken(), clusterName);
-					break;
-				case REGISTER:
-					status = clustersClient.registerCluster(clusterName, clusterDialog.getServerName());
-					if(!status.isSuccess()) {
-						MessageDialog.openError(getShell(), "Cluster Registration Failed!", status.toString());
-						setReturnCode(RETURN_CODE_ERROR);
-						return;
-					}
-					modelManager.initializeModel(usersClient.getSecurityToken(), clusterName);
-					break;
-				}
-				super.okPressed();
-					
+				createOrRegisterCluster(clustersClient, clusterName, serverName, mode);
+				GlusterDataModelManager.getInstance().initializeModel(usersClient.getSecurityToken(), clusterName);
+				super.okPressed();					
 			} catch (Exception e) {
 				setReturnCode(RETURN_CODE_ERROR);
 				MessageDialog.openError(getShell(), "Initialization Error", e.getMessage());
@@ -252,6 +253,30 @@ public class LoginDialog extends Dialog {
 			}
 		} else {
 			MessageDialog.openError(getShell(), "Authentication Failed", loginStatus.getMessage());
+		}
+	}
+
+	public void createOrRegisterCluster(ClustersClient clustersClient, String clusterName, String serverName,
+			CLUSTER_MODE mode) {
+		Status status = null;
+		String errTitle = null;
+		
+		switch(mode) {
+		case SELECT:
+			return;
+		case CREATE:
+			errTitle = "Cluster Creation Failed!";
+			status = clustersClient.createCluster(clusterName);
+			break;
+		case REGISTER:
+			errTitle = "Cluster Registration Failed!";
+			status = clustersClient.registerCluster(clusterName, serverName);
+			break;
+		}
+		
+		if(!status.isSuccess()) {
+			MessageDialog.openError(getShell(), errTitle, status.toString());
+			setReturnCode(RETURN_CODE_ERROR);
 		}
 	}
 
