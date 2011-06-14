@@ -1,4 +1,4 @@
-WAR_NAME="glustermc.war"
+WAR_NAME="glustermg.war"
 TAR_NAME=${WAR_NAME}.tar
 SERVER_DIST_DIR="${WORKSPACE}/../../gmc-server/lastSuccessful"
 

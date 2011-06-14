@@ -31,7 +31,7 @@ import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.views.details.GlusterServersPage;
+import com.gluster.storage.management.gui.views.pages.GlusterServersPage;
 
 /**
  * @author root

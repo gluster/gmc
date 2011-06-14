@@ -7,7 +7,7 @@ import org.eclipse.ui.part.ViewPart;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.views.details.BricksPage;
+import com.gluster.storage.management.gui.views.pages.BricksPage;
 
 public class VolumeBricksView extends ViewPart {
 	public static final String ID = VolumeBricksView.class.getName();

@@ -6,7 +6,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.views.details.VolumeOptionsPage;
+import com.gluster.storage.management.gui.views.pages.VolumeOptionsPage;
 
 public class VolumeOptionsView extends ViewPart {
 	public static final String ID = VolumeOptionsView.class.getName();

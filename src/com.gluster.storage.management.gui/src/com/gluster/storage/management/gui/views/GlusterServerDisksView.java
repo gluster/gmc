@@ -26,7 +26,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.views.details.ServerDisksPage;
+import com.gluster.storage.management.gui.views.pages.ServerDisksPage;
 
 public class GlusterServerDisksView extends ViewPart {
 	public static final String ID = GlusterServerDisksView.class.getName();

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.gluster.storage.management.gui.views.details;
+package com.gluster.storage.management.gui.views.pages;
 
 import java.util.ArrayList;
 import java.util.Iterator;

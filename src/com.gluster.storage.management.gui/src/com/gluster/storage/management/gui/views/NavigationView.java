@@ -41,7 +41,6 @@ import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
-import com.gluster.storage.management.gui.views.navigator.ClusterAdapterFactory;
 
 public class NavigationView extends ViewPart implements ISelectionListener {
 	public static final String ID = NavigationView.class.getName();
@@ -61,7 +60,7 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 		viewsManager = new GlusterViewsManager(getSite().getPage());
 
 		// listen to selection events to update views/toolbar accordingly
-		getSite().getPage().addPostSelectionListener(this);
+		getSite().getPage().addSelectionListener(this);
 	}
 
 	private void createNavigationTree(Composite parent) {

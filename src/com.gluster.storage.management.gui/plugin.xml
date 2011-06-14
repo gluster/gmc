@@ -900,7 +900,7 @@
          </view>
          <view
                closeable="false"
-               id="com.gluster.storage.management.gui.views.VolumeDisksView"
+               id="com.gluster.storage.management.gui.views.VolumeBricksView"
                minimized="false"
                moveable="false"
                ratio="0.30f"
@@ -1012,7 +1012,7 @@
          point="org.eclipse.ui.decorators">
       <decorator
             adaptable="false"
-            class="com.gluster.storage.management.gui.views.navigator.NavigationTreeLabelDecorator"
+            class="com.gluster.storage.management.gui.views.NavigationTreeLabelDecorator"
             id="com.gluster.storage.management.gui.views.navigator.decorator"
             label="Navigation Tree Decorator"
             lightweight="true"

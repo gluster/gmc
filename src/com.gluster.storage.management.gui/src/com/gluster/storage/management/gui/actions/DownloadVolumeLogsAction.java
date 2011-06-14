@@ -26,22 +26,21 @@ import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 
-import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.gui.utils.GUIHelper;
 
 /**
  *
  */
 public class DownloadVolumeLogsAction extends AbstractActionDelegate {
+	private GUIHelper guiHelper = GUIHelper.getInstance();
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.IWorkbenchWindowActionDelegate#dispose()
 	 */
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
-
 	}
 
 	/* (non-Javadoc)
@@ -49,13 +48,14 @@ public class DownloadVolumeLogsAction extends AbstractActionDelegate {
 	 */
 	@Override
 	protected void performAction(IAction action) {
-		final Volume volume = (Volume)selectedEntity;
 		final VolumesClient client = new VolumesClient();
 		
 		final Runnable downloadLogsThread = new Runnable() {
 			
 			@Override
 			public void run() {
+				Volume volume = guiHelper.getSelectedEntity(getWindow(), Volume.class);
+				
 				FileDialog dialog = new FileDialog(getShell(), SWT.SAVE);
 				dialog.setFilterNames(new String[] {"GZipped Tar (*.tar.gz)"});
 				dialog.setFilterExtensions(new String[] {"*.tar.gz"});

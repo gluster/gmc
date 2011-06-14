@@ -18,41 +18,28 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.views.pages;
 
+import java.util.List;
+
 import org.eclipse.jface.layout.TableColumnLayout;
-import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ColumnWeightData;
-import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.IBaseLabelProvider;
+import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchSite;
-import org.eclipse.ui.forms.widgets.FormToolkit;
 
-import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.gui.EntityGroupContentProvider;
 import com.gluster.storage.management.gui.ServerTableLabelProvider;
-import com.gluster.storage.management.gui.utils.GUIHelper;
 
-public class ServersPage extends Composite {
-
-	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
-	private CheckboxTableViewer tableViewer;
-	private GUIHelper guiHelper = GUIHelper.getInstance();
-
+public class ServersPage extends AbstractTableViewerPage<Server> {
+	private List<Server> servers;
+	
 	public enum SERVER_TABLE_COLUMN_INDICES {
 		NAME, IP_ADDRESSES, NUM_OF_DISKS, TOTAL_DISK_SPACE
 	};
@@ -67,39 +54,14 @@ public class ServersPage extends Composite {
 	// "Number\nof CPUs", "CPU\nUsage (%)", "Total\nMemory (GB)", "Memory\nIn Use (GB)",
 	// "Total Disk\n Space (GB)", "Disk Space\nin Use (GB)"};
 
-	public ServersPage(final Composite parent, IWorkbenchSite site, EntityGroup<Server> servers) {
-		super(parent, SWT.NONE);
-		
-		addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				toolkit.dispose();
-			}
-		});
-
-		toolkit.adapt(this);
-		toolkit.paintBordersFor(this);
-
-		setupPageLayout();
-		setupPage(site, servers);
-		parent.layout(); // Important - this actually paints the table
-
-		createListeners(parent);
+	public ServersPage(final Composite parent, IWorkbenchSite site, EntityGroup<Server> serversGroup) {
+		super(site, parent, SWT.NONE, serversGroup);
+		this.servers = serversGroup.getEntities();
 	}
 
-	private void createListeners(final Composite parent) {
-		/**
-		 * Ideally not required. However the table viewer is not getting laid out properly on performing
-		 * "maximize + restore" So this is a hack to make sure that the table is laid out again on re-size of the window
-		 */
-		addPaintListener(new PaintListener() {
-
-			@Override
-			public void paintControl(PaintEvent e) {
-				parent.layout();
-			}
-		});
-		
-		final ClusterListener clusterListener = new DefaultClusterListener() {
+	@Override
+	protected ClusterListener createClusterListener() {
+		return new DefaultClusterListener() {
 			@Override
 			public void discoveredServerRemoved(Server server) {
 				refreshViewer();
@@ -115,16 +77,6 @@ public class ServersPage extends Composite {
 				parent.update();
 			}
 		};
-		
-		final GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
-		modelManager.addClusterListener(clusterListener);
-		addDisposeListener(new DisposeListener() {			
-			@Override
-			public void widgetDisposed(DisposeEvent e) {
-				toolkit.dispose();
-				modelManager.removeClusterListener(clusterListener);
-			}
-		});
 	}
 	
 	public void setInput(EntityGroup<Server> servers) {
@@ -132,24 +84,8 @@ public class ServersPage extends Composite {
 		tableViewer.refresh();		
 	}
 
-	public void addDoubleClickListener(IDoubleClickListener listener) {
-		tableViewer.addDoubleClickListener(listener);
-	}
-
-	private void setupPageLayout() {
-		final GridLayout layout = new GridLayout(1, false);
-		layout.verticalSpacing = 10;
-		layout.marginTop = 10;
-		setLayout(layout);
-	}
-
-	private void setupServerTable(Composite parent, Table table) {
-		table.setHeaderVisible(true);
-		table.setLinesVisible(false);
-
-		TableColumnLayout tableColumnLayout = guiHelper.createTableColumnLayout(table, SERVER_TABLE_COLUMN_NAMES);
-		parent.setLayout(tableColumnLayout);
-
+	@Override
+	protected void setColumnProperties(Table table) {
 		setColumnProperties(table, SERVER_TABLE_COLUMN_INDICES.NAME, SWT.CENTER, 70);
 		setColumnProperties(table, SERVER_TABLE_COLUMN_INDICES.IP_ADDRESSES, SWT.CENTER, 100);
 		setColumnProperties(table, SERVER_TABLE_COLUMN_INDICES.NUM_OF_DISKS, SWT.CENTER, 70);
@@ -160,40 +96,26 @@ public class ServersPage extends Composite {
 		// setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.MEMORY_IN_USE, SWT.CENTER, 90);
 		// setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.DISK_SPACE_IN_USE, SWT.CENTER, 90);
 	}
-
-	private CheckboxTableViewer createServerTableViewer(Composite parent) {
-		final CheckboxTableViewer tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
-		// TableViewer tableViewer = new TableViewer(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
-		tableViewer.setLabelProvider(new ServerTableLabelProvider());
-		tableViewer.setContentProvider(new EntityGroupContentProvider<Server>());
-
-		setupServerTable(parent, tableViewer.getTable());
-
-		// make sure that table selection is driven by checkbox selection
-		guiHelper.configureCheckboxTableViewer(tableViewer);
-
-		return tableViewer;
+	
+	@Override
+	protected String[] getColumnNames() {
+		return SERVER_TABLE_COLUMN_NAMES;
 	}
-
-	private Composite createTableViewerComposite() {
-		Composite tableViewerComposite = new Composite(this, SWT.NONE);
-		tableViewerComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
-		tableViewerComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		return tableViewerComposite;
+	
+	@Override
+	protected IBaseLabelProvider getLabelProvider() {
+		return new ServerTableLabelProvider();
 	}
-
-	private void setupPage(IWorkbenchSite site, EntityGroup<Server> servers) {
-		Text filterText = guiHelper.createFilterText(toolkit, this);
-		
-		Composite tableViewerComposite = createTableViewerComposite();
-		tableViewer = createServerTableViewer(tableViewerComposite);
-		site.setSelectionProvider(tableViewer);
-		
-		// Create a case insensitive filter for the table viewer using the filter text field
-		guiHelper.createFilter(tableViewer, filterText, false);
-		
-		tableViewer.setInput(servers);
+	
+	@Override
+	protected IContentProvider getContentProvider() {
+		return new EntityGroupContentProvider<Server>();
 	}
+	
+	@Override
+	protected List<Server> getAllEntities() {
+		return servers;
+	}	
 
 	/**
 	 * Sets properties for alignment and weight of given column of given table
@@ -209,5 +131,5 @@ public class ServersPage extends Composite {
 
 		TableColumnLayout tableColumnLayout = (TableColumnLayout) table.getParent().getLayout();
 		tableColumnLayout.setColumnData(column, new ColumnWeightData(weight));
-	}	
+	}
 }

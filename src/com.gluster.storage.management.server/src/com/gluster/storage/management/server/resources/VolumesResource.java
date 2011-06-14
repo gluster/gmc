@@ -371,16 +371,16 @@ public class VolumesResource {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private Status cleanupDirectories(List<String> disks, String volumeName, int maxIndex, boolean deleteFlag) {
-		String serverName, diskName, diskInfo[];
+	private Status cleanupDirectories(List<String> bricks, String volumeName, int maxIndex, boolean deleteFlag) {
 		Status result;
 		for (int i = 0; i < maxIndex; i++) {
-			diskInfo = disks.get(i).split(":");
-			serverName = diskInfo[0];
-			diskName = diskInfo[1];
+			String[] brickInfo = bricks.get(i).split(":");
+			String serverName = brickInfo[0];
+			String brickDirectory = brickInfo[1];
 
+			String mountPoint = brickDirectory.substring(0, brickDirectory.lastIndexOf("/"));
 			Object response = serverUtil.executeOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
-					+ diskName + " " + volumeName + " " + (deleteFlag ? "-d" : ""), GenericResponse.class);
+					+ mountPoint + " " + volumeName + " " + (deleteFlag ? "-d" : ""), GenericResponse.class);
 			if (response instanceof GenericResponse) {
 				result = ((GenericResponse) response).getStatus();
 				if (!result.isSuccess()) {
@@ -453,6 +453,7 @@ public class VolumesResource {
 					output.write(FileUtil.readFileAsByteArray(archiveFile));
 					archiveFile.delete();
 				} catch (Exception e) {
+					// TODO: Log the exception
 					e.printStackTrace();
 					throw new GlusterRuntimeException("Exception while downloading/archiving volume log files!", e);
 				}
@@ -472,6 +473,13 @@ public class VolumesResource {
 			String logFilePath = logDir + CoreConstants.FILE_SEPARATOR + logFileName;
 
 			serverUtil.getFileFromServer(brick.getServerName(), logFilePath, tempDirPath);
+
+			String fetchedLogFile = tempDirPath + File.separator + logFileName;
+			// append log file name with server name so that log files don't overwrite each other 
+			// in cases where the brick log file names are same on multiple servers
+			String localLogFile = tempDirPath + File.separator + brick.getServerName() + "-" + logFileName;
+
+			FileUtil.renameFile(fetchedLogFile, localLogFile);
 		}
 
 		String gzipPath = FileUtil.getTempDirName() + CoreConstants.FILE_SEPARATOR + volume.getName() + "-logs.tar.gz";

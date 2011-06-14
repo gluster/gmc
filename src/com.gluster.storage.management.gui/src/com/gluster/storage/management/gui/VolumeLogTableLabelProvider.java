@@ -21,7 +21,7 @@ package com.gluster.storage.management.gui;
 
 import com.gluster.storage.management.core.model.VolumeLogMessage;
 import com.gluster.storage.management.core.utils.DateUtil;
-import com.gluster.storage.management.gui.views.details.VolumeLogsPage.LOG_TABLE_COLUMN_INDICES;
+import com.gluster.storage.management.gui.views.pages.VolumeLogsPage.LOG_TABLE_COLUMN_INDICES;
 
 public class VolumeLogTableLabelProvider extends TableLabelProviderAdapter {
 	@Override
