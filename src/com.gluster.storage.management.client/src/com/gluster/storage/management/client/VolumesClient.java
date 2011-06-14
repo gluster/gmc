@@ -99,7 +99,7 @@ public class VolumesClient extends AbstractClient {
 	}
 
 	public Status deleteVolume(Volume volume, boolean deleteOption) {
-		MultivaluedMap<String, String> queryParams = prepareDeleteVolumeQueryParams(volume.getName(), deleteOption);
+		MultivaluedMap<String, String> queryParams = prepareDeleteVolumeQueryParams(deleteOption);
 		return (Status) deleteSubResource(volume.getName(), Status.class, queryParams);
 	}
 
@@ -112,7 +112,7 @@ public class VolumesClient extends AbstractClient {
 		String bricks = StringUtil.ListToString(brickList, ",");
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_BRICKS, bricks);
-		return (Status) postRequest(volumeName + "/" + RESTConstants.RESOURCE_DISKS, Status.class, form);
+		return (Status) postRequest(volumeName + "/" + RESTConstants.RESOURCE_BRICKS, Status.class, form);
 	}
 
 	/**
@@ -150,7 +150,7 @@ public class VolumesClient extends AbstractClient {
 	public Status removeBricks(String volumeName, List<Brick> BrickList, boolean deleteOption) {
 		String bricks = StringUtil.ListToString(GlusterCoreUtil.getQualifiedBrickList(BrickList), ",");
 		MultivaluedMap<String, String> queryParams = prepareRemoveBrickQueryParams(volumeName, bricks, deleteOption);
-		return (Status) deleteSubResource(volumeName + "/" + RESTConstants.RESOURCE_DISKS, Status.class, queryParams);
+		return (Status) deleteSubResource(volumeName + "/" + RESTConstants.RESOURCE_BRICKS, Status.class, queryParams);
 	}
 	
 	private MultivaluedMap<String, String> prepareRemoveBrickQueryParams(String volumeName, String bricks,
@@ -162,9 +162,8 @@ public class VolumesClient extends AbstractClient {
 		return queryParams;
 	}
 
-	private MultivaluedMap<String, String> prepareDeleteVolumeQueryParams(String volumeName, boolean deleteOption) {
+	private MultivaluedMap<String, String> prepareDeleteVolumeQueryParams(boolean deleteOption) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-		queryParams.add(RESTConstants.QUERY_PARAM_VOLUME_NAME, volumeName);
 		queryParams.add(RESTConstants.QUERY_PARAM_DELETE_OPTION, "" + deleteOption);
 		return queryParams;
 	}
@@ -199,7 +198,7 @@ public class VolumesClient extends AbstractClient {
 		form.add(RESTConstants.FORM_PARAM_TARGET, brickTo);
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_START);
 		
-		return (Status) putRequest( volumeName + "/" + RESTConstants.RESOURCE_DISKS, Status.class, form);
+		return (Status) putRequest( volumeName + "/" + RESTConstants.RESOURCE_BRICKS, Status.class, form);
 	}
 
 	public Status stopMigration(String volumeName, String brickFrom, String brickkTo) {
@@ -208,7 +207,7 @@ public class VolumesClient extends AbstractClient {
 		form.add(RESTConstants.FORM_PARAM_TARGET, brickkTo);
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_STOP);
 		
-		return (Status) putRequest( volumeName + "/" + RESTConstants.RESOURCE_DISKS, Status.class, form);
+		return (Status) putRequest( volumeName + "/" + RESTConstants.RESOURCE_BRICKS, Status.class, form);
 	}
 
 	public Status pauseMigration(String volumeName, String brickFrom, String brickTo) {
@@ -217,7 +216,7 @@ public class VolumesClient extends AbstractClient {
 		form.add(RESTConstants.FORM_PARAM_TARGET, brickTo);
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_PAUSE);
 		
-		return (Status) putRequest( volumeName + "/" + RESTConstants.RESOURCE_DISKS, Status.class, form);
+		return (Status) putRequest( volumeName + "/" + RESTConstants.RESOURCE_BRICKS, Status.class, form);
 	}
 
 	public Status statusMigration(String volumeName, String brickFrom, String brickTo) {
@@ -226,7 +225,7 @@ public class VolumesClient extends AbstractClient {
 		form.add(RESTConstants.FORM_PARAM_TARGET, brickTo);
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_STATUS);
 		
-		return (Status) putRequest( volumeName + "/" + RESTConstants.RESOURCE_DISKS, Status.class, form);
+		return (Status) putRequest( volumeName + "/" + RESTConstants.RESOURCE_BRICKS, Status.class, form);
 	}
 
 	public static void main(String[] args) {

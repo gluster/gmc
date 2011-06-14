@@ -24,8 +24,11 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -160,6 +163,8 @@ public class Volume extends Entity {
 		this.cluster = cluster;
 	}
 
+	@XmlElementWrapper(name = "nasProtocols")
+	@XmlElement(name = "nasProtocol", type=NAS_PROTOCOL.class)
 	public Set<NAS_PROTOCOL> getNASProtocols() {
 		return nasProtocols;
 	}
@@ -242,6 +247,8 @@ public class Volume extends Entity {
 		bricks.remove(brick);
 	}
 
+	@XmlElementWrapper(name = "bricks")
+	@XmlElement(name = "brick", type=Brick.class)
 	public List<Brick> getBricks() {
 		return bricks;
 	}

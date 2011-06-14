@@ -34,6 +34,7 @@ public class RESTConstants {
 	public static final String RESOURCE_OPTIONS = "options";
 	public static final String RESOURCE_LOGS = "logs";
 	public static final String RESOURCE_DOWNLOAD = "download";
+	public static final String RESOURCE_BRICKS = "bricks";
 	public static final String RESOURCE_DISKS = "disks";
 	public static final String RESOURCE_RUNNING_TASKS = "runningtasks";
 	public static final String RESOURCE_ALERTS = "alerts";

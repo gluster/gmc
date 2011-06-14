@@ -38,7 +38,7 @@ import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_TO_TIMESTAMP;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_VOLUME_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_DEFAULT_OPTIONS;
-import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_DISKS;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_BRICKS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_DOWNLOAD;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_LOGS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_OPTIONS;
@@ -228,7 +228,7 @@ public class VolumesResource {
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
 	@Produces(MediaType.TEXT_XML)
 	public Status deleteVolume(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
-			@QueryParam(QUERY_PARAM_VOLUME_NAME) String volumeName,
+			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName,
 			@QueryParam(QUERY_PARAM_DELETE_OPTION) boolean deleteFlag) {
 		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
 		if (onlineServer == null) {
@@ -262,7 +262,7 @@ public class VolumesResource {
 	}
 
 	@DELETE
-	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + RESOURCE_DISKS)
+	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + RESOURCE_BRICKS)
 	@Produces(MediaType.TEXT_XML)
 	public Status removeBricks(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName, @QueryParam(QUERY_PARAM_BRICKS) String bricks,
@@ -594,7 +594,7 @@ public class VolumesResource {
 	}
 
 	@POST
-	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + RESOURCE_DISKS)
+	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + RESOURCE_BRICKS)
 	public Status addBricks(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_BRICKS) String bricks) {
 		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
@@ -616,8 +616,8 @@ public class VolumesResource {
 	}
 
 	@PUT
-	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + RESOURCE_DISKS)
-	public Status replaceDisk(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + RESOURCE_BRICKS)
+	public Status replaceBrick(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_SOURCE) String diskFrom,
 			@FormParam(FORM_PARAM_TARGET) String diskTo, @FormParam(FORM_PARAM_OPERATION) String operation) {
 		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
