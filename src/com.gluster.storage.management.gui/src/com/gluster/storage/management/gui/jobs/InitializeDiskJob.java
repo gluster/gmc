@@ -76,7 +76,7 @@ public class InitializeDiskJob extends Job {
 			e.printStackTrace();
 		}
 
-		updateStatus(DISK_STATUS.READY);
+		updateStatus(DISK_STATUS.AVAILABLE);
 		setProperty(IProgressConstants.ICON_PROPERTY, guiHelper.getImageDescriptor(IImageKeys.STATUS_SUCCESS));
 
 		return new Status(Status.OK, Application.PLUGIN_ID, "Task Completed!");

@@ -432,7 +432,7 @@ public class GlusterDataModelManager {
 	}
 
 	public String getDiskStatus(Disk disk) {
-		if (disk.getStatus() == DISK_STATUS.READY) {
+		if (disk.getStatus() == DISK_STATUS.AVAILABLE) {
 			for (Volume volume : model.getCluster().getVolumes()) {
 				if (isDiskUsed(volume, disk)) {
 					return "In use";

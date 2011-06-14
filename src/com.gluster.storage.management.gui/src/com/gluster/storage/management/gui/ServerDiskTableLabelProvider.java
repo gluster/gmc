@@ -43,7 +43,7 @@ public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 		if (columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
 			DISK_STATUS status = disk.getStatus();
 			switch (status) {
-			case READY:
+			case AVAILABLE:
 				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
 			case IO_ERROR:
 				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
@@ -59,17 +59,18 @@ public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 		return null;
 	}
 
-	private String getDiskSpaceInUse(Disk disk) {
-		if(disk.hasErrors() || disk.isUninitialized()) {
-			return CoreConstants.NA;
+
+	private String getDiskFreeSpace(Disk disk) {
+		if (disk.hasErrors() || disk.isUninitialized()) {
+			return "NA";
 		} else {
-			return NumberUtil.formatNumber(disk.getSpaceInUse());
+			return NumberUtil.formatNumber(disk.getFreeSpace());
 		}
 	}
 	
-	private String getDiskSpace(Disk disk) {
-		if(disk.hasErrors() || disk.isUninitialized()) {
-			return CoreConstants.NA;
+	private String getTotalDiskSpace(Disk disk) {
+		if (disk.hasErrors() || disk.isUninitialized()) {
+			return "NA";
 		} else {
 			return NumberUtil.formatNumber(disk.getSpace());
 		}
@@ -83,8 +84,8 @@ public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 
 		Disk disk = (Disk) element;
 		String columnText = (columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? disk.getName()
-			: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.SPACE.ordinal() ? getDiskSpace(disk) 
-			: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal() ? getDiskSpaceInUse(disk)
+			: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDiskFreeSpace(disk) 
+			: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? getTotalDiskSpace(disk)
 			: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? glusterDataModelManager.getDiskStatus(disk) // disk.getStatusStr()
 			: "Invalid");
 		return ((columnText == null || columnText.trim().equals("")) ? CoreConstants.NA : columnText); 
