@@ -60,7 +60,7 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 		viewsManager = new GlusterViewsManager(getSite().getPage());
 
 		// listen to selection events to update views/toolbar accordingly
-		getSite().getPage().addPostSelectionListener(this);
+		getSite().getPage().addSelectionListener(this);
 	}
 
 	private void createNavigationTree(Composite parent) {
