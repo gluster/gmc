@@ -38,8 +38,8 @@ public class ServerDisksPage extends AbstractDisksPage {
 		DISK, SPACE, SPACE_IN_USE, STATUS
 	};
 
-	private static final String[] SERVER_DISK_TABLE_COLUMN_NAMES = new String[] { "Disk", "Space (GB)",
-			"Space in Use (GB)", "Status" };
+	private static final String[] SERVER_DISK_TABLE_COLUMN_NAMES = new String[] { "Disk", "Free Space (GB)",
+			"Total Space (GB)", "Status" };
 
 	@Override
 	protected String[] getColumnNames() {
