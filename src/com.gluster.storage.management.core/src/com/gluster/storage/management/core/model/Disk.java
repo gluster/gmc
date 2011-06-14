@@ -27,10 +27,10 @@ import com.gluster.storage.management.core.utils.StringUtil;
 @XmlRootElement(name="Disk")
 public class Disk extends Entity {
 	public enum DISK_STATUS {
-		READY, UNINITIALIZED, INITIALIZING, IO_ERROR
+		AVAILABLE, UNINITIALIZED, INITIALIZING, IO_ERROR
 	};
 
-	private String[] DISK_STATUS_STR = { "Ready", "Uninitialized", "Initializing", "I/O Error" };
+	private String[] DISK_STATUS_STR = { "Available", "Uninitialized", "Initializing", "I/O Error" };
 
 	private String serverName;
 	private String mountPoint;
@@ -64,7 +64,7 @@ public class Disk extends Entity {
 	}
 	
 	public boolean isReady() {
-		return getStatus() == DISK_STATUS.READY;
+		return getStatus() == DISK_STATUS.AVAILABLE;
 	}
 	
 	public DISK_STATUS getStatus() {

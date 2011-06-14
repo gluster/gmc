@@ -35,7 +35,7 @@ public class ServerDisksPage extends AbstractDisksPage {
 	}
 
 	public enum SERVER_DISK_TABLE_COLUMN_INDICES {
-		DISK, SPACE, SPACE_IN_USE, STATUS
+		DISK, FREE_SPACE, TOTAL_SPACE, STATUS
 	};
 
 	private static final String[] SERVER_DISK_TABLE_COLUMN_NAMES = new String[] { "Disk", "Free Space (GB)",
@@ -49,8 +49,8 @@ public class ServerDisksPage extends AbstractDisksPage {
 	@Override
 	protected void setColumnProperties(Table table) {
 		guiHelper.setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.DISK.ordinal(), SWT.CENTER, 100);
-		guiHelper.setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.SPACE.ordinal(), SWT.CENTER, 90);
-		guiHelper.setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal(), SWT.CENTER, 90);
+		guiHelper.setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal(), SWT.CENTER, 90);
+		guiHelper.setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal(), SWT.CENTER, 90);
 		guiHelper.setColumnProperties(table, SERVER_DISK_TABLE_COLUMN_INDICES.STATUS.ordinal(), SWT.LEFT, 90);
 	}
 	
