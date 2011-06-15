@@ -100,6 +100,10 @@ public class Volume extends Entity {
 	public int getNumOfDisks() {
 		return disks.size();
 	}
+	
+	public int getNumOfBricks() {
+		return bricks.size();
+	}
 
 	public VOLUME_TYPE getVolumeType() {
 		return volumeType;

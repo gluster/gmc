@@ -67,11 +67,11 @@ public class GlusterServerTableLabelProvider extends TableLabelProviderAdapter {
 			// : columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.PREFERRED_NETWORK.ordinal() ? server.getPreferredNetworkInterface().getName()
 			: columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.NUM_OF_CPUS.ordinal() ? "" + server.getNumOfCPUs()
 			//: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.CPU_USAGE.ordinal() ? "" + server.getCpuUsage()
-			: columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.TOTAL_MEMORY.ordinal() ? "" + server.getTotalMemory()
+			: columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.TOTAL_MEMORY.ordinal() ? "" + NumberUtil.formatNumber((server.getTotalMemory() / 1024))
 			//: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.MEMORY_IN_USE.ordinal() ? "" + server.getMemoryInUse()
-			: columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.TOTAL_DISK_SPACE.ordinal() ? NumberUtil.formatNumber(server.getTotalDiskSpace())
+			: columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.TOTAL_FREE_SPACE.ordinal() ? NumberUtil.formatNumber((server.getFreeDiskSpace() / 1024))
 			: columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.IP_ADDRESSES.ordinal() ? server.getIpAddressesAsString() 
-			: columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.AVAILABLE_DISK_SPACE.ordinal() ? NumberUtil.formatNumber(server.getFreeDiskSpace())
+			: columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.TOTAL_DISK_SPACE.ordinal() ? NumberUtil.formatNumber((server.getTotalDiskSpace() / 1024))
 			: "Invalid");
 	}
 }
