@@ -115,8 +115,8 @@ public class GlusterServerSummaryView extends ViewPart {
 			memoryUsageBar.setMinimum(0);
 			memoryUsageBar.setMaximum((int) Math.round(server.getTotalMemory()));
 			memoryUsageBar.setSelection((int) Math.round(server.getMemoryInUse()));
-			memoryUsageBar.setToolTipText("Total: " + NumberUtil.formatNumber(server.getTotalMemory()) + "GB, In Use: "
-					+ NumberUtil.formatNumber(server.getMemoryInUse()) + "GB");
+			memoryUsageBar.setToolTipText("Total: " + NumberUtil.formatNumber((server.getTotalMemory()/1024)) + "GB, In Use: "
+					+ NumberUtil.formatNumber((server.getMemoryInUse()/1024)) + "GB");
 
 			// toolkit.createLabel(section, "Memory Usage: ", SWT.NONE);
 			// final CoolProgressBar bar = new CoolProgressBar(section,SWT.HORIZONTAL,
@@ -137,8 +137,8 @@ public class GlusterServerSummaryView extends ViewPart {
 			diskUsageBar.setMinimum(0);
 			diskUsageBar.setMaximum((int) Math.round(server.getTotalDiskSpace()));
 			diskUsageBar.setSelection((int) Math.round(server.getDiskSpaceInUse()));
-			diskUsageBar.setToolTipText("Total: " + NumberUtil.formatNumber(server.getTotalDiskSpace())
-					+ "GB, In Use: " + NumberUtil.formatNumber(server.getDiskSpaceInUse()) + "GB");
+			diskUsageBar.setToolTipText("Total: " + NumberUtil.formatNumber((server.getTotalDiskSpace()/1024))
+					+ "GB, In Use: " + NumberUtil.formatNumber((server.getDiskSpaceInUse()/1024)) + "GB");
 		}
 
 		toolkit.createLabel(section, "Status: ", SWT.NONE);

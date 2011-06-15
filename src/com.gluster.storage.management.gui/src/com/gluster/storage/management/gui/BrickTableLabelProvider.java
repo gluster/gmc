@@ -35,14 +35,14 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 
 	@Override
 	public Image getColumnImage(Object element, int columnIndex) {
-		
+
 		if (!(element instanceof Brick)) {
 			return null;
 		}
 
 		Brick brick = (Brick) element;
 		Disk disk = GlusterDataModelManager.getInstance().getDiskDetails(brick.getDiskName());
-		
+
 		if (columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
 			DISK_STATUS status = disk.getStatus();
 			switch (status) {
@@ -62,25 +62,17 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 		return null;
 	}
 
-	private String getDiskSpaceInUse(Disk disk) {
-		if (disk.isReady() && disk.getSpaceInUse() != null) {
-			return NumberUtil.formatNumber(disk.getSpaceInUse());
+	private String getDiskFreeSpace(Disk disk) {
+		if (disk.isReady() && disk.getFreeSpace() != null) {
+			return NumberUtil.formatNumber((disk.getFreeSpace() / 1024));
 		} else {
 			return "NA";
 		}
 	}
 
-	private String getDiskFreeSpace(Disk disk) {
-		if (disk.isReady() && disk.getFreeSpace() != null) {
-			return NumberUtil.formatNumber(disk.getFreeSpace());
-		} else {
-			return "NA";
-		}
-	}
-	
-	private String getDiskSpace( Disk disk) {
+	private String getDiskSpace(Disk disk) {
 		if (disk.isReady() && disk.getSpace() != null && disk.getSpace() != 0.0) {
-			return NumberUtil.formatNumber(disk.getSpace());
+			return NumberUtil.formatNumber((disk.getSpace() / 1024));
 		} else {
 			return "NA";
 		}
@@ -96,8 +88,9 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 		Disk disk = GlusterDataModelManager.getInstance().getDiskDetails(brick.getDiskName());
 		return (columnIndex == BRICK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? brick.getServerName()
 				: columnIndex == BRICK_TABLE_COLUMN_INDICES.BRICK.ordinal() ? brick.getBrickDirectory()
-				: columnIndex == BRICK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDiskFreeSpace(disk)		
-				: columnIndex == BRICK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? getDiskSpace(disk)
-				: columnIndex == BRICK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? brick.getStatusStr() : "Invalid");
+						: columnIndex == BRICK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDiskFreeSpace(disk)
+								: columnIndex == BRICK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? getDiskSpace(disk)
+										: columnIndex == BRICK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? brick
+												.getStatusStr() : "Invalid");
 	}
 }

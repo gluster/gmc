@@ -76,7 +76,7 @@ public class VolumeTableLabelProvider implements ITableLabelProvider {
 		return (columnIndex == VOLUME_TABLE_COLUMN_INDICES.NAME.ordinal() ? volume.getName()
 			: columnIndex == VOLUME_TABLE_COLUMN_INDICES.VOLUME_TYPE.ordinal() ? volume.getVolumeTypeStr()
 			: columnIndex == VOLUME_TABLE_COLUMN_INDICES.TRANSPORT_TYPE.ordinal() ? volume.getTransportTypeStr()
-			: columnIndex == VOLUME_TABLE_COLUMN_INDICES.NUM_OF_DISKS.ordinal() ? "" + volume.getNumOfDisks()
+			: columnIndex == VOLUME_TABLE_COLUMN_INDICES.NUM_OF_BRICKS.ordinal() ? "" + volume.getNumOfBricks()
 			: columnIndex == VOLUME_TABLE_COLUMN_INDICES.VOLUME_STATUS.ordinal() ? volume.getStatusStr() : "Invalid");
 	}
 }

@@ -41,7 +41,7 @@ public class VolumesPage extends AbstractTableViewerPage<Volume> {
 	private List<Volume> volumes;
 	
 	public enum VOLUME_TABLE_COLUMN_INDICES {
-		NAME, VOLUME_TYPE, NUM_OF_DISKS, TRANSPORT_TYPE, VOLUME_STATUS
+		NAME, VOLUME_TYPE, NUM_OF_BRICKS, TRANSPORT_TYPE, VOLUME_STATUS
 	};
 
 	private static final String[] VOLUME_TABLE_COLUMN_NAMES = new String[] { "Name", "Volume Type",
@@ -59,7 +59,7 @@ public class VolumesPage extends AbstractTableViewerPage<Volume> {
 	@Override
 	protected void setColumnProperties(Table table) {
 		setColumnProperties(table, VOLUME_TABLE_COLUMN_INDICES.VOLUME_STATUS, SWT.CENTER, 50);
-		setColumnProperties(table, VOLUME_TABLE_COLUMN_INDICES.NUM_OF_DISKS, SWT.CENTER, 50);
+		setColumnProperties(table, VOLUME_TABLE_COLUMN_INDICES.NUM_OF_BRICKS, SWT.CENTER, 50);
 		setColumnProperties(table, VOLUME_TABLE_COLUMN_INDICES.TRANSPORT_TYPE, SWT.CENTER, 70);
 	}
 	

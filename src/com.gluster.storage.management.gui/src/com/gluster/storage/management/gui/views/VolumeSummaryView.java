@@ -35,8 +35,10 @@ import org.eclipse.ui.part.ViewPart;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Alert;
+import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
+import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.GlusterServer;
@@ -225,7 +227,7 @@ public class VolumeSummaryView extends ViewPart {
 			createStripeCountField(section);
 		}
 
-		createNumOfDisksField(section);
+		createNumOfBricksField(section);
 		createDiskSpaceField(section);
 //		createTransportTypeField(section);
 		createNASProtocolField(section);
@@ -410,11 +412,30 @@ public class VolumeSummaryView extends ViewPart {
 			}
 		});
 	}
+	
+	private double getDiskSize(String serverName, String diskName) {
+		GlusterServer server = cluster.getServer(serverName);
+		for (Disk disk : server.getDisks() ) {
+			if (disk.getName().equals(diskName)) {
+				return disk.getSpace();
+			}
+		}
+		return (Double) null;
+	}
+	
+	private double getTotalDiskSpace() {
+		double diskSize = 0;
+		for (Brick brick : volume.getBricks()) {
+			 diskSize += getDiskSize(brick.getServerName(), brick.getDiskName());
+		}
+		return diskSize;
+		
+	}
 
 	private void createDiskSpaceField(Composite section) {
 		Label diskSpaceLabel = toolkit.createLabel(section, "Total Disk Space (GB): ", SWT.NONE);
 		diskSpaceLabel.setToolTipText("<b>bold</b>normal");
-		toolkit.createLabel(section, "" + NumberUtil.formatNumber(volume.getTotalDiskSpace()), SWT.NONE);
+		toolkit.createLabel(section, "" + NumberUtil.formatNumber((getTotalDiskSpace() / 1024) ), SWT.NONE);
 		toolkit.createLabel(section, "", SWT.NONE); // dummy
 	}
 
@@ -440,9 +461,9 @@ public class VolumeSummaryView extends ViewPart {
 		toolkit.createLabel(section, "", SWT.NONE); // dummy
 	}
 
-	private void createNumOfDisksField(Composite section) {
+	private void createNumOfBricksField(Composite section) {
 		toolkit.createLabel(section, "Number of Bricks: ", SWT.NONE);
-		toolkit.createLabel(section, "" + volume.getNumOfDisks(), SWT.NONE);
+		toolkit.createLabel(section, "" + volume.getNumOfBricks(), SWT.NONE);
 		toolkit.createLabel(section, "", SWT.NONE); // dummy
 	}
 

@@ -159,8 +159,8 @@ public class ClusterSummaryView extends ViewPart {
 	}
 
 	private void createDiskSpaceChart(FormToolkit toolkit, Composite section, Double[] values) {
-		String[] categories = new String[] { "Used Space: " + NumberUtil.formatNumber(values[0]) + " GB",
-				"Free Space: " + NumberUtil.formatNumber(values[1]) + " GB"};
+		String[] categories = new String[] { "Used Space: " + NumberUtil.formatNumber((values[0] / 1024)) + " GB",
+				"Free Space: " + NumberUtil.formatNumber((values[1] / 1024)) + " GB"};
 		PieChartViewerComposite chartViewerComposite = new PieChartViewerComposite(section, SWT.NONE, categories,
 				values);
 
