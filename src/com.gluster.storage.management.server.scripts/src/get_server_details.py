@@ -22,6 +22,8 @@ import socket
 import Globals
 import Commands
 import re
+import Common
+import DiskUtils
 from ServerUtils import *
 from Protocol import *
 from NetworkUtils import *
@@ -29,107 +31,41 @@ from Disk import *
 from XmlHandler import ResponseXml
 from optparse import OptionParser
 
-def getDiskSizeInfo(partition):
-    # get values from df output
-    total = None
-    used = None
-    free = None
-    commandList = ['df', '-kl', '-t', 'ext3', '-t', 'ext4']
-    commandOutput = ""
-    try:
-        process = subprocess.Popen(commandList, 
-                                   stdout=subprocess.PIPE,
-                                   stdin=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   close_fds=True)
-        status = process.wait()
-        if status == 0:
-            commandOutput = process.communicate()
-    except OSError:
-        return None,None,None
-    
-    for line in commandOutput[0].split("\n"):
-        tokens = line.split()
-        if len(tokens) < 4:
-            continue
-        if tokens[0] == partition:
-            total = int(tokens[1]) / (1024.0 * 1024.0)
-            used = int(tokens[2]) / (1024.0 * 1024.0)
-            free = int(tokens[3]) / (1024.0 * 1024.0)
-            break
-
-    if total:
-        return total, used, free
-    
-    # get total size from parted output
-    for i in range(len(partition), 0, -1):
-        pos = i - 1
-        if not partition[pos].isdigit():
-            break
-    disk = partition[:pos+1]
-    number = int(partition[pos+1:])
-    
-    commandList = ['parted', '-ms', disk, 'unit', 'kb', 'print']
-    commandOutput = ""
-    try:
-        process = subprocess.Popen(commandList, 
-                                   stdout=subprocess.PIPE,
-                                   stdin=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   close_fds=True)
-        status = process.wait()
-        if status == 0:
-            commandOutput = process.communicate()
-    except OSError:
-        return None,None,None
-    
-    lines = commandOutput[0].split(";\n")
-    if len(lines) < 3:
-        return None,None,None
-    
-    for line in lines[2:]:
-        tokens = line.split(':')
-        if len(tokens) < 4:
-            continue
-        if tokens[0] == str(number):
-            total = int(tokens[3].split('kB')[0]) / (1024.0 * 1024.0)
-            break
-    
-    return total, used, free
 
 def getServerDetails(listall):
+
     serverName = socket.gethostname()
+    meminfo = getMeminfo()
+    cpu = 100 * float(getLoadavg())
+    nameServerList, domain, searchDomain = readResolvConfFile()
+    if not domain:
+        domain = [None]
+
     responseDom = ResponseXml()
-    #responseDom.appendTagRoute("status.code", "0")
-    #responseDom.appendTagRoute("status.message", "success")
     serverTag = responseDom.appendTagRoute("server")
     serverTag.appendChild(responseDom.createTag("name", serverName))
+    serverTag.appendChild(responseDom.createTag("domainname", domain[0]))
 
-    nameServerList, domain, searchDomain = readResolvConfFile()
-    if domain:
-        domainName = domain[0]
-    else:
-        domainName = None
-    serverTag.appendChild(responseDom.createTag("domainname", domainName))
-    i = 1
     for dns in nameServerList:
-        serverTag.appendChild(responseDom.createTag("dns%s" % i, dns))
-        i += 1
-    #TODO: probe and retrieve timezone, ntp-server, preferred-network details and update the tags
+        serverTag.appendChild(responseDom.createTag("dns%s" % str(nameServerList.index(dns) +1) , dns))
+
+    #TODO: probe and retrieve timezone, ntp-server details and update the tags
 
     deviceList = {}
     interfaces = responseDom.createTag("networkInterfaces", None)
     for device in getNetDeviceList():
+        if device["model"] in ['LOCAL', 'IPV6-IN-IPV4']:
+            continue
         deviceList[device["device"]] = device
         try:
             macAddress = open("/sys/class/net/%s/address" % device["device"]).read().strip()
         except IOError:
             continue
         interfaceTag = responseDom.createTag("networkInterface", None)
-        interfaceTag.appendChild(responseDom.createTag("name",      device["device"]))
-        interfaceTag.appendChild(responseDom.createTag("hwAddr",      macAddress))
-        interfaceTag.appendChild(responseDom.createTag("speed",      device["speed"]))
-        interfaceTag.appendChild(responseDom.createTag("model",      device["model"]))
+        interfaceTag.appendChild(responseDom.createTag("name",  device["device"]))
+        interfaceTag.appendChild(responseDom.createTag("hwAddr",macAddress))
+        interfaceTag.appendChild(responseDom.createTag("speed", device["speed"]))
+        interfaceTag.appendChild(responseDom.createTag("model", device["model"]))
         if deviceList[device["device"]]:
             if deviceList[device["device"]]["onboot"]:
                 interfaceTag.appendChild(responseDom.createTag("onboot", "yes"))
@@ -154,31 +90,11 @@ def getServerDetails(listall):
     responseDom.appendTag(serverTag)
     serverTag.appendChild(responseDom.createTag("numOfCPUs", int(os.sysconf('SC_NPROCESSORS_ONLN'))))
 
-    try:
-        meminfo = getMeminfo()
-        mem_total = meminfo['MemTotal']
-        mem_free = meminfo['MemFree']
-        mem_used = (mem_total - mem_free)
-        value = "%.2f" % (1.0 * mem_used / mem_total)
-        mem_percent = 100 * float(value)
-        cpu = 100 * float(getLoadavg())
-
-    except IOError:
-        print "Error"
-        responseDom.appendTagRoute("server.name", serverName)
-        syslog.syslog(syslog.LOG_ERR, "Error finding memory information of server:%s" % serverName)
-        return None
 
     # refreshing hal data
-    rv = Utils.runCommandFG(["lshal"], stdout=True, root=True)
-    if rv["Stderr"]:
-        error = Common.stripEmptyLines(rv["Stderr"])
-        Common.log(syslog.LOG_ERR, "failed to execute lshal command. Error: %s" % error)
-        print "failed to get disk details"
-        return None
+    DiskUtils.refreshHal()
 
     diskObj = Disk()
-    ## disks = diskObj.getDiskList()
     disks = diskObj.getMountableDiskList()
 
     if disks is None:
@@ -187,9 +103,8 @@ def getServerDetails(listall):
         return None
 
     serverTag.appendChild(responseDom.createTag("cpuUsage", str(cpu)))
-    #serverTag.appendChild(responseDom.createTag("totalMemory", str(mem_percent)))
-    serverTag.appendChild(responseDom.createTag("totalMemory", str(mem_total)))
-    serverTag.appendChild(responseDom.createTag("memoryInUse", str(mem_used)))
+    serverTag.appendChild(responseDom.createTag("totalMemory", str(convertKbToMb(meminfo['MemTotal']))))
+    serverTag.appendChild(responseDom.createTag("memoryInUse", str(convertKbToMb(meminfo['MemUsed']))))
     serverTag.appendChild(responseDom.createTag("status", "ONLINE"))
     serverTag.appendChild(responseDom.createTag("uuid", None))
 
@@ -209,7 +124,7 @@ def getServerDetails(listall):
         partitionTag.appendChild(responseDom.createTag("description", disk['description']))
         total, used, free = 0, 0, 0
         if disk['size']:
-            total, used, free = getDiskSizeInfo(disk['device'])
+            total, used, free = DiskUtils.getDiskSizeInfo(disk['device'])
         if total:
             partitionTag.appendChild(responseDom.createTag("space", str(total)))
             totalDiskSpace += total
@@ -237,8 +152,10 @@ def main():
                       help="List only data disks")
 
     (options, args) = parser.parse_args()
-    print getServerDetails(options.listall).toxml()
-        
+    responseXml = getServerDetails(options.listall)
+    if responseXml:
+        print responseXml.toxml()
+
     sys.exit(0)
 
 if __name__ == "__main__":

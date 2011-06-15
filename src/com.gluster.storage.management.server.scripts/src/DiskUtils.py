@@ -18,9 +18,10 @@
 import os
 import glob
 import dbus
-
+import syslog
 import Globals
-from Utils import *
+import Common
+import Utils
 
 ONE_MB_SIZE = 1048576
 
@@ -240,3 +241,68 @@ def getMountPointByUuid(partitionUuid):
         if entry.split()[0] == "UUID=" + partitionUuid:
             return entry.split()[1]
     return None
+
+
+def getDiskSizeInfo(partition):
+    # get values from df output
+    total = None
+    used = None
+    free = None
+    command = "df -kl -t ext3 -t ext4 -t xfs"
+    rv = Utils.runCommandFG(command, stdout=True, root=True)
+    message = Common.stripEmptyLines(rv["Stdout"])
+    if rv["Stderr"]:
+        Common.log(syslog.LOG_ERR, "failed to get disk details. %s" % Common.stripEmptyLines(rv["Stdout"]))
+        return None, None, None
+    for line in rv["Stdout"].split("\n"):
+        tokens = line.split()
+        if len(tokens) < 4:
+            continue
+        if tokens[0] == partition:
+            total = int(tokens[1]) / 1024.0
+            used  = int(tokens[2]) / 1024.0
+            free  = int(tokens[3]) / 1024.0
+            break
+
+    if total:
+        return total, used, free
+    
+    # get total size from parted output
+    for i in range(len(partition), 0, -1):
+        pos = i - 1
+        if not partition[pos].isdigit():
+            break
+    disk = partition[:pos+1]
+    partitionNumber = partition[pos+1:]
+    if not partitionNumber.isdigit():
+        return None, None, None
+    
+    number = int(partitionNumber)
+    command = "parted -ms %s unit kb print" % disk
+    rv = Utils.runCommandFG(command, stdout=True, root=True)
+    message = Common.stripEmptyLines(rv["Stdout"])
+    if rv["Stderr"]:
+        Common.log(syslog.LOG_ERR, "failed to get disk details. %s" % Common.stripEmptyLines(rv["Stdout"]))
+        return None, None, None
+    
+    lines = rv["Stdout"].split(";\n")
+    if len(lines) < 3:
+        return None,None,None
+    
+    for line in lines[2:]:
+        tokens = line.split(':')
+        if len(tokens) < 4:
+            continue
+        if tokens[0] == str(number):
+            total = int(tokens[3].split('kB')[0]) / 1024.0
+            break
+    return total, used, free
+
+
+def refreshHal():
+    rv = Utils.runCommandFG(["lshal"], stdout=True, root=True)
+    if rv["Stderr"]:
+        error = Common.stripEmptyLines(rv["Stderr"])
+        Common.log(syslog.LOG_ERR, "failed to execute lshal command. Error: %s" % error)
+        return False
+    return True
