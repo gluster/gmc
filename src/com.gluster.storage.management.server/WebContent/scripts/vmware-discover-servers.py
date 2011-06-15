@@ -46,18 +46,24 @@ def serverDiscoveryRequest(multiCastGroup, port):
     mreq = struct.pack("4sl", socket.inet_aton(multiCastGroup), socket.INADDR_ANY)
 
     socketReceive.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-    socketSend.sendto("ServerDiscovery", (multiCastGroup, port))
+    sendtime = time.time()
+    socketSend.sendto("<request><name>ServerDiscovery</name><time>%s</time></request>" % (sendtime), (multiCastGroup, port))
 
     try:
         while True:
             response = socketReceive.recvfrom(200)
-            if response and response[0].upper() != "SERVERDISCOVERY":
-                dom = XDOM()
-                dom.parseString(response[0])
-                responsetime = dom.getTextByTagRoute("response.time")
-                servername = dom.getTextByTagRoute("response.servername")
-                if time.time() - float(responsetime) < 60:
-                    servers.append(servername)
+            if not response:
+                continue
+            dom = XDOM()
+            dom.parseString(response[0])
+            if not dom:
+                continue
+            if dom.getTextByTagRoute("request.name"):
+                continue
+            responsetime = dom.getTextByTagRoute("response.time")
+            servername = dom.getTextByTagRoute("response.servername")
+            if responsetime == str(sendtime):
+                servers.append(servername)
             signal.signal(signal.SIGALRM, timeoutSignal)
             signal.alarm(3)
     except TimeoutException:
@@ -73,17 +79,11 @@ def main():
 
     servers = set(servers)
     try:
-        #fp = open(Globals.DISCOVERED_SERVER_LIST_FILENAME, "w")
-        #fp.writelines(list(servers))
-        #fp.close()
         for server in servers:
             print server
     except IOError:
         Common.log(syslog.LOG_ERR, "Unable to open file %s" % Globals.DISCOVERED_SERVER_LIST_FILENAME)
         sys.exit(-1)
-
-    #for serverName in servers:
-    #    print serverName
     sys.exit(0)
 
 if __name__ == "__main__":

@@ -369,6 +369,7 @@ def getMeminfo():
             continue # skip lines that don't parse
         key, value = match.groups(['key', 'value'])
         result[key] = int(value)
+    result['MemUsed'] = (result['MemTotal'] - result['MemFree'])
     return result
 
 
@@ -397,7 +398,12 @@ def getLoadavg():
     - Number of threads/processes that exist on the system (int)
     - The PID of the most recently-created process on the system (int)
     """
-    loadavgstr = open('/proc/loadavg', 'r').readline().strip()
+    try:
+        loadavgstr = open('/proc/loadavg', 'r').readline().strip()
+    except IOError:
+        syslog.syslog(syslog.LOG_ERR, "failed to find cpu load")
+        return None
+
     data = loadavgstr.split()
     avg1, avg5, avg15 = map(float, data[:3])
     threads_and_procs_running, threads_and_procs_total = map(int,
@@ -410,7 +416,7 @@ def getLoadavg():
          # Linux
          ncpus = os.sysconf("SC_NPROCESSORS_ONLN")
          if isinstance(ncpus, int) and ncpus > 0:
-             final_avg = "%.2f" % (1.0 * avg1 / ncpus) 
+             final_avg = "%.4f" % (1.0 * avg1 / ncpus)
 
     # Future return everything when needed
     # Commenting this for the time being
@@ -703,3 +709,6 @@ def removeFile(fileName, root=False):
 
 def isLiveMode():
     return os.path.exists(Globals.LIVE_MODE_FILE)
+
+def convertKbToMb(kb):
+    return kb / 1024.0

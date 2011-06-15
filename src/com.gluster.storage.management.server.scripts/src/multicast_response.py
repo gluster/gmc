@@ -23,8 +23,9 @@ import Utils
 import socket
 import struct
 import Globals
+from XmlHandler import *
 
-def isinpeer():
+def isInPeer():
     command = "gluster peer status"
     status = Utils.runCommand(command, output=True, root=True)
     if status["Status"] == 0:
@@ -48,13 +49,23 @@ def response(multiCastGroup, port):
     #TODO: Remove infinite loop and make this as a deamon (service)
     while True:
         request = socketRequest.recvfrom(1024)
-        if request and request[0].upper() == "SERVERDISCOVERY":
-            if isinpeer():
-                time.sleep(5)
-                continue
-            socketSend.sendto("<response><servername>%s</servername><time>%s</time></response>" % (socket.gethostname(), time.time()), 
-                              (multiCastGroup, port))
-            request = None
+        if not request:
+            continue
+        dom = XDOM()
+        dom.parseString(request[0])
+        if not dom:
+            continue
+        if not dom.getTextByTagRoute("request.name"):
+            continue
+        requesttime = dom.getTextByTagRoute("request.time")
+        if not requesttime:
+            continue
+        if isinpeer():
+            time.sleep(5)
+            continue
+        socketSend.sendto("<response><servername>%s</servername><time>%s</time></response>" % (socket.gethostname(), requesttime), 
+                          (multiCastGroup, port))
+        request = None
 
 def main():
     response(Globals.MULTICAST_GROUP, Globals.MULTICAST_PORT)
