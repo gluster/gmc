@@ -23,7 +23,6 @@ package com.gluster.storage.management.server.utils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,8 +39,8 @@ import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
+import com.gluster.storage.management.core.model.VolumeOptions;
 import com.gluster.storage.management.core.utils.ProcessResult;
-import com.gluster.storage.management.core.utils.ProcessUtil;
 
 @Component
 public class GlusterUtil {
@@ -242,7 +241,7 @@ public class GlusterUtil {
 	}
 
 	public Status createOptions(Volume volume, String knownServer) {
-		Map<String, String> options = volume.getOptions();
+		VolumeOptions options = volume.getOptions();
 		if (options != null) {
 			for (Entry<String, String> option : options.entrySet()) {
 				String key = option.getKey();

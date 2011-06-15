@@ -6,7 +6,6 @@ package com.gluster.storage.management.gui.views.pages;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import org.eclipse.jface.viewers.CellEditor;
@@ -19,6 +18,7 @@ import org.eclipse.swt.widgets.Composite;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
+import com.gluster.storage.management.core.model.VolumeOptions;
 
 /**
  * Editing support for the "value" column in volume options table viewer.
@@ -41,7 +41,7 @@ public class OptionKeyEditingSupport extends EditingSupport {
 	 */
 	private String[] getAllowedKeys() {
 		ArrayList<String> keys = new ArrayList<String>();
-		Map<String, String> volumeOptions = volume.getOptions();
+		VolumeOptions volumeOptions = volume.getOptions();
 		for(VolumeOptionInfo optionInfo : defaults) {
 			String optionName = optionInfo.getName();
 			if(!volumeOptions.containsKey(optionName) || volumeOptions.get(optionName).isEmpty()) {

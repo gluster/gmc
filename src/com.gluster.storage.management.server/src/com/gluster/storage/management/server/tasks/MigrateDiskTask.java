@@ -33,7 +33,6 @@ public class MigrateDiskTask extends Task {
 		super(info);
 	}
 	
-	
 	@Override
 	public String getId() {
 		return getInfo().getId();

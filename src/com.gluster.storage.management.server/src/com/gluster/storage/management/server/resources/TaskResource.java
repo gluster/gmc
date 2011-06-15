@@ -27,6 +27,7 @@ import static com.gluster.storage.management.core.constants.RESTConstants.RESOUR
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_TASKS;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,40 +43,37 @@ import javax.ws.rs.core.MediaType;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Task;
-import com.gluster.storage.management.core.model.Task.TASK_TYPE;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.response.TaskListResponse;
 import com.gluster.storage.management.core.response.TaskResponse;
-import com.gluster.storage.management.server.runningtasks.managers.MigrateDiskManager;
-import com.gluster.storage.management.server.tasks.MigrateDiskTask;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Path(RESOURCE_PATH_CLUSTERS + "/{" + PATH_PARAM_CLUSTER_NAME + "}/" + RESOURCE_TASKS)
 @Singleton
 public class TaskResource {
-	private Map<String, Task> tasks;
+	private Map<String, Task> tasksMap = new HashMap<String, Task>();
 
-	private TaskResource() {
+	public TaskResource() {
 	}
 
 	public void addTask(Task task) {
-		tasks.put(task.getId(), task);
+		getTasksMap().put(task.getId(), task);
 	}
 
 	public void removeTask(Task task) {
-		tasks.remove(task);
+		getTasksMap().remove(task);
 	}
 
 	public List<Task> getAllTasks() {
 		List<Task> allTasks = new ArrayList<Task>();
-		for (Map.Entry<String, Task> entry : tasks.entrySet()) {
+		for (Map.Entry<String, Task> entry : getTasksMap().entrySet()) {
 			allTasks.add(entry.getValue());
 		}
 		return allTasks;
 	}
 
 	public Task getTask(String taskId) {
-		for (Map.Entry<String, Task> entry : tasks.entrySet()) {
+		for (Map.Entry<String, Task> entry : getTasksMap().entrySet()) {
 			if (entry.getValue().getId().equals(taskId)) {
 				return entry.getValue();
 			}
@@ -143,6 +141,14 @@ public class TaskResource {
 						+ "] removed successfully"));
 					}
 		return null;
+	}
+
+	public void setTasksMap(Map<String, Task> tasksMap) {
+		this.tasksMap = tasksMap;
+	}
+
+	public Map<String, Task> getTasksMap() {
+		return tasksMap;
 	}
 
 }

@@ -23,8 +23,6 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -70,7 +68,7 @@ public class Volume extends Entity {
 	private VOLUME_STATUS status;
 	private int replicaCount;
 	private int stripeCount;
-	private Map<String, String> options = new LinkedHashMap<String, String>();
+	private VolumeOptions options = new VolumeOptions();
 
 	private double totalDiskSpace = 0;
 	private List<String> disks = new ArrayList<String>();
@@ -191,7 +189,8 @@ public class Volume extends Entity {
 		setOption(OPTION_AUTH_ALLOW, accessControlList);
 	}
 
-	public Map<String, String> getOptions() {
+	@XmlElement(name="options")
+	public VolumeOptions getOptions() {
 		return options;
 	}
 
@@ -199,8 +198,8 @@ public class Volume extends Entity {
 		options.put(key, value);
 	}
 
-	public void setOptions(Map<String, String> options) {
-		this.options = options;
+	public void setOptions(LinkedHashMap<String, String> options) {
+		this.options.setOptionsMap(options);
 	}
 
 	public double getTotalDiskSpace() {
