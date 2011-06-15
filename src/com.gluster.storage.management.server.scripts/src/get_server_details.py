@@ -133,7 +133,7 @@ def getServerDetails(listall):
         if used:
             partitionTag.appendChild(responseDom.createTag("spaceInUse", str(used)))
             diskSpaceInUse += used
-            partitionTag.appendChild(responseDom.createTag("status", "READY"))
+            partitionTag.appendChild(responseDom.createTag("status", "AVAILABLE"))
         else:
             partitionTag.appendChild(responseDom.createTag("spaceInUse", "NA"))
             partitionTag.appendChild(responseDom.createTag("status", "UNINITIALIZED"))

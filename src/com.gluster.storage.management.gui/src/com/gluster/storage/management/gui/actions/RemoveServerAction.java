@@ -129,7 +129,7 @@ public class RemoveServerAction extends AbstractActionDelegate {
 			if (usedServers.size() == 1) {
 				showErrorDialog(action.getDescription(), "Server [" + usedServers.keySet().iterator().next()
 						+ "] cannot be removed as it is being used by volume(s): " + CoreConstants.NEWLINE
-						+ usedServers.values().iterator().next() + "]");
+						+ usedServers.values().iterator().next() );
 			} else {
 				String serverList = "";
 				for (Entry<GlusterServer, List<String>> entry : usedServers.entrySet()) {
@@ -137,7 +137,7 @@ public class RemoveServerAction extends AbstractActionDelegate {
 				}
 				showErrorDialog(action.getDescription(),
 						"Following servers cannot be removed as they are being used by volume(s): "
-								+ CoreConstants.NEWLINE + serverList + "]");
+								+ CoreConstants.NEWLINE + serverList );
 			}
 			return false;
 		}
