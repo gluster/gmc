@@ -60,7 +60,7 @@ def response(multiCastGroup, port):
         requesttime = dom.getTextByTagRoute("request.time")
         if not requesttime:
             continue
-        if isinpeer():
+        if isInPeer():
             time.sleep(5)
             continue
         socketSend.sendto("<response><servername>%s</servername><time>%s</time></response>" % (socket.gethostname(), requesttime), 
