@@ -143,7 +143,7 @@ public class VolumeSummaryView extends ViewPart {
 		lblAlert.redraw();
 	}
 
-	private FormText setFormTextStyle(FormText formText, String fontName, int size, int style ) { 
+	private FormText setFormTextStyle(FormText formText, String fontName, int size, int style) {
 		Font font = new Font(Display.getCurrent(), new FontData(fontName, size, style));
 		formText.setFont(font);
 		return formText;
@@ -154,40 +154,48 @@ public class VolumeSummaryView extends ViewPart {
 		String nfs = "NFS:";
 		String onlineServers = getOnlineServers(10); // Limited to 10 servers
 		String firstOnlineServer = onlineServers.split(",")[0].trim();
-		String glusterFsMountInfo = "mount -t glusterfs " + firstOnlineServer + ":/" + volume.getName()	+ " <mount-point>";
+		String glusterFsMountInfo = "mount -t glusterfs " + firstOnlineServer + ":/" + volume.getName()
+				+ " <mount-point>";
 		String nfsMountInfo = "mount -t nfs " + firstOnlineServer + ":/" + volume.getName() + " <mount-point>";
-		String info = "Server can be any server name in the storage cloud eg. <" + onlineServers + ">"; //TODO: if more than 10 servers... 
-		
+		String info = "Server can be any server name in the storage cloud eg. <" + onlineServers + ">"; // TODO: if more
+																										// than 10
+																										// servers...
+
 		Composite section = guiHelper.createSection(form, toolkit, "Mounting Information", null, 3, false);
-		
+
 		toolkit.createLabel(section, glusterFs, SWT.NORMAL);
-		FormText glusterfsMountText = setFormTextStyle(toolkit.createFormText(section, true),  COURIER_FONT, 10, SWT.NONE);
+		FormText glusterfsMountText = setFormTextStyle(toolkit.createFormText(section, true), COURIER_FONT, 10,
+				SWT.NONE);
 		glusterfsMountText.setText(glusterFsMountInfo, false, false);
-		glusterfsMountText.setLayoutData(new GridData(GridData.BEGINNING, GridData.VERTICAL_ALIGN_CENTER, false, false, 2, 0)); // Label spanned two column
+		glusterfsMountText.setLayoutData(new GridData(GridData.BEGINNING, GridData.VERTICAL_ALIGN_CENTER, false, false,
+				2, 0)); // Label spanned two column
 
 		// TODO: Check required if nfs is optional
 		toolkit.createLabel(section, nfs, SWT.NORMAL);
-		FormText glusterNfsMountText = setFormTextStyle(toolkit.createFormText(section, true),  COURIER_FONT, 10, SWT.NONE);
+		FormText glusterNfsMountText = setFormTextStyle(toolkit.createFormText(section, true), COURIER_FONT, 10,
+				SWT.NONE);
 		glusterNfsMountText.setText(nfsMountInfo, false, false);
-		glusterNfsMountText.setLayoutData(new GridData(GridData.BEGINNING, GridData.VERTICAL_ALIGN_CENTER, false, false, 2, 0));
-		
+		glusterNfsMountText.setLayoutData(new GridData(GridData.BEGINNING, GridData.VERTICAL_ALIGN_CENTER, false,
+				false, 2, 0));
+
 		toolkit.createLabel(section, "");
 		Label infoLabel = toolkit.createLabel(section, info, SWT.NONE);
 		infoLabel.setLayoutData(new GridData(GridData.BEGINNING, GridData.VERTICAL_ALIGN_CENTER, false, false, 2, 0));
-		
-		//TODO: implement a logic to identify the corresponding glusterfs client download link
+
+		// TODO: implement a logic to identify the corresponding glusterfs client download link
 		String message = "You can download gluster FS client from";
 		String glusterClientDownloadlinkText = "here.";
 		final String glusterClientDownloadlink = "http://www.gluster.com";
 
 		toolkit.createLabel(section, "");
-		toolkit.createLabel(section, message );
+		toolkit.createLabel(section, message);
 		Hyperlink link = toolkit.createHyperlink(section, glusterClientDownloadlinkText, SWT.NORMAL);
 		link.addHyperlinkListener(new HyperlinkAdapter() {
 			public void linkActivated(HyperlinkEvent e) {
 				try {
 					System.out.println(e.getLabel() + " [" + e.getHref() + "]");
-					PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(new URL( glusterClientDownloadlink ));
+					PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser()
+							.openURL(new URL(glusterClientDownloadlink));
 				} catch (PartInitException e1) {
 					e1.printStackTrace();
 				} catch (MalformedURLException e1) {
@@ -229,7 +237,7 @@ public class VolumeSummaryView extends ViewPart {
 
 		createNumOfBricksField(section);
 		createDiskSpaceField(section);
-//		createTransportTypeField(section);
+		// createTransportTypeField(section);
 		createNASProtocolField(section);
 		createAccessControlField(section);
 		createStatusField(section);
@@ -307,8 +315,8 @@ public class VolumeSummaryView extends ViewPart {
 			BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
 				@Override
 				public void run() {
-					Status status = (new VolumesClient())
-							.setVolumeOption(volume.getName(), Volume.OPTION_AUTH_ALLOW, newACL);
+					Status status = (new VolumesClient()).setVolumeOption(volume.getName(), Volume.OPTION_AUTH_ALLOW,
+							newACL);
 
 					if (status.isSuccess()) {
 						accessControlText.setEnabled(false);
@@ -412,30 +420,33 @@ public class VolumeSummaryView extends ViewPart {
 			}
 		});
 	}
-	
+
 	private double getDiskSize(String serverName, String diskName) {
+		double diskSize = 0;
 		GlusterServer server = cluster.getServer(serverName);
-		for (Disk disk : server.getDisks() ) {
-			if (disk.getName().equals(diskName)) {
-				return disk.getSpace();
+		if (server.getStatus() == SERVER_STATUS.ONLINE) {
+			for (Disk disk : server.getDisks()) {
+				if (disk.getName().equals(diskName)) {
+					diskSize = disk.getSpace();
+				}
 			}
 		}
-		return (Double) null;
+		return diskSize;
 	}
-	
+
 	private double getTotalDiskSpace() {
 		double diskSize = 0;
 		for (Brick brick : volume.getBricks()) {
-			 diskSize += getDiskSize(brick.getServerName(), brick.getDiskName());
+			diskSize += getDiskSize(brick.getServerName(), brick.getDiskName());
 		}
 		return diskSize;
-		
+
 	}
 
 	private void createDiskSpaceField(Composite section) {
 		Label diskSpaceLabel = toolkit.createLabel(section, "Total Disk Space (GB): ", SWT.NONE);
 		diskSpaceLabel.setToolTipText("<b>bold</b>normal");
-		toolkit.createLabel(section, "" + NumberUtil.formatNumber((getTotalDiskSpace() / 1024) ), SWT.NONE);
+		toolkit.createLabel(section, "" + NumberUtil.formatNumber((getTotalDiskSpace() / 1024)), SWT.NONE);
 		toolkit.createLabel(section, "", SWT.NONE); // dummy
 	}
 
