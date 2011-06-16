@@ -27,17 +27,20 @@ public abstract class Task {
 	
 	public String[] TASK_TYPE_STR = { "Format Disk", "Migrate Brick", "Volume Rebalance" };
 	
-	private TaskInfo info;
+	private TaskInfo taskInfo;
 	
-	public Task(TASK_TYPE type, String reference, String description) {
-		info = new TaskInfo();
-		info.setId(getTaskType(type) + "-" + reference); // construct id
-		info.setType(type);
-		info.setReference(reference);
-		info.setDescription(description);
+	protected String serverName;
+	
+	public Task(TASK_TYPE type, String reference) {
+		taskInfo = new TaskInfo();
+		taskInfo.setId(getTaskType(type) + "-" + reference); // construct id
+		taskInfo.setType(type);
+		taskInfo.setReference(reference);
+		// info.setDescription("Migrating brick on volume [" + volu);
 	}
-	public Task(TaskInfo info) {
-		setInfo(info);
+	
+	public Task(TaskInfo taskInfo) {
+		setTaskInfo(taskInfo);
 	}
 
 	public String getTaskType(TASK_TYPE type) {
@@ -46,21 +49,35 @@ public abstract class Task {
 	
 	public abstract String getId();
 
+	public abstract TaskInfo start(); 
+	
 	public abstract TaskInfo resume();
 
 	public abstract TaskInfo stop();
 
 	public abstract TaskInfo pause();
+	
+	public abstract TaskInfo status();
 
 	public abstract TASK_TYPE getType();
 	
 	public abstract TaskInfo getTaskInfo();
 	
-	public TaskInfo getInfo() {
-		return info;
+	public abstract void setTaskDescription();
+	
+	public String getOnlineServer() {
+		return serverName;
 	}
 	
-	public void setInfo(TaskInfo info) {
-		this.info = info; // TODO: review assigning reference and copy object 
+	public void setOnlineServer(String serverName) {
+		this.serverName = serverName;
+	}
+	
+	protected TaskInfo getInfo() {
+		return taskInfo;
+	}
+	
+	public void setTaskInfo(TaskInfo info) {
+		this.taskInfo = info; // TODO: review assigning reference and copy object 
 	}
 }
