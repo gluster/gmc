@@ -26,6 +26,7 @@ import static com.gluster.storage.management.core.constants.RESTConstants.FORM_P
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_TARGET;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_START;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_STOP;
+import static com.gluster.storage.management.core.constants.RESTConstants.FROM_PARAM_AUTO_COMMIT;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_VOLUME_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_BRICKS;
@@ -37,8 +38,8 @@ import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_LOG_SEVERITY;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_TO_TIMESTAMP;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_VOLUME_NAME;
-import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_DEFAULT_OPTIONS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_BRICKS;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_DEFAULT_OPTIONS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_DOWNLOAD;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_LOGS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_OPTIONS;
@@ -76,10 +77,13 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.model.Task.TASK_TYPE;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.VolumeLogMessage;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.LogMessageListResponse;
+import com.gluster.storage.management.core.response.TaskResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 import com.gluster.storage.management.core.utils.DateUtil;
@@ -89,6 +93,7 @@ import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
 import com.gluster.storage.management.server.data.ClusterInfo;
 import com.gluster.storage.management.server.services.ClusterService;
+import com.gluster.storage.management.server.tasks.MigrateDiskTask;
 import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.ServerUtil;
 import com.sun.jersey.api.core.InjectParam;
@@ -626,7 +631,8 @@ public class VolumesResource {
 		}
 
 		try {
-			return glusterUtil.migrateDisk(volumeName, diskFrom, diskTo, operation, onlineServer.getName());
+			
+			return glusterUtil.migrateDisk(volumeName, diskFrom, diskTo, "start", onlineServer.getName());
 		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
 			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
@@ -636,6 +642,38 @@ public class VolumesResource {
 			}
 			return glusterUtil.migrateDisk(volumeName, diskFrom, diskTo, operation, onlineServer.getName());
 		}
+	}
+	
+	@PUT
+	@Path("{" + PATH_PARAM_VOLUME_NAME + "}/" + RESOURCE_BRICKS)
+	public TaskResponse migrateBrick(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_SOURCE) String diskFrom,
+			@FormParam(FORM_PARAM_TARGET) String diskTo, @FormParam(FROM_PARAM_AUTO_COMMIT) Boolean autoCommit) {
+
+		TaskResponse taskResponse = new TaskResponse();
+		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		if (onlineServer == null) {
+			taskResponse.setData(null);
+			taskResponse.setStatus(new Status(Status.STATUS_CODE_FAILURE, "No online servers found in cluster ["
+					+ clusterName + "]"));
+			return taskResponse;
+		}
+
+		try {
+			MigrateDiskTask migrateDiskTask = new MigrateDiskTask(TASK_TYPE.BRICK_MIGRATE, volumeName, diskFrom, diskTo);
+			migrateDiskTask.setAutoCommit(autoCommit);
+			TaskInfo taskInfo = migrateDiskTask.start();
+			if (taskInfo.isSuccess()) {
+				TaskResource taskResource = new TaskResource();
+				taskResource.addTask(migrateDiskTask);
+			}
+			taskResponse.setData(taskInfo);
+			taskResponse.setStatus(new Status(Status.STATUS_CODE_SUCCESS, ""));
+			return taskResponse;
+		} catch (ConnectionException e) {
+			//TODO online server has gone offline! try with a different one.
+		}
+		return null;
 	}
 
 	public static void main(String[] args) throws ClassNotFoundException {

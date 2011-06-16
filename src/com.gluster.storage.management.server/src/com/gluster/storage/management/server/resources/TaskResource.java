@@ -56,12 +56,20 @@ public class TaskResource {
 	public TaskResource() {
 	}
 
-	public void addTask(Task task) {
+	public void setTasksMap(Map<String, Task> tasksMap) {
+		this.tasksMap = tasksMap;
+	}
+
+	public Map<String, Task> getTasksMap() {
+		return tasksMap;
+	}
+	
+	public void addTask(Task task) { // task should be one of MuigrateDiskTask, FormatDiskTask, etc
 		getTasksMap().put(task.getId(), task);
 	}
 
 	public void removeTask(Task task) {
-		getTasksMap().remove(task);
+		getTasksMap().remove(task.getId());
 	}
 
 	public List<Task> getAllTasks() {
@@ -141,14 +149,6 @@ public class TaskResource {
 						+ "] removed successfully"));
 					}
 		return null;
-	}
-
-	public void setTasksMap(Map<String, Task> tasksMap) {
-		this.tasksMap = tasksMap;
-	}
-
-	public Map<String, Task> getTasksMap() {
-		return tasksMap;
 	}
 
 }
