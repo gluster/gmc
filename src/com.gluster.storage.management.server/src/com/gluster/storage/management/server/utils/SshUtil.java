@@ -209,7 +209,8 @@ public class SshUtil {
 		Connection conn;
 		conn = new Connection(serverName);
 		try {
-			conn.connect();
+			// tcp connection timeout = 3 sec, ssh connection timeout = 10 sec
+			conn.connect(null, 3000, 10000);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new ConnectionException("Exception while creating SSH connection with server [" + serverName + "]", e);
