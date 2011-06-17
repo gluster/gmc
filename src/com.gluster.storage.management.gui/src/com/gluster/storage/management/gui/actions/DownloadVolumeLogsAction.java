@@ -59,13 +59,13 @@ public class DownloadVolumeLogsAction extends AbstractActionDelegate {
 				FileDialog dialog = new FileDialog(getShell(), SWT.SAVE);
 				dialog.setFilterNames(new String[] {"GZipped Tar (*.tar.gz)"});
 				dialog.setFilterExtensions(new String[] {"*.tar.gz"});
-				dialog.open();
+				String filePath = dialog.open();
+				
+				if(filePath == null) {
+					return;
+				}
 				
 				String title = "Download Volume Logs [" + volume.getName() + "]";
-				String filePath = dialog.getFilterPath() + File.separator + dialog.getFileName();
-				if(!filePath.endsWith(".tar.gz")) {
-					filePath += ".tar.gz";
-				}
 				try {
 					client.downloadLogs(volume.getName(), filePath);
 					showInfoDialog(title, "Volume logs downloaded successfully to [" + filePath + "]");
