@@ -35,12 +35,18 @@ import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.Task.TASK_TYPE;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.model.VolumeOptions;
+import com.gluster.storage.management.core.response.TaskResponse;
 import com.gluster.storage.management.core.utils.ProcessResult;
+import com.gluster.storage.management.server.resources.TasksResource;
+import com.gluster.storage.management.server.tasks.MigrateDiskTask;
+import com.sun.jersey.api.core.InjectParam;
 
 @Component
 public class GlusterUtil {
@@ -65,6 +71,9 @@ public class GlusterUtil {
 
 	@Autowired
 	private SshUtil sshUtil;
+	
+	@InjectParam
+	private TasksResource taskResource; 
 
 	public void setSshUtil(SshUtil sshUtil) {
 		this.sshUtil = sshUtil;
@@ -93,14 +102,13 @@ public class GlusterUtil {
 
 	public GlusterServer getGlusterServer(GlusterServer onlineServer, String serverName) {
 		List<GlusterServer> servers = getGlusterServers(onlineServer);
-		for(GlusterServer server : servers) {
-			if(server.getName().equals(serverName)) {
+		for (GlusterServer server : servers) {
+			if (server.getName().equals(serverName)) {
 				return server;
 			}
 		}
 		return null;
 	}
-	
 
 	public List<GlusterServer> getGlusterServers(GlusterServer knownServer) {
 		String output = getPeerStatus(knownServer.getName());
@@ -110,7 +118,7 @@ public class GlusterUtil {
 
 		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();
 		// TODO: Append the known server. But where? Order matters in replication/striping
-		glusterServers.add(knownServer); 
+		glusterServers.add(knownServer);
 		GlusterServer server = null;
 		boolean foundHost = false;
 		boolean foundUuid = false;
@@ -223,18 +231,18 @@ public class GlusterUtil {
 		if (!status.isSuccess()) { // Return partial success if set volume option failed.
 			status.setCode(Status.STATUS_CODE_PART_SUCCESS);
 			status.setMessage("Error while setting volume options: " + status);
-		} 
-		return status; 
+		}
+		return status;
 	}
 
 	private String prepareVolumeCreateCommand(Volume volume, List<String> brickDirectories, int count,
 			String volumeType, String transportTypeStr) {
 		StringBuilder command = new StringBuilder("gluster volume create " + volume.getName() + " ");
-		if(volumeType != null) {
+		if (volumeType != null) {
 			command.append(volumeType + " " + count + " ");
 		}
 		command.append("transport " + transportTypeStr);
-		for(String brickDir : brickDirectories) {
+		for (String brickDir : brickDirectories) {
 			command.append(" " + brickDir);
 		}
 		return command.toString();
@@ -276,7 +284,8 @@ public class GlusterUtil {
 	private String getVolumeInfo(String knownServer) {
 		ProcessResult result = sshUtil.executeRemote(knownServer, "gluster volume info ");
 		if (!result.isSuccess()) {
-			throw new GlusterRuntimeException("Command [gluster volume info] failed on [" + knownServer + "] with error: " + result);
+			throw new GlusterRuntimeException("Command [gluster volume info] failed on [" + knownServer
+					+ "] with error: " + result);
 		}
 		return result.getOutput();
 	}
@@ -345,9 +354,9 @@ public class GlusterUtil {
 
 	private void addBrickToVolume(Volume volume, String serverName, String brickDir) {
 		// TODO: Brick status should be same as the server status (online/offline)
-System.out.println(brickDir);
+		System.out.println(brickDir);
 		volume.addBrick(new Brick(serverName, BRICK_STATUS.ONLINE, brickDir.split("/")[2].trim(), brickDir));
-	 
+
 		// volume.getBricks().get(0).getName();
 		//
 		// try {
@@ -454,13 +463,13 @@ System.out.println(brickDir);
 		if (volume != null) {// Adding the last volume parsed
 			volumes.add(volume);
 		}
-	
+
 		return volumes;
 	}
 
 	public Status addBricks(String volumeName, List<String> bricks, String knownServer) {
 		StringBuilder command = new StringBuilder("gluster volume add-brick " + volumeName);
-		for(String brickDir : bricks) {
+		for (String brickDir : bricks) {
 			command.append(" " + brickDir);
 		}
 		return new Status(sshUtil.executeRemote(knownServer, command.toString()));
@@ -491,14 +500,25 @@ System.out.println(brickDir);
 		return logFileName;
 	}
 
-	public Status migrateDisk(String volumeName, String fromBrick, String toBrick, String operation, String knownServer) {
-		return new Status(sshUtil.executeRemote(knownServer, "gluster volume replace-brick " + volumeName + " "
-				+ fromBrick + " " + toBrick + " " + operation));
+	
+	public TaskResponse migrateBrick(String volumeName, String fromBrick, String toBrick, String operation,
+			Boolean autoCommit, String knownServer) {
+		TaskResponse taskResponse = new TaskResponse();
+		MigrateDiskTask migrateDiskTask = new MigrateDiskTask(TASK_TYPE.BRICK_MIGRATE, volumeName, fromBrick, toBrick);
+		migrateDiskTask.setOnlineServer(knownServer);
+		migrateDiskTask.setAutoCommit(autoCommit);
+		TaskInfo taskInfo = migrateDiskTask.start();
+		if (taskInfo.isSuccess()) {
+			taskResource.addTask(migrateDiskTask);
+		}
+		taskResponse.setData(taskInfo);
+		taskResponse.setStatus(new Status(Status.STATUS_CODE_SUCCESS, ""));
+		return taskResponse;
 	}
 
 	public Status removeBricks(String volumeName, List<String> bricks, String knownServer) {
 		StringBuilder command = new StringBuilder("gluster --mode=script volume remove-brick " + volumeName);
-		for(String brickDir : bricks) {
+		for (String brickDir : bricks) {
 			command.append(" " + brickDir);
 		}
 		return new Status(sshUtil.executeRemote(knownServer, command.toString()));

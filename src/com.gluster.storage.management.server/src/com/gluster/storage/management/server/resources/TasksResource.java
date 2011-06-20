@@ -50,30 +50,31 @@ import com.sun.jersey.spi.resource.Singleton;
 
 @Path(RESOURCE_PATH_CLUSTERS + "/{" + PATH_PARAM_CLUSTER_NAME + "}/" + RESOURCE_TASKS)
 @Singleton
-public class TaskResource {
+public class TasksResource {
 	private Map<String, Task> tasksMap = new HashMap<String, Task>();
 
-	public TaskResource() {
+	public TasksResource() {
 	}
 
-	public void addTask(Task task) {
-		getTasksMap().put(task.getId(), task);
+	
+	public void addTask(Task task) { // task should be one of MuigrateDiskTask, FormatDiskTask, etc
+		tasksMap.put(task.getId(), task);
 	}
 
 	public void removeTask(Task task) {
-		getTasksMap().remove(task);
+		tasksMap.remove(task.getId());
 	}
 
 	public List<Task> getAllTasks() {
 		List<Task> allTasks = new ArrayList<Task>();
-		for (Map.Entry<String, Task> entry : getTasksMap().entrySet()) {
+		for (Map.Entry<String, Task> entry : tasksMap.entrySet()) {
 			allTasks.add(entry.getValue());
 		}
 		return allTasks;
 	}
 
 	public Task getTask(String taskId) {
-		for (Map.Entry<String, Task> entry : getTasksMap().entrySet()) {
+		for (Map.Entry<String, Task> entry : tasksMap.entrySet()) {
 			if (entry.getValue().getId().equals(taskId)) {
 				return entry.getValue();
 			}
@@ -141,14 +142,6 @@ public class TaskResource {
 						+ "] removed successfully"));
 					}
 		return null;
-	}
-
-	public void setTasksMap(Map<String, Task> tasksMap) {
-		this.tasksMap = tasksMap;
-	}
-
-	public Map<String, Task> getTasksMap() {
-		return tasksMap;
 	}
 
 }
