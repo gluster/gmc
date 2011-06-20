@@ -18,8 +18,6 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.actions;
 
-import java.io.File;
-
 import org.eclipse.jface.action.IAction;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
