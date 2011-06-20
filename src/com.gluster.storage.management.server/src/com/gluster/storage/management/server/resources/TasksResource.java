@@ -65,6 +65,14 @@ public class TasksResource {
 		tasksMap.remove(task.getId());
 	}
 
+	public List<TaskInfo> getAllTasksInfo() {
+		List<TaskInfo> allTasksInfo = new ArrayList<TaskInfo>();
+		for (Map.Entry<String, Task> entry : tasksMap.entrySet()) {
+			allTasksInfo.add(entry.getValue().getTaskInfo());
+		}
+		return allTasksInfo;
+	}
+	
 	public List<Task> getAllTasks() {
 		List<Task> allTasks = new ArrayList<Task>();
 		for (Map.Entry<String, Task> entry : tasksMap.entrySet()) {
@@ -86,12 +94,8 @@ public class TasksResource {
 	@Produces(MediaType.TEXT_XML)
 	public TaskListResponse getTasks() {
 		TaskListResponse taskListResponse = new TaskListResponse();
-		List<TaskInfo> taskInfoList = new ArrayList<TaskInfo>();
 		try {
-			for (Task task : getAllTasks()) {
-				taskInfoList.add(task.getTaskInfo());
-			}
-			taskListResponse.setData(taskInfoList);
+			taskListResponse.setData(getAllTasksInfo());
 			taskListResponse.setStatus(new Status(Status.STATUS_CODE_SUCCESS, ""));
 		} catch (GlusterRuntimeException e) {
 			taskListResponse.setStatus(new Status(e));
