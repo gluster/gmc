@@ -71,11 +71,11 @@ public class VolumesClient extends AbstractClient {
 	}
 
 	public Status startVolume(String volumeName) {
-		return performOperation(volumeName, RESTConstants.FORM_PARAM_VALUE_START);
+		return performOperation(volumeName, RESTConstants.TASK_START);
 	}
 
 	public Status stopVolume(String volumeName) {
-		return performOperation(volumeName, RESTConstants.FORM_PARAM_VALUE_STOP);
+		return performOperation(volumeName, RESTConstants.TASK_STOP);
 	}
 
 	public Status setVolumeOption(String volume, String key, String value) {
@@ -196,37 +196,12 @@ public class VolumesClient extends AbstractClient {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_SOURCE, brickFrom);
 		form.add(RESTConstants.FORM_PARAM_TARGET, brickTo);
-		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_START);
+		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_START);
 		
 		return (Status) putRequest( volumeName + "/" + RESTConstants.RESOURCE_BRICKS, Status.class, form);
 	}
 
-	public Status stopMigration(String volumeName, String brickFrom, String brickkTo) {
-		Form form = new Form();
-		form.add(RESTConstants.FORM_PARAM_SOURCE, brickFrom);
-		form.add(RESTConstants.FORM_PARAM_TARGET, brickkTo);
-		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_STOP);
-		
-		return (Status) putRequest( volumeName + "/" + RESTConstants.RESOURCE_BRICKS, Status.class, form);
-	}
-
-	public Status pauseMigration(String volumeName, String brickFrom, String brickTo) {
-		Form form = new Form();
-		form.add(RESTConstants.FORM_PARAM_SOURCE, brickFrom);
-		form.add(RESTConstants.FORM_PARAM_TARGET, brickTo);
-		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_PAUSE);
-		
-		return (Status) putRequest( volumeName + "/" + RESTConstants.RESOURCE_BRICKS, Status.class, form);
-	}
-
-	public Status statusMigration(String volumeName, String brickFrom, String brickTo) {
-		Form form = new Form();
-		form.add(RESTConstants.FORM_PARAM_SOURCE, brickFrom);
-		form.add(RESTConstants.FORM_PARAM_TARGET, brickTo);
-		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_VALUE_STATUS);
-		
-		return (Status) putRequest( volumeName + "/" + RESTConstants.RESOURCE_BRICKS, Status.class, form);
-	}
+	
 
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();

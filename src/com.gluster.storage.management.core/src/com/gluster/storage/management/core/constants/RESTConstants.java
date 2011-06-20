@@ -36,18 +36,22 @@ public class RESTConstants {
 	public static final String RESOURCE_DOWNLOAD = "download";
 	public static final String RESOURCE_BRICKS = "bricks";
 	public static final String RESOURCE_DISKS = "disks";
-	public static final String RESOURCE_RUNNING_TASKS = "runningtasks";
 	public static final String RESOURCE_ALERTS = "alerts";
 	public static final String RESOURCE_SERVERS = "servers";
 	public static final String RESOURCE_TASKS = "tasks";
+	
+	public static final String TASK_START = "start";
+	public static final String TASK_PAUSE = "pause";
+	public static final String TASK_RESUME = "resume";
+	public static final String TASK_STOP = "stop";
+	public static final String TASK_STATUS = "status";
+	public static final String TASK_DELETE = "delete";
+	
 
 	public static final String FORM_PARAM_CLUSTER_NAME = "clusterName";
 	public static final String FORM_PARAM_SERVER_NAME = "serverName";
 	public static final String FORM_PARAM_DISKS = "disks";
 	public static final String FORM_PARAM_OPERATION = "operation";
-	public static final String FORM_PARAM_VALUE_START = "start";
-	public static final String FORM_PARAM_VALUE_STOP = "stop";
-	public static final String FORM_PARAM_VALUE_PAUSE = "pause";
 	public static final String FORM_PARAM_VALUE_STATUS = "status";
 	public static final String FORM_PARAM_OPTION_KEY = "key";
 	public static final String FORM_PARAM_OPTION_VALUE = "value";

@@ -33,8 +33,10 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Alert;
+import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.EntityGroup;
-import com.gluster.storage.management.core.model.RunningTask;
+import com.gluster.storage.management.core.model.Task.TASK_TYPE;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.gui.IImageKeys;
@@ -50,6 +52,7 @@ public class VolumesSummaryView extends ViewPart {
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	private ScrolledForm form;
 	private EntityGroup<Volume> volumes;
+	private Cluster cluster = GlusterDataModelManager.getInstance().getModel().getCluster();
 
 	private static final String ALERTS = "Alerts";
 	private static final String RUNNING_TASKS = "Running Tasks";
@@ -88,9 +91,8 @@ public class VolumesSummaryView extends ViewPart {
 
 	private void createAlertsSection() {
 		Composite section = guiHelper.createSection(form, toolkit, ALERTS, null, 1, false);
-		List<Alert> alerts = GlusterDataModelManager.getInstance().getModel().getCluster().getAlerts();
 
-		for (Alert alert : alerts) {
+		for (Alert alert : cluster.getAlerts()) {
 			addAlertLabel(section, alert);
 		}
 	}
@@ -108,25 +110,23 @@ public class VolumesSummaryView extends ViewPart {
 	private void createRunningTasksSection() {
 		Composite section = guiHelper.createSection(form, toolkit, RUNNING_TASKS, null, 1, false);
 
-		List<RunningTask> runningTasks = GlusterDataModelManager.getInstance().getModel().getCluster()
-				.getRunningTasks();
-
-		for (RunningTask task : runningTasks) {
-			addRunningTaskLabel(section, task);
+		for (TaskInfo taskInfo : cluster.getTaskInfoList()) {
+			if (taskInfo.getType() == TASK_TYPE.BRICK_MIGRATE || taskInfo.getType() == TASK_TYPE.VOLUME_REBALANCE)
+			addTaskLabel(section, taskInfo);
 		}
 	}
 
-	private void addRunningTaskLabel(Composite section, RunningTask task) {
+	private void addTaskLabel(Composite section, TaskInfo taskInfo) {
 		// Task related to Volumes context
-		if (task.getType() == RunningTask.TASK_TYPES.BRICK_MIGRATE
-				|| task.getType() == RunningTask.TASK_TYPES.VOLUME_REBALANCE) {
-			if (task.getStatus().isPercentageSupported()) {
-				// TODO Progress bar
+		if (taskInfo.getType() == TASK_TYPE.BRICK_MIGRATE
+				|| taskInfo.getType() == TASK_TYPE.VOLUME_REBALANCE) {
+			if (taskInfo.getStatus().isPercentageSupported()) {
+				// TODO Progress bar or link to progress view
 			}
 			CLabel lblAlert = new CLabel(section, SWT.NONE);
-			lblAlert.setText(task.getTaskInfo());
-			lblAlert.setImage((task.getType() == RunningTask.TASK_TYPES.BRICK_MIGRATE) ? guiHelper
-					.getImage(IImageKeys.DISK_MIGRATE) : guiHelper.getImage(IImageKeys.VOLUME_REBALANCE));
+			lblAlert.setText(taskInfo.getDescription());
+			lblAlert.setImage((taskInfo.getType() == TASK_TYPE.BRICK_MIGRATE) ? guiHelper
+					.getImage(IImageKeys.BRICK_MIGRATE) : guiHelper.getImage(IImageKeys.VOLUME_REBALANCE));
 			lblAlert.redraw();
 		}
 	}
@@ -145,7 +145,6 @@ public class VolumesSummaryView extends ViewPart {
 		createStatusChart(toolkit, section, values);
 	}
 
-	@SuppressWarnings("unchecked")
 	private int getVolumeCountByStatus(EntityGroup<Volume> volumes, VOLUME_STATUS status) {
 		int count = 0;
 		for (Volume volume : (List<Volume>) volumes.getEntities()) {
