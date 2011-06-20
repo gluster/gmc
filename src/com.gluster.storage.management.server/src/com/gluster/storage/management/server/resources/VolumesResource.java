@@ -24,9 +24,9 @@ import static com.gluster.storage.management.core.constants.RESTConstants.FORM_P
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_OPERATION;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SOURCE;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_TARGET;
-import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_START;
-import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VALUE_STOP;
-import static com.gluster.storage.management.core.constants.RESTConstants.FROM_PARAM_AUTO_COMMIT;
+import static com.gluster.storage.management.core.constants.RESTConstants.TASK_START;
+import static com.gluster.storage.management.core.constants.RESTConstants.TASK_STOP;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_AUTO_COMMIT;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_VOLUME_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_BRICKS;
@@ -220,9 +220,9 @@ public class VolumesResource {
 	}
 
 	private Status performOperation(String volumeName, String operation, GlusterServer onlineServer) {
-		if (operation.equals(FORM_PARAM_VALUE_START)) {
+		if (operation.equals(TASK_START)) {
 			return glusterUtil.startVolume(volumeName, onlineServer.getName());
-		} else if (operation.equals(FORM_PARAM_VALUE_STOP)) {
+		} else if (operation.equals(TASK_STOP)) {
 			return glusterUtil.stopVolume(volumeName, onlineServer.getName());
 		} else {
 			return new Status(Status.STATUS_CODE_FAILURE, "Invalid operation code [" + operation + "]");
@@ -648,7 +648,7 @@ public class VolumesResource {
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}/" + RESOURCE_BRICKS)
 	public TaskResponse migrateBrick(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_SOURCE) String fromBrick,
-			@FormParam(FORM_PARAM_TARGET) String toBrick, @FormParam(FROM_PARAM_AUTO_COMMIT) Boolean autoCommit) {
+			@FormParam(FORM_PARAM_TARGET) String toBrick, @FormParam(FORM_PARAM_AUTO_COMMIT) Boolean autoCommit) {
 
 		TaskResponse taskResponse = new TaskResponse();
 		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
