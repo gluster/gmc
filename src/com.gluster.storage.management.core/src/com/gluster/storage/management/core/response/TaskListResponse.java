@@ -23,13 +23,12 @@ package com.gluster.storage.management.core.response;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 
-/**
- * @author root
- *
- */
+@XmlRootElement
 public class TaskListResponse extends AbstractResponse {
 	private List<TaskInfo> taskList = new ArrayList<TaskInfo>();
 	private Status status;
@@ -50,7 +49,6 @@ public class TaskListResponse extends AbstractResponse {
 	
 	@Override
 	public Object getData() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.taskList;
 	}
 }

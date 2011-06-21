@@ -46,8 +46,8 @@ import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
-import com.gluster.storage.management.core.model.RunningTask;
 import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.utils.NumberUtil;
@@ -276,25 +276,23 @@ public class ClusterSummaryView extends ViewPart {
 	private void createRunningTasksSection() {
 		Composite section = guiHelper.createSection(form, toolkit, "Running Tasks", null, 1, false);
 
-		List<RunningTask> runningTasks = cluster.getRunningTasks();
-
-		for (RunningTask task : runningTasks) {
-			addRunningTaskLabel(section, task);
+		for (TaskInfo taskInfo : cluster.getTaskInfoList()) {
+			addTaskLabel(section, taskInfo);
 		}
 	}
 
-	private void addRunningTaskLabel(Composite section, RunningTask task) {
-		// Task related to Volumes context
+	private void addTaskLabel(Composite section, TaskInfo taskInfo) {
+		//TODO: create link and open the task progress view
 		CLabel lblAlert = new CLabel(section, SWT.NONE);
-		lblAlert.setText(task.getTaskInfo());
+		lblAlert.setText(taskInfo.getDescription());
 		
 		Image taskImage = null;
-		switch(task.getType()) {
+		switch(taskInfo.getType()) {
 		case DISK_FORMAT:
 			taskImage = guiHelper.getImage(IImageKeys.DISK);
 			break;
 		case BRICK_MIGRATE:
-			taskImage = guiHelper.getImage(IImageKeys.DISK_MIGRATE);
+			taskImage = guiHelper.getImage(IImageKeys.BRICK_MIGRATE);
 			break;
 		case VOLUME_REBALANCE:
 			taskImage = guiHelper.getImage(IImageKeys.VOLUME_REBALANCE);
