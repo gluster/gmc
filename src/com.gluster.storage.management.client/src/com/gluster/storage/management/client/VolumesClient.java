@@ -192,11 +192,12 @@ public class VolumesClient extends AbstractClient {
 		return queryParams;
 	}
 
-	public Status startMigration(String volumeName, String brickFrom, String brickTo) {
+	public Status startMigration(String volumeName, String brickFrom, String brickTo, Boolean autoCommit) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_SOURCE, brickFrom);
 		form.add(RESTConstants.FORM_PARAM_TARGET, brickTo);
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_START);
+		form.add(RESTConstants.FORM_PARAM_AUTO_COMMIT, autoCommit);
 		
 		return (Status) putRequest( volumeName + "/" + RESTConstants.RESOURCE_BRICKS, Status.class, form);
 	}

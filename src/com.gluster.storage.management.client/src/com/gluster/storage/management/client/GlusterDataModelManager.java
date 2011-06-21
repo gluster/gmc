@@ -45,8 +45,6 @@ import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 
 public class GlusterDataModelManager {
-	// private Server discoveredServer1, discoveredServer2, discoveredServer3,
-	// discoveredServer4, discoveredServer5;
 	private static GlusterDataModelManager instance = new GlusterDataModelManager();
 	private GlusterDataModel model;
 	private String securityToken;
@@ -137,13 +135,8 @@ public class GlusterDataModelManager {
 	}
 
 	public void initializeTasks(Cluster cluster) {
-		try {
-			List<TaskInfo> taskInfoList = new TasksClient(cluster.getName()). getAllTasks();
-			cluster.setTaskInfoList(taskInfoList);
-		} catch(GlusterRuntimeException e) {
-			//TODO show the error dialog
-			//showErrorDialog( "Tasks", "Fetching tasks failed! Error: ["	+ e.getMessage() + "]");
-		}
+		List<TaskInfo> taskInfoList = new TasksClient(cluster.getName()).getAllTasks();
+		cluster.setTaskInfoList(taskInfoList);
 	}
 
 	public void initializeAlerts(Cluster cluster) {

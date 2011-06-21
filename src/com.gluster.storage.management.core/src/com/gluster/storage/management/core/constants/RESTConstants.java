@@ -46,7 +46,6 @@ public class RESTConstants {
 	public static final String TASK_STOP = "stop";
 	public static final String TASK_STATUS = "status";
 	public static final String TASK_DELETE = "delete";
-	
 
 	public static final String FORM_PARAM_CLUSTER_NAME = "clusterName";
 	public static final String FORM_PARAM_SERVER_NAME = "serverName";
@@ -58,7 +57,7 @@ public class RESTConstants {
 	public static final String FORM_PARAM_SOURCE = "source";
 	public static final String FORM_PARAM_TARGET = "target";
 	public static final String FORM_PARAM_BRICKS = "bricks";
-	public static final String FROM_PARAM_AUTO_COMMIT = "autoCommit";
+	public static final String FORM_PARAM_AUTO_COMMIT = "autoCommit";
 	
 	public static final String PATH_PARAM_VOLUME_NAME = "volumeName";
 	public static final String PATH_PARAM_CLUSTER_NAME = "clusterName";
@@ -76,5 +75,4 @@ public class RESTConstants {
 	public static final String QUERY_PARAM_TO_TIMESTAMP = "toTimestamp";
 	public static final String QUERY_PARAM_DOWNLOAD = "download";
 	public static final String QUERY_PARAM_SERVER_NAME = "serverName";
-	public static final String QUERY_PARAM_TASK_OPERATION = "taskOperation";
 }

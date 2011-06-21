@@ -58,39 +58,39 @@ public class TasksClient extends AbstractClient {
 		}
 	}
 	
-	// see startMigration @ VolumesClient
-	public TaskResponse pauseMigration(String taskId) {
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-		queryParams.add(RESTConstants.QUERY_PARAM_TASK_OPERATION, RESTConstants.TASK_PAUSE);
-
-		return (TaskResponse) putRequest( taskId, TaskResponse.class, queryParams);
-	}
-
-	public TaskResponse resumeMigration(String taskId) {
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-		queryParams.add(RESTConstants.QUERY_PARAM_TASK_OPERATION, RESTConstants.TASK_RESUME);
+	// see startMigration @ VolumesClient, etc
+	public TaskResponse pauseTask(String taskId) {
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_PAUSE);
 		
-		return (TaskResponse) putRequest( taskId, TaskResponse.class, queryParams);
+		return (TaskResponse) putRequest( taskId, TaskResponse.class, form);
 	}
 
-	public TaskResponse stopMigration(String taskId) {
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-		queryParams.add(RESTConstants.QUERY_PARAM_TASK_OPERATION, RESTConstants.TASK_STOP);
+	public TaskResponse resumeTask(String taskId) {
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_RESUME);
 		
-		return (TaskResponse) putRequest( taskId, TaskResponse.class, queryParams);
+		return (TaskResponse) putRequest( taskId, TaskResponse.class, form);
 	}
 
-	public TaskResponse statusMigration(String taskId) {
-		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-		queryParams.add(RESTConstants.QUERY_PARAM_TASK_OPERATION, RESTConstants.TASK_STATUS);
-			
-		return (TaskResponse) putRequest( taskId, Status.class, queryParams);
+	public TaskResponse stopTask(String taskId) {
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_STOP);
+		
+		return (TaskResponse) putRequest( taskId, TaskResponse.class, form);
+	}
+
+	public TaskResponse getTaskStatus(String taskId) {
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_STATUS);
+		
+		return (TaskResponse) putRequest( taskId, TaskResponse.class, form);
 	}
 	
-	public TaskInfo deleteMigration(String taskId) {
+	public TaskResponse deleteTask(String taskId) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-		queryParams.add(RESTConstants.QUERY_PARAM_TASK_OPERATION, RESTConstants.TASK_DELETE);
+		queryParams.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_DELETE);
 		
-		return (TaskInfo) putRequest( taskId, Status.class, queryParams);
+		return (TaskResponse) deleteSubResource(taskId, TaskResponse.class, queryParams);
 	}
 }

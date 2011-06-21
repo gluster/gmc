@@ -22,7 +22,7 @@ package com.gluster.storage.management.server.resources;
 
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_TASK_ID;
-import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_TASK_OPERATION;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_OPERATION;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_TASKS;
 
@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -40,6 +41,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Task;
@@ -107,19 +109,19 @@ public class TasksResource {
 	@Path("/{" + PATH_PARAM_TASK_ID + "}")
 	@Produces(MediaType.TEXT_XML)
 	public TaskResponse performTask(@PathParam(PATH_PARAM_TASK_ID) String taskId,
-			@QueryParam(QUERY_PARAM_TASK_OPERATION) String taskOperation) {
+			@FormParam(FORM_PARAM_OPERATION) String taskOperation) {
 		Task task = getTask(taskId);
 		TaskInfo taskInfo = null;
 		TaskResponse taskResponse = new TaskResponse();
 
 		try {
-			if (taskOperation.equals("resume")) {
+			if (taskOperation.equals(RESTConstants.TASK_RESUME)) {
 				taskInfo = task.resume();
 			}
-			if (taskOperation.equals("pause")) {
+			if (taskOperation.equals(RESTConstants.TASK_PAUSE)) {
 				taskInfo = task.pause();
 			}
-			if (taskOperation.equals("stop")) {
+			if (taskOperation.equals(RESTConstants.TASK_STOP)) {
 				taskInfo = task.stop();
 			}
 			taskResponse.setData(taskInfo);
@@ -134,7 +136,7 @@ public class TasksResource {
 	@Path("/{" + PATH_PARAM_TASK_ID + "}")
 	@Produces(MediaType.TEXT_XML)
 	public TaskResponse deleteTask(@PathParam(PATH_PARAM_TASK_ID) String taskId,
-			@QueryParam(QUERY_PARAM_TASK_OPERATION) String taskOperation) {
+			@QueryParam(FORM_PARAM_OPERATION) String taskOperation) {
 		TaskResponse taskResponse = new TaskResponse();
 		Task task = getTask(taskId);
 		if (task == null) {

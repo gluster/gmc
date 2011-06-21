@@ -287,11 +287,6 @@ public abstract class AbstractClient {
 				.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML).put(responseClass);
 	}
 
-	protected Object putRequest(String subResourceName, Class responseClass, MultivaluedMap<String, String> queryParams) {
-		return resource.path(subResourceName).queryParams(queryParams).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-				.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML).put(responseClass);
-	}
-
 	/**
 	 * Submits given object to the resource and returns the object received as response
 	 * 
