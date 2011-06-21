@@ -18,6 +18,8 @@
  *******************************************************************************/
 package com.gluster.storage.management.server.resources;
 
+import java.net.URI;
+
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -35,11 +37,11 @@ public class AbstractResource {
 	 * the given path relative to current path.
 	 * 
 	 * @param relativePath
-	 *            path to be used for creating the URI to be set in the "location" header of response.
+	 *            relative path of the created resource - will be set in the "location" header of response.
 	 * @return the {@link Response} object
 	 */
 	protected Response createdResponse(String relativePath) {
-		return Response.created(uriInfo.getAbsolutePathBuilder().path(relativePath).build()).build();
+		return Response.created(createURI(relativePath)).build();
 	}
 
 	/**
@@ -48,6 +50,19 @@ public class AbstractResource {
 	 */
 	protected Response noContentResponse() {
 		return Response.noContent().build();
+	}
+
+	/**
+	 * Creates a response with HTTP status code of 204 (no content), also setting the location header to given location
+	 * @param location path of the location to be set relative to current path 
+	 * @return the {@link Response} object
+	 */
+	protected Response noContentResponse(String location) {
+		return Response.noContent().location(createURI(location)).build();
+	}
+
+	protected URI createURI(String location) {
+		return uriInfo.getAbsolutePathBuilder().path(location).build();
 	}
 
 	/**

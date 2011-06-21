@@ -52,20 +52,29 @@ public class AddServerAction extends AbstractActionDelegate {
 				String partErrMsg = "";
 				for (Server server : selectedServers) {
 					guiHelper.setStatusMessage("Adding server [" + server.getName() + "]...");
-					GlusterServerResponse response = glusterServersClient.addServer(server);
-					Status status = response.getStatus();
-					if (status.isSuccess()) {
+					
+					try {
+						glusterServersClient.addServer(server);
 						modelManager.removeDiscoveredServer(server);
-						modelManager.addGlusterServer(response.getGlusterServer());
+						modelManager.addGlusterServer(glusterServersClient.getGlusterServer(server.getName()));
 						successServers.add(server);
-					} else if (status.isPartSuccess()) {
-						modelManager.removeDiscoveredServer(server);
-						modelManager.addGlusterServer(response.getGlusterServer());
-						partSuccessServers.add(server);
-						partErrMsg += "[" + server.getName() + "] : " + status;
-					} else {
-						errMsg += "[" + server.getName() + "] : " + status;
+					} catch(Exception e) {
+						// TODO: Handle error conditions
 					}
+
+//					Status status = response.getStatus();
+//					if (status.isSuccess()) {
+//						modelManager.removeDiscoveredServer(server);
+//						modelManager.addGlusterServer(response.getGlusterServer());
+//						successServers.add(server);
+//					} else if (status.isPartSuccess()) {
+//						modelManager.removeDiscoveredServer(server);
+//						modelManager.addGlusterServer(response.getGlusterServer());
+//						partSuccessServers.add(server);
+//						partErrMsg += "[" + server.getName() + "] : " + status;
+//					} else {
+//						errMsg += "[" + server.getName() + "] : " + status;
+//					}
 				}
 
 				guiHelper.clearStatusMessage();

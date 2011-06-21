@@ -75,9 +75,12 @@ public class UsersClient extends AbstractClient {
 		Form form = new Form();
 		form.add(FORM_PARAM_OLD_PASSWORD, oldPassword);
 		form.add(FORM_PARAM_NEW_PASSWORD, newPassword);
-		Status status = (Status) putRequest(user, Status.class, form);
-
-		return status.isSuccess();
+		try {
+			putRequest(user, form);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 	public static void main(String[] args) {

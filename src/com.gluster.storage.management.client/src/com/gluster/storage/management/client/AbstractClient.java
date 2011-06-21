@@ -23,6 +23,7 @@ import com.gluster.storage.management.client.utils.ClientUtil;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.representation.Form;
@@ -120,7 +121,7 @@ public abstract class AbstractClient {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Object fetchResource(WebResource res, MultivaluedMap<String, String> queryParams, Class responseClass) {
-		return res.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML)
+		return res.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML)
 				.get(responseClass);
 	}
 
@@ -214,16 +215,16 @@ public abstract class AbstractClient {
 	/**
 	 * Submits given Form using POST method to the resource and returns the object received as response
 	 * 
-	 * @param responseClass
-	 *            Class of the object expected as response
 	 * @param form
 	 *            Form to be submitted
-	 * @return Object of given class received as response
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected Object postRequest(Class responseClass, Form form) {
-		return resource.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).header(HTTP_HEADER_AUTH, authHeader)
-				.accept(MediaType.TEXT_XML).post(responseClass, form);
+	protected void postRequest(Form form) {
+		try {
+			resource.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).header(HTTP_HEADER_AUTH, authHeader)
+					.accept(MediaType.APPLICATION_XML).post(form);
+		} catch (UniformInterfaceException e) {
+			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
+		}
 	}
 
 	/**
@@ -231,16 +232,16 @@ public abstract class AbstractClient {
 	 * 
 	 * @param subResourceName
 	 *            Name of the sub-resource to which the request is to be posted
-	 * @param responseClass
-	 *            Class of the object expected as response
 	 * @param form
 	 *            Form to be submitted
-	 * @return Object of given class received as response
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected Object postRequest(String subResourceName, Class responseClass, Form form) {
-		return resource.path(subResourceName).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-				.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML).post(responseClass, form);
+	protected void postRequest(String subResourceName, Form form) {
+		try {
+			resource.path(subResourceName).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
+					.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML).post(form);
+		} catch (UniformInterfaceException e) {
+			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
+		}
 	}
 
 	/**
@@ -248,29 +249,31 @@ public abstract class AbstractClient {
 	 * 
 	 * @param subResourceName
 	 *            Name of the sub-resource to which the request is to be posted
-	 * @param responseClass
-	 *            Class of the object expected as response
 	 * @param form
 	 *            Form to be submitted
-	 * @return Object of given class received as response
 	 */
-	protected Object putRequest(String subResourceName, Class responseClass, Form form) {
-		return resource.path(subResourceName).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-				.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML).put(responseClass, form);
+	protected void putRequest(String subResourceName, Form form) {
+		try {
+			resource.path(subResourceName).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
+					.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML).put(form);
+		} catch (UniformInterfaceException e) {
+			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
+		}
 	}
 
 	/**
 	 * Submits given Form using PUT method to the given sub-resource and returns the object received as response
 	 * 
-	 * @param responseClass
-	 *            Class of the object expected as response
 	 * @param form
 	 *            Form to be submitted
-	 * @return Object of given class received as response
 	 */
-	protected Object putRequest(Class responseClass, Form form) {
-		return resource.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).header(HTTP_HEADER_AUTH, authHeader)
-				.accept(MediaType.TEXT_XML).put(responseClass, form);
+	protected void putRequest(Form form) {
+		try {
+		resource.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).header(HTTP_HEADER_AUTH, authHeader)
+				.accept(MediaType.APPLICATION_XML).put(form);
+		} catch(UniformInterfaceException e) {
+			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
+		}
 	}
 
 	/**
@@ -278,13 +281,14 @@ public abstract class AbstractClient {
 	 * 
 	 * @param subResourceName
 	 *            Name of the sub-resource to which the request is to be posted
-	 * @param responseClass
-	 *            Class of the object expected as response
-	 * @return Object of given class received as response
 	 */
-	protected Object putRequest(String subResourceName, Class responseClass) {
-		return resource.path(subResourceName).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-				.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML).put(responseClass);
+	protected void putRequest(String subResourceName) {
+		try {
+			resource.path(subResourceName).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
+					.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML).put();
+		} catch (UniformInterfaceException e) {
+			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
+		}
 	}
 
 	/**
@@ -298,8 +302,8 @@ public abstract class AbstractClient {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Object postObject(Class responseClass, Object requestObject) {
-		return resource.type(MediaType.TEXT_XML).header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.TEXT_XML)
-				.post(responseClass, requestObject);
+		return resource.type(MediaType.APPLICATION_XML).header(HTTP_HEADER_AUTH, authHeader)
+				.accept(MediaType.APPLICATION_XML).post(responseClass, requestObject);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -314,9 +318,12 @@ public abstract class AbstractClient {
 				.delete(responseClass);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected Object deleteSubResource(String subResourceName, Class responseClass) {
-		return resource.path(subResourceName).header(HTTP_HEADER_AUTH, authHeader).delete(responseClass);
+	protected void deleteSubResource(String subResourceName) {
+		try {
+			resource.path(subResourceName).header(HTTP_HEADER_AUTH, authHeader).delete();
+		} catch (UniformInterfaceException e) {
+			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
+		}
 	}
 
 	public abstract String getResourcePath();

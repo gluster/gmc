@@ -121,7 +121,7 @@ public class GlusterServersResource extends AbstractServersResource {
 	}
 	
 	@GET
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public GlusterServerListResponse getGlusterServers(
 			@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
 		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();
@@ -181,7 +181,7 @@ public class GlusterServersResource extends AbstractServersResource {
 
 	@GET
 	@Path("{serverName}")
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public GlusterServerResponse getGlusterServer(
 			@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_SERVER_NAME) String serverName) {
@@ -224,7 +224,7 @@ public class GlusterServersResource extends AbstractServersResource {
 	}
 	
 	@POST
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public GlusterServerResponse addServer(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@FormParam(FORM_PARAM_SERVER_NAME) String serverName) {
 		if(clusterName.isEmpty()) {
@@ -293,7 +293,7 @@ public class GlusterServersResource extends AbstractServersResource {
 	}
 
 	@DELETE
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	@Path("{" + PATH_PARAM_SERVER_NAME + "}")
 	public Status removeServer(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_SERVER_NAME) String serverName) {

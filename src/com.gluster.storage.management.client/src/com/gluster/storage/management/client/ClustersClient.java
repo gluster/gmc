@@ -24,8 +24,9 @@ import static com.gluster.storage.management.core.constants.RESTConstants.RESOUR
 
 import java.util.List;
 
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.response.StringListResponse;
+import com.gluster.storage.management.core.response.ClusterNameListResponse;
 import com.sun.jersey.api.representation.Form;
 
 /**
@@ -49,25 +50,26 @@ public class ClustersClient extends AbstractClient {
 		return RESOURCE_PATH_CLUSTERS;
 	}
 	
-	public StringListResponse getClusters() {
-		return (StringListResponse)fetchResource(StringListResponse.class);
+	public List<String> getClusterNames() {
+		return ((ClusterNameListResponse)fetchResource(ClusterNameListResponse.class)).getClusterNames();
 	}
 	
-	public Status createCluster(String clusterName) {
+	public void createCluster(String clusterName) {
 		Form form = new Form();
 		form.add(FORM_PARAM_CLUSTER_NAME, clusterName);
-		return (Status)postRequest(Status.class, form);
+
+		postRequest(form);
 	}
 	
-	public Status registerCluster(String clusterName, String knownServer) {
+	public void registerCluster(String clusterName, String knownServer) {
 		Form form = new Form();
 		form.add(FORM_PARAM_CLUSTER_NAME, clusterName);
 		form.add(FORM_PARAM_SERVER_NAME, knownServer);
-		return (Status)putRequest(Status.class, form);
+		putRequest(form);
 	}
 	
-	public Status deleteCluster(String clusterName) {
-		return (Status)deleteSubResource(clusterName, Status.class);
+	public void deleteCluster(String clusterName) {
+		deleteSubResource(clusterName);
 	}
 	
 	public static void main(String args[]) {
@@ -76,20 +78,21 @@ public class ClustersClient extends AbstractClient {
 		if (authStatus.isSuccess()) {
 			ClustersClient client = new ClustersClient();
 			client.setSecurityToken(usersClient.getSecurityToken());
-			StringListResponse response = client.getClusters();
-			List<String> clusters = response.getData();
-			if(clusters.size() == 0) {
-				Status status = client.createCluster("myCluster1");
-				System.out.println(status);
+			System.out.println(client.getClusterNames());
+			try {
+				client.createCluster("test1");
+			} catch(GlusterRuntimeException e) {
+				System.out.println(e.getMessage());
 			}
-			response = client.getClusters();
-			clusters = response.getData();
-			System.out.println(clusters);
 			
-			System.out.println(client.deleteCluster("myCluster1"));
-			response = client.getClusters();
-			clusters = response.getData();
-			System.out.println(clusters);
+			System.out.println(client.getClusterNames());
+			
+			try {
+				client.deleteCluster("test1");
+			} catch (GlusterRuntimeException e) {
+				System.out.println(e.getMessage());
+			}
+			System.out.println(client.getClusterNames());
 		} else {
 			System.out.println("authentication failed: " + authStatus);
 		}

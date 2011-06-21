@@ -20,7 +20,7 @@ import com.gluster.storage.management.core.model.Alert;
 public class AlertsResource {
 
 	@GET
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public AlertListResponse getAlerts() {
 
 		List<Alert> alerts = new ArrayList<Alert>();

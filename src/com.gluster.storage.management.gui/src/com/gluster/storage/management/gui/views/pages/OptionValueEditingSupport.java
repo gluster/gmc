@@ -17,7 +17,6 @@ import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
-import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
 import com.gluster.storage.management.gui.utils.GUIHelper;
@@ -67,13 +66,12 @@ public class OptionValueEditingSupport extends EditingSupport {
 			@Override
 			public void run() {
 				VolumesClient client = new VolumesClient();
-				Status status = client.setVolumeOption(volume.getName(), entry.getKey(), (String) value);
-				if (status.isSuccess()) {
+				try {
+					client.setVolumeOption(volume.getName(), entry.getKey(), (String) value);
 					entry.setValue((String)value);
 					GlusterDataModelManager.getInstance().setVolumeOption(volume, entry);
-				} else {
-					MessageDialog.openError(Display.getDefault().getActiveShell(), "Set Volume Option",
-							status.getMessage());
+				} catch(Exception e) {
+					MessageDialog.openError(Display.getDefault().getActiveShell(), "Set Volume Option", e.getMessage());
 				}
 				getViewer().update(entry, null);
 			}

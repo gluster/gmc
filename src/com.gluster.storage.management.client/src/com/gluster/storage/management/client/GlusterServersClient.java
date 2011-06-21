@@ -59,8 +59,9 @@ public class GlusterServersClient extends AbstractClient {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Server getServer(String serverName) {
-		GenericResponse<Server> response = (GenericResponse<Server>) fetchSubResource(serverName, GenericResponse.class);
+	public GlusterServer getGlusterServer(String serverName) {
+		GenericResponse<GlusterServer> response = (GenericResponse<GlusterServer>) fetchSubResource(serverName,
+				GenericResponse.class);
 		return response.getData();
 	}
 
@@ -68,14 +69,14 @@ public class GlusterServersClient extends AbstractClient {
 		return ((String) fetchSubResource(serverName, String.class));
 	}
 
-	public GlusterServerResponse addServer(Server discoveredServer) {
+	public void addServer(Server discoveredServer) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_SERVER_NAME, discoveredServer.getName());
-		return (GlusterServerResponse)postRequest(GlusterServerResponse.class, form);
+		postRequest(form);
 	}
 	
-	public Status removeServer(String serverName) {
-		return (Status) deleteSubResource(serverName,  Status.class);
+	public void removeServer(String serverName) {
+		deleteSubResource(serverName);
 	}
 
 	public static void main(String[] args) {
@@ -90,9 +91,7 @@ public class GlusterServersClient extends AbstractClient {
 			// Add server
 			 Server srv = new Server();
 			 srv.setName("server3");
-			 GlusterServerResponse response = glusterServersClient.addServer(srv);
-			 System.out.println(response.getGlusterServer().getName());
-			 System.out.println(response.getStatus().isSuccess());
+			 glusterServersClient.addServer(srv);
 		}
 	}
 }

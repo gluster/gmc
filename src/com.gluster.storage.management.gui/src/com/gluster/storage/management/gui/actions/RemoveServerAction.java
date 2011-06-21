@@ -70,13 +70,13 @@ public class RemoveServerAction extends AbstractActionDelegate {
 					guiHelper.setStatusMessage("Removing server [" + server.getName() + "]...");
 					
 					GlusterServersClient client = new GlusterServersClient();
-					Status status = client.removeServer(server.getName());
-					if (status.isSuccess()) {
+					try {
+						client.removeServer(server.getName());
 						GlusterServer glusterServer = (GlusterServer) server;
 						modelManager.removeGlusterServer(glusterServer);
 						successServers.add(server);
-					} else {
-						errMsg += "[" + server.getName() + "] : " + status;
+					} catch(Exception e) {
+						errMsg += "[" + server.getName() + "] : " + e.getMessage();
 					}
 				}
 

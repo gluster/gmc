@@ -64,22 +64,18 @@ public class AddDiskWizard extends Wizard {
 		VolumesClient volumeClient = new VolumesClient();
 		try {
 			List<String> brickList = getBrickList(bricks);
-			Status status = volumeClient.addBricks(volume.getName(), brickList);
-			if (!status.isSuccess()) {
-				MessageDialog.openError(getShell(), "Add brick(s) to Volume", status.getMessage());
-				return status.isSuccess();
-			} else {
-				List<Disk> disks = page.getChosenDisks();
-				volume.addDisks(GlusterCoreUtil.getQualifiedDiskNames(disks));
-				volume.addBricks(bricks);
-				
-				// Update model with new bricks in the volume
-				GlusterDataModelManager.getInstance().addBricks(volume, bricks);
-				
-				MessageDialog.openInformation(getShell(), "Add brick(s) to Volume", "Volume [" + volume.getName()
-						+ "] is expanded with bricks [" + StringUtil.ListToString(brickList, ", ") + "]");
-				return status.isSuccess();
-			}
+			
+			volumeClient.addBricks(volume.getName(), brickList);
+			List<Disk> disks = page.getChosenDisks();
+			volume.addDisks(GlusterCoreUtil.getQualifiedDiskNames(disks));
+			volume.addBricks(bricks);
+
+			// Update model with new bricks in the volume
+			GlusterDataModelManager.getInstance().addBricks(volume, bricks);
+
+			MessageDialog.openInformation(getShell(), "Add brick(s) to Volume", "Volume [" + volume.getName()
+					+ "] is expanded with bricks [" + StringUtil.ListToString(brickList, ", ") + "]");
+			return true;
 		} catch (Exception e) {
 			MessageDialog.openError(getShell(), "Add brick(s) to Volume", e.getMessage());
 			return false;

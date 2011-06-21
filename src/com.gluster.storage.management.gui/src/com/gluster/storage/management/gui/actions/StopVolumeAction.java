@@ -25,7 +25,6 @@ import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
-import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.gui.IImageKeys;
@@ -55,20 +54,16 @@ public class StopVolumeAction extends AbstractActionDelegate {
 					return;
 				}
 
-				final Status status = stopVolume();
-				if (status.isSuccess()) {
+				try {
+					new VolumesClient().stopVolume(volume.getName());
 					showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] stopped successfully!");
 					modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
-				} else {
-					showErrorDialog(actionDesc, "Volume [" + volume.getName() + "] could not be stopped! Error: ["
-							+ status + "]");
+				} catch (Exception e) {
+					showErrorDialog(actionDesc,
+							"Volume [" + volume.getName() + "] could not be stopped! Error: [" + e.getMessage() + "]");
 				}
 			}
 		});
-	}
-
-	private Status stopVolume() {
-		return new VolumesClient().stopVolume(volume.getName());
 	}
 
 	@Override

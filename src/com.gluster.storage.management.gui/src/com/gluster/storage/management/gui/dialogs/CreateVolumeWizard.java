@@ -53,12 +53,12 @@ public class CreateVolumeWizard extends Wizard {
 			message = "Volume created successfully!";
 			newVolume.setStatus(VOLUME_STATUS.OFFLINE);
 			if (page.startVolumeAfterCreation()) {
-				Status volumeStartStatus = volumesClient.startVolume(newVolume.getName());
-				if (volumeStartStatus.isSuccess()) {
+				try {
+					volumesClient.startVolume(newVolume.getName());
 					newVolume.setStatus(VOLUME_STATUS.ONLINE);
 					message = "Volume created and started successfully!";
-				} else {
-					message = "Volume created successfuly, but couldn't be started. Error: " + volumeStartStatus;
+				} catch(Exception e) {
+					message = "Volume created successfuly, but couldn't be started. Error: " + e.getMessage();
 					warning = true;
 				}
 			}
@@ -77,13 +77,13 @@ public class CreateVolumeWizard extends Wizard {
 				if (page.startVolumeAfterCreation()) {
 					if (MessageDialog.openConfirm(getShell(), dialogTitle,
 							"Volume created, but following error(s) occured: " + status
-									+ "\n\nDo you still want to start the volume [" + newVolume.getName()  + "]?")) { 
-						Status volumeStartStatus = volumesClient.startVolume(newVolume.getName());
-						if (volumeStartStatus.isSuccess()) {
+									+ "\n\nDo you still want to start the volume [" + newVolume.getName()  + "]?")) {
+						try {
+							volumesClient.startVolume(newVolume.getName());
 							newVolume.setStatus(VOLUME_STATUS.ONLINE);
 							message = "Volume [" + newVolume.getName() + "] started successfully!"; // Only start operation
-						} else {
-							message = "Volume couldn't be started. Error: " + volumeStartStatus;
+						} catch(Exception e) {
+							message = "Volume couldn't be started. Error: " + e.getMessage();
 							error = true;
 						}
 					}

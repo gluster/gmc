@@ -63,30 +63,30 @@ public class VolumesClient extends AbstractClient {
 		return (Status) postObject(Status.class, volume);
 	}
 
-	private Status performOperation(String volumeName, String operation) {
+	private void performOperation(String volumeName, String operation) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_OPERATION, operation);
 
-		return (Status) putRequest(volumeName, Status.class, form);
+		putRequest(volumeName, form);
 	}
 
-	public Status startVolume(String volumeName) {
-		return performOperation(volumeName, RESTConstants.TASK_START);
+	public void startVolume(String volumeName) {
+		performOperation(volumeName, RESTConstants.TASK_START);
 	}
 
-	public Status stopVolume(String volumeName) {
-		return performOperation(volumeName, RESTConstants.TASK_STOP);
+	public void stopVolume(String volumeName) {
+		performOperation(volumeName, RESTConstants.TASK_STOP);
 	}
 
-	public Status setVolumeOption(String volume, String key, String value) {
+	public void setVolumeOption(String volume, String key, String value) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_OPTION_KEY, key);
 		form.add(RESTConstants.FORM_PARAM_OPTION_VALUE, value);
-		return (Status) postRequest(volume + "/" + RESTConstants.RESOURCE_OPTIONS, Status.class, form);
+		postRequest(volume + "/" + RESTConstants.RESOURCE_OPTIONS, form);
 	}
 
-	public Status resetVolumeOptions(String volume) {
-		return (Status) putRequest(volume + "/" + RESTConstants.RESOURCE_OPTIONS, Status.class);
+	public void resetVolumeOptions(String volume) {
+		putRequest(volume + "/" + RESTConstants.RESOURCE_OPTIONS);
 	}
 
 	public VolumeListResponse getAllVolumes() {
@@ -108,11 +108,11 @@ public class VolumesClient extends AbstractClient {
 				VolumeOptionInfoListResponse.class));
 	}
 
-	public Status addBricks(String volumeName, List<String> brickList) {
+	public void addBricks(String volumeName, List<String> brickList) {
 		String bricks = StringUtil.ListToString(brickList, ",");
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_BRICKS, bricks);
-		return (Status) postRequest(volumeName + "/" + RESTConstants.RESOURCE_BRICKS, Status.class, form);
+		postRequest(volumeName + "/" + RESTConstants.RESOURCE_BRICKS, form);
 	}
 
 	/**
@@ -192,17 +192,15 @@ public class VolumesClient extends AbstractClient {
 		return queryParams;
 	}
 
-	public Status startMigration(String volumeName, String brickFrom, String brickTo, Boolean autoCommit) {
+	public void startMigration(String volumeName, String brickFrom, String brickTo, Boolean autoCommit) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_SOURCE, brickFrom);
 		form.add(RESTConstants.FORM_PARAM_TARGET, brickTo);
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_START);
 		form.add(RESTConstants.FORM_PARAM_AUTO_COMMIT, autoCommit);
 		
-		return (Status) putRequest( volumeName + "/" + RESTConstants.RESOURCE_BRICKS, Status.class, form);
+		putRequest( volumeName + "/" + RESTConstants.RESOURCE_BRICKS, form);
 	}
-
-	
 
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();

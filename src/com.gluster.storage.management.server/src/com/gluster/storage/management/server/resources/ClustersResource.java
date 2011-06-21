@@ -110,7 +110,7 @@ public class ClustersResource extends AbstractResource {
 		
 		try {
 			clusterService.registerCluster(clusterName, knownServer);
-			return noContentResponse();
+			return noContentResponse(clusterName);
 		} catch(Exception e) {
 			// TODO: Log the exception
 			return errorResponse("Exception while trying to register cluster [" + clusterName + "] using server ["

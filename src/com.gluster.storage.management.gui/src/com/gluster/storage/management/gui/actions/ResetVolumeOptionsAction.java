@@ -3,14 +3,10 @@ package com.gluster.storage.management.gui.actions;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
-import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public class ResetVolumeOptionsAction extends AbstractActionDelegate {
@@ -19,8 +15,6 @@ public class ResetVolumeOptionsAction extends AbstractActionDelegate {
 
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -37,22 +31,18 @@ public class ResetVolumeOptionsAction extends AbstractActionDelegate {
 					return;
 				}
 
-				final Status status = resetVolumeOptions();
-				if (status.isSuccess()) {
+				try {
+					new VolumesClient().resetVolumeOptions(volume.getName());
 					showInfoDialog(actionDesc, "Volume options for [" + volume.getName() + "] reset successfully!");
 					modelManager.resetVolumeOptions(volume);
-				} else {
+				} catch (Exception e) {
 					showErrorDialog(actionDesc, "Volume options for [" + volume.getName()
-							+ "] could not be reset! Error: [" + status + "]");
+							+ "] could not be reset! Error: [" + e.getMessage() + "]");
 				}
 			}
 		});
 	}
 	
-	private Status resetVolumeOptions() {
-		return new VolumesClient().resetVolumeOptions(volume.getName());
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * 

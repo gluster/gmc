@@ -23,7 +23,6 @@ import org.eclipse.jface.viewers.ISelection;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
-import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 
@@ -38,14 +37,14 @@ public class StartVolumeAction extends AbstractActionDelegate {
 		}
 
 		VolumesClient client = new VolumesClient();
-		final Status status = client.startVolume(volume.getName());
 		final String actionDesc = action.getDescription();
-		if (status.isSuccess()) {
+		try {
+			client.startVolume(volume.getName());
 			showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] started successfully!");
 			modelManager.updateVolumeStatus(volume, VOLUME_STATUS.ONLINE);
-		} else {
-			showErrorDialog(actionDesc, "Volume [" + volume.getName() + "] could not be started! Error: ["
-					+ status + "]");
+		} catch (Exception e) {
+			showErrorDialog(actionDesc,
+					"Volume [" + volume.getName() + "] could not be started! Error: [" + e.getMessage() + "]");
 		}
 	}
 

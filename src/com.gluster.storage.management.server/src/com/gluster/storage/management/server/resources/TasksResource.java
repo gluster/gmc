@@ -93,7 +93,7 @@ public class TasksResource {
 	}
 
 	@GET
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public TaskListResponse getTasks() {
 		TaskListResponse taskListResponse = new TaskListResponse();
 		try {
@@ -107,7 +107,7 @@ public class TasksResource {
 
 	@PUT
 	@Path("/{" + PATH_PARAM_TASK_ID + "}")
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public TaskResponse performTask(@PathParam(PATH_PARAM_TASK_ID) String taskId,
 			@FormParam(FORM_PARAM_OPERATION) String taskOperation) {
 		Task task = getTask(taskId);
@@ -134,7 +134,7 @@ public class TasksResource {
 
 	@DELETE
 	@Path("/{" + PATH_PARAM_TASK_ID + "}")
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public TaskResponse deleteTask(@PathParam(PATH_PARAM_TASK_ID) String taskId,
 			@QueryParam(FORM_PARAM_OPERATION) String taskOperation) {
 		TaskResponse taskResponse = new TaskResponse();

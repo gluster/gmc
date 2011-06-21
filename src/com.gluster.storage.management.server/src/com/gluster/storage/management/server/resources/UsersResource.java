@@ -68,7 +68,7 @@ public class UsersResource {
 
 	@Path("{user}")
 	@GET
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public Status authenticate(@PathParam("user") String user) {
 		// success only if the user passed in query is same as the one passed in security header
 		// spring security would have already authenticated the user credentials
@@ -78,7 +78,7 @@ public class UsersResource {
 
 	@Path("{user}")
 	@PUT
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public Status changePassword(@FormParam("oldpassword") String oldPassword,
 			@FormParam("newpassword") String newPassword) {
 		try {

@@ -59,32 +59,32 @@ public class TasksClient extends AbstractClient {
 	}
 	
 	// see startMigration @ VolumesClient, etc
-	public TaskResponse pauseTask(String taskId) {
+	public void pauseTask(String taskId) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_PAUSE);
 		
-		return (TaskResponse) putRequest( taskId, TaskResponse.class, form);
+		putRequest( taskId, form);
 	}
 
-	public TaskResponse resumeTask(String taskId) {
+	public void resumeTask(String taskId) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_RESUME);
 		
-		return (TaskResponse) putRequest( taskId, TaskResponse.class, form);
+		putRequest(taskId, form);
 	}
 
-	public TaskResponse stopTask(String taskId) {
+	public void stopTask(String taskId) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_STOP);
 		
-		return (TaskResponse) putRequest( taskId, TaskResponse.class, form);
+		putRequest(taskId, form);
 	}
 
-	public TaskResponse getTaskStatus(String taskId) {
+	public void getTaskStatus(String taskId) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_STATUS);
 		
-		return (TaskResponse) putRequest( taskId, TaskResponse.class, form);
+		putRequest(taskId, form);
 	}
 	
 	public TaskResponse deleteTask(String taskId) {

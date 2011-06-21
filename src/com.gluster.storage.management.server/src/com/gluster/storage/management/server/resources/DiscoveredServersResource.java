@@ -65,7 +65,7 @@ public class DiscoveredServersResource extends AbstractServersResource {
 	}
 
 	@GET
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	@SuppressWarnings("rawtypes")
 	public Response getDiscoveredServers(@QueryParam("details") Boolean getDetails) {
 		if(getDetails != null && getDetails == true) {
@@ -102,7 +102,7 @@ public class DiscoveredServersResource extends AbstractServersResource {
 	
 	@Path("/{serverName}")
 	@GET
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public GenericResponse<Server> getDiscoveredServer(@PathParam("serverName") String serverName) {
 		Server server = new Server(serverName);
 		try {

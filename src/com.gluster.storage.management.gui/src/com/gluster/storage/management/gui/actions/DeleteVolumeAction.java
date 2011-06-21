@@ -63,10 +63,11 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 
 				Status status;
 				if (volume.getStatus() == VOLUME_STATUS.ONLINE) { // To stop the volume service, if running
-					status = client.stopVolume(volume.getName());
-					if (!status.isSuccess()) {
+					try {
+						client.stopVolume(volume.getName());
+					} catch(Exception e) {
 						showErrorDialog(actionDesc, "Volume [" + volume.getName() + "] could not be stopped! Error: ["
-								+ status + "]");
+								+ e.getMessage() + "]");
 						return;
 					}
 				}

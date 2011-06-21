@@ -122,7 +122,7 @@ public class VolumesResource {
 	private VolumeOptionsDefaults volumeOptionsDefaults;
 
 	@GET
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public VolumeListResponse getAllVolumes(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
 		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
 		if (onlineServer == null) {
@@ -143,8 +143,8 @@ public class VolumesResource {
 	}
 
 	@POST
-	@Consumes(MediaType.TEXT_XML)
-	@Produces(MediaType.TEXT_XML)
+	@Consumes(MediaType.APPLICATION_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public Status createVolume(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName, Volume volume) {
 		List<String> brickDirectories = GlusterCoreUtil.getQualifiedBrickList(volume.getBricks());
 
@@ -171,7 +171,7 @@ public class VolumesResource {
 	@SuppressWarnings("rawtypes")
 	@GET
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public GenericResponse getVolume(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName) {
 		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
@@ -198,7 +198,7 @@ public class VolumesResource {
 
 	@PUT
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public Status performOperation(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_OPERATION) String operation) {
 		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
@@ -231,7 +231,7 @@ public class VolumesResource {
 
 	@DELETE
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public Status deleteVolume(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName,
 			@QueryParam(QUERY_PARAM_DELETE_OPTION) boolean deleteFlag) {
@@ -268,7 +268,7 @@ public class VolumesResource {
 
 	@DELETE
 	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + RESOURCE_BRICKS)
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public Status removeBricks(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName, @QueryParam(QUERY_PARAM_BRICKS) String bricks,
 			@QueryParam(QUERY_PARAM_DELETE_OPTION) boolean deleteFlag) {
@@ -320,7 +320,7 @@ public class VolumesResource {
 
 	@POST
 	@Path("{" + PATH_PARAM_VOLUME_NAME + " }/" + RESOURCE_OPTIONS)
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public Status setOption(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName,
 			@FormParam(RESTConstants.FORM_PARAM_OPTION_KEY) String key,
@@ -345,7 +345,7 @@ public class VolumesResource {
 
 	@PUT
 	@Path("{" + PATH_PARAM_VOLUME_NAME + " }/" + RESOURCE_OPTIONS)
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public Status resetOptions(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName) {
 		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
@@ -368,7 +368,7 @@ public class VolumesResource {
 
 	@GET
 	@Path(RESOURCE_DEFAULT_OPTIONS)
-	@Produces(MediaType.TEXT_XML)
+	@Produces(MediaType.APPLICATION_XML)
 	public VolumeOptionInfoListResponse getDefaultOptions(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
 		// TODO: Fetch all volume options with their default values from GlusterFS
 		// whenever such a CLI command is made available in GlusterFS

@@ -18,9 +18,6 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.dialogs;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.UpdateValueStrategy;
 import org.eclipse.core.databinding.beans.PojoProperties;
@@ -48,10 +45,8 @@ import org.eclipse.swt.widgets.Text;
 import com.gluster.storage.management.client.ClustersClient;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.UsersClient;
-import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.ConnectionDetails;
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.response.StringListResponse;
 import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.dialogs.ClusterSelectionDialog.CLUSTER_MODE;
@@ -227,7 +222,8 @@ public class LoginDialog extends Dialog {
 			String serverName = null;
 
 			if (showClusterSelectionDialog) {
-				ClusterSelectionDialog clusterDialog = new ClusterSelectionDialog(getParentShell(), getClusterNames(clustersClient));
+				ClusterSelectionDialog clusterDialog = new ClusterSelectionDialog(getParentShell(),
+						clustersClient.getClusterNames());
 				int userAction = clusterDialog.open();
 				if (userAction == Window.CANCEL) {
 					MessageDialog.openError(getShell(), "Login Cancelled",
@@ -258,36 +254,24 @@ public class LoginDialog extends Dialog {
 
 	public void createOrRegisterCluster(ClustersClient clustersClient, String clusterName, String serverName,
 			CLUSTER_MODE mode) {
-		Status status = null;
 		String errTitle = null;
-		
-		switch(mode) {
-		case SELECT:
-			return;
-		case CREATE:
-			errTitle = "Cluster Creation Failed!";
-			status = clustersClient.createCluster(clusterName);
-			break;
-		case REGISTER:
-			errTitle = "Cluster Registration Failed!";
-			status = clustersClient.registerCluster(clusterName, serverName);
-			break;
-		}
-		
-		if(!status.isSuccess()) {
-			MessageDialog.openError(getShell(), errTitle, status.toString());
-			setReturnCode(RETURN_CODE_ERROR);
-		}
-	}
 
-	private List<String> getClusterNames(ClustersClient clustersClient) {
-		StringListResponse clustersResponse = clustersClient.getClusters();
-		List<String> clusters = new ArrayList<String>();
-		if (clustersResponse.getStatus().isSuccess()) {
-			clusters = clustersResponse.getData();
-		} else {
-			throw new GlusterRuntimeException("Could not fetch cluster names. Error: " + clustersResponse.getStatus());
-		}
-		return clusters;
+		try {
+			switch (mode) {
+			case SELECT:
+				return;
+			case CREATE:
+				errTitle = "Cluster Creation Failed!";
+				clustersClient.createCluster(clusterName);
+				break;
+			case REGISTER:
+				errTitle = "Cluster Registration Failed!";
+				clustersClient.registerCluster(clusterName, serverName);
+				break;
+			}
+		} catch (Exception e) {
+			MessageDialog.openError(getShell(), errTitle, e.getMessage());
+			setReturnCode(RETURN_CODE_ERROR);
+		}		
 	}
 }

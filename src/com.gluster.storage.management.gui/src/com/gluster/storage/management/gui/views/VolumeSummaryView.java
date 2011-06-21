@@ -315,17 +315,14 @@ public class VolumeSummaryView extends ViewPart {
 			BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
 				@Override
 				public void run() {
-					Status status = (new VolumesClient()).setVolumeOption(volume.getName(), Volume.OPTION_AUTH_ALLOW,
-							newACL);
-
-					if (status.isSuccess()) {
+					try {
+						new VolumesClient().setVolumeOption(volume.getName(), Volume.OPTION_AUTH_ALLOW, newACL);
 						accessControlText.setEnabled(false);
 						changeLink.setText("change");
 
 						GlusterDataModelManager.getInstance().setAccessControlList(volume, newACL);
-					} else {
-						MessageDialog.openError(Display.getDefault().getActiveShell(), "Access control",
-								status.getMessage());
+					} catch (Exception e) {
+						MessageDialog.openError(Display.getDefault().getActiveShell(), "Access control", e.getMessage());
 					}
 				}
 			});
