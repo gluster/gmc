@@ -20,11 +20,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.gluster.storage.management.client.utils.ClientUtil;
+import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.WebResource.Builder;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.client.urlconnection.HTTPSProperties;
@@ -121,8 +123,12 @@ public abstract class AbstractClient {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Object fetchResource(WebResource res, MultivaluedMap<String, String> queryParams, Class responseClass) {
-		return res.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML)
-				.get(responseClass);
+		try {
+			return res.path("." + RESTConstants.FORMAT_XML).queryParams(queryParams)
+					.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML).get(responseClass);
+		} catch(UniformInterfaceException e) {
+			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
+		}
 	}
 
 	protected void downloadResource(WebResource res, String filePath) {
@@ -212,80 +218,9 @@ public abstract class AbstractClient {
 		return fetchResource(resource.path(subResourceName), queryParams, responseClass);
 	}
 
-	/**
-	 * Submits given Form using POST method to the resource and returns the object received as response
-	 * 
-	 * @param form
-	 *            Form to be submitted
-	 */
-	protected void postRequest(Form form) {
+	private void postRequest(WebResource resource, Form form) {
 		try {
-			resource.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).header(HTTP_HEADER_AUTH, authHeader)
-					.accept(MediaType.APPLICATION_XML).post(form);
-		} catch (UniformInterfaceException e) {
-			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
-		}
-	}
-
-	/**
-	 * Submits given Form using POST method to the given sub-resource and returns the object received as response
-	 * 
-	 * @param subResourceName
-	 *            Name of the sub-resource to which the request is to be posted
-	 * @param form
-	 *            Form to be submitted
-	 */
-	protected void postRequest(String subResourceName, Form form) {
-		try {
-			resource.path(subResourceName).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-					.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML).post(form);
-		} catch (UniformInterfaceException e) {
-			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
-		}
-	}
-
-	/**
-	 * Submits given Form using PUT method to the given sub-resource and returns the object received as response
-	 * 
-	 * @param subResourceName
-	 *            Name of the sub-resource to which the request is to be posted
-	 * @param form
-	 *            Form to be submitted
-	 */
-	protected void putRequest(String subResourceName, Form form) {
-		try {
-			resource.path(subResourceName).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-					.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML).put(form);
-		} catch (UniformInterfaceException e) {
-			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
-		}
-	}
-
-	/**
-	 * Submits given Form using PUT method to the given sub-resource and returns the object received as response
-	 * 
-	 * @param form
-	 *            Form to be submitted
-	 */
-	protected void putRequest(Form form) {
-		try {
-		resource.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).header(HTTP_HEADER_AUTH, authHeader)
-				.accept(MediaType.APPLICATION_XML).put(form);
-		} catch(UniformInterfaceException e) {
-			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
-		}
-	}
-
-	/**
-	 * Submits given Form using PUT method to the given sub-resource and returns the object received as response
-	 * 
-	 * @param subResourceName
-	 *            Name of the sub-resource to which the request is to be posted
-	 */
-	protected void putRequest(String subResourceName) {
-		try {
-			resource.path(subResourceName).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-					.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML).put();
+			prepareFormRequestBuilder(resource).post(form);
 		} catch (UniformInterfaceException e) {
 			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
 		}
@@ -306,16 +241,92 @@ public abstract class AbstractClient {
 				.accept(MediaType.APPLICATION_XML).post(responseClass, requestObject);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected Object deleteResource(Class responseClass, MultivaluedMap<String, String> queryParams) {
-		return resource.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader).delete(responseClass);
+	/**
+	 * Submits given Form using POST method to the resource and returns the object received as response
+	 * 
+	 * @param form
+	 *            Form to be submitted
+	 */
+	protected void postRequest(Form form) {
+		postRequest(resource, form);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected Object deleteSubResource(String subResourceName, Class responseClass,
-			MultivaluedMap<String, String> queryParams) {
-		return resource.path(subResourceName).queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader)
-				.delete(responseClass);
+	/**
+	 * Submits given Form using POST method to the given sub-resource and returns the object received as response
+	 * 
+	 * @param subResourceName
+	 *            Name of the sub-resource to which the request is to be posted
+	 * @param form
+	 *            Form to be submitted
+	 */
+	protected void postRequest(String subResourceName, Form form) {
+		postRequest(resource.path(subResourceName), form);
+	}
+	
+	private void putRequest(WebResource resource, Form form) {
+		try {
+			prepareFormRequestBuilder(resource).put(form);
+		} catch (UniformInterfaceException e) {
+			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
+		}
+	}
+
+	public Builder prepareFormRequestBuilder(WebResource resource) {
+		return resource.path("." + RESTConstants.FORMAT_XML).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
+				.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML);
+	}
+	
+	/**
+	 * Submits given Form using PUT method to the given sub-resource and returns the object received as response
+	 * 
+	 * @param subResourceName
+	 *            Name of the sub-resource to which the request is to be posted
+	 * @param form
+	 *            Form to be submitted
+	 */
+	protected void putRequest(String subResourceName, Form form) {
+		putRequest(resource.path(subResourceName), form);
+	}
+
+	/**
+	 * Submits given Form using PUT method to the given sub-resource and returns the object received as response
+	 * 
+	 * @param form
+	 *            Form to be submitted
+	 */
+	protected void putRequest(Form form) {
+		putRequest(resource, form);
+	}
+
+	/**
+	 * Submits given Form using PUT method to the given sub-resource and returns the object received as response
+	 * 
+	 * @param subResourceName
+	 *            Name of the sub-resource to which the request is to be posted
+	 */
+	protected void putRequest(String subResourceName) {
+		try {
+			prepareFormRequestBuilder(resource.path(subResourceName)).put();
+		} catch (UniformInterfaceException e) {
+			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
+		}
+	}
+
+	private void deleteResource(WebResource resource, MultivaluedMap<String, String> queryParams) {
+		try {
+			resource.path("." + RESTConstants.FORMAT_XML).queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader)
+					.delete();
+		} catch (UniformInterfaceException e) {
+			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
+		}
+	}
+	
+	protected void deleteResource(MultivaluedMap<String, String> queryParams) {
+		deleteResource(resource, queryParams);
+	}
+
+	protected void deleteSubResource(String subResourceName, MultivaluedMap<String, String> queryParams) {
+		deleteResource(resource.path(subResourceName), queryParams);
 	}
 
 	protected void deleteSubResource(String subResourceName) {

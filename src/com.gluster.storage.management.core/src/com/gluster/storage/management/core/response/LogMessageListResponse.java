@@ -7,17 +7,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.gluster.storage.management.core.model.VolumeLogMessage;
 import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.model.VolumeLogMessage;
 
-@XmlRootElement(name = "response")
+@XmlRootElement(name = "logMessages")
 public class LogMessageListResponse extends AbstractResponse {
 	private List<VolumeLogMessage> logMessages = new ArrayList<VolumeLogMessage>();
 	
 	public LogMessageListResponse() {
+	}
+	
+	public LogMessageListResponse(List<VolumeLogMessage> logMessages) {
+		setLogMessages(logMessages);
 	}
 	
 	public LogMessageListResponse(Status status, List<VolumeLogMessage> logMessages) {
@@ -25,7 +28,6 @@ public class LogMessageListResponse extends AbstractResponse {
 		setLogMessages(logMessages);
 	}
 
-	@XmlElementWrapper(name = "logMessages")
 	@XmlElement(name = "logMessage", type = VolumeLogMessage.class)
 	public List<VolumeLogMessage> getLogMessages() {
 		return logMessages;

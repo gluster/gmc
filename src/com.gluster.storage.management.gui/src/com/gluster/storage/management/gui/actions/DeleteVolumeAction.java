@@ -77,17 +77,22 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 					confirmDelete = true;
 				}
 
-				status = client.deleteVolume(volume, confirmDelete);
-				if (status.isSuccess()) {
+				try {
+					client.deleteVolume(volume, confirmDelete);
 					showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] deleted successfully!");
 					modelManager.deleteVolume(volume);
-				} else {
-					if (status.isPartSuccess()) {
-						showWarningDialog(actionDesc, "Volume deleted, but following error(s) occured: " + status);
-						modelManager.deleteVolume(volume);
-					} else {
+				} catch(Exception e) {
+					showErrorDialog(actionDesc, e.getMessage());
+					
+					// there is a possibility that the error was in post-delete operation, which means
+					// volume was deleted, but some other error happened. check if this is the case,
+					// and if so, update the model manager
+					if(client.volumeExists(volume.getName())) {
 						showErrorDialog(actionDesc, "Volume [" + volume.getName() + "] could not be deleted! Error: ["
-								+ status + "]");
+								+ e.getMessage() + "]");
+					} else {
+						modelManager.deleteVolume(volume);
+						showWarningDialog(actionDesc, "Volume deleted, but following error(s) occured: " + e.getMessage());
 					}
 				}
 			}

@@ -88,6 +88,14 @@ public class Volume extends Entity {
 	public static String getVolumeTypeStr(VOLUME_TYPE volumeType) {
 		return VOLUME_TYPE_STR[volumeType.ordinal()];
 	}
+	
+	public static VOLUME_TYPE getVolumeTypeByStr(String volumeTypeStr) {
+		return VOLUME_TYPE.valueOf(volumeTypeStr);
+	}
+	
+	public static TRANSPORT_TYPE getTransportTypeByStr(String transportTypeStr) {
+		return TRANSPORT_TYPE.valueOf(transportTypeStr);
+	}
 
 	public String getTransportTypeStr() {
 		return TRANSPORT_TYPE_STR[getTransportType().ordinal()];
