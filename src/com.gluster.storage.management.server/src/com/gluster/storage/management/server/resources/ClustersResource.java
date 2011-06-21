@@ -26,7 +26,6 @@ import static com.gluster.storage.management.core.constants.RESTConstants.RESOUR
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityTransaction;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -36,21 +35,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.gluster.storage.management.core.constants.CoreConstants;
-import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
-import com.gluster.storage.management.core.model.GlusterServer;
-import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.response.GlusterServerResponse;
-import com.gluster.storage.management.core.response.StringListResponse;
+import com.gluster.storage.management.core.response.ClusterNameListResponse;
 import com.gluster.storage.management.server.data.ClusterInfo;
-import com.gluster.storage.management.server.data.PersistenceDao;
-import com.gluster.storage.management.server.data.ServerInfo;
-import com.gluster.storage.management.server.utils.GlusterUtil;
-import com.gluster.storage.management.server.utils.SshUtil;
+import com.gluster.storage.management.server.services.ClusterService;
 import com.sun.jersey.api.core.InjectParam;
 import com.sun.jersey.spi.resource.Singleton;
 
@@ -60,128 +51,92 @@ import com.sun.jersey.spi.resource.Singleton;
 @Component
 @Singleton
 @Path(RESOURCE_PATH_CLUSTERS)
-public class ClustersResource {
-
+public class ClustersResource extends AbstractResource {
 	@InjectParam
-	private PersistenceDao clusterDao;
+	private ClusterService clusterService;
 	
-	@InjectParam
-	private GlusterServersResource glusterServersResource;
-	
-	@InjectParam
-	private GlusterUtil glusterUtil;
-	
-	@Autowired
-	private SshUtil sshUtil;
-
-	public void setClusterDao(PersistenceDao clusterDao) {
-		this.clusterDao = clusterDao;
-	}
-
-	public PersistenceDao getClusterDao() {
-		return clusterDao;
-	}
-
 	@GET
-	@Produces(MediaType.TEXT_XML)
-	public StringListResponse getClusters() {
-		List<ClusterInfo> clusters = getClusterDao().findAll();
+	@Produces(MediaType.APPLICATION_XML)
+	public ClusterNameListResponse getClusters() {
+		List<ClusterInfo> clusters = clusterService.getAllClusters();
 		List<String> clusterList = new ArrayList<String>();
 		for (ClusterInfo cluster : clusters) {
 			clusterList.add(cluster.getName());
 		}
-		return new StringListResponse(clusterList);
+		return new ClusterNameListResponse(clusterList);
 	}
 
 	@POST
-	@Produces(MediaType.TEXT_XML)
-	public Status createCluster(@FormParam(FORM_PARAM_CLUSTER_NAME) String clusterName) {
-		EntityTransaction txn = clusterDao.startTransaction();
-		ClusterInfo cluster = new ClusterInfo();
-		cluster.setName(clusterName);
-
+	public Response createCluster(@FormParam(FORM_PARAM_CLUSTER_NAME) String clusterName) {
+		if(clusterName == null || clusterName.isEmpty()) {
+			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
+		}
+		
+		if(clusterService.getCluster(clusterName) != null) {
+			return badRequestResponse("Cluster [" + clusterName + "] already exists!");
+		}
+		
 		try {
-			clusterDao.save(cluster);
-			txn.commit();
-			return Status.STATUS_SUCCESS;
+			clusterService.createCluster(clusterName);
+			return createdResponse(clusterName);
 		} catch (Exception e) {
-			txn.rollback();
-			return new Status(Status.STATUS_CODE_FAILURE, "Exception while trying to save cluster [" + clusterName
-					+ "]: [" + e.getMessage() + "]");
+			// TODO: Log the exception
+			return errorResponse("Exception while trying to save cluster [" + clusterName + "]: [" + e.getMessage()
+					+ "]");
 		}
 	}
-	
 	
 	@PUT
-	@Produces(MediaType.TEXT_XML)
-	public Status registerCluster(@FormParam(FORM_PARAM_CLUSTER_NAME) String clusterName,
+	public Response registerCluster(@FormParam(FORM_PARAM_CLUSTER_NAME) String clusterName,
 			@FormParam(FORM_PARAM_SERVER_NAME) String knownServer) {
-		EntityTransaction txn = clusterDao.startTransaction();
-		ClusterInfo cluster = new ClusterInfo();
-		cluster.setName(clusterName);
+		if(clusterName == null || clusterName.isEmpty()) {
+			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
+		}
 		
-		GlusterServer server = new GlusterServer(knownServer);
+		if(knownServer == null || knownServer.isEmpty()) {
+			return badRequestResponse("Parameter [" + FORM_PARAM_SERVER_NAME + "] is missing in request!");
+		}
+		
+		if(clusterService.getCluster(clusterName) != null) {
+			return badRequestResponse("Cluster [" + clusterName + "] already exists!");
+		}
+		
+		ClusterInfo mappedCluster = clusterService.getClusterForServer(knownServer);
+		if(mappedCluster != null) {
+			return badRequestResponse("Server [" + knownServer + "] is already present in cluster ["
+					+ mappedCluster.getName() + "]!");
+		}
+
+		
 		try {
-			List<GlusterServer> glusterServers = glusterUtil.getGlusterServers(server);
-			List<ServerInfo> servers = new ArrayList<ServerInfo>();
-			for(GlusterServer glusterServer : glusterServers) {
-				String serverName = glusterServer.getName();
-				
-				checkAndSetupPublicKey(serverName);
-
-				ServerInfo serverInfo = new ServerInfo(serverName);
-				serverInfo.setCluster(cluster);
-				clusterDao.save(serverInfo);
-				servers.add(serverInfo);
-			}
-			cluster.setServers(servers);
-			clusterDao.save(cluster);
-			txn.commit();
-			return Status.STATUS_SUCCESS;
+			clusterService.registerCluster(clusterName, knownServer);
+			return noContentResponse();
 		} catch(Exception e) {
-			txn.rollback();
-			return new Status(e);
+			// TODO: Log the exception
+			return errorResponse("Exception while trying to register cluster [" + clusterName + "] using server ["
+					+ knownServer + "]: [" + e.getMessage() + "]");
 		}
 	}
 
-	private void checkAndSetupPublicKey(String serverName) {
-		if(sshUtil.isPublicKeyInstalled(serverName)) {
-			return;
-		}
-		
-		if(!sshUtil.hasDefaultPassword(serverName)) {
-			// public key not installed, default password doesn't work. can't install public key
-			throw new GlusterRuntimeException(
-					"Gluster Management Gateway uses the default password to set up keys on the server."
-							+ CoreConstants.NEWLINE + "However it seems that the password on server [" + serverName
-							+ "] has been changed manually." + CoreConstants.NEWLINE
-							+ "Please reset it back to the standard default password and try again.");
-		}
-		
-		// install public key (this will also disable password based ssh login)
-		sshUtil.installPublicKey(serverName);
-	}
-
-	@SuppressWarnings("unchecked")
 	@Path("{" + PATH_PARAM_CLUSTER_NAME + "}")
 	@DELETE
-	@Produces(MediaType.TEXT_XML)
-	public Status deleteCluster(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
-		List<ClusterInfo> clusters = clusterDao.findBy("name = ?1", clusterName);
-		if (clusters == null || clusters.size() == 0) {
-			return new Status(Status.STATUS_CODE_FAILURE, "Cluster [" + clusterName + "] doesn't exist!");
+	public Response unregisterCluster(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
+		if(clusterName == null || clusterName.isEmpty()) {
+			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
 		}
-
-		ClusterInfo cluster = clusters.get(0);
-		EntityTransaction txn = clusterDao.startTransaction();
+		
+		ClusterInfo cluster = clusterService.getCluster(clusterName);
+		if(cluster == null) {
+			return badRequestResponse("Cluster [" + clusterName + "] does not exist!");
+		}
+		
 		try {
-			clusterDao.delete(cluster);
-			txn.commit();
-			return Status.STATUS_SUCCESS;
+			clusterService.unregisterCluster(cluster);
+			return noContentResponse();
 		} catch (Exception e) {
-			txn.rollback();
-			return new Status(Status.STATUS_CODE_FAILURE, "Exception while trying to delete cluster [" + clusterName
-					+ "]: [" + e.getMessage() + "]");
+			// TODO: Log the exception
+			return errorResponse("Exception while trying to unregister cluster [" + clusterName + "]: ["
+					+ e.getMessage() + "]");
 		}
 	}
 }

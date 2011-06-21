@@ -54,6 +54,12 @@
 		</constructor-arg>
 	</bean>
 
+	<bean id="serverDao" class="com.gluster.storage.management.server.data.PersistenceDao">
+		<constructor-arg type="java.lang.Class">
+			<value>com.gluster.storage.management.server.data.ServerInfo</value>
+		</constructor-arg>
+	</bean>
+	
 	<!-- bean id="dataSourceFactory" class="com.gluster.storage.management.server.data.GlusterDataSource" />
 		<bean id="dataSource" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
 		<property name="targetObject">
