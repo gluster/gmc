@@ -49,10 +49,11 @@ public class MigrateDiskWizard extends Wizard {
 
 		Disk sourceDisk = page.getSourceDisk();
 		Disk targetDisk = page.getTargetDisk();
+		Boolean autoCommit = true; //TODO get auto commit from user selection 
 		// TODO add custom confirm dialog
 		
 		VolumesClient volumesClient = new VolumesClient();
-		volumesClient.startMigration(volume.getName(), sourceDisk.getQualifiedName(), targetDisk.getQualifiedName());
+		volumesClient.startMigration(volume.getName(), sourceDisk.getQualifiedName(), targetDisk.getQualifiedName(), autoCommit);
 		
 		return true;
 	}

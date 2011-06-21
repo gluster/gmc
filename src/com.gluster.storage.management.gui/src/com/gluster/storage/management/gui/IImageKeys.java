@@ -51,7 +51,7 @@ public interface IImageKeys {
 	public static final String ARROW_UP = "icons/arrow-up.png";
 	public static final String ARROW_DOWN = "icons/arrow-down.png";
 	public static final String VOLUME_REBALANCE = "icons/volume-rebalance.png";
-	public static final String DISK_MIGRATE = "icons/disk-migrate.png";
+	public static final String BRICK_MIGRATE = "icons/disk-migrate.png";
 	public static final String LOW_DISK_SPACE = "icons/disk.png";
 	public static final String DISK_OFFLINE = "icons/status-offline.png";
 

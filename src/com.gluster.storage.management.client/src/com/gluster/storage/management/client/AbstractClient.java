@@ -42,7 +42,8 @@ public abstract class AbstractClient {
 	 * This constructor will work only after the data model manager has been initialized.
 	 */
 	public AbstractClient() {
-		this(GlusterDataModelManager.getInstance().getSecurityToken(), GlusterDataModelManager.getInstance().getClusterName());
+		this(GlusterDataModelManager.getInstance().getSecurityToken(), GlusterDataModelManager.getInstance()
+				.getClusterName());
 	}
 
 	/**
@@ -55,8 +56,8 @@ public abstract class AbstractClient {
 	public AbstractClient(String securityToken, String clusterName) {
 		this.clusterName = clusterName;
 		setSecurityToken(securityToken);
-		
-		SSLContext context = initializeSSLContext();		
+
+		SSLContext context = initializeSSLContext();
 		DefaultClientConfig config = createClientConfig(context);
 
 		// this must be after setting clusterName as sub-classes may refer to cluster name in the getResourcePath method
@@ -84,16 +85,16 @@ public abstract class AbstractClient {
 		SSLContext context = null;
 		try {
 			context = SSLContext.getInstance(PROTOCOL_TLS);
-			
+
 			KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE_JKS);
 			keyStore.load(loadResource(TRUSTED_KEYSTORE), TRUSTED_KEYSTORE_ACCESS.toCharArray());
 
 			KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(ALGORITHM_SUNX509);
 			keyManagerFactory.init(keyStore, TRUSTED_KEYSTORE_ACCESS.toCharArray());
-			
-			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(ALGORITHM_SUNX509); 
-		    trustManagerFactory.init(keyStore); 
-			
+
+			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(ALGORITHM_SUNX509);
+			trustManagerFactory.init(keyStore);
+
 			context.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
 		} catch (Exception e) {
 			throw new GlusterRuntimeException(
@@ -101,7 +102,7 @@ public abstract class AbstractClient {
 		}
 		return context;
 	}
-	
+
 	private InputStream loadResource(String resourcePath) {
 		return this.getClass().getClassLoader().getResourceAsStream(resourcePath);
 	}

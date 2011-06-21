@@ -33,20 +33,18 @@ import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
-import com.gluster.storage.management.core.response.RunningTaskListResponse;
 import com.gluster.storage.management.core.response.ServerListResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 
 public class GlusterDataModelManager {
-	// private Server discoveredServer1, discoveredServer2, discoveredServer3,
-	// discoveredServer4, discoveredServer5;
 	private static GlusterDataModelManager instance = new GlusterDataModelManager();
 	private GlusterDataModel model;
 	private String securityToken;
@@ -94,7 +92,7 @@ public class GlusterDataModelManager {
 		initializeAutoDiscoveredServers(cluster);
 		// initializeDisks();
 
-		initializeRunningTasks(cluster);
+		initializeTasks(cluster);
 		initializeAlerts(cluster);
 		initializeVolumeOptionsDefaults();
 
@@ -136,12 +134,9 @@ public class GlusterDataModelManager {
 		this.volumeOptionsDefaults = response.getOptions();
 	}
 
-	public void initializeRunningTasks(Cluster cluster) {
-		RunningTaskListResponse runningTaskResponse = new RunningTaskClient(cluster.getName()).getRunningTasks();
-		if (!runningTaskResponse.getStatus().isSuccess()) {
-			throw new GlusterRuntimeException(runningTaskResponse.getStatus().getMessage());
-		}
-		cluster.setRunningTasks(runningTaskResponse.getRunningTasks());
+	public void initializeTasks(Cluster cluster) {
+		List<TaskInfo> taskInfoList = new TasksClient(cluster.getName()).getAllTasks();
+		cluster.setTaskInfoList(taskInfoList);
 	}
 
 	public void initializeAlerts(Cluster cluster) {
