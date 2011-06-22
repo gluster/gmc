@@ -21,6 +21,7 @@ package com.gluster.storage.management.server.resources;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SERVER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
+import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_DISK_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_SERVER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_SERVERS;
@@ -32,6 +33,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -47,12 +49,15 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
 import com.gluster.storage.management.core.response.GlusterServerResponse;
+import com.gluster.storage.management.core.response.TaskResponse;
 import com.gluster.storage.management.core.utils.LRUCache;
 import com.gluster.storage.management.server.data.ClusterInfo;
 import com.gluster.storage.management.server.data.ServerInfo;
 import com.gluster.storage.management.server.services.ClusterService;
+import com.gluster.storage.management.server.tasks.InitializeDiskTask;
 import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.SshUtil;
 import com.sun.jersey.api.core.InjectParam;
@@ -68,6 +73,9 @@ public class GlusterServersResource extends AbstractServersResource {
 	
 	@InjectParam
 	private DiscoveredServersResource discoveredServersResource;
+	
+	@InjectParam
+	private TasksResource taskResource; 
 	
 	@Autowired
 	private ClusterService clusterService;
@@ -387,6 +395,25 @@ public class GlusterServersResource extends AbstractServersResource {
 		
 		return status;
 	}
+	
+	@PUT
+	@Produces(MediaType.APPLICATION_XML)
+	@Path("{" + PATH_PARAM_SERVER_NAME + "}")
+	public TaskResponse initializeDisk(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName, 
+			@PathParam(PATH_PARAM_SERVER_NAME) String serverName, @PathParam(PATH_PARAM_DISK_NAME) String diskName) {
+		
+		TaskResponse taskResponse = new TaskResponse();
+		InitializeDiskTask initializeTask = new InitializeDiskTask(diskName, serverName);
+		TaskInfo taskInfo = initializeTask.start();
+		if (taskInfo.isSuccess()) {
+			taskResource.addTask(initializeTask);
+		}
+		taskResponse.setData(taskInfo);
+		taskResponse.setStatus(new Status(Status.STATUS_CODE_SUCCESS, ""));
+		
+		return taskResponse;
+	}
+	
 
 	private void setGlusterUtil(GlusterUtil glusterUtil) {
 		this.glusterUtil = glusterUtil;
