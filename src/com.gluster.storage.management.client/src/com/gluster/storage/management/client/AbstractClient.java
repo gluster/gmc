@@ -20,7 +20,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.gluster.storage.management.client.utils.ClientUtil;
-import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -124,7 +123,7 @@ public abstract class AbstractClient {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Object fetchResource(WebResource res, MultivaluedMap<String, String> queryParams, Class responseClass) {
 		try {
-			return res.path("." + RESTConstants.FORMAT_XML).queryParams(queryParams)
+			return res.queryParams(queryParams)
 					.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML).get(responseClass);
 		} catch(UniformInterfaceException e) {
 			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
@@ -272,7 +271,7 @@ public abstract class AbstractClient {
 	}
 
 	public Builder prepareFormRequestBuilder(WebResource resource) {
-		return resource.path("." + RESTConstants.FORMAT_XML).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
+		return resource.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
 				.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML);
 	}
 	
@@ -314,7 +313,7 @@ public abstract class AbstractClient {
 
 	private void deleteResource(WebResource resource, MultivaluedMap<String, String> queryParams) {
 		try {
-			resource.path("." + RESTConstants.FORMAT_XML).queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader)
+			resource.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader)
 					.delete();
 		} catch (UniformInterfaceException e) {
 			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
