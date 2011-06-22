@@ -34,41 +34,24 @@ import com.gluster.storage.management.core.model.Status;
 /**
  *
  */
-@XmlRootElement(name = "response")
-public class GlusterServerListResponse extends AbstractResponse {
+@XmlRootElement(name = "servers")
+public class GlusterServerListResponse {
 	private List<GlusterServer> servers = new ArrayList<GlusterServer>();
 
 	public GlusterServerListResponse() {
 	}
 
-	public GlusterServerListResponse(Status status, List<GlusterServer> servers) {
-		setStatus(status);
+	public GlusterServerListResponse(List<GlusterServer> servers) {
 		setServers(servers);
 	}
 
-	@XmlElementWrapper(name = "servers")
 	@XmlElement(name = "server", type=GlusterServer.class)
 	public List<GlusterServer> getServers() {
 		return servers;
 	}
 
-	/**
-	 * @param servers
-	 *            the servers to set
-	 */
 	public void setServers(List<GlusterServer> servers) {
 		this.servers = servers;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.gluster.storage.management.core.model.Response#getData()
-	 */
-	@Override
-	@XmlTransient
-	public List<GlusterServer> getData() {
-		return getServers();
 	}
 }
 

@@ -18,6 +18,7 @@
  *******************************************************************************/
 package com.gluster.storage.management.server.resources;
 
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SERVER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_SERVER_NAME;
@@ -35,12 +36,14 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
@@ -121,62 +124,83 @@ public class GlusterServersResource extends AbstractServersResource {
 	}
 	
 	@GET
-	@Produces(MediaType.APPLICATION_XML)
-	public GlusterServerListResponse getGlusterServers(
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getGlusterServersJSON(
 			@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
+		return getGlusterServers(clusterName, MediaType.APPLICATION_JSON);
+	}
+
+	@GET
+	@Produces(MediaType.APPLICATION_XML)
+	public Response getGlusterServersXML(
+			@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
+		return getGlusterServers(clusterName, MediaType.APPLICATION_XML);
+	}
+
+	public Response getGlusterServers(String clusterName, String mediaType) {
 		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();
 		
-		ClusterInfo cluster = clusterService.getCluster(clusterName);
-		if(cluster == null) {
-			return new GlusterServerListResponse(new Status(Status.STATUS_CODE_FAILURE, "Cluster [" + clusterName
-					+ "] doesn't exist!"), null);
+		if (clusterName == null || clusterName.isEmpty()) {
+			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
 		}
-		
+
+		ClusterInfo cluster = clusterService.getCluster(clusterName);
+		if (cluster == null) {
+			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+		}
+
 		if(cluster.getServers().size() == 0) {
-			return new GlusterServerListResponse(Status.STATUS_SUCCESS, glusterServers);
+			return okResponse(new GlusterServerListResponse(glusterServers), mediaType);
 		}
 		
 		GlusterServer onlineServer = getOnlineServer(clusterName);
-		if(onlineServer == null) {
-			return new GlusterServerListResponse(new Status(Status.STATUS_CODE_FAILURE,
-					"No online server found in cluster [" + clusterName + "]"), glusterServers);
+		if (onlineServer == null) {
+			return errorResponse("No online servers found in cluster [" + clusterName + "]");
 		}
 		
 		try {
-			glusterServers = glusterUtil.getGlusterServers(onlineServer);
-		} catch(ConnectionException e) {
-			// online server has gone offline! try with a different one.
-			onlineServer = getNewOnlineServer(clusterName);
-			if(onlineServer == null) {
-				return new GlusterServerListResponse(new Status(Status.STATUS_CODE_FAILURE,
-						"No online server found in cluster [" + clusterName + "]"), glusterServers);
-			}
-			
-			glusterServers = glusterUtil.getGlusterServers(onlineServer);
+			glusterServers = getGlusterServers(clusterName, onlineServer);
+		} catch(Exception e) {
+			return errorResponse(e.getMessage());
 		}
 		
-		int errCount = 0;
-		StringBuilder errMsg = new StringBuilder("Couldn't fetch details for server(s): ");
+		String errMsg = fetDetailsOfServers(glusterServers, onlineServer);
+		if(!errMsg.isEmpty()) {
+			return errorResponse("Couldn't fetch details for server(s): " + errMsg);
+		}
+		
+		return okResponse(new GlusterServerListResponse(glusterServers), mediaType);
+	}
+
+	public String fetDetailsOfServers(List<GlusterServer> glusterServers, GlusterServer onlineServer) {
+		String errMsg = "";
 		
 		for (GlusterServer server : glusterServers) {
 			if (server.getStatus() == SERVER_STATUS.ONLINE && !server.getName().equals(onlineServer.getName())) {
 				try {
 					fetchServerDetails(server);
 				} catch (Exception e) {
-					errMsg.append(CoreConstants.NEWLINE + server.getName() + " : [" + e.getMessage() + "]");
-					errCount++;
+					errMsg += CoreConstants.NEWLINE + server.getName() + " : [" + e.getMessage() + "]";
 				}
 			}
 		}
-		Status status;
-		if (errCount==0) {
-			status = new Status(Status.STATUS_CODE_SUCCESS, "Success");
-		} else if(errCount == glusterServers.size()) {
-			status = new Status(Status.STATUS_CODE_FAILURE, errMsg.toString());
-		} else {
-			status = new Status(Status.STATUS_CODE_PART_SUCCESS, errMsg.toString());
+		return errMsg;
+	}
+
+	public List<GlusterServer> getGlusterServers(String clusterName, GlusterServer onlineServer) {
+		List<GlusterServer> glusterServers;
+		try {
+			glusterServers = glusterUtil.getGlusterServers(onlineServer);
+		} catch(ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = getNewOnlineServer(clusterName);
+			if(onlineServer == null) {
+				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
+			}
+			
+			glusterServers = glusterUtil.getGlusterServers(onlineServer);
 		}
-		return new GlusterServerListResponse(status, glusterServers);
+		return glusterServers;
 	}
 
 	@GET

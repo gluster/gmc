@@ -23,17 +23,12 @@ import static com.gluster.storage.management.core.constants.RESTConstants.RESOUR
 
 import java.util.List;
 
-import javax.ws.rs.core.MultivaluedMap;
-
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
-import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
-import com.gluster.storage.management.core.response.GlusterServerResponse;
 import com.sun.jersey.api.representation.Form;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class GlusterServersClient extends AbstractClient {
 	
@@ -54,8 +49,8 @@ public class GlusterServersClient extends AbstractClient {
 		return RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/" + RESOURCE_SERVERS;
 	}
 
-	public GlusterServerListResponse getServers() {
-		return (GlusterServerListResponse) fetchResource(GlusterServerListResponse.class);
+	public List<GlusterServer> getServers() {
+		return ((GlusterServerListResponse) fetchResource(GlusterServerListResponse.class)).getServers();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -83,7 +78,7 @@ public class GlusterServersClient extends AbstractClient {
 		UsersClient usersClient = new UsersClient();
 		if (usersClient.authenticate("gluster", "gluster").isSuccess()) {
 			GlusterServersClient glusterServersClient = new GlusterServersClient(usersClient.getSecurityToken(), "cluster1");
-			List<GlusterServer> glusterServers = glusterServersClient.getServers().getData();
+			List<GlusterServer> glusterServers = glusterServersClient.getServers();
 			for (GlusterServer server : glusterServers) {
 				System.out.println(server.getName());
 			}

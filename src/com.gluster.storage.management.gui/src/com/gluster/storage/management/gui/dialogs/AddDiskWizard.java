@@ -74,7 +74,7 @@ public class AddDiskWizard extends Wizard {
 			GlusterDataModelManager.getInstance().addBricks(volume, bricks);
 
 			MessageDialog.openInformation(getShell(), "Add brick(s) to Volume", "Volume [" + volume.getName()
-					+ "] is expanded with bricks [" + StringUtil.ListToString(brickList, ", ") + "]");
+					+ "] is expanded with bricks [" + StringUtil.collectionToString(brickList, ", ") + "]");
 			return true;
 		} catch (Exception e) {
 			MessageDialog.openError(getShell(), "Add brick(s) to Volume", e.getMessage());
