@@ -20,22 +20,23 @@
  */
 package com.gluster.storage.management.core.model;
 
+import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
+
 public abstract class Task {
-	public enum TASK_TYPE {
-		DISK_FORMAT, BRICK_MIGRATE, VOLUME_REBALANCE
-	}
-	
 	public String[] TASK_TYPE_STR = { "Format Disk", "Migrate Brick", "Volume Rebalance" };
 	
-	private TaskInfo taskInfo;
+	protected TaskInfo taskInfo;
 	
 	protected String serverName;
 	
-	public Task(TASK_TYPE type, String reference) {
+	public Task(TASK_TYPE type, String reference, String desc, boolean canPause, boolean canStop, boolean canCommit) {
 		taskInfo = new TaskInfo();
 		taskInfo.setType(type);
-		taskInfo.setId(getTypeStr() + "-" + reference); // construct id
 		taskInfo.setReference(reference);
+		taskInfo.setDescription(desc);
+		
+		// IMPORTANT. This call must be in the end since getId may need to use the values set in above statements
+		taskInfo.setName(getId()); 
 	}
 	
 	public Task(TaskInfo taskInfo) {
@@ -68,16 +69,18 @@ public abstract class Task {
 	
 	public abstract String getId();
 
-	public abstract TaskInfo start(); 
+	public abstract void start(); 
 	
-	public abstract TaskInfo resume();
+	public abstract void resume();
 
-	public abstract TaskInfo stop();
+	public abstract void stop();
 
-	public abstract TaskInfo pause();
+	public abstract void pause();
 	
-	public abstract TaskInfo status();
-	
-	public abstract void setTaskDescription();
-	
+	public abstract void commit();
+
+	/**
+	 * This method should check current status of the task and update it's taskInfo accordingly
+	 */
+	public abstract TaskStatus checkStatus();
 }

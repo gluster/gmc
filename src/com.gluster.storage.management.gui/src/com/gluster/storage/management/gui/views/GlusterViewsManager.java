@@ -29,6 +29,7 @@ import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 
 /**
@@ -80,6 +81,7 @@ public class GlusterViewsManager implements ViewsManager {
 
 	private void showViewsForCluster(Cluster cluster) throws PartInitException {
 		page.showView(ClusterSummaryView.ID);
+		page.showView(TasksView.ID, null, IWorkbenchPage.VIEW_CREATE);
 	}
 
 	private void showViewsForVolume(Volume volume) throws PartInitException {

@@ -20,9 +20,9 @@
  */
 package com.gluster.storage.management.server.resources;
 
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_OPERATION;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_TASK_ID;
-import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_OPERATION;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_TASKS;
 
@@ -40,26 +40,24 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
-import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.exceptions.GlusterValidationException;
 import com.gluster.storage.management.core.model.Task;
 import com.gluster.storage.management.core.model.TaskInfo;
-import com.gluster.storage.management.core.response.TaskListResponse;
-import com.gluster.storage.management.core.response.TaskResponse;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Path(RESOURCE_PATH_CLUSTERS + "/{" + PATH_PARAM_CLUSTER_NAME + "}/" + RESOURCE_TASKS)
 @Singleton
-public class TasksResource {
+public class TasksResource extends AbstractResource {
 	private Map<String, Task> tasksMap = new HashMap<String, Task>();
 
 	public TasksResource() {
 	}
 
-	
-	public void addTask(Task task) { // task should be one of MuigrateDiskTask, FormatDiskTask, etc
+	public void addTask(Task task) {
 		tasksMap.put(task.getId(), task);
 	}
 
@@ -70,17 +68,10 @@ public class TasksResource {
 	public List<TaskInfo> getAllTasksInfo() {
 		List<TaskInfo> allTasksInfo = new ArrayList<TaskInfo>();
 		for (Map.Entry<String, Task> entry : tasksMap.entrySet()) {
-			allTasksInfo.add(entry.getValue().getTaskInfo());
+			checkTaskStatus(entry.getKey());
+			allTasksInfo.add(entry.getValue().getTaskInfo()); // TaskInfo with latest status 
 		}
 		return allTasksInfo;
-	}
-	
-	public List<Task> getAllTasks() {
-		List<Task> allTasks = new ArrayList<Task>();
-		for (Map.Entry<String, Task> entry : tasksMap.entrySet()) {
-			allTasks.add(entry.getValue());
-		}
-		return allTasks;
 	}
 
 	public Task getTask(String taskId) {
@@ -91,63 +82,95 @@ public class TasksResource {
 		}
 		return null;
 	}
-
+	
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-	public TaskListResponse getTasks() {
-		TaskListResponse taskListResponse = new TaskListResponse();
+	public Response getTasks() {
 		try {
-			taskListResponse.setData(getAllTasksInfo());
-			taskListResponse.setStatus(new Status(Status.STATUS_CODE_SUCCESS, ""));
+			return okResponse(getAllTasksInfo(), MediaType.APPLICATION_XML);
 		} catch (GlusterRuntimeException e) {
-			taskListResponse.setStatus(new Status(e));
+			return errorResponse(e.getMessage());
 		}
-		return taskListResponse;
+	}
+	
+	@GET
+	@Path("/{" + PATH_PARAM_TASK_ID + "}")
+	@Produces(MediaType.APPLICATION_XML)
+	public Response getTaskStatus( @PathParam(PATH_PARAM_TASK_ID) String taskId) {
+		try {
+			Task task = checkTaskStatus(taskId);
+			return okResponse(task.getTaskInfo(), MediaType.APPLICATION_XML);
+		} catch (GlusterRuntimeException e) {
+			return errorResponse(e.getMessage());
+		}
+	}
+
+	private Task checkTaskStatus(String taskId) {
+		Task task = getTask(taskId);
+		task.getTaskInfo().setStatus(task.checkStatus());
+		return task;
 	}
 
 	@PUT
 	@Path("/{" + PATH_PARAM_TASK_ID + "}")
 	@Produces(MediaType.APPLICATION_XML)
-	public TaskResponse performTask(@PathParam(PATH_PARAM_TASK_ID) String taskId,
-			@FormParam(FORM_PARAM_OPERATION) String taskOperation) {
+	public Response performTask(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@PathParam(PATH_PARAM_TASK_ID) String taskId, @FormParam(FORM_PARAM_OPERATION) String taskOperation) {
 		Task task = getTask(taskId);
-		TaskInfo taskInfo = null;
-		TaskResponse taskResponse = new TaskResponse();
-
+		
 		try {
 			if (taskOperation.equals(RESTConstants.TASK_RESUME)) {
-				taskInfo = task.resume();
+				task.resume();
+			} else if (taskOperation.equals(RESTConstants.TASK_PAUSE)) {
+				task.pause();
+			} else if (taskOperation.equals(RESTConstants.TASK_STOP)) {
+				task.stop();
+			} else if(taskOperation.equals(RESTConstants.TASK_COMMIT)) {
+				task.commit();
 			}
-			if (taskOperation.equals(RESTConstants.TASK_PAUSE)) {
-				taskInfo = task.pause();
-			}
-			if (taskOperation.equals(RESTConstants.TASK_STOP)) {
-				taskInfo = task.stop();
-			}
-			taskResponse.setData(taskInfo);
-			taskResponse.setStatus(new Status(Status.STATUS_CODE_SUCCESS, ""));
+			// updateTask(taskId, taskOperation);
+			return (Response) acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS, clusterName, RESOURCE_TASKS,
+					taskId);
+		} catch(GlusterValidationException ve) {
+			return badRequestResponse(ve.getMessage());
 		} catch (GlusterRuntimeException e) {
-			taskResponse.setStatus(new Status(e));
+			return errorResponse(e.getMessage());
 		}
-		return taskResponse;
 	}
 
 	@DELETE
 	@Path("/{" + PATH_PARAM_TASK_ID + "}")
 	@Produces(MediaType.APPLICATION_XML)
-	public TaskResponse deleteTask(@PathParam(PATH_PARAM_TASK_ID) String taskId,
+	public Response deleteTask(@PathParam(PATH_PARAM_TASK_ID) String taskId,
 			@QueryParam(FORM_PARAM_OPERATION) String taskOperation) {
-		TaskResponse taskResponse = new TaskResponse();
 		Task task = getTask(taskId);
 		if (task == null) {
-			taskResponse.setStatus( new Status(Status.STATUS_CODE_FAILURE, "No such task " + taskId + "is found ")); 
+			return notFoundResponse("Task [" + taskId + "] not found!");
 		}
-		if (taskOperation.equals("delete")) {
-			removeTask(task);
-			taskResponse.setStatus(new Status(Status.STATUS_CODE_SUCCESS, "Task [" + taskId
-						+ "] removed successfully"));
-					}
-		return null;
-	}
+		
+		if(taskOperation == null || taskOperation.isEmpty()) {
+			return badRequestResponse("Parameter [" + FORM_PARAM_OPERATION + "] is missing in request!");
+		}
+		
+		if(!taskOperation.equals(RESTConstants.TASK_STOP) && !taskOperation.equals(RESTConstants.TASK_DELETE)) {
+			return badRequestResponse("Invalid value [" + taskOperation + "] for parameter [" + FORM_PARAM_OPERATION
+					+ "]");
+		}
+		
+		try {
+			if (taskOperation.equals(RESTConstants.TASK_STOP)) {
+				task.stop();
+				// On successfully stopping the task, we can delete (forget) it as it is no more useful
+				taskOperation = RESTConstants.TASK_DELETE;
+			}
 
+			if (taskOperation.equals(RESTConstants.TASK_DELETE)) {
+				removeTask(task);
+			}
+			
+			return noContentResponse();
+		} catch (Exception e) {
+			return errorResponse(e.getMessage());
+		}
+	}
 }

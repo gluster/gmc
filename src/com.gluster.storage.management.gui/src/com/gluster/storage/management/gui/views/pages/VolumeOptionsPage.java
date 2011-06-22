@@ -40,6 +40,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -91,9 +92,9 @@ public class VolumeOptionsPage extends Composite {
 		toolkit.paintBordersFor(this);
 
 		setupPageLayout();
+		addTopButton = createAddButton();
 		filterText = guiHelper.createFilterText(toolkit, this);
 
-		addTopButton = createAddButton();
 		setupOptionsTableViewer(filterText);
 
 		addBottomButton = createAddButton();
@@ -114,48 +115,7 @@ public class VolumeOptionsPage extends Composite {
 	}
 
 	private Button createAddButton() {
-		Button button = toolkit.createButton(this, "&Add", SWT.FLAT);
-		button.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				// add an empty option to be filled up by user
-				volume.setOption("", "");
-
-				tableViewer.refresh();
-				tableViewer.setSelection(new StructuredSelection(getEntry("")));
-				keyColumn.getViewer().editElement(getEntry(""), 0); // edit newly created entry
-
-				// disable the add button AND search filter textbox till user fills up the new option
-				setAddButtonsEnabled(false);
-				filterText.setEnabled(false);
-			}
-
-			private Entry<String, String> getEntry(String key) {
-				for (Entry<String, String> entry : volume.getOptions().entrySet()) {
-					if (entry.getKey().equals(key)) {
-						return entry;
-					}
-				}
-				return null;
-			}
-		});
-
-		// Make sure that add button is enabled only when search filter textbox is empty
-		filterText.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-				if (filterText.getText().length() > 0) {
-					setAddButtonsEnabled(false);
-				} else {
-					if (defaultVolumeOptions.size() == volume.getOptions().size()) {
-						setAddButtonsEnabled(false);
-					} else {
-						setAddButtonsEnabled(true);
-					}
-				}
-			}
-		});
-		return button;
+		return toolkit.createButton(this, "&Add", SWT.FLAT);
 	}
 
 	private void registerListeners(final Composite parent) {
@@ -243,11 +203,55 @@ public class VolumeOptionsPage extends Composite {
 				return optionKey.equals(volume.getOptions().keySet().toArray()[volume.getOptions().size() - 1]);
 			}
 		};
+		
+		SelectionListener addButtonSelectionListener = new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// add an empty option to be filled up by user
+				volume.setOption("", "");
+
+				tableViewer.refresh();
+				tableViewer.setSelection(new StructuredSelection(getEntry("")));
+				keyColumn.getViewer().editElement(getEntry(""), 0); // edit newly created entry
+
+				// disable the add button AND search filter textbox till user fills up the new option
+				setAddButtonsEnabled(false);
+				filterText.setEnabled(false);
+			}
+
+			private Entry<String, String> getEntry(String key) {
+				for (Entry<String, String> entry : volume.getOptions().entrySet()) {
+					if (entry.getKey().equals(key)) {
+						return entry;
+					}
+				}
+				return null;
+			}
+		};
+		addTopButton.addSelectionListener(addButtonSelectionListener);
+		addBottomButton.addSelectionListener(addButtonSelectionListener);
+
+		// Make sure that add button is enabled only when search filter textbox is empty
+		filterText.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				if (filterText.getText().length() > 0) {
+					setAddButtonsEnabled(false);
+				} else {
+					if (defaultVolumeOptions.size() == volume.getOptions().size()) {
+						setAddButtonsEnabled(false);
+					} else {
+						setAddButtonsEnabled(true);
+					}
+				}
+			}
+		});
+		
 		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
 	}
 
 	private void setupPageLayout() {
-		final GridLayout layout = new GridLayout(1, false);
+		final GridLayout layout = new GridLayout(2, false);
 		layout.verticalSpacing = 10;
 		layout.marginTop = 10;
 		setLayout(layout);
@@ -256,7 +260,7 @@ public class VolumeOptionsPage extends Composite {
 	private void setupOptionsTable(Composite parent) {
 		Table table = tableViewer.getTable();
 		table.setHeaderVisible(true);
-		table.setLinesVisible(false);
+		table.setLinesVisible(true);
 
 		TableColumnLayout tableColumnLayout = createTableColumnLayout();
 		parent.setLayout(tableColumnLayout);
@@ -337,7 +341,11 @@ public class VolumeOptionsPage extends Composite {
 	private Composite createTableViewerComposite() {
 		Composite tableViewerComposite = new Composite(this, SWT.NO);
 		tableViewerComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
-		tableViewerComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		
+		GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
+		layoutData.horizontalSpan = 2;
+		tableViewerComposite.setLayoutData(layoutData);
+		
 		return tableViewerComposite;
 	}
 

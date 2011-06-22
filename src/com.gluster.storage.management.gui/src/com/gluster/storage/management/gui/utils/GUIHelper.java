@@ -84,6 +84,7 @@ import com.gluster.storage.management.core.utils.JavaUtil;
 import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.views.NavigationView;
+import com.gluster.storage.management.gui.views.TasksView;
 
 public class GUIHelper {
 	private static final GUIHelper instance = new GUIHelper();
@@ -447,6 +448,16 @@ public class GUIHelper {
 		} catch (PartInitException e) {
 			e.printStackTrace();
 			throw new GlusterRuntimeException("Could not open the progress view!", e);
+		}
+	}
+	
+	public void showTaskView() {
+		try {
+			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
+					.showView( TasksView.ID );
+		} catch (PartInitException e) {
+			e.printStackTrace();
+			throw new GlusterRuntimeException("Could not open the task progress view!", e);
 		}
 	}
 	
