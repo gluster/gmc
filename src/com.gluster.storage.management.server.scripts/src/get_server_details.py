@@ -33,7 +33,6 @@ from optparse import OptionParser
 
 
 def getServerDetails(listall):
-
     serverName = socket.gethostname()
     meminfo = getMeminfo()
     cpu = 100 * float(getLoadavg())
@@ -94,10 +93,8 @@ def getServerDetails(listall):
     # refreshing hal data
     DiskUtils.refreshHal()
 
-    diskObj = Disk()
-    disks = diskObj.getMountableDiskList()
-
-    if disks is None:
+    diskDom = DiskUtils.getDiskDom()
+    if not diskDom:
         print "No disk found!"
         syslog.syslog(syslog.LOG_ERR, "Error finding disk information of server:%s" % serverName)
         return None
@@ -108,39 +105,7 @@ def getServerDetails(listall):
     serverTag.appendChild(responseDom.createTag("status", "ONLINE"))
     serverTag.appendChild(responseDom.createTag("uuid", None))
 
-    totalDiskSpace = 0
-    diskSpaceInUse = 0
-    diskTag = responseDom.createTag("disks")
-    for disk in disks:
-        if not listall:
-            if not disk['mount_point'].startswith("/export/"):
-                continue
-        if disk['interface'] in ['usb', 'mmc']:
-            continue
-        partitionTag = responseDom.createTag("disk", None)
-        partitionTag.appendChild(responseDom.createTag("name", os.path.basename(disk['device'])))
-        partitionTag.appendChild(responseDom.createTag("mountPoint", disk['mount_point']))
-        partitionTag.appendChild(responseDom.createTag("serverName", serverName))
-        partitionTag.appendChild(responseDom.createTag("description", disk['description']))
-        total, used, free = 0, 0, 0
-        if disk['size']:
-            total, used, free = DiskUtils.getDiskSizeInfo(disk['device'])
-        if total:
-            partitionTag.appendChild(responseDom.createTag("space", str(total)))
-            totalDiskSpace += total
-        else:
-            partitionTag.appendChild(responseDom.createTag("space", "NA"))
-        if used:
-            partitionTag.appendChild(responseDom.createTag("spaceInUse", str(used)))
-            diskSpaceInUse += used
-            partitionTag.appendChild(responseDom.createTag("status", "AVAILABLE"))
-        else:
-            partitionTag.appendChild(responseDom.createTag("spaceInUse", "NA"))
-            partitionTag.appendChild(responseDom.createTag("status", "UNINITIALIZED"))
-        diskTag.appendChild(partitionTag)
-    serverTag.appendChild(diskTag)
-    serverTag.appendChild(responseDom.createTag("totalDiskSpace", str(totalDiskSpace)))
-    serverTag.appendChild(responseDom.createTag("diskSpaceInUse", str(diskSpaceInUse)))
+    serverTag.appendChild(diskDom.getElementsByTagRoute("disks")[0])
     return serverTag
 
 def main():
