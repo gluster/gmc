@@ -53,10 +53,8 @@ public class RemoveDiskAction extends AbstractActionDelegate {
 				BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
 					public void run() {
 						VolumesClient client = new VolumesClient();
-						Status status = client.removeBricks(volume.getName(), bricks, confirmDelete);
-
-						if (status.isSuccess()) {
-
+						try {
+							client.removeBricks(volume.getName(), bricks, confirmDelete);
 							// Remove the bricks from the volume object
 							for (Brick brick : bricks) {
 								volume.removeBrick(brick);
@@ -66,13 +64,12 @@ public class RemoveDiskAction extends AbstractActionDelegate {
 
 							showInfoDialog(actionDesc, "Volume [" + volume.getName()
 									+ "] bricks(s) removed successfully!");
-						} else {
+						} catch (Exception e) {
 							showErrorDialog(actionDesc, "Volume [" + volume.getName()
-									+ "] bricks(s) could not be removed! Error: [" + status + "]");
+									+ "] bricks(s) could not be removed! Error: [" + e.getMessage() + "]");
 						}
 					}
 				});
-
 			}
 		});
 

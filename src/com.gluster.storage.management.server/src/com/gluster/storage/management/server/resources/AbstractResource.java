@@ -19,11 +19,20 @@
 package com.gluster.storage.management.server.resources;
 
 import java.net.URI;
+import java.util.ArrayList;
 
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
+
+import com.gluster.storage.management.core.constants.RESTConstants;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
+import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.response.VolumeListResponse;
 
 /**
  *
@@ -74,7 +83,7 @@ public class AbstractResource {
 	 * @return the {@link Response} object
 	 */
 	protected Response errorResponse(String errMessage) {
-		return Response.serverError().entity(errMessage).build();
+		return Response.serverError().type(MediaType.TEXT_HTML).entity(errMessage).build();
 	}
 
 	/**
@@ -86,6 +95,33 @@ public class AbstractResource {
 	 * @return the {@link Response} object
 	 */
 	protected Response badRequestResponse(String errMessage) {
-		return Response.status(Status.BAD_REQUEST).entity(errMessage).build();
+		return Response.status(Status.BAD_REQUEST).type(MediaType.TEXT_HTML).entity(errMessage).build();
+	}
+
+	/**
+	 * Creates an OK response and sets the entity in the response body.
+	 * 
+	 * @param entity
+	 *            Entity to be set in the response body
+	 * @param mediaType
+	 *            Media type to be set on the response
+	 * @return the {@link Response} object
+	 */
+	protected Response okResponse(Object entity, String mediaType) {
+		return Response.ok(entity).type(mediaType).build();
+	}
+
+	/**
+	 * Creates a streaming output response and sets the given streaming output in the response. Typically used for
+	 * "download" requests
+	 * 
+	 * @param entity
+	 *            Entity to be set in the response body
+	 * @param mediaType
+	 *            Media type to be set on the response
+	 * @return the {@link Response} object
+	 */
+	protected Response streamingOutputResponse(StreamingOutput output) {
+		return Response.ok(output).type(MediaType.APPLICATION_OCTET_STREAM).build();
 	}
 }

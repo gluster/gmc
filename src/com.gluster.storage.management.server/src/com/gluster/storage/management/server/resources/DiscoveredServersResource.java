@@ -18,6 +18,8 @@
  *******************************************************************************/
 package com.gluster.storage.management.server.resources;
 
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_DISCOVERED_SERVERS;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,7 +39,6 @@ import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.ServerListResponse;
 import com.gluster.storage.management.core.response.StringListResponse;
-import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_DISCOVERED_SERVERS;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Component

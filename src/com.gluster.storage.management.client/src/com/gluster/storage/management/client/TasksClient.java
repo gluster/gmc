@@ -87,10 +87,10 @@ public class TasksClient extends AbstractClient {
 		putRequest(taskId, form);
 	}
 	
-	public TaskResponse deleteTask(String taskId) {
+	public void deleteTask(String taskId) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_DELETE);
 		
-		return (TaskResponse) deleteSubResource(taskId, TaskResponse.class, queryParams);
+		deleteSubResource(taskId, queryParams);
 	}
 }

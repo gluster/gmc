@@ -33,6 +33,7 @@ import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
@@ -110,7 +111,9 @@ public class GlusterDataModelManager {
 	private void initializeAutoDiscoveredServers(Cluster cluster) {
 		ServerListResponse discoveredServerListResponse = new DiscoveredServersClient(securityToken)
 				.getDiscoveredServerDetails();
-		if (!discoveredServerListResponse.getStatus().isSuccess()) {
+		Status status = discoveredServerListResponse.getStatus();
+		if (!status.isSuccess() && !status.isPartSuccess()) {
+			// TODO: Find a way to show warning in case of part success
 			throw new GlusterRuntimeException(discoveredServerListResponse.getStatus().getMessage());
 		}
 		cluster.setAutoDiscoveredServers(discoveredServerListResponse.getData());
@@ -118,20 +121,11 @@ public class GlusterDataModelManager {
 
 	private void initializeVolumes(Cluster cluster) {
 		VolumesClient volumeClient = new VolumesClient();
-		VolumeListResponse response = volumeClient.getAllVolumes();
-		if (!response.getStatus().isSuccess()) {
-			throw new GlusterRuntimeException("Error fetching volume list: [" + response.getStatus() + "]");
-		}
-		cluster.setVolumes(response.getVolumes());
+		cluster.setVolumes(volumeClient.getAllVolumes());
 	}
 
 	private void initializeVolumeOptionsDefaults() {
-		VolumeOptionInfoListResponse response = new VolumesClient().getVolumeOptionsDefaults();
-		if (!response.getStatus().isSuccess()) {
-			throw new GlusterRuntimeException("Error fetching volume option defaults: ["
-					+ response.getStatus().getMessage() + "]");
-		}
-		this.volumeOptionsDefaults = response.getOptions();
+		this.volumeOptionsDefaults = new VolumesClient().getVolumeOptionsDefaults();
 	}
 
 	public void initializeTasks(Cluster cluster) {

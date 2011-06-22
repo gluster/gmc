@@ -31,7 +31,8 @@ import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.response.GenericResponse;
+import com.gluster.storage.management.core.model.VolumeLogMessage;
+import com.gluster.storage.management.core.model.VolumeOptionInfo;
 import com.gluster.storage.management.core.response.LogMessageListResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
@@ -77,6 +78,17 @@ public class VolumesClient extends AbstractClient {
 	public void stopVolume(String volumeName) {
 		performOperation(volumeName, RESTConstants.TASK_STOP);
 	}
+	
+	public boolean volumeExists(String volumeName) {
+		try {
+			// TODO: instead of fetching full volume name, fetch list of volumes and check if
+			// it contains our volume name
+			getVolume(volumeName);
+			return true;
+		} catch(Exception e) {
+			return false;
+		}
+	}
 
 	public void setVolumeOption(String volume, String key, String value) {
 		Form form = new Form();
@@ -89,23 +101,22 @@ public class VolumesClient extends AbstractClient {
 		putRequest(volume + "/" + RESTConstants.RESOURCE_OPTIONS);
 	}
 
-	public VolumeListResponse getAllVolumes() {
-		return (VolumeListResponse) fetchResource(VolumeListResponse.class);
+	public List<Volume> getAllVolumes() {
+		return ((VolumeListResponse) fetchResource(VolumeListResponse.class)).getVolumes();
 	}
 
-	@SuppressWarnings("unchecked")
-	public GenericResponse<Volume> getVolume(String volumeName) {
-		return (GenericResponse<Volume>)fetchSubResource(volumeName, GenericResponse.class);
+	public Volume getVolume(String volumeName) {
+		return (Volume)fetchSubResource(volumeName, Volume.class);
 	}
 
-	public Status deleteVolume(Volume volume, boolean deleteOption) {
+	public void deleteVolume(Volume volume, boolean deleteOption) {
 		MultivaluedMap<String, String> queryParams = prepareDeleteVolumeQueryParams(deleteOption);
-		return (Status) deleteSubResource(volume.getName(), Status.class, queryParams);
+		deleteSubResource(volume.getName(), queryParams);
 	}
 
-	public VolumeOptionInfoListResponse getVolumeOptionsDefaults() {
+	public List<VolumeOptionInfo> getVolumeOptionsDefaults() {
 		return ((VolumeOptionInfoListResponse) fetchSubResource(RESTConstants.RESOURCE_DEFAULT_OPTIONS,
-				VolumeOptionInfoListResponse.class));
+				VolumeOptionInfoListResponse.class)).getOptions();
 	}
 
 	public void addBricks(String volumeName, List<String> brickList) {
@@ -134,23 +145,23 @@ public class VolumesClient extends AbstractClient {
 	 *            Number of most recent log messages to be fetched (from each disk)
 	 * @return Log Message List response received from the Gluster Management Server.
 	 */
-	public LogMessageListResponse getLogs(String volumeName, String brickName, String severity, Date fromTimestamp,
+	public List<VolumeLogMessage> getLogs(String volumeName, String brickName, String severity, Date fromTimestamp,
 			Date toTimestamp, int messageCount) {
 		MultivaluedMap<String, String> queryParams = prepareGetLogQueryParams(brickName, severity, fromTimestamp,
 				toTimestamp, messageCount);
 
-		return (LogMessageListResponse) fetchSubResource(volumeName + "/" + RESTConstants.RESOURCE_LOGS,
-				queryParams, LogMessageListResponse.class);
+		return ((LogMessageListResponse) fetchSubResource(volumeName + "/" + RESTConstants.RESOURCE_LOGS,
+				queryParams, LogMessageListResponse.class)).getLogMessages();
 	}
 
 	public void downloadLogs(String volumeName, String filePath) {
 		downloadSubResource(volumeName + "/" + RESTConstants.RESOURCE_LOGS + "/" + RESTConstants.RESOURCE_DOWNLOAD, filePath);
 	}
 
-	public Status removeBricks(String volumeName, List<Brick> BrickList, boolean deleteOption) {
+	public void removeBricks(String volumeName, List<Brick> BrickList, boolean deleteOption) {
 		String bricks = StringUtil.ListToString(GlusterCoreUtil.getQualifiedBrickList(BrickList), ",");
 		MultivaluedMap<String, String> queryParams = prepareRemoveBrickQueryParams(volumeName, bricks, deleteOption);
-		return (Status) deleteSubResource(volumeName + "/" + RESTConstants.RESOURCE_BRICKS, Status.class, queryParams);
+		deleteSubResource(volumeName + "/" + RESTConstants.RESOURCE_BRICKS, queryParams);
 	}
 	
 	private MultivaluedMap<String, String> prepareRemoveBrickQueryParams(String volumeName, String bricks,
@@ -199,41 +210,15 @@ public class VolumesClient extends AbstractClient {
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_START);
 		form.add(RESTConstants.FORM_PARAM_AUTO_COMMIT, autoCommit);
 		
-		putRequest( volumeName + "/" + RESTConstants.RESOURCE_BRICKS, form);
+		putRequest(volumeName + "/" + RESTConstants.RESOURCE_BRICKS, form);
 	}
 
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();
 		if (usersClient.authenticate("gluster", "gluster").isSuccess()) {
 			VolumesClient client = new VolumesClient(usersClient.getSecurityToken());
-//			List<Disk> disks = new ArrayList<Disk>();
-//			Disk diskElement = new Disk();
-//			diskElement.setName("sda1");
-//			diskElement.setStatus(DISK_STATUS.READY);
-//			disks.add(diskElement);
-//			diskElement.setName("sda2");
-//			diskElement.setStatus(DISK_STATUS.READY);
-//			disks.add(diskElement);
-//
-//			Volume vol = new Volume("vol1", null, Volume.VOLUME_TYPE.PLAIN_DISTRIBUTE, Volume.TRANSPORT_TYPE.ETHERNET,
-//					Volume.VOLUME_STATUS.ONLINE);
-//			// vol.setDisks(disks);
-//			System.out.println(client.createVolume(vol));
-//			for (VolumeOptionInfo option : client.getVolumeOptionsDefaults()) {
-//				System.out.println(option.getName() + "-" + option.getDescription() + "-" + option.getDefaultValue());
-//			}
-//			System.out.println(client.getVolume("Volume3").getOptions());
-//			System.out.println(client.setVolumeOption("Volume3", "network.frame-timeout", "600").getMessage());
-//			List<Disk> disks = new ArrayList<Disk>(); 
-//			Disk disk = new Disk();
-//			disk.setServerName("server1");
-//			disk.setName("sda");
-//			disk.setStatus(DISK_STATUS.READY);
-//			disks.add(disk);
-//			
-//			Status status = client.addDisks("Volume3", disks);
-//			System.out.println(status.getMessage());
-			client.downloadLogs("vol1", "/tmp/temp1.tar.gz");
+			System.out.println(client.getAllVolumes());
+//			client.downloadLogs("vol1", "/tmp/temp1.tar.gz");
 		}
 	}
 }

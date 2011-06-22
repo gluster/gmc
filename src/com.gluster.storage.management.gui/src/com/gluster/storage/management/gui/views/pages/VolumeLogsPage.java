@@ -185,16 +185,15 @@ public class VolumeLogsPage extends Composite {
 					return;
 				}
 
-				LogMessageListResponse response = client.getLogs(volume.getName(), bricksCombo.getText(),
-						severityCombo.getText(), fromTimestamp, toTimestamp, Integer.parseInt(lineCountText.getText()));
-				Status status = response.getStatus();
-				if (status.isSuccess()) {
-					List<VolumeLogMessage> logMessages = response.getLogMessages();
+				try {
+					List<VolumeLogMessage> logMessages = client.getLogs(volume.getName(), bricksCombo.getText(),
+							severityCombo.getText(), fromTimestamp, toTimestamp,
+							Integer.parseInt(lineCountText.getText()));
 					tableViewer.setInput(logMessages.toArray(new VolumeLogMessage[0]));
 					tableViewer.refresh();
-				} else {
-					MessageDialog.openError(getShell(), "Volume Logs", "Error while fetching volume logs: [" + status
-							+ "]");
+				} catch (Exception ex) {
+					MessageDialog.openError(getShell(), "Volume Logs",
+							"Error while fetching volume logs: [" + ex.getMessage() + "]");
 				}
 			}
 		});

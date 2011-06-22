@@ -18,32 +18,29 @@
  *******************************************************************************/
 package com.gluster.storage.management.core.response;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.model.VolumeOptionInfo;
+/**
+ *
+ */
+@XmlRootElement(name="task")
+public class TaskIdResponse {
+	private String id;
 
-@XmlRootElement(name = "options")
-public class VolumeOptionInfoListResponse {
-	private List<VolumeOptionInfo> options = new ArrayList<VolumeOptionInfo>();
-
-	public VolumeOptionInfoListResponse() {
+	public TaskIdResponse() {
+	}
+	
+	public TaskIdResponse(String id) {
+		setId(id);
+	}
+	
+	public void setId(String id) {
+		this.id = id;
 	}
 
-	public VolumeOptionInfoListResponse(Status status, List<VolumeOptionInfo> options) {
-		setOptions(options);
-	}
-
-	@XmlElement(name = "option", type=VolumeOptionInfo.class)
-	public List<VolumeOptionInfo> getOptions() {
-		return options;
-	}
-
-	public void setOptions(List<VolumeOptionInfo> options) {
-		this.options = options;
+	@XmlElement(name="id")
+	public String getId() {
+		return id;
 	}
 }
