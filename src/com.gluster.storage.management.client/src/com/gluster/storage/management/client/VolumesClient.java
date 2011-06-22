@@ -20,6 +20,15 @@
  */
 package com.gluster.storage.management.client;
 
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_ACCESS_PROTOCOLS;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_BRICKS;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_REPLICA_COUNT;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_STRIPE_COUNT;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_TRANSPORT_TYPE;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VOLUME_NAME;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VOLUME_OPTIONS;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VOLUME_TYPE;
+
 import java.util.Date;
 import java.util.List;
 
@@ -29,7 +38,6 @@ import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.Brick;
-import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.VolumeLogMessage;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
@@ -60,8 +68,17 @@ public class VolumesClient extends AbstractClient {
 		return RESTConstants.RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/" + RESTConstants.RESOURCE_VOLUMES;
 	}
 
-	public Status createVolume(Volume volume) {
-		return (Status) postObject(Status.class, volume);
+	public void createVolume(Volume volume) {
+		Form form = new Form();
+		form.add(FORM_PARAM_VOLUME_NAME, volume.getName());
+		form.add(FORM_PARAM_VOLUME_TYPE, volume.getVolumeType().toString());
+		form.add(FORM_PARAM_TRANSPORT_TYPE, volume.getTransportType().toString());
+		form.add(FORM_PARAM_REPLICA_COUNT, volume.getReplicaCount());
+		form.add(FORM_PARAM_STRIPE_COUNT, volume.getStripeCount());
+		form.add(FORM_PARAM_BRICKS, StringUtil.collectionToString(volume.getBricks(), ","));
+		form.add(FORM_PARAM_ACCESS_PROTOCOLS, StringUtil.collectionToString(volume.getNASProtocols(), ","));
+		form.add(FORM_PARAM_VOLUME_OPTIONS, StringUtil.collectionToString(volume.getOptions().getOptions(), ","));
+		postRequest(form);
 	}
 
 	private void performOperation(String volumeName, String operation) {
@@ -120,7 +137,7 @@ public class VolumesClient extends AbstractClient {
 	}
 
 	public void addBricks(String volumeName, List<String> brickList) {
-		String bricks = StringUtil.ListToString(brickList, ",");
+		String bricks = StringUtil.collectionToString(brickList, ",");
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_BRICKS, bricks);
 		postRequest(volumeName + "/" + RESTConstants.RESOURCE_BRICKS, form);
@@ -159,7 +176,7 @@ public class VolumesClient extends AbstractClient {
 	}
 
 	public void removeBricks(String volumeName, List<Brick> BrickList, boolean deleteOption) {
-		String bricks = StringUtil.ListToString(GlusterCoreUtil.getQualifiedBrickList(BrickList), ",");
+		String bricks = StringUtil.collectionToString(GlusterCoreUtil.getQualifiedBrickList(BrickList), ",");
 		MultivaluedMap<String, String> queryParams = prepareRemoveBrickQueryParams(volumeName, bricks, deleteOption);
 		deleteSubResource(volumeName + "/" + RESTConstants.RESOURCE_BRICKS, queryParams);
 	}

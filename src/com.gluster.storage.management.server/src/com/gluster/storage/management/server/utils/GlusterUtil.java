@@ -30,23 +30,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
-import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.model.Task.TASK_TYPE;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.model.Task.TASK_TYPE;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
-import com.gluster.storage.management.core.model.VolumeOptions;
-import com.gluster.storage.management.core.response.TaskResponse;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.ProcessResult;
+import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.server.resources.TasksResource;
 import com.gluster.storage.management.server.tasks.MigrateDiskTask;
 import com.sun.jersey.api.core.InjectParam;
@@ -196,8 +194,19 @@ public class GlusterUtil {
 		return output;
 	}
 
-	public Status addServer(String existingServer, String newServer) {
-		return new Status(sshUtil.executeRemote(existingServer, "gluster peer probe " + newServer));
+	public void addServer(String existingServer, String newServer) {
+		ProcessResult result = sshUtil.executeRemote(existingServer, "gluster peer probe " + newServer);
+		if(!result.isSuccess()) {
+			throw new GlusterRuntimeException("Couldn't probe server [" + newServer + "] from [" + existingServer
+					+ "]. Error: " + result);
+		}
+		
+		// reverse peer probe to ensure that host names appear in peer status on both sides
+		result = sshUtil.executeRemote(newServer, "gluster peer probe " + existingServer);
+		if(!result.isSuccess()) {
+			throw new GlusterRuntimeException("Couldn't _reverse_ probe server [" + existingServer + "] from ["
+					+ newServer + "]. Error: " + result);
+		}
 	}
 
 	public Status startVolume(String volumeName, String knownServer) {
@@ -235,7 +244,7 @@ public class GlusterUtil {
 		TRANSPORT_TYPE transportType = Volume.getTransportTypeByStr(transportTypeStr);
 		transportTypeArg = (transportType == TRANSPORT_TYPE.ETHERNET) ? "tcp" : "rdma";
 
-		String command = prepareVolumeCreateCommand(volumeName, glusterCoreUtil.extractList(bricks, ","), count,
+		String command = prepareVolumeCreateCommand(volumeName, StringUtil.extractList(bricks, ","), count,
 				volTypeArg, transportTypeArg);
 		ProcessResult result = sshUtil.executeRemote(knownServer, command);
 		if (!result.isSuccess()) {
@@ -243,7 +252,7 @@ public class GlusterUtil {
 		}
 
 		try {
-			createOptions(volumeName, glusterCoreUtil.extractMap(options, ",", "="), knownServer);
+			createOptions(volumeName, StringUtil.extractMap(options, ",", "="), knownServer);
 		} catch(Exception e) {
 			throw new GlusterRuntimeException(
 					"Volume created successfully, however following errors occurred while setting options: "
@@ -550,8 +559,11 @@ public class GlusterUtil {
 		return new Status(sshUtil.executeRemote(knownServer, command.toString()));
 	}
 
-	public Status removeServer(String existingServer, String serverName) {
-		return new Status(sshUtil.executeRemote(existingServer, "gluster --mode=script peer detach " + serverName));
+	public void removeServer(String existingServer, String serverName) {
+		ProcessResult result = sshUtil.executeRemote(existingServer, "gluster --mode=script peer detach " + serverName);
+		if(!result.isSuccess()) {
+			throw new GlusterRuntimeException("Couldn't remove server [" + serverName + "]! Error: " + result);
+		}
 	}
 
 	public static void main(String args[]) {

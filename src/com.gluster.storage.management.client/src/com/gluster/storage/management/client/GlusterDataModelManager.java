@@ -101,11 +101,7 @@ public class GlusterDataModelManager {
 	}
 
 	private void initializeGlusterServers(Cluster cluster) {
-		GlusterServerListResponse glusterServerListResponse = new GlusterServersClient().getServers();
-		if (!glusterServerListResponse.getStatus().isSuccess()) {
-			throw new GlusterRuntimeException(glusterServerListResponse.getStatus().getMessage());
-		}
-		cluster.setServers(glusterServerListResponse.getServers());
+		cluster.setServers(new GlusterServersClient().getServers());
 	}
 
 	private void initializeAutoDiscoveredServers(Cluster cluster) {
