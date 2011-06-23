@@ -25,6 +25,7 @@ import static com.gluster.storage.management.core.constants.RESTConstants.PATH_P
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_SERVERS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_TASKS;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_DISKS;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -440,7 +441,7 @@ public class GlusterServersResource extends AbstractServersResource {
 
 	@PUT
 	@Produces(MediaType.APPLICATION_XML)
-	@Path("{" + PATH_PARAM_SERVER_NAME + "}")
+	@Path("{" + PATH_PARAM_SERVER_NAME + "}/" + RESOURCE_DISKS + "/{" + PATH_PARAM_DISK_NAME + "}")
 	public Response initializeDisk(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_SERVER_NAME) String serverName, @PathParam(PATH_PARAM_DISK_NAME) String diskName) {
 
