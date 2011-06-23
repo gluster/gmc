@@ -142,7 +142,7 @@ public class VolumesResource extends AbstractResource {
 	
 	public Response getVolumes(String clusterName, String mediaType) {
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
+			return badRequestResponse("Cluster name must not be empty!");
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
@@ -178,7 +178,11 @@ public class VolumesResource extends AbstractResource {
 			@FormParam(FORM_PARAM_REPLICA_COUNT) Integer replicaCount, @FormParam(FORM_PARAM_STRIPE_COUNT) Integer stripeCount,
 			@FormParam(FORM_PARAM_BRICKS) String bricks, @FormParam(FORM_PARAM_ACCESS_PROTOCOLS) String accessProtocols,
 			@FormParam(FORM_PARAM_VOLUME_OPTIONS) String options) {
-		String missingParam = checkMissingParamsForCreateVolume(clusterName, volumeName, volumeType, transportType, replicaCount, stripeCount, bricks, accessProtocols, options);
+		if(clusterName == null || clusterName.isEmpty()) {
+			return badRequestResponse("Cluster name must not be empty!");
+		}
+		
+		String missingParam = checkMissingParamsForCreateVolume(volumeName, volumeType, transportType, replicaCount, stripeCount, bricks, accessProtocols, options);
 		if(missingParam != null) {
 			return badRequestResponse("Parameter [" + missingParam + "] is missing in request!");
 		}
@@ -221,7 +225,6 @@ public class VolumesResource extends AbstractResource {
 
 	/**
 	 * Returns name of the missing parameter if any. If all parameters are present, 
-	 * @param clusterName
 	 * @param volumeName
 	 * @param volumeType
 	 * @param transportType
@@ -232,12 +235,11 @@ public class VolumesResource extends AbstractResource {
 	 * @param options
 	 * @return
 	 */
-	private String checkMissingParamsForCreateVolume(String clusterName, String volumeName, String volumeType,
+	private String checkMissingParamsForCreateVolume(String volumeName, String volumeType,
 			String transportType, Integer replicaCount, Integer stripeCount, String bricks, String accessProtocols,
 			String options) {
 		
-		return (clusterName == null || clusterName.isEmpty()) ? FORM_PARAM_CLUSTER_NAME :
-				(volumeName == null || volumeName.isEmpty()) ? FORM_PARAM_VOLUME_NAME :
+		return (volumeName == null || volumeName.isEmpty()) ? FORM_PARAM_VOLUME_NAME :
 				(volumeType == null || volumeType.isEmpty()) ? FORM_PARAM_VOLUME_TYPE :
 				(transportType == null || transportType.isEmpty()) ? FORM_PARAM_TRANSPORT_TYPE :
 				(replicaCount == null) ? FORM_PARAM_REPLICA_COUNT :
@@ -268,7 +270,7 @@ public class VolumesResource extends AbstractResource {
 		Volume volume = null;
 		
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
+			return badRequestResponse("Cluster name must not be empty!");
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
@@ -309,7 +311,11 @@ public class VolumesResource extends AbstractResource {
 	public Response performOperation(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_OPERATION) String operation) {
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
+			return badRequestResponse("Cluster name must not be empty!");
+		}
+
+		if (volumeName == null || volumeName.isEmpty()) {
+			return badRequestResponse("Volume name must not be empty!");
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
@@ -354,13 +360,21 @@ public class VolumesResource extends AbstractResource {
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
 	public Response deleteVolume(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName,
-			@QueryParam(QUERY_PARAM_DELETE_OPTION) boolean deleteFlag) {
+			@QueryParam(QUERY_PARAM_DELETE_OPTION) Boolean deleteFlag) {
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
+			return badRequestResponse("Cluster name must not be empty");
 		}
 
+		if (volumeName == null || volumeName.isEmpty()) {
+			return badRequestResponse("Volume name must not be empty");
+		}
+		
 		if (clusterService.getCluster(clusterName) == null) {
 			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+		}
+		
+		if (deleteFlag == null) {
+			deleteFlag = false;
 		}
 		
 		Volume volume = null;
@@ -390,18 +404,30 @@ public class VolumesResource extends AbstractResource {
 	}
 
 	@DELETE
-	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + RESOURCE_BRICKS)
+	@Path("{" + PATH_PARAM_VOLUME_NAME + "}/" + RESOURCE_BRICKS)
 	public Response removeBricks(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
-			@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName, @QueryParam(QUERY_PARAM_BRICKS) String bricks,
-			@QueryParam(QUERY_PARAM_DELETE_OPTION) boolean deleteFlag) {
+			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName, @QueryParam(QUERY_PARAM_BRICKS) String bricks,
+			@QueryParam(QUERY_PARAM_DELETE_OPTION) Boolean deleteFlag) {
 		List<String> brickList = Arrays.asList(bricks.split(",")); // Convert from comma separated string (query
 																	// parameter)
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
+			return badRequestResponse("Cluster name must not be empty!");
+		}
+
+		if (volumeName == null || volumeName.isEmpty()) {
+			return badRequestResponse("Volume name must not be empty!");
+		}
+
+		if (bricks == null || bricks.isEmpty()) {
+			return badRequestResponse("Parameter [" + QUERY_PARAM_BRICKS + "] is missing in request!");
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
 			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+		}
+		
+		if(deleteFlag == null) {
+			deleteFlag = false;
 		}
 
 		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
@@ -488,11 +514,11 @@ public class VolumesResource extends AbstractResource {
 			@FormParam(RESTConstants.FORM_PARAM_OPTION_KEY) String key,
 			@FormParam(RESTConstants.FORM_PARAM_OPTION_VALUE) String value) {
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
+			return badRequestResponse("Cluster name must not be empty!");
 		}
 		
 		if(volumeName == null || volumeName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_VOLUME_NAME + "] is missing in request!");
+			return badRequestResponse("Volume name must not be empty!");
 		}
 
 		if(key == null || key.isEmpty()) {
@@ -530,7 +556,7 @@ public class VolumesResource extends AbstractResource {
 			return errorResponse(e.getMessage());
 		}
 		
-		return noContentResponse();
+		return createdResponse(key);
 	}
 
 	@PUT
@@ -538,11 +564,11 @@ public class VolumesResource extends AbstractResource {
 	public Response resetOptions(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName) {
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
+			return badRequestResponse("Cluster name must not be empty!");
 		}
 		
 		if(volumeName == null || volumeName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_VOLUME_NAME + "] is missing in request!");
+			return badRequestResponse("Volume name must not be empty!");
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
@@ -631,7 +657,11 @@ public class VolumesResource extends AbstractResource {
 	public Response downloadLogs(@PathParam(PATH_PARAM_CLUSTER_NAME) final String clusterName,
 			@PathParam(PATH_PARAM_VOLUME_NAME) final String volumeName) {
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
+			return badRequestResponse("Cluster name must not be empty!");
+		}
+		
+		if (volumeName == null || volumeName.isEmpty()) {
+			return badRequestResponse("Volume name must not be empty!");
 		}
 		
 		if (clusterService.getCluster(clusterName) == null) {
@@ -719,11 +749,11 @@ public class VolumesResource extends AbstractResource {
 	public Response getLogs(String clusterName, String volumeName, String brickName, String severity,
 			String fromTimestamp, String toTimestamp, Integer lineCount, String mediaType) {
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
+			return badRequestResponse("Cluster name must not be empty!");
 		}
 		
 		if (volumeName == null || volumeName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_VOLUME_NAME + "] is missing in request!");
+			return badRequestResponse("Volume name must not be empty!");
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
@@ -816,15 +846,15 @@ public class VolumesResource extends AbstractResource {
 	}
 
 	@POST
-	@Path("{" + QUERY_PARAM_VOLUME_NAME + "}/" + RESOURCE_BRICKS)
+	@Path("{" + PATH_PARAM_VOLUME_NAME + "}/" + RESOURCE_BRICKS)
 	public Response addBricks(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
-			@PathParam(QUERY_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_BRICKS) String bricks) {
+			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_BRICKS) String bricks) {
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
+			return badRequestResponse("Cluster name must not be empty!");
 		}
 		
 		if (volumeName == null || volumeName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_VOLUME_NAME + "] is missing in request!");
+			return badRequestResponse("Cluster name must not be empty!");
 		}
 
 		if (bricks == null || bricks.isEmpty()) {
@@ -840,8 +870,9 @@ public class VolumesResource extends AbstractResource {
 			return errorResponse("No online servers found in cluster [" + clusterName + "]");
 		}
 
+		List<String> brickList = Arrays.asList(bricks.split(",")); 
 		try {
-			glusterUtil.addBricks(volumeName, Arrays.asList(bricks.split(",")), onlineServer.getName());
+			glusterUtil.addBricks(volumeName, brickList, onlineServer.getName());
 		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
 			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
@@ -850,7 +881,7 @@ public class VolumesResource extends AbstractResource {
 			}
 			
 			try {
-				glusterUtil.addBricks(volumeName, Arrays.asList(bricks.split(",")), onlineServer.getName());
+				glusterUtil.addBricks(volumeName, brickList, onlineServer.getName());
 			} catch(Exception e1) {
 				return errorResponse(e1.getMessage());
 			}
@@ -858,7 +889,7 @@ public class VolumesResource extends AbstractResource {
 			return errorResponse(e1.getMessage());
 		}
 		
-		return noContentResponse();
+		return createdResponse("");
 	}
 
 	@PUT
@@ -868,16 +899,32 @@ public class VolumesResource extends AbstractResource {
 			@FormParam(FORM_PARAM_TARGET) String toBrick, @FormParam(FORM_PARAM_AUTO_COMMIT) Boolean autoCommit) {
 
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
+			return badRequestResponse("Cluster name must not be empty!");
 		}
 		
 		if (volumeName == null || volumeName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_VOLUME_NAME + "] is missing in request!");
+			return badRequestResponse("Volume name must not be empty!");
+		}
+
+		if (fromBrick == null || fromBrick.isEmpty()) {
+			return badRequestResponse("Parameter [" + FORM_PARAM_SOURCE + "] is missing in request!");
 		}
 		
+		if (toBrick == null || toBrick.isEmpty()) {
+			return badRequestResponse("Parameter [" + FORM_PARAM_TARGET + "] is missing in request!");
+		}
+		
+		if (clusterService.getCluster(clusterName) == null) {
+			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+		}
+
 		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
 		if (onlineServer == null) {
 			return errorResponse("No online servers found in cluster [" + clusterName + "]");
+		}
+		
+		if(autoCommit == null) {
+			autoCommit = false;
 		}
 		
 		String taskId = null;
@@ -896,8 +943,7 @@ public class VolumesResource extends AbstractResource {
 			return errorResponse(e1.getMessage());
 		}
 		
-		return noContentResponse(uriInfo.getBaseUri() + "/" + RESTConstants.RESOURCE_PATH_CLUSTERS + "/" + clusterName
-				+ "/" + RESOURCE_TASKS + "/" + taskId);
+		return acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS, clusterName, RESOURCE_TASKS, taskId);
 	}
 
 	public static void main(String[] args) throws ClassNotFoundException {
