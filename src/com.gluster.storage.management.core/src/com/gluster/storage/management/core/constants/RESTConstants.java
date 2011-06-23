@@ -56,7 +56,6 @@ public class RESTConstants {
 	public static final String FORM_PARAM_ACCESS_PROTOCOLS = "accessProtocols";
 	public static final String FORM_PARAM_VOLUME_OPTIONS = "options";
 
-
 	public static final String FORM_PARAM_CLUSTER_NAME = "clusterName";
 	public static final String FORM_PARAM_SERVER_NAME = "serverName";
 	public static final String FORM_PARAM_DISKS = "disks";
@@ -85,6 +84,7 @@ public class RESTConstants {
 	public static final String QUERY_PARAM_TO_TIMESTAMP = "toTimestamp";
 	public static final String QUERY_PARAM_DOWNLOAD = "download";
 	public static final String QUERY_PARAM_SERVER_NAME = "serverName";
+	public static final String QUERY_PARAM_DETAILS = "details";
 	
 	public static final String FORMAT_XML = "xml";
 	public static final String FORMAT_JSON = "json";

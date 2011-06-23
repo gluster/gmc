@@ -18,13 +18,16 @@
  *******************************************************************************/
 package com.gluster.storage.management.client;
 
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DETAILS;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_DISCOVERED_SERVERS;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.ServerListResponse;
+import com.gluster.storage.management.core.response.ServerNameListResponse;
 import com.gluster.storage.management.core.response.StringListResponse;
-import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_DISCOVERED_SERVERS;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class DiscoveredServersClient extends AbstractClient {
@@ -45,13 +48,12 @@ public class DiscoveredServersClient extends AbstractClient {
 	@SuppressWarnings("rawtypes")
 	private Object getDiscoveredServers(Boolean getDetails, Class responseClass) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-		queryParams.putSingle("details", getDetails.toString());
+		queryParams.putSingle(QUERY_PARAM_DETAILS, getDetails.toString());
 		return fetchResource(queryParams, responseClass);
 	}
 
-	public StringListResponse getDiscoveredServerNames() {
-		
-		return  (StringListResponse) getDiscoveredServers(Boolean.FALSE, StringListResponse.class);
+	public ServerNameListResponse getDiscoveredServerNames() {
+		return (ServerNameListResponse) getDiscoveredServers(Boolean.FALSE, ServerNameListResponse.class);
 	}
 
 	public ServerListResponse getDiscoveredServerDetails() {
@@ -68,8 +70,8 @@ public class DiscoveredServersClient extends AbstractClient {
 		UsersClient usersClient = new UsersClient();
 		if (usersClient.authenticate("gluster", "gluster").isSuccess()) {
 			DiscoveredServersClient serverResource = new DiscoveredServersClient(usersClient.getSecurityToken());
-			StringListResponse discoveredServerNames = serverResource.getDiscoveredServerNames();
-			System.out.println(discoveredServerNames.getData());
+			ServerNameListResponse discoveredServerNames = serverResource.getDiscoveredServerNames();
+			System.out.println(discoveredServerNames.getServerNames());
 			ServerListResponse discoveredServers = serverResource.getDiscoveredServerDetails();
 			System.out.println(discoveredServers.getData());
 

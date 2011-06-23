@@ -18,7 +18,7 @@
  *******************************************************************************/
 package com.gluster.storage.management.server.resources;
 
-import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_DISCOVERED_SERVERS;
+import static com.gluster.storage.management.core.constants.RESTConstants.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,16 +29,16 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
-import com.gluster.storage.management.core.model.Response;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.ServerListResponse;
-import com.gluster.storage.management.core.response.StringListResponse;
+import com.gluster.storage.management.core.response.ServerNameListResponse;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Component
@@ -67,12 +67,22 @@ public class DiscoveredServersResource extends AbstractServersResource {
 
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-	@SuppressWarnings("rawtypes")
-	public Response getDiscoveredServers(@QueryParam("details") Boolean getDetails) {
+	public Response getDiscoveredServersXML(@QueryParam(QUERY_PARAM_DETAILS) Boolean getDetails) {
+		return getDiscoveredServers(getDetails, MediaType.APPLICATION_XML);
+	}
+
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getDiscoveredServersJSON(@QueryParam(QUERY_PARAM_DETAILS) Boolean getDetails) {
+		return getDiscoveredServers(getDetails, MediaType.APPLICATION_JSON);
+	}
+
+	public Response getDiscoveredServers(Boolean getDetails, String mediaType) {
 		if(getDetails != null && getDetails == true) {
-			return getDiscoveredServerDetails();
+			return okResponse(getDiscoveredServerDetails(), mediaType);
 		}
-		return new StringListResponse(getDiscoveredServerNames());
+		
+		return okResponse(new ServerNameListResponse(getDiscoveredServerNames()), mediaType);
 	}
 
 	private ServerListResponse getDiscoveredServerDetails() {
@@ -115,9 +125,7 @@ public class DiscoveredServersResource extends AbstractServersResource {
 	}
 	
 	public static void main(String[] args) {
-		StringListResponse listResponse = (StringListResponse)new DiscoveredServersResource().getDiscoveredServers(false);
-		for (String server : listResponse.getData()) {
-			System.out.println(server);
-		}
+		Response response = (Response)new DiscoveredServersResource().getDiscoveredServersXML(false);
+		System.out.println(response.getEntity());
 	}
 }
