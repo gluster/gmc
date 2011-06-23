@@ -26,7 +26,6 @@ import java.util.List;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
-import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
 import com.sun.jersey.api.representation.Form;
 
@@ -53,15 +52,8 @@ public class GlusterServersClient extends AbstractClient {
 		return ((GlusterServerListResponse) fetchResource(GlusterServerListResponse.class)).getServers();
 	}
 
-	@SuppressWarnings("unchecked")
 	public GlusterServer getGlusterServer(String serverName) {
-		GenericResponse<GlusterServer> response = (GenericResponse<GlusterServer>) fetchSubResource(serverName,
-				GenericResponse.class);
-		return response.getData();
-	}
-
-	public String getServerXML(String serverName) {
-		return ((String) fetchSubResource(serverName, String.class));
+		return (GlusterServer) fetchSubResource(serverName, GlusterServer.class);
 	}
 
 	public void addServer(Server discoveredServer) {

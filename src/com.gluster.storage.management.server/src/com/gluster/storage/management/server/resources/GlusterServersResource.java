@@ -20,6 +20,7 @@ package com.gluster.storage.management.server.resources;
 
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SERVER_NAME;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SOURCE;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_DISK_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_SERVER_NAME;
@@ -149,7 +150,7 @@ public class GlusterServersResource extends AbstractServersResource {
 		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();
 		
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
+			return badRequestResponse("Cluster name must not be empty!");
 		}
 
 		ClusterInfo cluster = clusterService.getCluster(clusterName);
@@ -168,11 +169,22 @@ public class GlusterServersResource extends AbstractServersResource {
 		
 		try {
 			glusterServers = getGlusterServers(clusterName, onlineServer);
+		} catch(ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = getNewOnlineServer(clusterName);
+			if (onlineServer == null) {
+				return errorResponse("No online servers found in cluster [" + clusterName + "]");
+			}
+			try {
+				glusterServers = getGlusterServers(clusterName, onlineServer);
+			} catch(Exception e1) {
+				return errorResponse(e1.getMessage());
+			}
 		} catch(Exception e) {
 			return errorResponse(e.getMessage());
 		}
 		
-		String errMsg = fetDetailsOfServers(glusterServers, onlineServer);
+		String errMsg = fetchDetailsOfServers(glusterServers, onlineServer);
 		if(!errMsg.isEmpty()) {
 			return errorResponse("Couldn't fetch details for server(s): " + errMsg);
 		}
@@ -180,7 +192,7 @@ public class GlusterServersResource extends AbstractServersResource {
 		return okResponse(new GlusterServerListResponse(glusterServers), mediaType);
 	}
 
-	public String fetDetailsOfServers(List<GlusterServer> glusterServers, GlusterServer onlineServer) {
+	public String fetchDetailsOfServers(List<GlusterServer> glusterServers, GlusterServer onlineServer) {
 		String errMsg = "";
 		
 		for (GlusterServer server : glusterServers) {
@@ -214,82 +226,117 @@ public class GlusterServersResource extends AbstractServersResource {
 	@GET
 	@Path("{serverName}")
 	@Produces(MediaType.APPLICATION_XML)
-	public GlusterServerResponse getGlusterServer(
+	public Response getGlusterServerXML(
 			@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_SERVER_NAME) String serverName) {
-		GlusterServer server = glusterUtil.getGlusterServer(getOnlineServer(clusterName), serverName);
-		Status status = Status.STATUS_SUCCESS;
-		if(server.isOnline()) {
-			try {
-				fetchServerDetails(server);
-			} catch (Exception e) {
-				status.setCode(Status.STATUS_CODE_FAILURE); 
-			}
-		}
-		return new GlusterServerResponse(status, server);
+		return getGlusterServerResponse(clusterName, serverName, MediaType.APPLICATION_XML);
 	}
 
-	private Status performAddServer(String clusterName, String serverName) {
-		GlusterServer onlineServer = getOnlineServer(clusterName);
-		if(onlineServer == null) {
-			return new Status(Status.STATUS_CODE_FAILURE,
-					"No online server found in cluster [" + clusterName + "]");
-		}
-		
-		Status status;
+	@GET
+	@Path("{serverName}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getGlusterServerJSON(
+			@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@PathParam(PATH_PARAM_SERVER_NAME) String serverName) {
+		return getGlusterServerResponse(clusterName, serverName, MediaType.APPLICATION_JSON);
+	}
+
+	private Response getGlusterServerResponse(String clusterName, String serverName, String mediaType) {
 		try {
-			status = glusterUtil.addServer(onlineServer.getName(), serverName);
-			if(status.isSuccess()) {
-				// other peer probe to ensure that host names appear in peer probe on both sides
-				status = glusterUtil.addServer(serverName, onlineServer.getName());
-			}
-		} catch(ConnectionException e) {
-			onlineServer = getNewOnlineServer(clusterName);
-			if(onlineServer == null) {
-				return new Status(Status.STATUS_CODE_FAILURE,
-						"No online server found in cluster [" + clusterName + "]");
-			}
-			status = glusterUtil.addServer(serverName, onlineServer.getName());
+			return okResponse(getGlusterServer(clusterName, serverName), mediaType);
+		} catch(Exception e) {
+			return errorResponse(e.getMessage());
+		}
+	}
+
+	private GlusterServer getGlusterServer(String clusterName, String serverName) {
+		if (clusterName == null || clusterName.isEmpty()) {
+			throw new GlusterRuntimeException("Cluster name must not be empty!");
 		}
 
-		return status;
+		if (serverName == null || serverName.isEmpty()) {
+			throw new GlusterRuntimeException("Server name must not be empty!");
+		}
+
+		ClusterInfo cluster = clusterService.getCluster(clusterName);
+		if (cluster == null) {
+			throw new GlusterRuntimeException("Cluster [" + clusterName + "] not found!");
+		}
+
+		GlusterServer onlineServer = getOnlineServer(clusterName);
+		if (onlineServer == null) {
+			throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
+		}
+		
+		GlusterServer server = null;
+		try {
+			server = glusterUtil.getGlusterServer(onlineServer, serverName);
+		} catch(ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = getNewOnlineServer(clusterName);
+			if (onlineServer == null) {
+				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
+			}
+			server = glusterUtil.getGlusterServer(onlineServer, serverName);
+		}
+		
+		if(server.isOnline()) {
+			fetchServerDetails(server);
+		}
+		return server;
+	}
+
+	private void performAddServer(String clusterName, String serverName) {
+		GlusterServer onlineServer = getOnlineServer(clusterName);
+		if(onlineServer == null) {
+			throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
+		}
+		
+		try {
+			glusterUtil.addServer(onlineServer.getName(), serverName);
+		} catch(ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = getNewOnlineServer(clusterName);
+			if(onlineServer == null) {
+				throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
+			}
+			
+			glusterUtil.addServer(serverName, onlineServer.getName());
+		}
 	}
 	
 	@POST
-	@Produces(MediaType.APPLICATION_XML)
-	public GlusterServerResponse addServer(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+	public Response addServer(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@FormParam(FORM_PARAM_SERVER_NAME) String serverName) {
-		if(clusterName.isEmpty()) {
-			return new GlusterServerResponse(
-					new Status(Status.STATUS_CODE_FAILURE, "Cluster name should not be empty!"), null);
+		if(clusterName == null || clusterName.isEmpty()) {
+			return badRequestResponse("Cluster name must not be empty!");
 		}
 		
 		if(serverName == null || serverName.isEmpty()) {
-			return new GlusterServerResponse(new Status(Status.STATUS_CODE_FAILURE, "Form parameter ["
-					+ FORM_PARAM_SERVER_NAME + "] is mandatory!"), null);
+			return badRequestResponse("Parameter [" + FORM_PARAM_SERVER_NAME + "] is missing in request!");
 		}
 		
 		ClusterInfo cluster = clusterService.getCluster(clusterName);
-		if(cluster == null) {
-			return new GlusterServerResponse(new Status(Status.STATUS_CODE_FAILURE, "Cluster [" + clusterName
-					+ "] doesn't exist!"), null);
+		if (cluster == null) {
+			return badRequestResponse("Cluster [" + clusterName + "] not found!");
 		}
 		
 		boolean publicKeyInstalled = sshUtil.isPublicKeyInstalled(serverName);
 		if(!publicKeyInstalled && !sshUtil.hasDefaultPassword(serverName)) {
 			// public key not installed, default password doesn't work. return with error.
-			return new GlusterServerResponse(new Status(Status.STATUS_CODE_FAILURE,
-					"Gluster Management Gateway uses the default password to set up keys on the server."
-							+ CoreConstants.NEWLINE + "However it seems that the password on server [" + serverName
-							+ "] has been changed manually." + CoreConstants.NEWLINE
-							+ "Please reset it back to the standard default password and try again."), null);
+			return errorResponse("Gluster Management Gateway uses the default password to set up keys on the server."
+					+ CoreConstants.NEWLINE + "However it seems that the password on server [" + serverName
+					+ "] has been changed manually." + CoreConstants.NEWLINE
+					+ "Please reset it back to the standard default password and try again.");
 		}
 		
 		List<ServerInfo> servers = cluster.getServers();
 		if(servers != null && !servers.isEmpty()) {
-			Status status = performAddServer(clusterName, serverName);
-			if(!status.isSuccess()) {
-				return new GlusterServerResponse(status, null);
+			// cluster has at least one existing server, so that peer probe can be performed
+			try {
+				performAddServer(clusterName, serverName);
+			} catch(Exception e) {
+				return errorResponse(e.getMessage());
 			}
 		} else {
 			// this is the first server to be added to the cluster, which means no
@@ -300,100 +347,101 @@ public class GlusterServersResource extends AbstractServersResource {
 			// add the cluster-server mapping
 			clusterService.mapServerToCluster(clusterName, serverName);
 		} catch (Exception e) {
-			return new GlusterServerResponse(new Status(Status.STATUS_CODE_PART_SUCCESS, e.getMessage()), null);
+			return errorResponse(e.getMessage());
 		}
 		
 		// since the server is added to a cluster, it should not more be considered as a
 		// discovered server available to other clusters
 		discoveredServersResource.removeDiscoveredServer(serverName);
 
-		// fetch server details
-		GlusterServerResponse serverResponse = getGlusterServer(clusterName, serverName);
-		
 		if (!publicKeyInstalled) {
 			try {
 				// install public key (this will also disable password based ssh login)
 				sshUtil.installPublicKey(serverName);
 			} catch (Exception e) {
-				return new GlusterServerResponse(new Status(Status.STATUS_CODE_PART_SUCCESS,
-						"Public key could not be installed! Error: [" + e.getMessage() + "]"),
-						serverResponse.getGlusterServer());
+				return errorResponse("Public key could not be installed on [" + serverName + "]! Error: ["
+						+ e.getMessage() + "]");
 			}
 		}
 
-		return serverResponse;
+		return createdResponse(serverName);
 	}
 
 	@DELETE
-	@Produces(MediaType.APPLICATION_XML)
 	@Path("{" + PATH_PARAM_SERVER_NAME + "}")
-	public Status removeServer(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+	public Response removeServer(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_SERVER_NAME) String serverName) {
-		if (clusterName.isEmpty()) {
-			return new Status(Status.STATUS_CODE_FAILURE, "Cluster name should not be empty!");
+		if (clusterName == null || clusterName.isEmpty()) {
+			return badRequestResponse("Cluster name must not be empty!");
 		}
 		
 		if(serverName == null || serverName.isEmpty()) {
-			return new Status(Status.STATUS_CODE_FAILURE, "Form parameter [" + FORM_PARAM_SERVER_NAME
-					+ "] is mandatory!");
+			return badRequestResponse("Server name must not be empty!");
 		}
 		
 		ClusterInfo cluster = clusterService.getCluster(clusterName);
 		if(cluster == null) {
-			return new Status(Status.STATUS_CODE_FAILURE, "Cluster [" + clusterName + "] doesn't exist!");
+			return badRequestResponse("Cluster [" + clusterName + "] not found!");
 		}
 
 		List<ServerInfo> servers = cluster.getServers();
-		if(servers == null || servers.isEmpty()) {
-			return new Status(Status.STATUS_CODE_FAILURE, "Server [" + serverName + "] is not attached to cluster ["
+		if(servers == null || servers.isEmpty() || !containsServer(servers, serverName)) {
+			return badRequestResponse("Server [" + serverName + "] is not attached to cluster ["
 					+ clusterName + "]!");
 		}
 		
-		Status status = Status.STATUS_SUCCESS;
 		if(servers.size() == 1) {
 			// Only one server mapped to the cluster, no "peer detach" required.
 			// remove the cached online server for this cluster if present
 			clusterServerCache.remove(clusterName);
 		} else {
-			// get an online server that is not same as the server being removed
-			GlusterServer onlineServer = getOnlineServer(clusterName, serverName);
-			if (onlineServer == null) {
-				return new Status(Status.STATUS_CODE_FAILURE, "No online server found in cluster [" + clusterName + "]");
-			}
-
 			try {
-				status = glusterUtil.removeServer(onlineServer.getName(), serverName);
-			} catch (ConnectionException e) {
-				// online server has gone offline! try with a different one.
-				onlineServer = getNewOnlineServer(clusterName, serverName);
-				if (onlineServer == null) {
-					return new Status(Status.STATUS_CODE_FAILURE, "No online server found in cluster [" + clusterName
-							+ "]");
-				}
-				status = glusterUtil.removeServer(onlineServer.getName(), serverName);
-				if(!status.isSuccess()) {
-					return status;
-				}
+				removeServerFromCluster(clusterName, serverName);
+			} catch(Exception e) {
+				return errorResponse(e.getMessage());
 			}
-			
-			if(onlineServer.getName().equals(serverName)) {
-				// since the cached server has been removed from the cluster, remove it from the cache
-				clusterServerCache.remove(clusterName);
-			}
+		}		
+		
+		return noContentResponse();
+	}
+	
+	private void removeServerFromCluster(String clusterName, String serverName) {
+		// get an online server that is not same as the server being removed
+		GlusterServer onlineServer = getOnlineServer(clusterName, serverName);
+		if (onlineServer == null) {
+			throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
 		}
-		
-		
+
 		try {
-			clusterService.unmapServerFromCluster(clusterName, serverName);
-		} catch (Exception e) {
-			return new Status(Status.STATUS_CODE_PART_SUCCESS, e.getMessage());
+			glusterUtil.removeServer(onlineServer.getName(), serverName);
+		} catch (ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = getNewOnlineServer(clusterName, serverName);
+			if (onlineServer == null) {
+				throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
+			}
+			glusterUtil.removeServer(onlineServer.getName(), serverName);
 		}
+		
+		if(onlineServer.getName().equals(serverName)) {
+			// since the cached server has been removed from the cluster, remove it from the cache
+			clusterServerCache.remove(clusterName);
+		}
+		
+		clusterService.unmapServerFromCluster(clusterName, serverName);
 		
 		// since the server is removed from the cluster, it is now available to be added to other clusters. 
 		// Hence add it back to the discovered servers list.
-		discoveredServersResource.addDiscoveredServer(serverName);
-		
-		return status;
+		discoveredServersResource.addDiscoveredServer(serverName);		
+	}
+
+	private boolean containsServer(List<ServerInfo> servers, String serverName) {
+		for(ServerInfo server : servers) {
+			if(server.getName().toUpperCase().equals(serverName.toUpperCase())) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	@PUT

@@ -194,8 +194,19 @@ public class GlusterUtil {
 		return output;
 	}
 
-	public Status addServer(String existingServer, String newServer) {
-		return new Status(sshUtil.executeRemote(existingServer, "gluster peer probe " + newServer));
+	public void addServer(String existingServer, String newServer) {
+		ProcessResult result = sshUtil.executeRemote(existingServer, "gluster peer probe " + newServer);
+		if(!result.isSuccess()) {
+			throw new GlusterRuntimeException("Couldn't probe server [" + newServer + "] from [" + existingServer
+					+ "]. Error: " + result);
+		}
+		
+		// reverse peer probe to ensure that host names appear in peer status on both sides
+		result = sshUtil.executeRemote(newServer, "gluster peer probe " + existingServer);
+		if(!result.isSuccess()) {
+			throw new GlusterRuntimeException("Couldn't _reverse_ probe server [" + existingServer + "] from ["
+					+ newServer + "]. Error: " + result);
+		}
 	}
 
 	public Status startVolume(String volumeName, String knownServer) {
@@ -548,8 +559,11 @@ public class GlusterUtil {
 		return new Status(sshUtil.executeRemote(knownServer, command.toString()));
 	}
 
-	public Status removeServer(String existingServer, String serverName) {
-		return new Status(sshUtil.executeRemote(existingServer, "gluster --mode=script peer detach " + serverName));
+	public void removeServer(String existingServer, String serverName) {
+		ProcessResult result = sshUtil.executeRemote(existingServer, "gluster --mode=script peer detach " + serverName);
+		if(!result.isSuccess()) {
+			throw new GlusterRuntimeException("Couldn't remove server [" + serverName + "]! Error: " + result);
+		}
 	}
 
 	public static void main(String args[]) {
