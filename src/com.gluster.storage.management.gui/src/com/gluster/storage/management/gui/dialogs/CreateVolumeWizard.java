@@ -23,87 +23,97 @@ import org.eclipse.jface.wizard.Wizard;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
-import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 
 public class CreateVolumeWizard extends Wizard {
-
+	private static final String title = "Gluster Management Console - Create Volume";
+	private CreateVolumePage1 page;
+	
 	public CreateVolumeWizard() {
-		setWindowTitle("Gluster Management Console - Create Volume");
+		setWindowTitle(title);
 		setHelpAvailable(false); // TODO: Introduce wizard help
 	}
 
 	@Override
 	public void addPages() {
-		addPage(new CreateVolumePage1());
+		page = new CreateVolumePage1();
+		addPage(page);
 	}
 	
 	@Override
 	public boolean performFinish() {
-		String dialogTitle = "Create Volume";
-		CreateVolumePage1 page = (CreateVolumePage1) getPage(CreateVolumePage1.PAGE_NAME);
-
 		Volume newVolume = page.getVolume();
 		VolumesClient volumesClient = new VolumesClient();
-		Status status = volumesClient.createVolume(newVolume);
-		String message = "";
+		
+		try {
+			volumesClient.createVolume(newVolume);
+			handleSuccess(newVolume, volumesClient);
+		} catch(Exception e) {
+			String errMsg = e.getMessage();
+			// the error could be in to post-volume-create processing. check if this is the case.
+			if (volumesClient.volumeExists(newVolume.getName())) {
+				handlePartSuccess(newVolume, volumesClient, errMsg);
+			} else {
+				MessageDialog.openError(getShell(), title, "Volume creation failed! Error: " + errMsg);
+			}
+		}
+		
+		return true;
+	}
+
+	public void handleSuccess(Volume newVolume, VolumesClient volumesClient) {
+		String message = "Volume created successfully!";
+		newVolume.setStatus(VOLUME_STATUS.OFFLINE);
 		boolean warning = false;
-		if (status.isSuccess()) {
-			message = "Volume created successfully!";
-			newVolume.setStatus(VOLUME_STATUS.OFFLINE);
-			if (page.startVolumeAfterCreation()) {
+		if (page.startVolumeAfterCreation()) {
+			try {
+				volumesClient.startVolume(newVolume.getName());
+				newVolume.setStatus(VOLUME_STATUS.ONLINE);
+				message = "Volume created and started successfully!";
+			} catch(Exception e) {
+				message = "Volume created successfuly, but couldn't be started. Error: " + e.getMessage();
+				warning = true;
+			}
+		}
+		
+		// update the model
+		GlusterDataModelManager.getInstance().addVolume(newVolume);
+		if (warning) {
+			MessageDialog.openWarning(getShell(), title, message);
+		} else {
+			MessageDialog.openInformation(getShell(), title, message);
+		}
+	}
+
+	public void handlePartSuccess(Volume newVolume, VolumesClient volumesClient, String errMsg) {
+		// volume exists. error was in post-volume-create
+		newVolume.setStatus(VOLUME_STATUS.OFFLINE);
+		boolean error = false;
+		String message1 = null;
+		if (page.startVolumeAfterCreation()) {
+			if (MessageDialog.openConfirm(getShell(), title,
+					"Volume created, but following error(s) occured: " + errMsg
+							+ "\n\nDo you still want to start the volume [" + newVolume.getName()  + "]?")) {
 				try {
 					volumesClient.startVolume(newVolume.getName());
 					newVolume.setStatus(VOLUME_STATUS.ONLINE);
-					message = "Volume created and started successfully!";
-				} catch(Exception e) {
-					message = "Volume created successfuly, but couldn't be started. Error: " + e.getMessage();
-					warning = true;
+					message1 = "Volume [" + newVolume.getName() + "] started successfully!"; // Only start operation
+				} catch(Exception e1) {
+					message1 = "Volume couldn't be started. Error: " + e1.getMessage();
+					error = true;
 				}
 			}
 			
-			// update the model
-			GlusterDataModelManager.getInstance().addVolume(newVolume);
-			if (warning) {
-				MessageDialog.openWarning(getShell(), dialogTitle, message);
+			if (error) {
+				MessageDialog.openWarning(getShell(), title, message1);
 			} else {
-				MessageDialog.openInformation(getShell(), dialogTitle, message);
+				MessageDialog.openInformation(getShell(), title, message1);
 			}
-		} else {
-			if (status.isPartSuccess()) {
-				newVolume.setStatus(VOLUME_STATUS.OFFLINE);
-				boolean error = false;
-				if (page.startVolumeAfterCreation()) {
-					if (MessageDialog.openConfirm(getShell(), dialogTitle,
-							"Volume created, but following error(s) occured: " + status
-									+ "\n\nDo you still want to start the volume [" + newVolume.getName()  + "]?")) {
-						try {
-							volumesClient.startVolume(newVolume.getName());
-							newVolume.setStatus(VOLUME_STATUS.ONLINE);
-							message = "Volume [" + newVolume.getName() + "] started successfully!"; // Only start operation
-						} catch(Exception e) {
-							message = "Volume couldn't be started. Error: " + e.getMessage();
-							error = true;
-						}
-					}
-					if (error) {
-						MessageDialog.openWarning(getShell(), dialogTitle, message);
-					} else {
-						MessageDialog.openInformation(getShell(), dialogTitle, message);
-					}
-				
-				} else { // Start volume is not checked
-					MessageDialog.openWarning(getShell(), dialogTitle, "Volume created, but following error(s) occured: "
-						+ status);
-				}
-				GlusterDataModelManager.getInstance().addVolume(newVolume); 
-				
-			} else {
-				MessageDialog.openError(getShell(), dialogTitle, "Volume creation failed! " + status);
-			}
+		} else { // Start volume is not checked
+			MessageDialog.openWarning(getShell(), title,
+					"Volume created, but following error(s) occured: " + errMsg);
 		}
-
-		return true;
+		GlusterDataModelManager.getInstance().addVolume(newVolume);
 	}
 }

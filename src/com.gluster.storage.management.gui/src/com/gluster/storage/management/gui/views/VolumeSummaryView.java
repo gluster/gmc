@@ -215,7 +215,7 @@ public class VolumeSummaryView extends ViewPart {
 				}
 			}
 		}
-		return StringUtil.ListToString(OnlineServers, ", ") + ((OnlineServers.size() > maxServers) ? "..." : "");
+		return StringUtil.collectionToString(OnlineServers, ", ") + ((OnlineServers.size() > maxServers) ? "..." : "");
 	}
 
 	/**

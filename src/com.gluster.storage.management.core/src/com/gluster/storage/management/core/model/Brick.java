@@ -86,5 +86,9 @@ public class Brick extends Entity {
 		return StringUtil.filterString(getServerName() + getBrickDirectory() + getDiskName(), filterString,
 				caseSensitive);
 	}
-
+	
+	@Override
+	public String toString() {
+		return getQualifiedName();
+	}
 }
