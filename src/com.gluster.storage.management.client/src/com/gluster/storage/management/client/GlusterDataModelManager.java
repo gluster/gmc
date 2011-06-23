@@ -105,14 +105,7 @@ public class GlusterDataModelManager {
 	}
 
 	private void initializeAutoDiscoveredServers(Cluster cluster) {
-		ServerListResponse discoveredServerListResponse = new DiscoveredServersClient(securityToken)
-				.getDiscoveredServerDetails();
-		Status status = discoveredServerListResponse.getStatus();
-		if (!status.isSuccess() && !status.isPartSuccess()) {
-			// TODO: Find a way to show warning in case of part success
-			throw new GlusterRuntimeException(discoveredServerListResponse.getStatus().getMessage());
-		}
-		cluster.setAutoDiscoveredServers(discoveredServerListResponse.getData());
+		cluster.setAutoDiscoveredServers(new DiscoveredServersClient(securityToken).getDiscoveredServerDetails());
 	}
 
 	private void initializeVolumes(Cluster cluster) {
