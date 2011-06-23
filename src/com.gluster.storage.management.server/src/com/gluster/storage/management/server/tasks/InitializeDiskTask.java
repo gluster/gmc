@@ -1,5 +1,5 @@
 /**
- * MigrateDiskTask.java
+ * InitializeDiskTask.java
  *
  * Copyright (c) 2011 Gluster, Inc. <http://www.gluster.com>
  * This file is part of Gluster Management Console.
@@ -28,6 +28,9 @@ import com.gluster.storage.management.server.utils.SshUtil;
 
 public class InitializeDiskTask extends Task {
 
+	private static final String INITIALIZE_DISK_SCRIPT = "initialize_disk.py";
+	private static final String INITIALIZE_DISK_STATUS_SCRIPT = "initialize_disk_status.py";
+	
 	private String serverName;
 	private String diskName;
 	private SshUtil sshUtil = new SshUtil();
@@ -82,7 +85,7 @@ public class InitializeDiskTask extends Task {
 	@Override
 	public TaskInfo start() {
 		getTaskInfo().setStatus(
-				new TaskStatus(new Status(sshUtil.executeRemote(getServerName(), "initialize_disk.py "
+				new TaskStatus(new Status(sshUtil.executeRemote(getServerName(), INITIALIZE_DISK_SCRIPT + " "
 						+ getDiskName()))));
 		return getTaskInfo();
 	}
@@ -90,7 +93,8 @@ public class InitializeDiskTask extends Task {
 	@Override
 	public TaskInfo status() {
 		getTaskInfo().setStatus(
-				new TaskStatus(new Status(sshUtil.executeRemote(getServerName(), "initialize_disk_status.py "
+
+				new TaskStatus(new Status(sshUtil.executeRemote(getServerName(), INITIALIZE_DISK_STATUS_SCRIPT + " "
 						+ getDiskName()))));
 		return getTaskInfo();
 	}
