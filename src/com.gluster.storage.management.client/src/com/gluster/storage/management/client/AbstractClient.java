@@ -126,7 +126,7 @@ public abstract class AbstractClient {
 			return res.queryParams(queryParams)
 					.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML).get(responseClass);
 		} catch(UniformInterfaceException e) {
-			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
+			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class), e);
 		}
 	}
 

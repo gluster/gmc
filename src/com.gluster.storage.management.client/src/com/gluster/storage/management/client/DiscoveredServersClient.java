@@ -68,12 +68,15 @@ public class DiscoveredServersClient extends AbstractClient {
 
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();
-		if (usersClient.authenticate("gluster", "gluster").isSuccess()) {
+		try {
+			usersClient.authenticate("gluster", "gluster");
 			DiscoveredServersClient serverResource = new DiscoveredServersClient(usersClient.getSecurityToken());
 			List<String> discoveredServerNames = serverResource.getDiscoveredServerNames();
 			System.out.println(discoveredServerNames);
 			List<Server> discoveredServers = serverResource.getDiscoveredServerDetails();
 			System.out.println(discoveredServers);
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
 	}
 }
