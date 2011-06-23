@@ -19,7 +19,10 @@
 package com.gluster.storage.management.core.utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class StringUtil {
 	public static boolean filterString(String sourceString, String filterString, boolean caseSensitive) {
@@ -31,13 +34,13 @@ public class StringUtil {
 		return str.replaceAll("\\s+", "");
 	}
 
-	public static String ListToString(List<String> list, String delimiter) {
+	public static String collectionToString(Collection<? extends Object> list, String delimiter) {
 		if (list.size() == 0) {
 			return "";
 		}
 		StringBuilder output = new StringBuilder();
-		for (String element : list) {
-			output.append(element).append(delimiter);
+		for (Object element : list) {
+			output.append(element.toString()).append(delimiter);
 		}
 		String outputStr = output.toString();
 		int endIndex = outputStr.length() - delimiter.length();
@@ -51,18 +54,64 @@ public class StringUtil {
 		}
 		return enumAsArray;
 	}
+	
+	/**
+	 * Extracts a list from a string by splitting it on given delimiter 
+	 * @param input the input string
+	 * @return A {@link List} of extracted tokens
+	 */
+	public static List<String> extractList(String input, String delim) {
+		String[] arr = input.split(delim);
+		List<String> output = new ArrayList<String>();
+		for(String str : arr) {
+			String brick = str.trim();
+			if(!brick.isEmpty()) {
+				output.add(brick);
+			}
+		}
+		return output;
+	}
+
+	/**
+	 * Extracts a map from a string by splitting it on the given primary and secondary delimiter. e.g. The input string
+	 * <i>k1=v1,k2=v2,k3=v3</i> will yield the following map:<br>
+	 * k1 -> v1<br>
+	 * k2 -> v2<br>
+	 * k3 -> v3<br>
+	 * where <b>,</b> is the primary delimiter and <b>=</b> is the secondary delimiter.
+	 * 
+	 * @param input
+	 * @param majorDelim
+	 * @param minorDelim
+	 * @return Map of key value pairs
+	 */
+	public static Map<String, String> extractMap(String input, String majorDelim, String minorDelim) {
+		String[] arr = input.split(majorDelim);
+		Map<String, String> output = new LinkedHashMap<String, String>();
+		for(String str : arr) {
+			String[] elements = str.split(minorDelim);
+			if(elements.length == 2) {
+				String key = elements[0].trim();
+				String value = elements[1].trim();
+				if(!key.isEmpty() && !value.isEmpty()) {
+					output.put(key, value);
+				}
+			}
+		}
+		return output;
+	}
 
 	public static void main(String args[]) {
 		
 		//Test case for "ListToString"
 		List<String> string = new ArrayList<String>();
 		// Empty list
-		System.out.println(StringUtil.ListToString(string, ", "));
+		System.out.println(StringUtil.collectionToString(string, ", "));
 		// Only one
 		string.add("test");
-		System.out.println(StringUtil.ListToString(string, ",:"));
+		System.out.println(StringUtil.collectionToString(string, ",:"));
 		// Multiple
 		string.add("welcome to java");
-		System.out.println(StringUtil.ListToString(string, ""));
+		System.out.println(StringUtil.collectionToString(string, ""));
 	}
 }

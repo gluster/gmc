@@ -30,7 +30,7 @@ import com.sun.jersey.api.core.InjectParam;
 /**
  * Abstract resource class for servers. Abstracts basic server related functionality like "get server details".
  */
-public class AbstractServersResource {
+public class AbstractServersResource extends AbstractResource {
 	@InjectParam
 	protected ServerUtil serverUtil;
 	

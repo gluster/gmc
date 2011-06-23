@@ -50,7 +50,7 @@ public class AbstractResource {
 	 * @return the {@link Response} object
 	 */
 	protected Response createdResponse(String relativePath) {
-		return Response.created(createURI(relativePath)).build();
+		return Response.created(createRelatriveURI(relativePath)).build();
 	}
 
 	/**
@@ -62,15 +62,41 @@ public class AbstractResource {
 	}
 
 	/**
+	 * Creates a response with HTTP status code of 202 (accepted), also setting the location header to given location.
+	 * This is typically done while triggering long running tasks
+	 * 
+	 * @param uriElements
+	 *            URI Elements to be appended to the base URI
+	 * @return the {@link Response} object
+	 */
+	protected Response acceptedResponse(Object...uriElements) {
+		return Response.status(Status.ACCEPTED).location(createAbsoluteURI(uriElements)).build();
+	}
+
+	/**
+	 * Creates a new URI that is relative to the <b>base URI</b> of the application
+	 * @param uriElements URI Elements to be appended to the base URI
+	 * @return newly created URI
+	 */
+	private URI createAbsoluteURI(Object[] uriElements) {
+		return uriInfo.getBaseUriBuilder().build(uriElements);
+	}
+
+	/**
 	 * Creates a response with HTTP status code of 204 (no content), also setting the location header to given location
 	 * @param location path of the location to be set relative to current path 
 	 * @return the {@link Response} object
 	 */
 	protected Response noContentResponse(String location) {
-		return Response.noContent().location(createURI(location)).build();
+		return Response.noContent().location(createRelatriveURI(location)).build();
 	}
 
-	protected URI createURI(String location) {
+	/**
+	 * Creates a URI relative to current URI
+	 * @param location path relative to current URI
+	 * @return newly created URI
+	 */
+	protected URI createRelatriveURI(String location) {
 		return uriInfo.getAbsolutePathBuilder().path(location).build();
 	}
 

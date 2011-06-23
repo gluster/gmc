@@ -46,16 +46,12 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
-import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.constants.GlusterConstants.VOLUME_LOG_LEVELS;
-import com.gluster.storage.management.core.model.VolumeLogMessage;
-import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.response.LogMessageListResponse;
-import com.gluster.storage.management.core.utils.GlusterCoreUtil;
+import com.gluster.storage.management.core.model.VolumeLogMessage;
 import com.gluster.storage.management.gui.VolumeLogTableLabelProvider;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
