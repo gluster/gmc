@@ -22,6 +22,7 @@ import java.net.ConnectException;
 
 import javax.ws.rs.core.Response;
 
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Status;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.representation.Form;
@@ -40,60 +41,57 @@ public class UsersClient extends AbstractClient {
 		super();
 	}
 
-	public Status authenticate(String user, String password) {
+	public void authenticate(String user, String password) {
 		setSecurityToken(generateSecurityToken(user, password));
 		try {
-			Status authStatus = (Status) fetchSubResource(user, Status.class);
-			if (!authStatus.isSuccess()) {
-				// authentication failed. clear security token.
-				setSecurityToken(null);
-			}
-			return authStatus;
-		} catch (UniformInterfaceException e) {
-			if ((e.getResponse().getStatus() == Response.Status.UNAUTHORIZED.getStatusCode())) {
-				// authentication failed. clear security token.
-				setSecurityToken(null);
-				return new Status(Status.STATUS_CODE_FAILURE, "Invalid user id or password!");
-			} else {
+			fetchSubResource(user, String.class);
+		} catch (RuntimeException e) {
+			Throwable cause = e.getCause();
+			if(cause == null) {
 				throw e;
 			}
-		} catch (Exception e) {
-			// authentication failed. clear security token.
-			setSecurityToken(null);
 			
-			Throwable cause = e.getCause();
-			if(cause != null && cause instanceof ConnectException) {
-				return new Status(Status.STATUS_CODE_FAILURE, "Couldn't connect to Gluster Management Gateway!");
+			if (cause instanceof UniformInterfaceException) {
+				UniformInterfaceException e1 = (UniformInterfaceException) cause;
+				if ((e1.getResponse().getStatus() == Response.Status.UNAUTHORIZED.getStatusCode())) {
+					// authentication failed. clear security token.
+					setSecurityToken(null);
+					throw new GlusterRuntimeException("Invalid user id or password!");
+				} else {
+					// TODO: Log the exception
+					throw new GlusterRuntimeException("Exception during authentication: ["
+							+ e1.getResponse().getStatus() + "]");
+				}
+			} else if(cause instanceof ConnectException) {
+				throw new GlusterRuntimeException("Couldn't connect to Gluster Management Gateway!");
+			} else {
+				throw new GlusterRuntimeException("Exception during authentication: [" + e.getMessage() + "]");
 			}
-			return new Status(Status.STATUS_CODE_FAILURE, "Exception during authentication: [" + e.getMessage() + "]");
 		}
 	}
 
-	public boolean changePassword(String user, String oldPassword, String newPassword) {
+	public void changePassword(String user, String oldPassword, String newPassword) {
 		setSecurityToken(generateSecurityToken(user, oldPassword));
 
 		Form form = new Form();
 		form.add(FORM_PARAM_OLD_PASSWORD, oldPassword);
 		form.add(FORM_PARAM_NEW_PASSWORD, newPassword);
-		try {
-			putRequest(user, form);
-			return true;
-		} catch (Exception e) {
-			return false;
-		}
+		putRequest(user, form);
 	}
 
 	public static void main(String[] args) {
 		UsersClient authClient = new UsersClient();
 
 		// authenticate user
-		System.out.println(authClient.authenticate("gluster", "gluster"));
+		authClient.authenticate("gluster", "gluster");
 
 		// change password to gluster1
-		System.out.println(authClient.changePassword("gluster", "gluster", "gluster1"));
+		authClient.changePassword("gluster", "gluster", "gluster1");
 
 		// change it back to gluster
-		System.out.println(authClient.changePassword("gluster", "gluster1", "gluster"));
+		authClient.changePassword("gluster", "gluster1", "gluster");
+		
+		System.out.println("success");
 	}
 
 	/*

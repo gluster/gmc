@@ -72,7 +72,8 @@ public class GlusterServersClient extends AbstractClient {
 
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();
-		if (usersClient.authenticate("gluster", "gluster").isSuccess()) {
+		try {
+			usersClient.authenticate("gluster", "gluster");
 			GlusterServersClient glusterServersClient = new GlusterServersClient(usersClient.getSecurityToken(), "cluster1");
 			List<GlusterServer> glusterServers = glusterServersClient.getServers();
 			for (GlusterServer server : glusterServers) {
@@ -83,6 +84,8 @@ public class GlusterServersClient extends AbstractClient {
 			 Server srv = new Server();
 			 srv.setName("server3");
 			 glusterServersClient.addServer(srv);
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
 	}
 }

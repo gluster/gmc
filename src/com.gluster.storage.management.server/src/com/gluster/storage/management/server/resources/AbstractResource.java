@@ -123,6 +123,15 @@ public class AbstractResource {
 	protected Response badRequestResponse(String errMessage) {
 		return Response.status(Status.BAD_REQUEST).type(MediaType.TEXT_HTML).entity(errMessage).build();
 	}
+	
+	/**
+	 * Creates a response with HTTP status code of 401 (unauthorized)
+	 * 
+	 * @return the {@link Response} object
+	 */
+	protected Response unauthorizedResponse() {
+		return Response.status(Status.UNAUTHORIZED).build();
+	}
 
 	/**
 	 * Creates an OK response and sets the entity in the response body.
@@ -135,6 +144,17 @@ public class AbstractResource {
 	 */
 	protected Response okResponse(Object entity, String mediaType) {
 		return Response.ok(entity).type(mediaType).build();
+	}
+
+	/**
+	 * Creates an OK response without any entity in the response body.
+	 * 
+	 * @param mediaType
+	 *            Media type to be set on the response
+	 * @return the {@link Response} object
+	 */
+	protected Response okResponse(String mediaType) {
+		return Response.ok().type(mediaType).build();
 	}
 
 	/**

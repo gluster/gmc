@@ -18,6 +18,9 @@
  *******************************************************************************/
 package com.gluster.storage.management.server.resources;
 
+import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_USER;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_USERS;
+
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -25,6 +28,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.encoding.PasswordEncoder;
@@ -38,55 +42,48 @@ import com.sun.jersey.spi.resource.Singleton;
 
 @Singleton
 @Component
-@Path("/users")
-public class UsersResource {
+@Path(RESOURCE_PATH_USERS)
+public class UsersResource extends AbstractResource {
 	@Autowired
 	private JdbcUserDetailsManager jdbcUserService;
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
-	/**
-	 * Authenticates given user with given password for login on current system
-	 * 
-	 * @param user
-	 * @param password
-	 * @return true is user can be successfully authenticated using given password, else false
-	 */
-	/*
-	 * NOTE: This method is no more required as user authentication is performed on every request by the spring security
-	 * framework. Can be removed after testing.
-	 */
-	/*
-	 * private boolean authenticate(String user, String password) { String tmpFileName = "tmp"; File saltFile = new
-	 * File(tmpFileName); ProcessResult result = new ProcessUtil().executeCommand("get-user-password.py", user,
-	 * tmpFileName); if (result.isSuccess()) { String salt = new FileUtil().readFileAsString(saltFile); String
-	 * encryptedPassword = MD5Crypt.crypt(password, salt); return encryptedPassword.equals(salt); }
-	 * 
-	 * return false; }
-	 */
-
-	@Path("{user}")
+	@Path("{" + PATH_PARAM_USER + "}")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-	public Status authenticate(@PathParam("user") String user) {
+	public Response authenticateXML(@PathParam("user") String user) {
 		// success only if the user passed in query is same as the one passed in security header
 		// spring security would have already authenticated the user credentials
-		return (SecurityContextHolder.getContext().getAuthentication().getName().equals(user) ? Status.STATUS_SUCCESS
-				: Status.STATUS_FAILURE);
+		return getAuthenticationResponse(user, MediaType.APPLICATION_XML);
 	}
 
-	@Path("{user}")
+	@Path("{" + PATH_PARAM_USER + "}")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response authenticateJSON(@PathParam("user") String user) {
+		// success only if the user passed in query is same as the one passed in security header
+		// spring security would have already authenticated the user credentials
+		return getAuthenticationResponse(user, MediaType.APPLICATION_JSON);
+	}
+
+	public Response getAuthenticationResponse(String user, String mediaType) {
+		return (SecurityContextHolder.getContext().getAuthentication().getName().equals(user) ? okResponse(mediaType)
+				: unauthorizedResponse());
+	}
+
+	@Path("{" + PATH_PARAM_USER + "}")
 	@PUT
-	@Produces(MediaType.APPLICATION_XML)
-	public Status changePassword(@FormParam("oldpassword") String oldPassword,
+	public Response changePassword(@FormParam("oldpassword") String oldPassword,
 			@FormParam("newpassword") String newPassword) {
 		try {
 			jdbcUserService.changePassword(oldPassword, passwordEncoder.encodePassword(newPassword, null));
-		} catch (AuthenticationException ex) {
+		} catch (Exception ex) {
+			// TODO: Log the exception
 			ex.printStackTrace();
-			return new Status(Status.STATUS_CODE_FAILURE, "Could not change password: [" + ex.getMessage() + "]");
+			return errorResponse("Could not change password. Error: [" + ex.getMessage() + "]");
 		}
-		return Status.STATUS_SUCCESS;
+		return noContentResponse();
 	}
 }

@@ -199,56 +199,60 @@ public class LoginDialog extends Dialog {
 		String password = connectionDetails.getPassword();
 
 		UsersClient usersClient = new UsersClient();
-		Status loginStatus = usersClient.authenticate(user, password); 
-		if (loginStatus.isSuccess()) {
-			// authentication successful. close the login dialog and open the next one.
-			close();
-			
-			ClustersClient clustersClient = new ClustersClient(usersClient.getSecurityToken());
+		try {
+			usersClient.authenticate(user, password);
+		} catch(Exception e) {
+			MessageDialog.openError(getShell(), "Authentication Failed", e.getMessage());
+			setReturnCode(RETURN_CODE_ERROR);
+			return;
+		}
+		
+		// authentication successful. close the login dialog and open the next one.
+		close();
 
-			IEclipsePreferences preferences = new ConfigurationScope().getNode(Application.PLUGIN_ID);
-			boolean showClusterSelectionDialog = preferences.getBoolean(PreferenceConstants.P_SHOW_CLUSTER_SELECTION_DIALOG, true);
+		ClustersClient clustersClient = new ClustersClient(usersClient.getSecurityToken());
 
-			String clusterName = null; 
-			if(!showClusterSelectionDialog) {
-				clusterName = preferences.get(PreferenceConstants.P_DEFAULT_CLUSTER_NAME, null);
-				if(clusterName == null || clusterName.isEmpty()) {
-					// Cluster name not available in preferences. Hence we must show the cluster selection dialog.
-					showClusterSelectionDialog = true;
-				}
-			}
-			
-			CLUSTER_MODE mode;
-			String serverName = null;
+		IEclipsePreferences preferences = new ConfigurationScope().getNode(Application.PLUGIN_ID);
+		boolean showClusterSelectionDialog = preferences.getBoolean(
+				PreferenceConstants.P_SHOW_CLUSTER_SELECTION_DIALOG, true);
 
-			if (showClusterSelectionDialog) {
-				ClusterSelectionDialog clusterDialog = new ClusterSelectionDialog(getParentShell(),
-						clustersClient.getClusterNames());
-				int userAction = clusterDialog.open();
-				if (userAction == Window.CANCEL) {
-					MessageDialog.openError(getShell(), "Login Cancelled",
-							"User cancelled login at cluster selection. Application will close!");
-					cancelPressed();
-					return;
-				}
-				mode = clusterDialog.getClusterMode();
-				clusterName = clusterDialog.getClusterName();
-				serverName = clusterDialog.getServerName();
-			} else {
-				mode = CLUSTER_MODE.SELECT;
+		String clusterName = null;
+		if (!showClusterSelectionDialog) {
+			clusterName = preferences.get(PreferenceConstants.P_DEFAULT_CLUSTER_NAME, null);
+			if (clusterName == null || clusterName.isEmpty()) {
+				// Cluster name not available in preferences. Hence we must show the cluster selection dialog.
+				showClusterSelectionDialog = true;
 			}
-			
-			try {
-				createOrRegisterCluster(clustersClient, clusterName, serverName, mode);
-				GlusterDataModelManager.getInstance().initializeModel(usersClient.getSecurityToken(), clusterName);
-				super.okPressed();					
-			} catch (Exception e) {
-				setReturnCode(RETURN_CODE_ERROR);
-				MessageDialog.openError(getShell(), "Initialization Error", e.getMessage());
-				close();
+		}
+
+		CLUSTER_MODE mode;
+		String serverName = null;
+
+		if (showClusterSelectionDialog) {
+			ClusterSelectionDialog clusterDialog = new ClusterSelectionDialog(getParentShell(),
+					clustersClient.getClusterNames());
+			int userAction = clusterDialog.open();
+			if (userAction == Window.CANCEL) {
+				MessageDialog.openError(getShell(), "Login Cancelled",
+						"User cancelled login at cluster selection. Application will close!");
+				cancelPressed();
+				return;
 			}
+			mode = clusterDialog.getClusterMode();
+			clusterName = clusterDialog.getClusterName();
+			serverName = clusterDialog.getServerName();
 		} else {
-			MessageDialog.openError(getShell(), "Authentication Failed", loginStatus.getMessage());
+			mode = CLUSTER_MODE.SELECT;
+		}
+
+		try {
+			createOrRegisterCluster(clustersClient, clusterName, serverName, mode);
+			GlusterDataModelManager.getInstance().initializeModel(usersClient.getSecurityToken(), clusterName);
+			super.okPressed();
+		} catch (Exception e) {
+			setReturnCode(RETURN_CODE_ERROR);
+			MessageDialog.openError(getShell(), "Initialization Error", e.getMessage());
+			close();
 		}
 	}
 

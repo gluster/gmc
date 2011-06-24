@@ -25,6 +25,7 @@ package com.gluster.storage.management.core.constants;
  */
 public class RESTConstants {
 	// REST Resource paths
+	public static final String RESOURCE_PATH_USERS = "/users";
 	public static final String RESOURCE_PATH_CLUSTERS = "/clusters";
 	public static final String RESOURCE_PATH_DISCOVERED_SERVERS = "/discoveredservers";
 	
@@ -56,7 +57,6 @@ public class RESTConstants {
 	public static final String FORM_PARAM_ACCESS_PROTOCOLS = "accessProtocols";
 	public static final String FORM_PARAM_VOLUME_OPTIONS = "options";
 
-
 	public static final String FORM_PARAM_CLUSTER_NAME = "clusterName";
 	public static final String FORM_PARAM_SERVER_NAME = "serverName";
 	public static final String FORM_PARAM_DISKS = "disks";
@@ -74,6 +74,7 @@ public class RESTConstants {
 	public static final String PATH_PARAM_SERVER_NAME = "serverName";
 	public static final String PATH_PARAM_TASK_ID = "taskId";
 	public static final String PATH_PARAM_DISK_NAME = "diskName";
+	public static final String PATH_PARAM_USER = "user";
 	
 	public static final String QUERY_PARAM_BRICK_NAME = "brickName";
 	public static final String QUERY_PARAM_DISKS = "disks";
@@ -86,6 +87,7 @@ public class RESTConstants {
 	public static final String QUERY_PARAM_TO_TIMESTAMP = "toTimestamp";
 	public static final String QUERY_PARAM_DOWNLOAD = "download";
 	public static final String QUERY_PARAM_SERVER_NAME = "serverName";
+	public static final String QUERY_PARAM_DETAILS = "details";
 	
 	public static final String FORMAT_XML = "xml";
 	public static final String FORMAT_JSON = "json";

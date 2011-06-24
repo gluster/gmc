@@ -18,13 +18,17 @@
  *******************************************************************************/
 package com.gluster.storage.management.client;
 
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DETAILS;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_DISCOVERED_SERVERS;
+
+import java.util.List;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.ServerListResponse;
-import com.gluster.storage.management.core.response.StringListResponse;
-import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_DISCOVERED_SERVERS;
+import com.gluster.storage.management.core.response.ServerNameListResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class DiscoveredServersClient extends AbstractClient {
@@ -43,38 +47,36 @@ public class DiscoveredServersClient extends AbstractClient {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private Object getDiscoveredServers(Boolean getDetails, Class responseClass) {
+	private Object getDiscoveredServers(Boolean details, Class responseClass) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-		queryParams.putSingle("details", getDetails.toString());
+		queryParams.putSingle(QUERY_PARAM_DETAILS, details.toString());
 		return fetchResource(queryParams, responseClass);
 	}
 
-	public StringListResponse getDiscoveredServerNames() {
-		
-		return  (StringListResponse) getDiscoveredServers(Boolean.FALSE, StringListResponse.class);
+	public List<String> getDiscoveredServerNames() {
+		return ((ServerNameListResponse) getDiscoveredServers(Boolean.FALSE, ServerNameListResponse.class))
+				.getServerNames();
 	}
 
-	public ServerListResponse getDiscoveredServerDetails() {
-		return (ServerListResponse) getDiscoveredServers(Boolean.TRUE, ServerListResponse.class);
+	public List<Server> getDiscoveredServerDetails() {
+		return ((ServerListResponse) getDiscoveredServers(Boolean.TRUE, ServerListResponse.class)).getServers();
 	}
 
-	@SuppressWarnings("unchecked")
 	public Server getServer(String serverName) {
-		GenericResponse<Server> response = (GenericResponse<Server>) fetchSubResource(serverName, GenericResponse.class);
-		return response.getData();
+		return (Server) fetchSubResource(serverName, Server.class);
 	}
 
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();
-		if (usersClient.authenticate("gluster", "gluster").isSuccess()) {
+		try {
+			usersClient.authenticate("gluster", "gluster");
 			DiscoveredServersClient serverResource = new DiscoveredServersClient(usersClient.getSecurityToken());
-			StringListResponse discoveredServerNames = serverResource.getDiscoveredServerNames();
-			System.out.println(discoveredServerNames.getData());
-			ServerListResponse discoveredServers = serverResource.getDiscoveredServerDetails();
-			System.out.println(discoveredServers.getData());
-
-			// Server serverDetails = ServerResource.getServer("localhost");
-			// System.out.println(serverDetails.getName());
+			List<String> discoveredServerNames = serverResource.getDiscoveredServerNames();
+			System.out.println(discoveredServerNames);
+			List<Server> discoveredServers = serverResource.getDiscoveredServerDetails();
+			System.out.println(discoveredServers);
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
 	}
 }
