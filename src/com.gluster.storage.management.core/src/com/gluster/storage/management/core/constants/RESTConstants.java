@@ -73,6 +73,7 @@ public class RESTConstants {
 	public static final String PATH_PARAM_CLUSTER_NAME = "clusterName";
 	public static final String PATH_PARAM_SERVER_NAME = "serverName";
 	public static final String PATH_PARAM_TASK_ID = "taskId";
+	public static final String PATH_PARAM_DISK_NAME = "diskName";
 	public static final String PATH_PARAM_USER = "user";
 	
 	public static final String QUERY_PARAM_BRICK_NAME = "brickName";

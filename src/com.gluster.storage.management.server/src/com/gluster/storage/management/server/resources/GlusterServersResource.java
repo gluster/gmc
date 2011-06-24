@@ -18,13 +18,14 @@
  *******************************************************************************/
 package com.gluster.storage.management.server.resources;
 
-import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SERVER_NAME;
-import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SOURCE;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
+import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_DISK_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_SERVER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_SERVERS;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_TASKS;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_DISKS;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -43,17 +45,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
-import com.gluster.storage.management.core.response.GlusterServerResponse;
+import com.gluster.storage.management.core.response.TaskResponse;
 import com.gluster.storage.management.core.utils.LRUCache;
 import com.gluster.storage.management.server.data.ClusterInfo;
 import com.gluster.storage.management.server.data.ServerInfo;
 import com.gluster.storage.management.server.services.ClusterService;
+import com.gluster.storage.management.server.tasks.InitializeDiskTask;
 import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.SshUtil;
 import com.sun.jersey.api.core.InjectParam;
@@ -66,36 +71,39 @@ public class GlusterServersResource extends AbstractServersResource {
 
 	public static final String HOSTNAMETAG = "hostname:";
 	private LRUCache<String, GlusterServer> clusterServerCache = new LRUCache<String, GlusterServer>(3);
-	
+
 	@InjectParam
 	private DiscoveredServersResource discoveredServersResource;
-	
+
+	@InjectParam
+	private TasksResource taskResource;
+
 	@Autowired
 	private ClusterService clusterService;
-	
+
 	@Autowired
 	private SshUtil sshUtil;
-	
+
 	protected void fetchServerDetails(GlusterServer server) {
 		try {
 			server.setStatus(SERVER_STATUS.ONLINE);
 			super.fetchServerDetails(server);
-		} catch(ConnectionException e) {
+		} catch (ConnectionException e) {
 			server.setStatus(SERVER_STATUS.OFFLINE);
 		}
 	}
-	
+
 	public GlusterServer getOnlineServer(String clusterName) {
 		return getOnlineServer(clusterName, "");
 	}
-	
+
 	// uses cache
 	public GlusterServer getOnlineServer(String clusterName, String exceptServerName) {
 		GlusterServer server = clusterServerCache.get(clusterName);
-		if(server != null && !server.getName().equals(exceptServerName)) {
+		if (server != null && !server.getName().equals(exceptServerName)) {
 			return server;
 		}
-		
+
 		return getNewOnlineServer(clusterName, exceptServerName);
 	}
 
@@ -106,41 +114,39 @@ public class GlusterServersResource extends AbstractServersResource {
 	// Doesn't use cache
 	public GlusterServer getNewOnlineServer(String clusterName, String exceptServerName) {
 		ClusterInfo cluster = clusterService.getCluster(clusterName);
-		if(cluster == null) {
+		if (cluster == null) {
 			return null;
 		}
-		
-		for(ServerInfo serverInfo : cluster.getServers()) {
+
+		for (ServerInfo serverInfo : cluster.getServers()) {
 			GlusterServer server = new GlusterServer(serverInfo.getName());
 			fetchServerDetails(server);
-			if(server.isOnline() && !server.getName().equals(exceptServerName)) {
+			if (server.isOnline() && !server.getName().equals(exceptServerName)) {
 				// server is online. add it to cache and return
 				clusterServerCache.put(clusterName, server);
 				return server;
 			}
 		}
-		
+
 		// no online server found.
 		return null;
 	}
-	
+
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getGlusterServersJSON(
-			@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
+	public Response getGlusterServersJSON(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
 		return getGlusterServers(clusterName, MediaType.APPLICATION_JSON);
 	}
 
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-	public Response getGlusterServersXML(
-			@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
+	public Response getGlusterServersXML(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
 		return getGlusterServers(clusterName, MediaType.APPLICATION_XML);
 	}
 
 	public Response getGlusterServers(String clusterName, String mediaType) {
 		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();
-		
+
 		if (clusterName == null || clusterName.isEmpty()) {
 			return badRequestResponse("Cluster name must not be empty!");
 		}
@@ -150,18 +156,18 @@ public class GlusterServersResource extends AbstractServersResource {
 			return badRequestResponse("Cluster [" + clusterName + "] not found!");
 		}
 
-		if(cluster.getServers().size() == 0) {
+		if (cluster.getServers().size() == 0) {
 			return okResponse(new GlusterServerListResponse(glusterServers), mediaType);
 		}
-		
+
 		GlusterServer onlineServer = getOnlineServer(clusterName);
 		if (onlineServer == null) {
 			return errorResponse("No online servers found in cluster [" + clusterName + "]");
 		}
-		
+
 		try {
 			glusterServers = getGlusterServers(clusterName, onlineServer);
-		} catch(ConnectionException e) {
+		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
 			onlineServer = getNewOnlineServer(clusterName);
 			if (onlineServer == null) {
@@ -169,24 +175,24 @@ public class GlusterServersResource extends AbstractServersResource {
 			}
 			try {
 				glusterServers = getGlusterServers(clusterName, onlineServer);
-			} catch(Exception e1) {
+			} catch (Exception e1) {
 				return errorResponse(e1.getMessage());
 			}
-		} catch(Exception e) {
+		} catch (Exception e) {
 			return errorResponse(e.getMessage());
 		}
-		
+
 		String errMsg = fetchDetailsOfServers(glusterServers, onlineServer);
-		if(!errMsg.isEmpty()) {
+		if (!errMsg.isEmpty()) {
 			return errorResponse("Couldn't fetch details for server(s): " + errMsg);
 		}
-		
+
 		return okResponse(new GlusterServerListResponse(glusterServers), mediaType);
 	}
 
 	public String fetchDetailsOfServers(List<GlusterServer> glusterServers, GlusterServer onlineServer) {
 		String errMsg = "";
-		
+
 		for (GlusterServer server : glusterServers) {
 			if (server.getStatus() == SERVER_STATUS.ONLINE && !server.getName().equals(onlineServer.getName())) {
 				try {
@@ -203,13 +209,13 @@ public class GlusterServersResource extends AbstractServersResource {
 		List<GlusterServer> glusterServers;
 		try {
 			glusterServers = glusterUtil.getGlusterServers(onlineServer);
-		} catch(ConnectionException e) {
+		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
 			onlineServer = getNewOnlineServer(clusterName);
-			if(onlineServer == null) {
+			if (onlineServer == null) {
 				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 			}
-			
+
 			glusterServers = glusterUtil.getGlusterServers(onlineServer);
 		}
 		return glusterServers;
@@ -218,8 +224,7 @@ public class GlusterServersResource extends AbstractServersResource {
 	@GET
 	@Path("{serverName}")
 	@Produces(MediaType.APPLICATION_XML)
-	public Response getGlusterServerXML(
-			@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+	public Response getGlusterServerXML(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_SERVER_NAME) String serverName) {
 		return getGlusterServerResponse(clusterName, serverName, MediaType.APPLICATION_XML);
 	}
@@ -227,8 +232,7 @@ public class GlusterServersResource extends AbstractServersResource {
 	@GET
 	@Path("{serverName}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getGlusterServerJSON(
-			@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+	public Response getGlusterServerJSON(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_SERVER_NAME) String serverName) {
 		return getGlusterServerResponse(clusterName, serverName, MediaType.APPLICATION_JSON);
 	}
@@ -236,7 +240,7 @@ public class GlusterServersResource extends AbstractServersResource {
 	private Response getGlusterServerResponse(String clusterName, String serverName, String mediaType) {
 		try {
 			return okResponse(getGlusterServer(clusterName, serverName), mediaType);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			return errorResponse(e.getMessage());
 		}
 	}
@@ -259,11 +263,11 @@ public class GlusterServersResource extends AbstractServersResource {
 		if (onlineServer == null) {
 			throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 		}
-		
+
 		GlusterServer server = null;
 		try {
 			server = glusterUtil.getGlusterServer(onlineServer, serverName);
-		} catch(ConnectionException e) {
+		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
 			onlineServer = getNewOnlineServer(clusterName);
 			if (onlineServer == null) {
@@ -271,8 +275,8 @@ public class GlusterServersResource extends AbstractServersResource {
 			}
 			server = glusterUtil.getGlusterServer(onlineServer, serverName);
 		}
-		
-		if(server.isOnline()) {
+
+		if (server.isOnline()) {
 			fetchServerDetails(server);
 		}
 		return server;
@@ -280,68 +284,68 @@ public class GlusterServersResource extends AbstractServersResource {
 
 	private void performAddServer(String clusterName, String serverName) {
 		GlusterServer onlineServer = getOnlineServer(clusterName);
-		if(onlineServer == null) {
+		if (onlineServer == null) {
 			throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
 		}
-		
+
 		try {
 			glusterUtil.addServer(onlineServer.getName(), serverName);
-		} catch(ConnectionException e) {
+		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
 			onlineServer = getNewOnlineServer(clusterName);
-			if(onlineServer == null) {
+			if (onlineServer == null) {
 				throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
 			}
-			
+
 			glusterUtil.addServer(serverName, onlineServer.getName());
 		}
 	}
-	
+
 	@POST
 	public Response addServer(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@FormParam(FORM_PARAM_SERVER_NAME) String serverName) {
-		if(clusterName == null || clusterName.isEmpty()) {
+		if (clusterName == null || clusterName.isEmpty()) {
 			return badRequestResponse("Cluster name must not be empty!");
 		}
-		
-		if(serverName == null || serverName.isEmpty()) {
+
+		if (serverName == null || serverName.isEmpty()) {
 			return badRequestResponse("Parameter [" + FORM_PARAM_SERVER_NAME + "] is missing in request!");
 		}
-		
+
 		ClusterInfo cluster = clusterService.getCluster(clusterName);
 		if (cluster == null) {
 			return badRequestResponse("Cluster [" + clusterName + "] not found!");
 		}
-		
+
 		boolean publicKeyInstalled = sshUtil.isPublicKeyInstalled(serverName);
-		if(!publicKeyInstalled && !sshUtil.hasDefaultPassword(serverName)) {
+		if (!publicKeyInstalled && !sshUtil.hasDefaultPassword(serverName)) {
 			// public key not installed, default password doesn't work. return with error.
 			return errorResponse("Gluster Management Gateway uses the default password to set up keys on the server."
 					+ CoreConstants.NEWLINE + "However it seems that the password on server [" + serverName
 					+ "] has been changed manually." + CoreConstants.NEWLINE
 					+ "Please reset it back to the standard default password and try again.");
 		}
-		
+
 		List<ServerInfo> servers = cluster.getServers();
-		if(servers != null && !servers.isEmpty()) {
+		if (servers != null && !servers.isEmpty()) {
 			// cluster has at least one existing server, so that peer probe can be performed
 			try {
 				performAddServer(clusterName, serverName);
-			} catch(Exception e) {
+			} catch (Exception e) {
 				return errorResponse(e.getMessage());
 			}
 		} else {
 			// this is the first server to be added to the cluster, which means no
 			// gluster CLI operation required. just add it to the cluster-server mapping
 		}
-		
+
 		try {
 			// add the cluster-server mapping
 			clusterService.mapServerToCluster(clusterName, serverName);
 		} catch (Exception e) {
 			return errorResponse(e.getMessage());
 		}
-		
+
 		// since the server is added to a cluster, it should not more be considered as a
 		// discovered server available to other clusters
 		discoveredServersResource.removeDiscoveredServer(serverName);
@@ -366,37 +370,36 @@ public class GlusterServersResource extends AbstractServersResource {
 		if (clusterName == null || clusterName.isEmpty()) {
 			return badRequestResponse("Cluster name must not be empty!");
 		}
-		
-		if(serverName == null || serverName.isEmpty()) {
+
+		if (serverName == null || serverName.isEmpty()) {
 			return badRequestResponse("Server name must not be empty!");
 		}
-		
+
 		ClusterInfo cluster = clusterService.getCluster(clusterName);
-		if(cluster == null) {
+		if (cluster == null) {
 			return badRequestResponse("Cluster [" + clusterName + "] not found!");
 		}
 
 		List<ServerInfo> servers = cluster.getServers();
-		if(servers == null || servers.isEmpty() || !containsServer(servers, serverName)) {
-			return badRequestResponse("Server [" + serverName + "] is not attached to cluster ["
-					+ clusterName + "]!");
+		if (servers == null || servers.isEmpty() || !containsServer(servers, serverName)) {
+			return badRequestResponse("Server [" + serverName + "] is not attached to cluster [" + clusterName + "]!");
 		}
-		
-		if(servers.size() == 1) {
+
+		if (servers.size() == 1) {
 			// Only one server mapped to the cluster, no "peer detach" required.
 			// remove the cached online server for this cluster if present
 			clusterServerCache.remove(clusterName);
 		} else {
 			try {
 				removeServerFromCluster(clusterName, serverName);
-			} catch(Exception e) {
+			} catch (Exception e) {
 				return errorResponse(e.getMessage());
 			}
-		}		
-		
+		}
+
 		return noContentResponse();
 	}
-	
+
 	private void removeServerFromCluster(String clusterName, String serverName) {
 		// get an online server that is not same as the server being removed
 		GlusterServer onlineServer = getOnlineServer(clusterName, serverName);
@@ -414,26 +417,61 @@ public class GlusterServersResource extends AbstractServersResource {
 			}
 			glusterUtil.removeServer(onlineServer.getName(), serverName);
 		}
-		
-		if(onlineServer.getName().equals(serverName)) {
+
+		if (onlineServer.getName().equals(serverName)) {
 			// since the cached server has been removed from the cluster, remove it from the cache
 			clusterServerCache.remove(clusterName);
 		}
-		
+
 		clusterService.unmapServerFromCluster(clusterName, serverName);
-		
-		// since the server is removed from the cluster, it is now available to be added to other clusters. 
+
+		// since the server is removed from the cluster, it is now available to be added to other clusters.
 		// Hence add it back to the discovered servers list.
-		discoveredServersResource.addDiscoveredServer(serverName);		
+		discoveredServersResource.addDiscoveredServer(serverName);
 	}
 
 	private boolean containsServer(List<ServerInfo> servers, String serverName) {
-		for(ServerInfo server : servers) {
-			if(server.getName().toUpperCase().equals(serverName.toUpperCase())) {
+		for (ServerInfo server : servers) {
+			if (server.getName().toUpperCase().equals(serverName.toUpperCase())) {
 				return true;
 			}
 		}
 		return false;
+	}
+
+	@PUT
+	@Produces(MediaType.APPLICATION_XML)
+	@Path("{" + PATH_PARAM_SERVER_NAME + "}/" + RESOURCE_DISKS + "/{" + PATH_PARAM_DISK_NAME + "}")
+	public Response initializeDisk(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@PathParam(PATH_PARAM_SERVER_NAME) String serverName, @PathParam(PATH_PARAM_DISK_NAME) String diskName) {
+
+		if (clusterName == null || clusterName.isEmpty()) {
+			return badRequestResponse("Cluster name must not be empty!");
+		}
+
+		if (serverName == null || serverName.isEmpty()) {
+			return badRequestResponse("Server name must not be empty!");
+		}
+
+		if (diskName == null || diskName.isEmpty()) {
+			return badRequestResponse("Disk name must not be empty!");
+		}
+
+		TaskResponse taskResponse = new TaskResponse();
+		InitializeDiskTask initializeTask = new InitializeDiskTask(diskName, serverName);
+		String taskId = null;
+		try {
+			TaskInfo taskInfo = initializeTask.start();
+			taskId = taskInfo.getId();
+			if (taskInfo.isSuccess()) {
+				taskResource.addTask(initializeTask);
+			}
+			taskResponse.setData(taskInfo);
+			taskResponse.setStatus(new Status(Status.STATUS_CODE_SUCCESS, ""));
+		} catch (ConnectionException e) {
+			return errorResponse(e.getMessage());
+		}
+		return acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS, clusterName, RESOURCE_TASKS, taskId);
 	}
 
 	private void setGlusterUtil(GlusterUtil glusterUtil) {
