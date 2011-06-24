@@ -28,6 +28,7 @@ import org.eclipse.jface.databinding.swt.WidgetProperties;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.TraverseEvent;
@@ -47,6 +48,7 @@ import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.UsersClient;
 import com.gluster.storage.management.core.model.ConnectionDetails;
 import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.gui.Activator;
 import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.dialogs.ClusterSelectionDialog.CLUSTER_MODE;
@@ -212,20 +214,21 @@ public class LoginDialog extends Dialog {
 
 		ClustersClient clustersClient = new ClustersClient(usersClient.getSecurityToken());
 
-		IEclipsePreferences preferences = new ConfigurationScope().getNode(Application.PLUGIN_ID);
-		boolean showClusterSelectionDialog = preferences.getBoolean(
-				PreferenceConstants.P_SHOW_CLUSTER_SELECTION_DIALOG, true);
+		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
+		boolean showClusterSelectionDialog = preferenceStore.getBoolean(PreferenceConstants.P_SHOW_CLUSTER_SELECTION_DIALOG);
 
+		CLUSTER_MODE mode;
 		String clusterName = null;
 		if (!showClusterSelectionDialog) {
-			clusterName = preferences.get(PreferenceConstants.P_DEFAULT_CLUSTER_NAME, null);
+			clusterName = preferenceStore.getString(PreferenceConstants.P_DEFAULT_CLUSTER_NAME);
 			if (clusterName == null || clusterName.isEmpty()) {
 				// Cluster name not available in preferences. Hence we must show the cluster selection dialog.
 				showClusterSelectionDialog = true;
+			} else {
+				mode = CLUSTER_MODE.SELECT;
 			}
 		}
 
-		CLUSTER_MODE mode;
 		String serverName = null;
 
 		if (showClusterSelectionDialog) {

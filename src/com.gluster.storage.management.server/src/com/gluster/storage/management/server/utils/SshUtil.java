@@ -259,7 +259,9 @@ public class SshUtil {
 		// Wait for program to come out either
 		// a) gracefully with an exit status, OR
 		// b) because of a termination signal
-		int condition = session.waitForCondition(ChannelCondition.EXIT_SIGNAL | ChannelCondition.EXIT_STATUS, 5000);
+		// c) command takes to long to exit (timeout)
+		int condition = session.waitForCondition(ChannelCondition.EXIT_SIGNAL | ChannelCondition.EXIT_STATUS
+				| ChannelCondition.TIMEOUT, 5000);
 		StringBuilder output = new StringBuilder();
 
 		try {

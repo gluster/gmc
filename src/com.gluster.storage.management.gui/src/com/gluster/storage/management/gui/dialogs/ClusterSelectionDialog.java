@@ -20,9 +20,12 @@ package com.gluster.storage.management.gui.dialogs;
 
 import java.util.List;
 
+import org.eclipse.core.runtime.preferences.ConfigurationScope;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.fieldassist.ControlDecoration;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.ModifyEvent;
@@ -40,8 +43,14 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.osgi.service.prefs.BackingStoreException;
 
+import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
+import com.gluster.storage.management.gui.Activator;
+import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IImageKeys;
+import com.gluster.storage.management.gui.preferences.PreferenceConstants;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
 /**
@@ -73,10 +82,13 @@ public class ClusterSelectionDialog extends Dialog {
 	private String clusterName;
 	private CLUSTER_MODE clusterMode;
 	private String serverName;
+	private Button dontAskAgainButton;
+	IPreferenceStore preferenceStore;
 
 	public ClusterSelectionDialog(Shell parentShell, List<String> clusters) {
 		super(parentShell);
 		this.clusters = clusters;
+		preferenceStore = Activator.getDefault().getPreferenceStore();
 	}
 
 	@Override
@@ -109,6 +121,20 @@ public class ClusterSelectionDialog extends Dialog {
 		clusterNameCombo = new Combo(composite, SWT.READ_ONLY);
 		clusterNameCombo.setItems(clusters.toArray(new String[0]));
 		clusterNameCombo.select(0);
+		
+		String clusterName = preferenceStore.getString(PreferenceConstants.P_DEFAULT_CLUSTER_NAME);
+		if(clusterName != null && !clusterName.isEmpty()) {
+			selectCluster(clusterName);
+		}
+	}
+
+	public void selectCluster(String clusterName) {
+		for(int i = 0; i < clusters.size(); i++) {
+			if(clusterNameCombo.getItem(i).equals(clusterName)) {
+				clusterNameCombo.select(i);
+				break;
+			}
+		}
 	}
 
 	private void configureDialogLayout(Composite composite) {
@@ -231,7 +257,24 @@ public class ClusterSelectionDialog extends Dialog {
 		clusterSelectionComposite.setLayout(layout);
 		createClusterNameLabel(clusterSelectionComposite);
 		createClusterNameCombo(clusterSelectionComposite);
+		
+		createPreferenceCheckboxes(clusterSelectionComposite);
+		
 		stackLayout.topControl = clusterSelectionComposite;
+	}
+
+	private void createPreferenceCheckboxes(Composite composite) {
+		GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, false);
+		layoutData.verticalIndent = 5;
+		layoutData.horizontalSpan = 2;
+		
+		dontAskAgainButton = new Button(composite, SWT.CHECK);
+		dontAskAgainButton.setLayoutData(layoutData);
+		dontAskAgainButton.setText("&Don't ask again");
+		dontAskAgainButton.setEnabled(true);
+		dontAskAgainButton.setSelection(false);
+		dontAskAgainButton.setToolTipText("Always manage the selected cluster without showing this dialog box."
+				+ "This preference can later be changed from the \"Settings\" menu.");
 	}
 
 	private void createRadioButtons() {
@@ -371,6 +414,13 @@ public class ClusterSelectionDialog extends Dialog {
 		if(selectButton != null && selectButton.getSelection()) {
 			clusterMode = CLUSTER_MODE.SELECT;
 			clusterName = clusterNameCombo.getText();
+			
+			if(dontAskAgainButton.getSelection()) {
+				preferenceStore.setValue(PreferenceConstants.P_SHOW_CLUSTER_SELECTION_DIALOG, false);
+				preferenceStore.setValue(PreferenceConstants.P_DEFAULT_CLUSTER_NAME, clusterName);
+			} else {
+				preferenceStore.setValue(PreferenceConstants.P_SHOW_CLUSTER_SELECTION_DIALOG, true);
+			}
 		} else if(createButton.getSelection()) {
 			clusterMode = CLUSTER_MODE.CREATE;
 			clusterName = newClusterNameText.getText().trim();
