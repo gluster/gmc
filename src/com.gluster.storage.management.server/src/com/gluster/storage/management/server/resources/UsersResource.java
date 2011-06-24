@@ -32,12 +32,10 @@ import javax.ws.rs.core.Response;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.encoding.PasswordEncoder;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.stereotype.Component;
 
-import com.gluster.storage.management.core.model.Status;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Singleton

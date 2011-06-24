@@ -18,10 +18,16 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.preferences;
 
-import org.eclipse.jface.preference.*;
-import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.eclipse.ui.IWorkbench;
+import java.util.List;
 
+import org.eclipse.jface.preference.BooleanFieldEditor;
+import org.eclipse.jface.preference.ComboFieldEditor;
+import org.eclipse.jface.preference.FieldEditorPreferencePage;
+import org.eclipse.jface.preference.IntegerFieldEditor;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPreferencePage;
+
+import com.gluster.storage.management.client.ClustersClient;
 import com.gluster.storage.management.gui.Activator;
 
 /**
@@ -37,15 +43,16 @@ import com.gluster.storage.management.gui.Activator;
  * the main plug-in class. That way, preferences can
  * be accessed directly via the preference store.
  */
-
 public class GlusterPreferencePage
 	extends FieldEditorPreferencePage
 	implements IWorkbenchPreferencePage {
+	
+	private List<String> clusterNames;
 
 	public GlusterPreferencePage() {
 		super(GRID);
 		setPreferenceStore(Activator.getDefault().getPreferenceStore());
-		setDescription("A demonstration of a preference page implementation");
+		setDescription("Gluster Management Console");
 	}
 	
 	/**
@@ -55,29 +62,29 @@ public class GlusterPreferencePage
 	 * restore itself.
 	 */
 	public void createFieldEditors() {
-		addField(new DirectoryFieldEditor(PreferenceConstants.P_PATH, 
-				"&Directory preference:", getFieldEditorParent()));
 		addField(
 			new BooleanFieldEditor(
-				PreferenceConstants.P_BOOLEAN,
-				"&An example of a boolean preference",
+				PreferenceConstants.P_SHOW_CLUSTER_SELECTION_DIALOG,
+				"&Show Cluster Selection Dialog on Login:",
 				getFieldEditorParent()));
+		
+		String[][] clusterNamesArr = new String[clusterNames.size()][2];
+		for(int i = 0; i < clusterNames.size(); i++) {
+			String clusterName = clusterNames.get(i);;
+			clusterNamesArr[i][0] = clusterName;
+			clusterNamesArr[i][1] = clusterName;
+		}
 
-		addField(new RadioGroupFieldEditor(
-				PreferenceConstants.P_CHOICE,
-			"An example of a multiple-choice preference",
-			1,
-			new String[][] { { "&Choice 1", "choice1" }, {
-				"C&hoice 2", "choice2" }
-		}, getFieldEditorParent()));
-		addField(
-			new StringFieldEditor(PreferenceConstants.P_STRING, "A &text preference:", getFieldEditorParent()));
+		addField(new ComboFieldEditor(PreferenceConstants.P_DEFAULT_CLUSTER_NAME, "Default &Cluster to manage:",
+				clusterNamesArr, getFieldEditorParent()));
+		addField(new IntegerFieldEditor(PreferenceConstants.P_DATA_REFRESH_INTERVAL, "&Data Refresh Interval:",
+				getFieldEditorParent()));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.IWorkbenchPreferencePage#init(org.eclipse.ui.IWorkbench)
 	 */
 	public void init(IWorkbench workbench) {
+		clusterNames = new ClustersClient().getClusterNames();
 	}
-	
 }
