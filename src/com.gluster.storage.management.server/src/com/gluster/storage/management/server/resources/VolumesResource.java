@@ -625,27 +625,20 @@ public class VolumesResource extends AbstractResource {
 		// Usage: get_volume_disk_log.py <volumeName> <diskName> <lineCount>
 		Object responseObj = serverUtil.executeOnServer(true, brick.getServerName(), VOLUME_BRICK_LOG_SCRIPT + " "
 				+ logFilePath + " " + lineCount, LogMessageListResponse.class);
-		Status status = null;
+
 		LogMessageListResponse response = null;
 		if (responseObj instanceof LogMessageListResponse) {
 			response = (LogMessageListResponse) responseObj;
-			status = response.getStatus();
+			// populate disk and trim other fields
+			List<VolumeLogMessage> logMessages = response.getLogMessages();
+			for (VolumeLogMessage logMessage : logMessages) {
+				logMessage.setBrickDirectory(brick.getBrickDirectory());
+			}
+			return logMessages;
 		} else {
-			status = (Status) responseObj;
-		}
-
-		if (!status.isSuccess()) {
+			Status status = (Status) responseObj;
 			throw new GlusterRuntimeException(status.toString());
 		}
-
-		// populate disk and trim other fields
-		List<VolumeLogMessage> logMessages = response.getLogMessages();
-		for (VolumeLogMessage logMessage : logMessages) {
-			logMessage.setBrickDirectory(brick.getBrickDirectory());
-			logMessage.setMessage(logMessage.getMessage().trim());
-			logMessage.setSeverity(logMessage.getSeverity().trim());
-		}
-		return logMessages;
 	}
 
 	@GET
