@@ -55,6 +55,11 @@ public interface IImageKeys {
 	public static final String LOW_DISK_SPACE = "icons/disk.png";
 	public static final String DISK_OFFLINE = "icons/status-offline.png";
 
+	public static final String PAUSE_TASK = "icons/pause_task.gif";
+	public static final String RESUME_TASK = "icons/resume_task.gif";
+	public static final String STOP_TASK = "icons/stop_task.gif";
+	public static final String CLEAR_TASK = "icons/close_task.gif";
+	
 	public static final String OVERLAY_OFFLINE = "icons/status-offline-small.png";
 	public static final String OVERLAY_ONLINE = "icons/status-online-small.png";
 	public static final String OVERLAY_STAR = "icons/star-small.png";

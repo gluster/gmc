@@ -1,5 +1,5 @@
 /**
- * TaskListResponse.java
+ * TasksTableLabelProvider.java
  *
  * Copyright (c) 2011 Gluster, Inc. <http://www.gluster.com>
  * This file is part of Gluster Management Console.
@@ -18,33 +18,30 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package com.gluster.storage.management.core.response;
+package com.gluster.storage.management.gui;
 
-import java.util.List;
-
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.eclipse.swt.graphics.Image;
 
 import com.gluster.storage.management.core.model.TaskInfo;
+import com.gluster.storage.management.gui.utils.GUIHelper;
+import com.gluster.storage.management.gui.views.pages.TasksPage.TASK_TABLE_COLUMN_INDICES;
 
-@XmlRootElement(name = "response")
-public class TaskListResponse {
-	private List<TaskInfo> taskInfoList;
 
-	public TaskListResponse() {
-
-	}
-
-	public TaskListResponse(List<TaskInfo> taskInfoList) {
-		this.taskInfoList = taskInfoList;
+public class TasksTableLabelProvider extends TableLabelProviderAdapter {
+	private GUIHelper guiHelper = GUIHelper.getInstance();
+	
+	@Override
+	public Image getColumnImage(Object element, int columnIndex) {
+		return null;
 	}
 	
-	@XmlElement(name="TaskInfo", type=TaskInfo.class)
-	public List<TaskInfo> getTaskList() {
-		return taskInfoList;
-	}
-	
-	public void setTaskList(List<TaskInfo> taskInfoList) {
-		this.taskInfoList = taskInfoList;
+	@Override
+	public String getColumnText(Object element, int columnIndex) {
+		if (!(element instanceof TaskInfo)) {
+			return null;
+		}
+
+		TaskInfo taskInfo = (TaskInfo) element;
+		return (columnIndex == TASK_TABLE_COLUMN_INDICES.TASK.ordinal()) ? taskInfo.getDescription() : taskInfo.getStatus().getMessage();
 	}
 }

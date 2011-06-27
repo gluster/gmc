@@ -23,6 +23,7 @@ package com.gluster.storage.management.server.tasks;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Task;
 import com.gluster.storage.management.core.model.TaskInfo;
+import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.server.utils.SshUtil;
 
@@ -36,13 +37,10 @@ public class InitializeDiskTask extends Task {
 	private SshUtil sshUtil = new SshUtil();
 
 	public InitializeDiskTask( String serverName, String diskName) {
-		super(TASK_TYPE.DISK_FORMAT, diskName);
+		super(TASK_TYPE.DISK_FORMAT, diskName, "Initialize disk " + serverName + ":" + diskName, false, false, false);
 
-		getTaskInfo().setCanPause(false);
-		getTaskInfo().setCanStop(false);
 		setServerName(serverName);
 		setDiskName(diskName);
-		setTaskDescription();
 	}
 
 	public InitializeDiskTask(TaskInfo info) {
@@ -51,25 +49,27 @@ public class InitializeDiskTask extends Task {
 
 	@Override
 	public String getId() {
-		return getTaskInfo().getId();
+		return taskInfo.getType() + "-" + serverName + ":" + diskName;
 	}
 
 	@Override
-	public TaskInfo resume() {
+	public void resume() {
 		getTaskInfo().setStatus( new TaskStatus( new Status(Status.STATUS_CODE_FAILURE, "Can not resume disk initialization")));
-		return getTaskInfo();
 	}
 
 	@Override
-	public TaskInfo stop() {
+	public void stop() {
 		getTaskInfo().setStatus( new TaskStatus( new Status(Status.STATUS_CODE_FAILURE, "Can not stop disk initialization")));
-		return getTaskInfo();
 	}
 
 	@Override
-	public TaskInfo pause() {
+	public void pause() {
 		getTaskInfo().setStatus( new TaskStatus( new Status(Status.STATUS_CODE_FAILURE, "Can not suspend disk initialization")));
-		return getTaskInfo();
+	}
+	
+	@Override
+	public void commit() {
+		// TODO Auto-generated method stub
 	}
 
 	@Override
@@ -83,25 +83,16 @@ public class InitializeDiskTask extends Task {
 	}
 
 	@Override
-	public TaskInfo start() {
+	public void start() {
 		getTaskInfo().setStatus(
 				new TaskStatus(new Status(sshUtil.executeRemote(getServerName(), INITIALIZE_DISK_SCRIPT + " "
 						+ getDiskName()))));
-		return getTaskInfo();
 	}
 
 	@Override
-	public TaskInfo status() {
-		getTaskInfo().setStatus(
-
-				new TaskStatus(new Status(sshUtil.executeRemote(getServerName(), INITIALIZE_DISK_STATUS_SCRIPT + " "
-						+ getDiskName()))));
-		return getTaskInfo();
-	}
-
-	@Override
-	public void setTaskDescription() {
-		getTaskInfo().setDescription("Formating disk of " + getServerName() + ":" + getDiskName());
+	public TaskStatus checkStatus() {
+		return new TaskStatus(new Status(sshUtil.executeRemote(getServerName(), INITIALIZE_DISK_STATUS_SCRIPT + " "
+				+ getDiskName())));
 	}
 
 	public void setDiskName(String diskName) {

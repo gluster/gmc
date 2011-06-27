@@ -47,7 +47,7 @@ public class BricksPage extends AbstractTableViewerPage<Brick> {
 			"Total Space (GB)", "Status" };
 
 	public BricksPage(Composite parent, int style, IWorkbenchSite site, final List<Brick> bricks) {
-		super(site, parent, style, bricks);
+		super(site, parent, style, true, true, bricks);
 		this.bricks = bricks;
 	}
 

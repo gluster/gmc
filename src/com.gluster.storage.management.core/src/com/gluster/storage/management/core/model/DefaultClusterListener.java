@@ -74,6 +74,24 @@ public class DefaultClusterListener implements ClusterListener {
 		clusterChanged();
 	}
 	
+	
+	@Override
+	public void taskAdded(TaskInfo taskInfo) {
+		clusterChanged();
+	}
+
+	
+	@Override
+	public void taskRemoved(TaskInfo taskInfo) {
+		clusterChanged();
+	}
+
+	
+	@Override
+	public void taskUpdated(TaskInfo taskInfo) {
+		clusterChanged();
+	}
+	
 	/**
 	 * This method is called by every other event method. Thus, if a view/listener is interested in performing the same
 	 * task on any change happening in the cluster data model, it can simply override this method and implement the
@@ -82,4 +100,5 @@ public class DefaultClusterListener implements ClusterListener {
 	public void clusterChanged() {
 		
 	}
+	
 }

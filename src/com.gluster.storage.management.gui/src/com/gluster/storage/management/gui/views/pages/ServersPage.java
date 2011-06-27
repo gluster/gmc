@@ -55,7 +55,7 @@ public class ServersPage extends AbstractTableViewerPage<Server> {
 	// "Total Disk\n Space (GB)", "Disk Space\nin Use (GB)"};
 
 	public ServersPage(final Composite parent, IWorkbenchSite site, EntityGroup<Server> serversGroup) {
-		super(site, parent, SWT.NONE, serversGroup);
+		super(site, parent, SWT.NONE, true, true, serversGroup);
 		this.servers = serversGroup.getEntities();
 	}
 

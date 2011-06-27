@@ -57,7 +57,7 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 	protected abstract int getStatusColumnIndex();
 
 	public AbstractDisksPage(final Composite parent, int style, IWorkbenchSite site, List<Disk> disks) {
-		super(site, parent, style, disks);
+		super(site, parent, style, true, true, disks);
 		this.disks = disks;
 		
 		// creates hyperlinks for "unitialized" disks
