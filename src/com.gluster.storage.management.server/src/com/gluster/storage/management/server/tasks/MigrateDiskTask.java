@@ -20,12 +20,13 @@
  */
 package com.gluster.storage.management.server.tasks;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Task;
 import com.gluster.storage.management.core.model.TaskInfo;
+import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.core.model.TaskStatus;
+import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.server.utils.SshUtil;
 
 public class MigrateDiskTask extends Task {
@@ -60,67 +61,113 @@ public class MigrateDiskTask extends Task {
 		this.autoCommit = autoCommit;
 	}
 
-	public MigrateDiskTask(TASK_TYPE type, String volumeName, String fromBrick, String toBrick) {
-		super(type, volumeName);
+	public MigrateDiskTask(String volumeName, String fromBrick, String toBrick) {
+		super(TASK_TYPE.BRICK_MIGRATE, volumeName, "Brick Migration on volume [" + volumeName + "] from [" + fromBrick
+				+ "] to [" + toBrick + "]", true, true, true);
 		setFromBrick(fromBrick);
 		setToBrick(toBrick);
-		setTaskDescription();
-		getTaskInfo().setCanPause(true);
-		getTaskInfo().setCanStop(true);
 	}
 
 	public MigrateDiskTask(TaskInfo info) {
 		super(info);
-		setTaskDescription();
 	}
 
 	@Override
 	public String getId() {
-		return getTaskInfo().getId();
+		return taskInfo.getType() + "-" + taskInfo.getReference() + "-" + fromBrick + "-" + toBrick;
 	}
 
 	@Override
-	public TaskInfo start() {
-		getTaskInfo().setStatus(
-				new TaskStatus(new Status(sshUtil.executeRemote(getOnlineServer(), "gluster volume replace-brick "
-						+ getTaskInfo().getReference() + " " + getFromBrick() + " " + getToBrick() + " start" ) )));
-		return getTaskInfo();
+	public void start() {
+		String command = "gluster volume replace-brick " + getTaskInfo().getReference() + " " + getFromBrick() + " "
+				+ getToBrick() + " start";
+		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
+		TaskStatus taskStatus = new TaskStatus();
+		if (processResult.isSuccess()) {
+			if (processResult.getOutput().trim().matches(".*started successfully$")) {
+				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
+			} else {
+				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+			}
+		} else {
+			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+		}
+		taskStatus.setMessage(processResult.getOutput()); // Common
+		getTaskInfo().setStatus(taskStatus);
+	}
+
+	
+
+	@Override
+	public void pause() {
+		String command = "gluster volume replace-brick " + getTaskInfo().getReference() + " " + getFromBrick() + " " + getToBrick()
+		+ " pause";
+
+		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
+		TaskStatus taskStatus = new TaskStatus();
+		if (processResult.isSuccess()) {
+			if (processResult.getOutput().matches("*pause")) {
+				taskStatus.setCode(Status.STATUS_CODE_PAUSE);
+			} else {
+				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+			}
+		} else {
+			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+		}
+		taskStatus.setMessage(processResult.getOutput()); // Common
+		getTaskInfo().setStatus(taskStatus);
+	}
+	
+	
+	@Override
+	public void resume() {
+		start();
+	}
+	
+	@Override
+	public void commit() {
+		// TODO Auto-generated method stub
 	}
 
 	@Override
-	public TaskInfo resume() {
-		return start();
-	}
-
-	@Override
-	public TaskInfo stop() {
-		getTaskInfo().setStatus(
-				new TaskStatus(new Status(sshUtil.executeRemote(getOnlineServer(), "gluster volume replace-brick "
-						+ getTaskInfo().getReference() + " " + getFromBrick() + " " + getToBrick() + " abort" ) )));
-		return getTaskInfo();
-	}
-
-	@Override
-	public TaskInfo pause() {
-		getTaskInfo().setStatus(
-				new TaskStatus(new Status(sshUtil.executeRemote(getOnlineServer(), "gluster volume replace-brick "
-						+ getTaskInfo().getReference() + " " + getFromBrick() + " " + getToBrick() + " pause" ) )));
-		return getTaskInfo();
+	public void stop() {
+		String command = "gluster volume replace-brick " + getTaskInfo().getReference() + " " + getFromBrick() + " " + getToBrick()
+		+ " abort";
 		
+		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
+		TaskStatus taskStatus = new TaskStatus();
+		if (processResult.isSuccess()) {
+			if (processResult.getOutput().trim().matches(".*aborted successfully$")) {
+				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
+			} else {
+				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+			}
+		} else {
+			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+		}
+		taskStatus.setMessage(processResult.getOutput()); // Common
+		getTaskInfo().setStatus(taskStatus);
 	}
 
 	
 	@Override
-	public void setTaskDescription() {
-		TaskInfo taskInfo = getTaskInfo();
-		getTaskInfo().setDescription(
-				getTypeStr() + " on volume [" + taskInfo.getReference() + "] from [" + getFromBrick()
-						+ "] to [" + getToBrick() + "]");
-	}
-
-	
-	@Override
-	public TaskInfo status() {
-		return getTaskInfo();
+	public TaskStatus checkStatus() {
+		String command = "gluster volume replace-brick " + getTaskInfo().getReference() + " " + getFromBrick() + " "
+				+ getToBrick() + " status";
+		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
+		TaskStatus taskStatus = new TaskStatus();
+		if (processResult.isSuccess()) {
+			if (processResult.getOutput().trim().matches("^Number of files migrated.*Migration complete$")) {
+				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
+			} else if (	processResult.getOutput().trim().matches("^Number of files migrated.*Current file=.*")) {
+				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
+			} else {
+				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+			}
+		} else {
+			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+		}
+		taskStatus.setMessage(processResult.getOutput()); // Common
+		return taskStatus;
 	}
 }

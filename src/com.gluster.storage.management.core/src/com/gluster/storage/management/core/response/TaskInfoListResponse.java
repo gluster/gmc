@@ -20,35 +20,31 @@
  */
 package com.gluster.storage.management.core.response;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 
-@XmlRootElement
-public class TaskListResponse extends AbstractResponse {
-	private List<TaskInfo> taskList = new ArrayList<TaskInfo>();
-	private Status status;
-	
-	public Status getStatus() {
-		return status;
+@XmlRootElement(name = "tasks")
+public class TaskInfoListResponse {
+	private List<TaskInfo> taskInfoList;
+
+	public TaskInfoListResponse() {
+
 	}
 
-	public void setStatus(Status status) {
-		this.status = status;
-	}
-
-
-	public void setData(List<TaskInfo> taskList) {
-		this.taskList.clear();
-		this.taskList.addAll(taskList);
+	public TaskInfoListResponse(List<TaskInfo> taskInfoList) {
+		this.taskInfoList = taskInfoList;
 	}
 	
-	@Override
-	public Object getData() {
-		return this.taskList;
+	@XmlElement(name="task", type=TaskInfo.class)
+	public List<TaskInfo> getTaskList() {
+		return taskInfoList;
+	}
+	
+	public void setTaskList(List<TaskInfo> taskInfoList) {
+		this.taskInfoList = taskInfoList;
 	}
 }

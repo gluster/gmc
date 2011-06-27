@@ -36,8 +36,7 @@ import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.model.Task.TASK_TYPE;
-import com.gluster.storage.management.core.model.TaskInfo;
+import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
@@ -539,17 +538,20 @@ public class GlusterUtil {
 	
 	public String migrateBrickStart(String volumeName, String fromBrick, String toBrick, Boolean autoCommit,
 			String knownServer) {
-		MigrateDiskTask migrateDiskTask = new MigrateDiskTask(TASK_TYPE.BRICK_MIGRATE, volumeName, fromBrick, toBrick);
+		MigrateDiskTask migrateDiskTask = new MigrateDiskTask(volumeName, fromBrick, toBrick);
 		migrateDiskTask.setOnlineServer(knownServer);
 		migrateDiskTask.setAutoCommit(autoCommit);
-
-		TaskInfo taskInfo = migrateDiskTask.start();
-		if (taskInfo.isSuccess()) {
+		migrateDiskTask.start();
+		int status = migrateDiskTask.getTaskInfo().getStatus().getCode();
+		if (status != Status.STATUS_CODE_FAILURE ) {
+			TasksResource tasksResource = new TasksResource();
 			taskResource.addTask(migrateDiskTask);
+		} else {
+			throw new GlusterRuntimeException( migrateDiskTask.getTaskInfo().getStatus().getMessage());
 		}
-		
-		return taskInfo.getId();
+		return migrateDiskTask.getId();
 	}
+	
 
 	public Status removeBricks(String volumeName, List<String> bricks, String knownServer) {
 		StringBuilder command = new StringBuilder("gluster --mode=script volume remove-brick " + volumeName);

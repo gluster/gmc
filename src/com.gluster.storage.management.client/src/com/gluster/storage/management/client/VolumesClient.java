@@ -29,6 +29,7 @@ import static com.gluster.storage.management.core.constants.RESTConstants.FORM_P
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VOLUME_OPTIONS;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VOLUME_TYPE;
 
+import java.net.URI;
 import java.util.Date;
 import java.util.List;
 
@@ -227,7 +228,9 @@ public class VolumesClient extends AbstractClient {
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_START);
 		form.add(RESTConstants.FORM_PARAM_AUTO_COMMIT, autoCommit);
 		
-		putRequest(volumeName + "/" + RESTConstants.RESOURCE_BRICKS, form);
+		// putRequest(volumeName + "/" + RESTConstants.RESOURCE_BRICKS, form);
+		URI uri = putRequestURI(volumeName + "/" + RESTConstants.RESOURCE_BRICKS, form);
+		System.out.println(uri.getRawPath());
 	}
 
 	public static void main(String[] args) {

@@ -45,6 +45,7 @@ public class RESTConstants {
 	public static final String TASK_PAUSE = "pause";
 	public static final String TASK_RESUME = "resume";
 	public static final String TASK_STOP = "stop";
+	public static final String TASK_COMMIT = "commit";
 	public static final String TASK_STATUS = "status";
 	public static final String TASK_DELETE = "delete";
 

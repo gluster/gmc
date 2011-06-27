@@ -35,15 +35,13 @@ import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
+import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
+import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
-import com.gluster.storage.management.core.response.GlusterServerListResponse;
-import com.gluster.storage.management.core.response.ServerListResponse;
-import com.gluster.storage.management.core.response.VolumeListResponse;
-import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 
 public class GlusterDataModelManager {
 	private static GlusterDataModelManager instance = new GlusterDataModelManager();
@@ -92,7 +90,6 @@ public class GlusterDataModelManager {
 
 		initializeAutoDiscoveredServers(cluster);
 		// initializeDisks();
-
 		initializeTasks(cluster);
 		initializeAlerts(cluster);
 		initializeVolumeOptionsDefaults();
@@ -118,8 +115,38 @@ public class GlusterDataModelManager {
 	}
 
 	public void initializeTasks(Cluster cluster) {
-		List<TaskInfo> taskInfoList = new TasksClient(cluster.getName()).getAllTasks();
+		// List<TaskInfo> taskInfoList = new TasksClient(cluster.getName()).getAllTasks();
+		List<TaskInfo> taskInfoList = getDummyTasks();
 		cluster.setTaskInfoList(taskInfoList);
+	}
+
+	private List<TaskInfo> getDummyTasks() {
+		List<TaskInfo> taskInfoList = new ArrayList<TaskInfo>();
+
+		// Task #1
+		TaskInfo taskInfo = new TaskInfo();
+		taskInfo.setType(TASK_TYPE.BRICK_MIGRATE);
+		taskInfo.setName("Migrate Brick-music");
+		taskInfo.setCanPause(true);
+		taskInfo.setCanStop(true);
+		taskInfo.setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, "")));
+		
+		taskInfo.getStatus().setMessage("Migrating file xxxxx to yyyy");
+		taskInfo.setDescription("Migrate Brick on volume [music] from /export/adb/music to /export/sdc/music.");
+		taskInfoList.add(taskInfo);
+		// Task #2
+		taskInfo = new TaskInfo();
+		taskInfo.setType(TASK_TYPE.DISK_FORMAT);
+		taskInfo.setName("Format Disk-server1:sdc");
+		taskInfo.setCanPause(false);
+		taskInfo.setCanStop(false);
+		taskInfo.setStatus( new TaskStatus(new Status(Status.STATUS_CODE_FAILURE, ""))); 
+		taskInfo.getStatus().setMessage("Format completes 80% ...");
+		taskInfo.setDescription("Formatting disk server1:sdc.");
+		taskInfoList.add(taskInfo);
+
+		
+		return taskInfoList;
 	}
 
 	public void initializeAlerts(Cluster cluster) {
@@ -175,7 +202,7 @@ public class GlusterDataModelManager {
 		Disk disk = null;
 		List<Disk> volumeDisks = new ArrayList<Disk>();
 		for (Brick brick : volume.getBricks()) {
-			disk = getDisk(brick.getDiskName());
+			disk = getDisk(brick.getServerName() + ":" + brick.getDiskName());
 			// disk = new Disk();
 			// disk.setServerName(brick.getServerName());
 			// disk.setName(brick.getDiskName());
@@ -334,6 +361,15 @@ public class GlusterDataModelManager {
 		}
 	}
 
+	public void updateTaskStatus(TaskInfo taskInfo, Status newStatus) {
+		taskInfo.getStatus().setCode(newStatus.getCode());
+		taskInfo.getStatus().setMessage(newStatus.getMessage());
+		for (ClusterListener listener : listeners) {
+			listener.taskUpdated(taskInfo);
+		}
+	}
+	
+	
 	public List<VolumeOptionInfo> getVolumeOptionsDefaults() {
 		return volumeOptionsDefaults;
 	}
@@ -414,4 +450,5 @@ public class GlusterDataModelManager {
 		}
 		return volumeNames;
 	}
+	
 }

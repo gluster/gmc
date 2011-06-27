@@ -9,6 +9,7 @@ import static com.gluster.storage.management.client.constants.ClientConstants.TR
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.security.KeyStore;
 
 import javax.net.ssl.HostnameVerifier;
@@ -30,6 +31,7 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+
 
 public abstract class AbstractClient {
 	private static final String HTTP_HEADER_AUTH = "Authorization";
@@ -262,9 +264,9 @@ public abstract class AbstractClient {
 		postRequest(resource.path(subResourceName), form);
 	}
 	
-	private void putRequest(WebResource resource, Form form) {
+	private ClientResponse putRequest(WebResource resource, Form form) {
 		try {
-			prepareFormRequestBuilder(resource).put(form);
+			return  prepareFormRequestBuilder(resource).put(ClientResponse.class, form);
 		} catch (UniformInterfaceException e) {
 			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
 		}
@@ -285,6 +287,11 @@ public abstract class AbstractClient {
 	 */
 	protected void putRequest(String subResourceName, Form form) {
 		putRequest(resource.path(subResourceName), form);
+	}
+	
+	
+	protected URI putRequestURI(String subResourceName, Form form) {
+		return putRequest(resource.path(subResourceName), form).getLocation();
 	}
 
 	/**
