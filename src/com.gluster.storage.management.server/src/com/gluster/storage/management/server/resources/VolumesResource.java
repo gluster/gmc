@@ -331,7 +331,11 @@ public class VolumesResource extends AbstractResource {
 		}
 		
 		if (operation.equals(RESTConstants.TASK_REBALANCE_START)) {
-			return rebalanceVolume(clusterName, volumeName, isFixLayout, isMigrateData, isForcedDataMigrate);
+			return rebalanceStart(clusterName, volumeName, isFixLayout, isMigrateData, isForcedDataMigrate);
+		} else if (operation.equals(RESTConstants.TASK_REBALANCE_STATUS)) {
+			return rebalanceStatus(clusterName, volumeName);
+		} else if (operation.equals(RESTConstants.TASK_REBALANCE_STOP)) {
+			return rebalanceStop(clusterName, volumeName);
 		}
 
 		try {
@@ -946,12 +950,12 @@ public class VolumesResource extends AbstractResource {
 		return acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS, clusterName, RESOURCE_TASKS, taskId);
 	}
 	
-	private Response rebalanceVolume(String clusterName, String volumeName, Boolean isFixLayout, Boolean isMigrateData,
-			boolean isForcedDataMigrate) {
+	private Response rebalanceStart(String clusterName, String volumeName, Boolean isFixLayout, Boolean isMigrateData,
+			Boolean isForcedDataMigrate) {
 
 		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
 		if (onlineServer == null) {
-			return errorResponse("No online servers found in cluster [" + clusterName + "]");
+			return notFoundResponse("No online servers found in cluster [" + clusterName + "]");
 		}
 		
 		String layout = "";
@@ -965,17 +969,67 @@ public class VolumesResource extends AbstractResource {
 		}
 		
 		try {
-			taskId = glusterUtil.rebalanceVolumeStart(volumeName, layout, onlineServer.getName());
+			taskId = glusterUtil.rebalanceStart(volumeName, layout, onlineServer.getName());
 		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
 			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
 			
 			try {
-				taskId = glusterUtil.rebalanceVolumeStart(volumeName, layout, onlineServer.getName());
+				taskId = glusterUtil.rebalanceStart(volumeName, layout, onlineServer.getName());
 			} catch(Exception e1) {
 				return errorResponse(e1.getMessage());
 			}
 		} catch(Exception e1) {
+			return errorResponse(e1.getMessage());
+		}
+		
+		return acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS, clusterName, RESOURCE_TASKS, taskId);
+	}
+	
+	private Response rebalanceStatus(String clusterName, String volumeName) {
+		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		if (onlineServer == null) {
+			return notFoundResponse("No online servers found in cluster [" + clusterName + "]");
+		}
+		
+		String taskId = null;
+		try {
+			taskId = glusterUtil.rebalanceStatus(volumeName, onlineServer.getName());
+		} catch (ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			
+			try {
+				taskId = glusterUtil.rebalanceStatus(volumeName, onlineServer.getName());
+			} catch (Exception e1) {
+				return errorResponse(e1.getMessage());
+			}
+		}  catch(Exception e1) {
+			return errorResponse(e1.getMessage());
+		}
+		
+		return acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS, clusterName, RESOURCE_TASKS, taskId);
+	}
+	
+	private Response rebalanceStop(String clusterName, String volumeName) {
+		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		if (onlineServer == null) {
+			return notFoundResponse("No online servers found in cluster [" + clusterName + "]");
+		}
+		
+		String taskId = null;
+		try {
+			taskId = glusterUtil.rebalanceStop(volumeName, onlineServer.getName());
+		} catch (ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			
+			try {
+				taskId = glusterUtil.rebalanceStop(volumeName, onlineServer.getName());
+			} catch (Exception e1) {
+				return errorResponse(e1.getMessage());
+			}
+		}  catch(Exception e1) {
 			return errorResponse(e1.getMessage());
 		}
 		

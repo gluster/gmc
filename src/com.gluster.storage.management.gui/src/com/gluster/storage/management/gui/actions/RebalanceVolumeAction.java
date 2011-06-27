@@ -37,11 +37,11 @@ public class RebalanceVolumeAction extends AbstractActionDelegate {
 			public void run() {
 				final String actionDesc = action.getDescription();
 				try {
-					new VolumesClient().rebalanceVolume(volume.getName(), false, false, false);
+					new VolumesClient().rebalanceStart(volume.getName(), false, false, false);
 					showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] rebalance started successfully!");
 				} catch (Exception e) {
 					showErrorDialog(actionDesc,
-							"Volume rebalance cannot started on [" + volume.getName() + "]! Error: [" + e.getMessage() + "]");
+							"Volume rebalance could not be started on [" + volume.getName() + "]! Error: [" + e.getMessage() + "]");
 				}
 				
 			}
