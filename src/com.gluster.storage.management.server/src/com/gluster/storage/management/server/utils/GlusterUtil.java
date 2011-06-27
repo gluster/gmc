@@ -47,6 +47,7 @@ import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.server.resources.TasksResource;
 import com.gluster.storage.management.server.tasks.MigrateDiskTask;
+import com.gluster.storage.management.server.tasks.RebalanceVolumeTask;
 import com.sun.jersey.api.core.InjectParam;
 
 @Component
@@ -546,6 +547,20 @@ public class GlusterUtil {
 		TaskInfo taskInfo = migrateDiskTask.start();
 		if (taskInfo.isSuccess()) {
 			taskResource.addTask(migrateDiskTask);
+		}
+		
+		return taskInfo.getId();
+	}
+	
+	public String rebalanceVolumeStart(String volumeName, String layout, String knownServer) {
+		
+		RebalanceVolumeTask rebalanceTask = new RebalanceVolumeTask(volumeName);
+		rebalanceTask.setOnlineServer(knownServer);
+		rebalanceTask.setLayout(layout);
+		
+		TaskInfo taskInfo = rebalanceTask.start();
+		if(taskInfo.isSuccess()) {
+			taskResource.addTask(rebalanceTask);
 		}
 		
 		return taskInfo.getId();

@@ -54,6 +54,9 @@ import static com.gluster.storage.management.core.constants.RESTConstants.RESOUR
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_VOLUMES;
 import static com.gluster.storage.management.core.constants.RESTConstants.TASK_START;
 import static com.gluster.storage.management.core.constants.RESTConstants.TASK_STOP;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_FIX_LAYOUT;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_MIGRATE_DATA;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_FORCED_DATA_MIGRATE;
 
 import java.io.File;
 import java.io.IOException;
@@ -139,11 +142,11 @@ public class VolumesResource extends AbstractResource {
 	
 	public Response getVolumes(String clusterName, String mediaType) {
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Cluster name must not be empty!");
+			return notFoundResponse("Cluster name must not be empty!");
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 
 		return okResponse(getVolumes(clusterName), mediaType);
@@ -176,24 +179,24 @@ public class VolumesResource extends AbstractResource {
 			@FormParam(FORM_PARAM_BRICKS) String bricks, @FormParam(FORM_PARAM_ACCESS_PROTOCOLS) String accessProtocols,
 			@FormParam(FORM_PARAM_VOLUME_OPTIONS) String options) {
 		if(clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Cluster name must not be empty!");
+			return notFoundResponse("Cluster name must not be empty!");
 		}
 		
 		String missingParam = checkMissingParamsForCreateVolume(volumeName, volumeType, transportType, replicaCount, stripeCount, bricks, accessProtocols, options);
 		if(missingParam != null) {
-			return badRequestResponse("Parameter [" + missingParam + "] is missing in request!");
+			return notFoundResponse("Parameter [" + missingParam + "] is missing in request!");
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 		
 		if (volumeType.equals(VOLUME_TYPE.DISTRIBUTED_MIRROR) && replicaCount <= 0) {
-			return badRequestResponse("Replica count must be a positive integer");
+			return notFoundResponse("Replica count must be a positive integer");
 		}
 
 		if (volumeType.equals(VOLUME_TYPE.DISTRIBUTED_STRIPE) && stripeCount <= 0) {
-			return badRequestResponse("Stripe count must be a positive integer");
+			return notFoundResponse("Stripe count must be a positive integer");
 		}
 
 		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
@@ -267,11 +270,11 @@ public class VolumesResource extends AbstractResource {
 		Volume volume = null;
 		
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Cluster name must not be empty!");
+			return notFoundResponse("Cluster name must not be empty!");
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 		
 		try {
@@ -306,22 +309,29 @@ public class VolumesResource extends AbstractResource {
 	@PUT
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
 	public Response performOperation(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
-			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_OPERATION) String operation) {
+			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_OPERATION) String operation,
+			@FormParam(FORM_PARAM_FIX_LAYOUT) Boolean isFixLayout,
+			@FormParam(FORM_PARAM_MIGRATE_DATA) Boolean isMigrateData,
+			@FormParam(FORM_PARAM_FORCED_DATA_MIGRATE) Boolean isForcedDataMigrate) {
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Cluster name must not be empty!");
+			return notFoundResponse("Cluster name must not be empty!");
 		}
 
 		if (volumeName == null || volumeName.isEmpty()) {
-			return badRequestResponse("Volume name must not be empty!");
+			return notFoundResponse("Volume name must not be empty!");
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 		
 		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
 		if (onlineServer == null) {
 			return errorResponse("No online servers found in cluster [" + clusterName + "]");
+		}
+		
+		if (operation.equals(RESTConstants.TASK_REBALANCE_START)) {
+			return rebalanceVolume(clusterName, volumeName, isFixLayout, isMigrateData, isForcedDataMigrate);
 		}
 
 		try {
@@ -359,15 +369,15 @@ public class VolumesResource extends AbstractResource {
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName,
 			@QueryParam(QUERY_PARAM_DELETE_OPTION) Boolean deleteFlag) {
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Cluster name must not be empty");
+			return notFoundResponse("Cluster name must not be empty");
 		}
 
 		if (volumeName == null || volumeName.isEmpty()) {
-			return badRequestResponse("Volume name must not be empty");
+			return notFoundResponse("Volume name must not be empty");
 		}
 		
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 		
 		if (deleteFlag == null) {
@@ -408,19 +418,19 @@ public class VolumesResource extends AbstractResource {
 		List<String> brickList = Arrays.asList(bricks.split(",")); // Convert from comma separated string (query
 																	// parameter)
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Cluster name must not be empty!");
+			return notFoundResponse("Cluster name must not be empty!");
 		}
 
 		if (volumeName == null || volumeName.isEmpty()) {
-			return badRequestResponse("Volume name must not be empty!");
+			return notFoundResponse("Volume name must not be empty!");
 		}
 
 		if (bricks == null || bricks.isEmpty()) {
-			return badRequestResponse("Parameter [" + QUERY_PARAM_BRICKS + "] is missing in request!");
+			return notFoundResponse("Parameter [" + QUERY_PARAM_BRICKS + "] is missing in request!");
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 		
 		if(deleteFlag == null) {
@@ -511,23 +521,23 @@ public class VolumesResource extends AbstractResource {
 			@FormParam(RESTConstants.FORM_PARAM_OPTION_KEY) String key,
 			@FormParam(RESTConstants.FORM_PARAM_OPTION_VALUE) String value) {
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Cluster name must not be empty!");
+			return notFoundResponse("Cluster name must not be empty!");
 		}
 		
 		if(volumeName == null || volumeName.isEmpty()) {
-			return badRequestResponse("Volume name must not be empty!");
+			return notFoundResponse("Volume name must not be empty!");
 		}
 
 		if(key == null || key.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_OPTION_KEY + "] is missing in request!");
+			return notFoundResponse("Parameter [" + FORM_PARAM_OPTION_KEY + "] is missing in request!");
 		}
 		
 		if(value == null || value.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_OPTION_VALUE + "] is missing in request!");
+			return notFoundResponse("Parameter [" + FORM_PARAM_OPTION_VALUE + "] is missing in request!");
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 		
 		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
@@ -561,15 +571,15 @@ public class VolumesResource extends AbstractResource {
 	public Response resetOptions(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName) {
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Cluster name must not be empty!");
+			return notFoundResponse("Cluster name must not be empty!");
 		}
 		
 		if(volumeName == null || volumeName.isEmpty()) {
-			return badRequestResponse("Volume name must not be empty!");
+			return notFoundResponse("Volume name must not be empty!");
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 
 		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
@@ -654,15 +664,15 @@ public class VolumesResource extends AbstractResource {
 	public Response downloadLogs(@PathParam(PATH_PARAM_CLUSTER_NAME) final String clusterName,
 			@PathParam(PATH_PARAM_VOLUME_NAME) final String volumeName) {
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Cluster name must not be empty!");
+			return notFoundResponse("Cluster name must not be empty!");
 		}
 		
 		if (volumeName == null || volumeName.isEmpty()) {
-			return badRequestResponse("Volume name must not be empty!");
+			return notFoundResponse("Volume name must not be empty!");
 		}
 		
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 		
 		try {
@@ -746,15 +756,15 @@ public class VolumesResource extends AbstractResource {
 	public Response getLogs(String clusterName, String volumeName, String brickName, String severity,
 			String fromTimestamp, String toTimestamp, Integer lineCount, String mediaType) {
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Cluster name must not be empty!");
+			return notFoundResponse("Cluster name must not be empty!");
 		}
 		
 		if (volumeName == null || volumeName.isEmpty()) {
-			return badRequestResponse("Volume name must not be empty!");
+			return notFoundResponse("Volume name must not be empty!");
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 
 		List<VolumeLogMessage> logMessages = null;
@@ -847,19 +857,19 @@ public class VolumesResource extends AbstractResource {
 	public Response addBricks(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_BRICKS) String bricks) {
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Cluster name must not be empty!");
+			return notFoundResponse("Cluster name must not be empty!");
 		}
 		
 		if (volumeName == null || volumeName.isEmpty()) {
-			return badRequestResponse("Cluster name must not be empty!");
+			return notFoundResponse("Cluster name must not be empty!");
 		}
 
 		if (bricks == null || bricks.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_BRICKS + "] is missing in request!");
+			return notFoundResponse("Parameter [" + FORM_PARAM_BRICKS + "] is missing in request!");
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 		
 		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
@@ -896,23 +906,23 @@ public class VolumesResource extends AbstractResource {
 			@FormParam(FORM_PARAM_TARGET) String toBrick, @FormParam(FORM_PARAM_AUTO_COMMIT) Boolean autoCommit) {
 
 		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Cluster name must not be empty!");
+			return notFoundResponse("Cluster name must not be empty!");
 		}
 		
 		if (volumeName == null || volumeName.isEmpty()) {
-			return badRequestResponse("Volume name must not be empty!");
+			return notFoundResponse("Volume name must not be empty!");
 		}
 
 		if (fromBrick == null || fromBrick.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_SOURCE + "] is missing in request!");
+			return notFoundResponse("Parameter [" + FORM_PARAM_SOURCE + "] is missing in request!");
 		}
 		
 		if (toBrick == null || toBrick.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_TARGET + "] is missing in request!");
+			return notFoundResponse("Parameter [" + FORM_PARAM_TARGET + "] is missing in request!");
 		}
 		
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 
 		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
@@ -933,6 +943,42 @@ public class VolumesResource extends AbstractResource {
 			
 			try {
 				taskId = glusterUtil.migrateBrickStart(volumeName, fromBrick, toBrick, autoCommit, onlineServer.getName());
+			} catch(Exception e1) {
+				return errorResponse(e1.getMessage());
+			}
+		} catch(Exception e1) {
+			return errorResponse(e1.getMessage());
+		}
+		
+		return acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS, clusterName, RESOURCE_TASKS, taskId);
+	}
+	
+	private Response rebalanceVolume(String clusterName, String volumeName, Boolean isFixLayout, Boolean isMigrateData,
+			boolean isForcedDataMigrate) {
+
+		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		if (onlineServer == null) {
+			return errorResponse("No online servers found in cluster [" + clusterName + "]");
+		}
+		
+		String layout = "";
+		String taskId = null;
+		if (isForcedDataMigrate) {
+			layout = "forced-data-migrate = true";
+		} else if (isMigrateData) {
+			layout = "migrate-data = true";
+		} else if (isFixLayout) {
+			layout = "fix-layout = true";
+		}
+		
+		try {
+			taskId = glusterUtil.rebalanceVolumeStart(volumeName, layout, onlineServer.getName());
+		} catch (ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			
+			try {
+				taskId = glusterUtil.rebalanceVolumeStart(volumeName, layout, onlineServer.getName());
 			} catch(Exception e1) {
 				return errorResponse(e1.getMessage());
 			}

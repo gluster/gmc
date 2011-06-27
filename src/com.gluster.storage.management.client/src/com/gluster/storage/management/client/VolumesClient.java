@@ -229,6 +229,15 @@ public class VolumesClient extends AbstractClient {
 		
 		putRequest(volumeName + "/" + RESTConstants.RESOURCE_BRICKS, form);
 	}
+	
+	public void rebalanceVolume(String volumeName, boolean fixLayout, boolean migrateData, boolean forcedDataMigrate) {
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_REBALANCE_START);
+		form.add(RESTConstants.FORM_PARAM_FIX_LAYOUT, fixLayout);
+		form.add(RESTConstants.FORM_PARAM_MIGRATE_DATA, migrateData);
+		form.add(RESTConstants.FORM_PARAM_FORCED_DATA_MIGRATE, forcedDataMigrate);
+		putRequest(volumeName, form);
+	}
 
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();
