@@ -68,7 +68,7 @@ public class GlusterPreferencePage
 				"&Show Cluster Selection Dialog on Login:",
 				getFieldEditorParent()));
 		
-		String[][] clusterNamesArr = new String[clusterNames.size()][clusterNames.size()];
+		String[][] clusterNamesArr = new String[clusterNames.size()][2];
 		for(int i = 0; i < clusterNames.size(); i++) {
 			String clusterName = clusterNames.get(i);;
 			clusterNamesArr[i][0] = clusterName;
