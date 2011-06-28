@@ -106,7 +106,6 @@ public class ClustersResource extends AbstractResource {
 			return badRequestResponse("Server [" + knownServer + "] is already present in cluster ["
 					+ mappedCluster.getName() + "]!");
 		}
-
 		
 		try {
 			clusterService.registerCluster(clusterName, knownServer);

@@ -254,31 +254,21 @@ public class LoginDialog extends Dialog {
 			super.okPressed();
 		} catch (Exception e) {
 			setReturnCode(RETURN_CODE_ERROR);
-			MessageDialog.openError(getShell(), "Initialization Error", e.getMessage());
-			close();
+			MessageDialog.openError(getShell(), "Gluster Management Console", e.getMessage());
 		}
 	}
 
 	public void createOrRegisterCluster(ClustersClient clustersClient, String clusterName, String serverName,
 			CLUSTER_MODE mode) {
-		String errTitle = null;
-
-		try {
-			switch (mode) {
-			case SELECT:
-				return;
-			case CREATE:
-				errTitle = "Cluster Creation Failed!";
-				clustersClient.createCluster(clusterName);
-				break;
-			case REGISTER:
-				errTitle = "Cluster Registration Failed!";
-				clustersClient.registerCluster(clusterName, serverName);
-				break;
-			}
-		} catch (Exception e) {
-			MessageDialog.openError(getShell(), errTitle, e.getMessage());
-			setReturnCode(RETURN_CODE_ERROR);
+		switch (mode) {
+		case SELECT:
+			return;
+		case CREATE:
+			clustersClient.createCluster(clusterName);
+			break;
+		case REGISTER:
+			clustersClient.registerCluster(clusterName, serverName);
+			break;
 		}		
 	}
 }
