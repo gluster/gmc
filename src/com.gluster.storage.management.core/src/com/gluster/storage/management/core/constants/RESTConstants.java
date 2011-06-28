@@ -48,6 +48,9 @@ public class RESTConstants {
 	public static final String TASK_COMMIT = "commit";
 	public static final String TASK_STATUS = "status";
 	public static final String TASK_DELETE = "delete";
+	public static final String TASK_REBALANCE_START = "rebalanceStart";
+	public static final String TASK_REBALANCE_STATUS = "rebalanceStatus";
+	public static final String TASK_REBALANCE_STOP = "rebalanceStop";
 
 	public static final String FORM_PARAM_VOLUME_NAME = "name";
 	public static final String FORM_PARAM_VOLUME_TYPE = "volumeType";
@@ -68,6 +71,9 @@ public class RESTConstants {
 	public static final String FORM_PARAM_SOURCE = "source";
 	public static final String FORM_PARAM_TARGET = "target";
 	public static final String FORM_PARAM_AUTO_COMMIT = "autoCommit";
+	public static final String FORM_PARAM_FIX_LAYOUT = "fix-layout";
+	public static final String FORM_PARAM_MIGRATE_DATA = "migrate-data";
+	public static final String FORM_PARAM_FORCED_DATA_MIGRATE = "forced-data-migrate";
 	
 	public static final String PATH_PARAM_FORMAT = "format";
 	public static final String PATH_PARAM_VOLUME_NAME = "volumeName";
