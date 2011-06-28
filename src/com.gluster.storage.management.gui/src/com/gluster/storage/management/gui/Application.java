@@ -73,6 +73,8 @@ public class Application implements IApplication {
 	 * @see org.eclipse.equinox.app.IApplication#start(org.eclipse.equinox.app.IApplicationContext)
 	 */
 	public Object start(IApplicationContext context) {
+		setSystemProperties();
+		
 		Display display = PlatformUI.createDisplay();
 
 		final boolean[] loginSuccess = new boolean[1];
@@ -94,6 +96,12 @@ public class Application implements IApplication {
 		} finally {
 			display.dispose();
 		}
+	}
+
+	private void setSystemProperties() {
+		// TODO: Trying this to avoid the webstart authentication dialog
+		// to be tested, and removed if this doesn't work.
+		System.setProperty("javaws.cfg.jauthenticator", "none");
 	}
 
 	/*
