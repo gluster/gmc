@@ -27,7 +27,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.TaskInfo;
-import com.gluster.storage.management.core.response.TaskListResponse;
+import com.gluster.storage.management.core.response.TaskInfoListResponse;
 import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
@@ -51,7 +51,7 @@ public class TasksClient extends AbstractClient {
 	}
 	
 	public List<TaskInfo> getAllTasks() { // TaskListResponse get only the list of taskInfo not list of Tasks
-		return ((TaskListResponse) fetchResource(TaskListResponse.class)).getTaskList();
+		return ((TaskInfoListResponse) fetchResource(TaskInfoListResponse.class)).getTaskList();
 	}
 	
 	// see startMigration @ VolumesClient, etc

@@ -550,7 +550,6 @@ public class GlusterUtil {
 		} else {
 			throw new GlusterRuntimeException( migrateDiskTask.getTaskInfo().getStatus().getMessage());
 		}
-		
 		return migrateDiskTask.getId();
 	}
 	

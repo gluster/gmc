@@ -417,6 +417,7 @@ public class GUIHelper {
 		return selectedEntities;
 	}
 	
+
 	public void configureCheckboxTableViewer(final CheckboxTableViewer tableViewer) {
 		tableViewer.addCheckStateListener(new ICheckStateListener() {
 			

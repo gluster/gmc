@@ -203,7 +203,7 @@ public class GlusterDataModelManager {
 		Disk disk = null;
 		List<Disk> volumeDisks = new ArrayList<Disk>();
 		for (Brick brick : volume.getBricks()) {
-			disk = getDisk(brick.getDiskName());
+			disk = getDisk(brick.getServerName() + ":" + brick.getDiskName());
 			// disk = new Disk();
 			// disk.setServerName(brick.getServerName());
 			// disk.setName(brick.getDiskName());

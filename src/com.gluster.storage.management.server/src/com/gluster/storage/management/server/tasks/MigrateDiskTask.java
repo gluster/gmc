@@ -20,6 +20,7 @@
  */
 package com.gluster.storage.management.server.tasks;
 
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Task;
 import com.gluster.storage.management.core.model.TaskInfo;
@@ -83,7 +84,7 @@ public class MigrateDiskTask extends Task {
 		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
 		TaskStatus taskStatus = new TaskStatus();
 		if (processResult.isSuccess()) {
-			if (processResult.getOutput().matches("*started successfully")) {
+			if (processResult.getOutput().trim().matches(".*started successfully$")) {
 				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
 			} else {
 				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
@@ -136,7 +137,7 @@ public class MigrateDiskTask extends Task {
 		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
 		TaskStatus taskStatus = new TaskStatus();
 		if (processResult.isSuccess()) {
-			if (processResult.getOutput().matches("*abort")) {
+			if (processResult.getOutput().trim().matches(".*aborted successfully$")) {
 				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
 			} else {
 				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
@@ -156,10 +157,12 @@ public class MigrateDiskTask extends Task {
 		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
 		TaskStatus taskStatus = new TaskStatus();
 		if (processResult.isSuccess()) {
-			if (processResult.getOutput().matches("*Migration complete")) {
+			if (processResult.getOutput().trim().matches("^Number of files migrated.*Migration complete$")) {
 				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
-			} else {
+			} else if (	processResult.getOutput().trim().matches("^Number of files migrated.*Current file=.*")) {
 				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
+			} else {
+				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
 			}
 		} else {
 			taskStatus.setCode(Status.STATUS_CODE_FAILURE);

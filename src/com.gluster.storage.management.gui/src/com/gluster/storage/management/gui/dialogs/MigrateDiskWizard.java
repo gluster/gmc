@@ -18,9 +18,9 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.dialogs;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.wizard.Wizard;
 
-import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Disk;
@@ -47,14 +47,19 @@ public class MigrateDiskWizard extends Wizard {
 	@Override
 	public boolean performFinish() {
 
-		Disk sourceDisk = page.getSourceDisk();
-		Disk targetDisk = page.getTargetDisk();
-		Boolean autoCommit = true; //TODO get auto commit from user selection 
-		// TODO add custom confirm dialog
-		
+		String sourceDir = page.getSourceBrickDir();
+		String targetDir = page.getTargetBrickDir();
+		Boolean autoCommit = page.getAutoCommitSelection();
 		VolumesClient volumesClient = new VolumesClient();
-		volumesClient.startMigration(volume.getName(), sourceDisk.getQualifiedName(), targetDisk.getQualifiedName(), autoCommit);
-		
+
+		try {
+			volumesClient.startMigration(volume.getName(), sourceDir, targetDir, autoCommit);
+			MessageDialog.openInformation(getShell(), "Brick migration",
+			"Brick migration is initiated, Please check the status...");
+			//TODO Add the task to model
+		} catch (Exception e) {
+			MessageDialog.openError(getShell(), "Error: Migrate brick", e.getMessage());
+		}
 		return true;
 	}
 }

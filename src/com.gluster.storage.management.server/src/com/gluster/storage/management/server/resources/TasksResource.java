@@ -47,6 +47,7 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.exceptions.GlusterValidationException;
 import com.gluster.storage.management.core.model.Task;
 import com.gluster.storage.management.core.model.TaskInfo;
+import com.gluster.storage.management.core.response.TaskInfoListResponse;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Path(RESOURCE_PATH_CLUSTERS + "/{" + PATH_PARAM_CLUSTER_NAME + "}/" + RESOURCE_TASKS)
@@ -87,7 +88,7 @@ public class TasksResource extends AbstractResource {
 	@Produces(MediaType.APPLICATION_XML)
 	public Response getTasks() {
 		try {
-			return okResponse(getAllTasksInfo(), MediaType.APPLICATION_XML);
+			return okResponse(new TaskInfoListResponse(getAllTasksInfo()), MediaType.APPLICATION_XML);
 		} catch (GlusterRuntimeException e) {
 			return errorResponse(e.getMessage());
 		}

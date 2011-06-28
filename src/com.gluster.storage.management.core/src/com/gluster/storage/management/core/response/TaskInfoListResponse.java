@@ -27,19 +27,19 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.gluster.storage.management.core.model.TaskInfo;
 
-@XmlRootElement(name = "response")
-public class TaskListResponse {
+@XmlRootElement(name = "tasks")
+public class TaskInfoListResponse {
 	private List<TaskInfo> taskInfoList;
 
-	public TaskListResponse() {
+	public TaskInfoListResponse() {
 
 	}
 
-	public TaskListResponse(List<TaskInfo> taskInfoList) {
+	public TaskInfoListResponse(List<TaskInfo> taskInfoList) {
 		this.taskInfoList = taskInfoList;
 	}
 	
-	@XmlElement(name="TaskInfo", type=TaskInfo.class)
+	@XmlElement(name="task", type=TaskInfo.class)
 	public List<TaskInfo> getTaskList() {
 		return taskInfoList;
 	}
