@@ -30,14 +30,6 @@
             restorable="true">
       </view>
       <view
-            category="org.eclipse.ui"
-            class="org.eclipse.ui.ExtensionFactory:progressView"
-            icon="icons/progress-bar.png"
-            id="org.eclipse.ui.views.ProgressView"
-            name="Tasks in Progress"
-            restorable="true">
-      </view>
-      <view
             allowMultiple="false"
             category="com.gluster.storage.management.gui.category"
             class="com.gluster.storage.management.gui.views.DiscoveredServersView"
@@ -175,6 +167,15 @@
             name="Server Logs"
             restorable="true">
       </view>
+      <view
+            allowMultiple="false"
+            category="com.gluster.storage.management.gui.category"
+            class="com.gluster.storage.management.gui.views.TasksView"
+            icon="icons/progress-bar.png"
+            id="com.gluster.storage.management.gui.views.TasksView"
+            name="Tasks"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.commands">
@@ -249,9 +250,34 @@
             name="Remove Brick">
       </command>
       <command
+            categoryId="com.gluster.storage.management.gui.category"
             description="Add Brick"
             id="com.gluster.storage.management.gui.commands.AddDisk"
             name="Add Brick">
+      </command>
+      <command
+            categoryId="com.gluster.storage.management.gui.category"
+            description="Pause Task"
+            id="com.gluster.storage.management.gui.commands.Pause"
+            name="Pause">
+      </command>
+      <command
+            categoryId="com.gluster.storage.management.gui.category"
+            description="Resume Task"
+            id="com.gluster.storage.management.gui.commands.Resume"
+            name="Resume">
+      </command>
+      <command
+            categoryId="com.gluster.storage.management.gui.category"
+            description="Stop Task"
+            id="com.gluster.storage.management.gui.commands.Stop"
+            name="Stop">
+      </command>
+      <command
+            categoryId="com.gluster.storage.management.gui.category"
+            description="Delete Task"
+            id="com.gluster.storage.management.gui.commands.Delete"
+            name="Delete">
       </command>
    </extension>
    <extension
@@ -643,6 +669,70 @@
             visible="false">
          <action
                allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.ClearTaskAction"
+               definitionId="com.gluster.storage.management.gui.commands.Clear"
+               icon="icons/close_task.png"
+               id="com.gluster.storage.management.gui.actions.Clear"
+               label="&amp;Clear Task"
+               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="To clear selected task from task list">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.StopTaskAction"
+               definitionId="com.gluster.storage.management.gui.commands.Stop"
+               icon="icons/stop_task.png"
+               id="com.gluster.storage.management.gui.actions.Stop"
+               label="&amp;Stop Task"
+               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="To Stop the selected task">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.ResumeTaskAction"
+               definitionId="com.gluster.storage.management.gui.commands.Pause"
+               icon="icons/start_task.gif"
+               id="com.gluster.storage.management.gui.actions.Resume"
+               label="&amp;Resume Task"
+               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="To Resume the selected task">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.PauseTaskAction"
+               definitionId="com.gluster.storage.management.gui.commands.Pause"
+               icon="icons/pause_task.png"
+               id="com.gluster.storage.management.gui.actions.Pause"
+               label="&amp;Pause Task"
+               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="To Pause the selected task">
+         </action>
+         <action
+               allowLabelUpdate="false"
                class="com.gluster.storage.management.gui.actions.CreateVolumeAction"
                definitionId="com.gluster.storage.management.gui.commands.CreateVolume"
                icon="icons/volume-create.png"
@@ -997,6 +1087,18 @@
          <view
                closeable="false"
                id="com.gluster.storage.management.gui.views.GlusterServerLogsView"
+               minimized="false"
+               moveable="false"
+               ratio="0.30f"
+               relationship="stack"
+               relative="com.gluster.storage.management.gui.views.ClusterSummaryView"
+               showTitle="true"
+               standalone="false"
+               visible="false">
+         </view>
+         <view
+               closeable="false"
+               id="com.gluster.storage.management.gui.views.TasksView"
                minimized="false"
                moveable="false"
                ratio="0.30f"

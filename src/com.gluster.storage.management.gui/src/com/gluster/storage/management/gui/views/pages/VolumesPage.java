@@ -48,7 +48,7 @@ public class VolumesPage extends AbstractTableViewerPage<Volume> {
 			"Number of\nBricks", "Transport Type", "Status" };
 
 	public VolumesPage(final Composite parent, IWorkbenchSite site, EntityGroup<Volume> volumes) {
-		super(site, parent, SWT.NONE, volumes);
+		super(site, parent, SWT.NONE, true, true, volumes);
 	}
 
 	@Override

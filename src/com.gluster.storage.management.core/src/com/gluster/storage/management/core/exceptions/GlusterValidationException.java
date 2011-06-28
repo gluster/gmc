@@ -16,36 +16,12 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.core.model;
+package com.gluster.storage.management.core.exceptions;
 
-/**
- * Interface for a cluster listener. Every registered listener will be notified
- * on various events happening on the cluster.
- */
-public interface ClusterListener {
-	public void discoveredServerAdded(Server server);
-	
-	public void discoveredServerRemoved(Server server);
-	
-	public void serverAdded(GlusterServer server);
+public class GlusterValidationException extends GlusterRuntimeException {
+	private static final long serialVersionUID = 1L;
 
-	public void serverRemoved(GlusterServer server);
-
-	public void serverChanged(GlusterServer server, Event event);
-
-	public void volumeAdded(Volume volume);
-
-	public void volumeRemoved(Volume volume);
-
-	public void volumeChanged(Volume volume, Event event);
-
-	public void volumeCreated(Volume volume);
-
-	public void volumeDeleted(Volume volume);
-	
-	public void taskAdded(TaskInfo taskInfo);
-	
-	public void taskRemoved(TaskInfo taskInfo);
-	
-	public void taskUpdated(TaskInfo taskInfo);
+	public GlusterValidationException(String message) {
+		super(message);
+	}
 }

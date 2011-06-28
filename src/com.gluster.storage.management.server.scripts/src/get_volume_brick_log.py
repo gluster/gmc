@@ -19,7 +19,7 @@
 import re
 import os
 import sys
-from XmlHandler import ResponseXml
+from XmlHandler import XDOM
 
 def enumLogType(logCode):
     if "M" == logCode.upper():
@@ -44,12 +44,10 @@ def enumLogType(logCode):
         return "UNKNOWN"
 ##--end of enumLogType()
 
-def addLog(responseDom, logMessageTag, loginfo):
-    logTag = responseDom.createTag("logMessage", None)
-    logTag.appendChild(responseDom.createTag("timestamp", loginfo[0] + " " + loginfo[1]))
-    logTag.appendChild(responseDom.createTag("severity", enumLogType(loginfo[2])))
-    logTag.appendChild(responseDom.createTag("message", loginfo[3]))
-    logMessageTag.appendChild(logTag)
+def addLog(responseDom, loginfo):
+    responseDom.appendTagRoute("logMessages.logMessage.timestamp", loginfo[0] + " " + loginfo[1])
+    responseDom.appendTagRoute("logMessages.logMessage.severity", enumLogType(loginfo[2]))
+    responseDom.appendTagRoute("logMessages.logMessage.message", loginfo[3])
     return True
 ##--end of addLog()
 
@@ -61,26 +59,21 @@ def logSplit(log):
 ##--end of logSplit()
 
 def getVolumeLog(logFilePath, tailCount):
-    rs = ResponseXml()
+    rs = XDOM()
     if not logFilePath:
-        rs.appendTagRoute("status.code", "-1")
-        rs.appendTagRoute("status.message", "No log file path given")
-        return rs.toprettyxml()
+        print >> sys.stderr, "No log file path given"
+        sys.exit(-1);
 
     if not tailCount:
-        rs.appendTagRoute("status.code", "-1")
-        rs.appendTagRoute("status.message", "No tail count given")
-        return rs.toprettyxml()
+        print >> sys.stderr, "No tail count given"
+        sys.exit(-1);
 
     pattern = '\[\d{4}-\d{2}-\d{2}\s{1}\d{2}:\d{2}:\d{2}.\d+\]\s{1}([MACEWNIDT]){1}\s+'
-    logMessagesTag = rs.createTag("logMessages")
     if not os.path.exists(logFilePath):
-        rs.appendTagRoute("status.code", "-1")
-        rs.appendTagRoute("status.message", "volume log file [%s] not found!" % logFilePath)
-        return rs.toprettyxml
+        print >> sys.stderr, "volume log file [%s] not found!" % logFilePath
+        sys.exit(-1);
 
     fp = open(logFilePath)
-    #lines = [line for line in fp]
     lines = [line for line in fp if re.match(pattern, line)]
     fp.close()
     i = len(lines) - int(tailCount)
@@ -88,11 +81,8 @@ def getVolumeLog(logFilePath, tailCount):
         i = 0
     for log in lines[i:]:
         loginfo = logSplit(log)
-        addLog(rs, logMessagesTag, loginfo)
-    rs.appendTagRoute("status.code", "0")
-    rs.appendTagRoute("status.message", "Success")
-    rs.appendTag(logMessagesTag)
-    return rs.toprettyxml()
+        addLog(rs, loginfo)
+    return rs.toxml()
 ##--end of getVolumeLog()
 
 def main():
