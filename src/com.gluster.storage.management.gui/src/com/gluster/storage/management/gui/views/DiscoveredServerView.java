@@ -62,7 +62,7 @@ public class DiscoveredServerView extends ViewPart {
 		toolkit.createLabel(section, "" + server.getNumOfCPUs(), SWT.NONE);
 
 		toolkit.createLabel(section, "Total Memory (GB): ", SWT.NONE);
-		toolkit.createLabel(section, "" + (server.getTotalMemory() / 1024), SWT.NONE);
+		toolkit.createLabel(section, "" + NumberUtil.formatNumber((server.getTotalMemory() / 1024)), SWT.NONE);
 
 		toolkit.createLabel(section, "Total Disk Space (GB): ", SWT.NONE);
 		toolkit.createLabel(section, "" + NumberUtil.formatNumber((server.getTotalDiskSpace() / 1024)), SWT.NONE);
