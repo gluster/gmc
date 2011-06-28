@@ -21,6 +21,7 @@ package com.gluster.storage.management.client;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Brick;
@@ -339,7 +340,7 @@ public class GlusterDataModelManager {
 		}
 	}
 	
-	public void removeBricks(Volume volume, List<Brick> bricks) {
+	public void removeBricks(Volume volume, Set<Brick> bricks) {
 		for (ClusterListener listener : listeners) {
 			listener.volumeChanged(volume, new Event(EVENT_TYPE.BRICKS_REMOVED, bricks));
 		}

@@ -52,7 +52,7 @@ public class RebalanceVolumeTask extends Task {
 		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
 		TaskStatus taskStatus = new TaskStatus();
 		if (processResult.isSuccess()) {
-			if (processResult.getOutput().trim().matches("*has been successful$")) {
+			if (processResult.getOutput().trim().matches(".*has been successful$")) {
 				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
 			} else {
 				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
@@ -76,7 +76,7 @@ public class RebalanceVolumeTask extends Task {
 		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
 		TaskStatus taskStatus = new TaskStatus();
 		if (processResult.isSuccess()) {
-			if (processResult.getOutput().trim().matches("*has been successful$")) {
+			if (processResult.getOutput().trim().matches(".*has been successful$")) {
 				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
 			} else {
 				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
@@ -100,7 +100,7 @@ public class RebalanceVolumeTask extends Task {
 		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
 		TaskStatus taskStatus = new TaskStatus();
 		if (processResult.isSuccess()) {
-			if (processResult.getOutput().matches("Rebalance completed!")) {
+			if (processResult.getOutput().trim().matches("Rebalance completed!")) {
 				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
 			} else {
 				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
