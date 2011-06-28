@@ -31,6 +31,7 @@ import static com.gluster.storage.management.core.constants.RESTConstants.FORM_P
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -175,7 +176,7 @@ public class VolumesClient extends AbstractClient {
 		downloadSubResource(volumeName + "/" + RESTConstants.RESOURCE_LOGS + "/" + RESTConstants.RESOURCE_DOWNLOAD, filePath);
 	}
 
-	public void removeBricks(String volumeName, List<Brick> BrickList, boolean deleteOption) {
+	public void removeBricks(String volumeName, Set<Brick> BrickList, boolean deleteOption) {
 		String bricks = StringUtil.collectionToString(GlusterCoreUtil.getQualifiedBrickList(BrickList), ",");
 		MultivaluedMap<String, String> queryParams = prepareRemoveBrickQueryParams(volumeName, bricks, deleteOption);
 		deleteSubResource(volumeName + "/" + RESTConstants.RESOURCE_BRICKS, queryParams);

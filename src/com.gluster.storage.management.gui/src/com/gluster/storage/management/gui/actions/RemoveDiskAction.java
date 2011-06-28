@@ -3,6 +3,7 @@ package com.gluster.storage.management.gui.actions;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -15,6 +16,7 @@ import org.eclipse.ui.IWorkbenchPart;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Brick;
+import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.utils.StringUtil;
@@ -25,7 +27,7 @@ import com.gluster.storage.management.gui.views.VolumeBricksView;
 public class RemoveDiskAction extends AbstractActionDelegate {
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 	private GUIHelper guiHelper = GUIHelper.getInstance();
-	private List<Brick> bricks;
+	private Set<Brick> bricks;
 	private Volume volume;
 	boolean confirmDelete = false;
 
@@ -90,28 +92,13 @@ public class RemoveDiskAction extends AbstractActionDelegate {
 			IWorkbenchPart view = guiHelper.getActiveView();
 			if (view instanceof VolumeBricksView) {
 				// volume disks view is open. check if any brick is selected
-				bricks = getSelectedBricks(selection);
+				bricks = GUIHelper.getInstance().getSelectedEntities(getWindow(), Brick.class);
 				action.setEnabled(bricks.size() > 0);
 			}
 		}
 	}
 
-	private List<Brick> getSelectedBricks(ISelection selection) {
-		List<Brick> selectedBricks = new ArrayList<Brick>();
-
-		if (selection instanceof IStructuredSelection) {
-			Iterator<Object> iter = ((IStructuredSelection) selection).iterator();
-			while (iter.hasNext()) {
-				Object selectedObj = iter.next();
-				if (selectedObj instanceof Brick) {
-					selectedBricks.add((Brick) selectedObj);
-				}
-			}
-		}
-		return selectedBricks;
-	}
-
-	private List<String> getBrickList(List<Brick> bricks) {
+	private List<String> getBrickList(Set<Brick> bricks) {
 		List<String> brickList = new ArrayList<String>();
 		for (Brick brick : bricks) {
 			brickList.add(brick.getServerName() + ":" + brick.getBrickDirectory());
