@@ -36,7 +36,7 @@ import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
@@ -46,6 +46,7 @@ import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.server.resources.TasksResource;
 import com.gluster.storage.management.server.tasks.MigrateDiskTask;
+import com.gluster.storage.management.server.tasks.RebalanceVolumeTask;
 import com.sun.jersey.api.core.InjectParam;
 
 @Component
@@ -552,6 +553,48 @@ public class GlusterUtil {
 		return migrateDiskTask.getId();
 	}
 	
+	public String rebalanceStart(String volumeName, String layout, String knownServer) {
+		
+		RebalanceVolumeTask rebalanceTask = new RebalanceVolumeTask(volumeName);
+		rebalanceTask.setOnlineServer(knownServer);
+		rebalanceTask.setLayout(layout);
+		rebalanceTask.start();
+		int status = rebalanceTask.getTaskInfo().getStatus().getCode();
+		
+		if(status != Status.STATUS_CODE_FAILURE) {
+			TasksResource taskResource = new TasksResource();
+			taskResource.addTask(rebalanceTask);
+		} else {
+			throw new GlusterRuntimeException( rebalanceTask.getTaskInfo().getStatus().getMessage());
+		}
+		return rebalanceTask.getId();
+	}
+	
+	public String rebalanceStatus(String volumeName, String knownServer) {
+		RebalanceVolumeTask rebalanceTask = new RebalanceVolumeTask(volumeName);
+		rebalanceTask.setOnlineServer(knownServer);
+
+		rebalanceTask.checkStatus();
+		int status = rebalanceTask.getTaskInfo().getStatus().getCode();
+
+		if (status == Status.STATUS_CODE_FAILURE) {
+			throw new GlusterRuntimeException(rebalanceTask.getTaskInfo().getStatus().getMessage());
+		}
+		return rebalanceTask.getId();
+	}
+	
+	public String rebalanceStop(String volumeName, String knownServer) {
+		RebalanceVolumeTask rebalanceTask = new RebalanceVolumeTask(volumeName);
+		rebalanceTask.setOnlineServer(knownServer);
+
+		rebalanceTask.stop();
+		int status = rebalanceTask.getTaskInfo().getStatus().getCode();
+
+		if (status == Status.STATUS_CODE_FAILURE) {
+			throw new GlusterRuntimeException(rebalanceTask.getTaskInfo().getStatus().getMessage());
+		}
+		return rebalanceTask.getId();
+	}
 
 	public Status removeBricks(String volumeName, List<String> bricks, String knownServer) {
 		StringBuilder command = new StringBuilder("gluster --mode=script volume remove-brick " + volumeName);

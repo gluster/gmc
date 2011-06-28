@@ -141,13 +141,14 @@ public abstract class AbstractClient {
 			}
 
 			InputStream inputStream = response.getEntityInputStream();
-			byte[] data = new byte[inputStream.available()];
-			inputStream.read(data);
+			FileOutputStream outputStream = new FileOutputStream(filePath);
+			
+			int c;
+			while((c = inputStream.read()) != -1) {
+				outputStream.write(c);
+			}
 			inputStream.close();
-
-			FileOutputStream os = new FileOutputStream(filePath);
-			os.write(data);
-			os.close();
+			outputStream.close();
 		} catch (IOException e) {
 			throw new GlusterRuntimeException("Error while downloading resource [" + res.getURI().getPath() + "]", e);
 		}

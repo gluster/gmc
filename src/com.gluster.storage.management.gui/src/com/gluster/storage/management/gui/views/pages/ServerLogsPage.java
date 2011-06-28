@@ -26,6 +26,8 @@ import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -84,6 +86,27 @@ public class ServerLogsPage extends Composite {
 
 		text = toolkit.createText(composite, "100", SWT.NONE);
 		text.setBounds(85, 15, 60, 20);
+		text.setTextLimit(4);
+		text.addVerifyListener(new VerifyListener() {
+
+			@Override
+			public void verifyText(VerifyEvent event) {
+				// Assume we allow it
+				event.doit = true;
+
+				String text = event.text;
+				char[] chars = text.toCharArray();
+
+				// Don't allow if text contains non-digit characters
+				for (int i = 0; i < chars.length; i++) {
+					if (!Character.isDigit(chars[i])) {
+						event.doit = false;
+						break;
+					}
+				}
+
+			}
+		});
 
 		Label lblMessagesAndFilter = toolkit.createLabel(composite, " messages from ", SWT.CENTER);
 		lblMessagesAndFilter.setBounds(160, 15, 110, 20);

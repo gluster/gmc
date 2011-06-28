@@ -44,10 +44,12 @@ def enumLogType(logCode):
         return "UNKNOWN"
 ##--end of enumLogType()
 
-def addLog(responseDom, loginfo):
-    responseDom.appendTagRoute("logMessages.logMessage.timestamp", loginfo[0] + " " + loginfo[1])
-    responseDom.appendTagRoute("logMessages.logMessage.severity", enumLogType(loginfo[2]))
-    responseDom.appendTagRoute("logMessages.logMessage.message", loginfo[3])
+def addLog(responseDom, logMessagesTag, loginfo):
+    logMessageTag = responseDom.createTag("logMessage")
+    logMessageTag.appendChild(responseDom.createTag("timestamp", loginfo[0] + " " + loginfo[1]))
+    logMessageTag.appendChild(responseDom.createTag("severity", enumLogType(loginfo[2])))
+    logMessageTag.appendChild(responseDom.createTag("message", loginfo[3]))
+    logMessagesTag.appendChild(logMessageTag);
     return True
 ##--end of addLog()
 
@@ -79,9 +81,11 @@ def getVolumeLog(logFilePath, tailCount):
     i = len(lines) - int(tailCount)
     if i < 0:
         i = 0
+    logMessagesTag = rs.createTag("logMessages")
+    rs.addTag(logMessagesTag)
     for log in lines[i:]:
         loginfo = logSplit(log)
-        addLog(rs, loginfo)
+        addLog(rs, logMessagesTag, loginfo)
     return rs.toxml()
 ##--end of getVolumeLog()
 

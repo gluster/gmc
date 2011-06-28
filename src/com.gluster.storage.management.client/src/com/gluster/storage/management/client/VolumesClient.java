@@ -32,6 +32,7 @@ import static com.gluster.storage.management.core.constants.RESTConstants.FORM_P
 import java.net.URI;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -176,7 +177,7 @@ public class VolumesClient extends AbstractClient {
 		downloadSubResource(volumeName + "/" + RESTConstants.RESOURCE_LOGS + "/" + RESTConstants.RESOURCE_DOWNLOAD, filePath);
 	}
 
-	public void removeBricks(String volumeName, List<Brick> BrickList, boolean deleteOption) {
+	public void removeBricks(String volumeName, Set<Brick> BrickList, boolean deleteOption) {
 		String bricks = StringUtil.collectionToString(GlusterCoreUtil.getQualifiedBrickList(BrickList), ",");
 		MultivaluedMap<String, String> queryParams = prepareRemoveBrickQueryParams(volumeName, bricks, deleteOption);
 		deleteSubResource(volumeName + "/" + RESTConstants.RESOURCE_BRICKS, queryParams);
@@ -231,6 +232,27 @@ public class VolumesClient extends AbstractClient {
 		// putRequest(volumeName + "/" + RESTConstants.RESOURCE_BRICKS, form);
 		URI uri = putRequestURI(volumeName + "/" + RESTConstants.RESOURCE_BRICKS, form);
 		System.out.println(uri.getRawPath());
+	}
+	
+	public void rebalanceStart(String volumeName, Boolean fixLayout, Boolean migrateData, Boolean forcedDataMigrate) {
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_REBALANCE_START);
+		form.add(RESTConstants.FORM_PARAM_FIX_LAYOUT, fixLayout);
+		form.add(RESTConstants.FORM_PARAM_MIGRATE_DATA, migrateData);
+		form.add(RESTConstants.FORM_PARAM_FORCED_DATA_MIGRATE, forcedDataMigrate);
+		putRequest(volumeName, form);
+	}
+	
+	public void rebalanceStatus(String volumeName) {
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_REBALANCE_STATUS);
+		putRequest(volumeName, form);
+	}
+	
+	public void rebalanceStop(String volumeName) {
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_REBALANCE_STOP);
+		putRequest(volumeName, form);
 	}
 
 	public static void main(String[] args) {

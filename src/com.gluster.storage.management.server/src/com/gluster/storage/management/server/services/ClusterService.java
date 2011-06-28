@@ -65,7 +65,7 @@ public class ClusterService {
 	}
 	
 	public ClusterInfo getCluster(String clusterName) {
-		List<ClusterInfo> clusters = clusterDao.findBy("name = ?1", clusterName);
+		List<ClusterInfo> clusters = clusterDao.findBy("UPPER(name) = ?1", clusterName.toUpperCase());
 		if(clusters.size() == 0) {
 			return null;
 		}
@@ -74,7 +74,7 @@ public class ClusterService {
 	}
 	
 	public ClusterInfo getClusterForServer(String serverName) {
-		List<ServerInfo> servers = serverDao.findBy("name = ?1", serverName);
+		List<ServerInfo> servers = serverDao.findBy("UPPER(name) = ?1", serverName.toUpperCase());
 		if(servers.size() == 0) {
 			return null;
 		}
