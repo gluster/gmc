@@ -130,7 +130,7 @@ public class DiscoveredServersResource extends AbstractServersResource {
 	
 	private Server getDiscoveredServer(String serverName) {
 		Server server = new Server(serverName);
-		fetchServerDetails(server);
+		serverUtil.fetchServerDetails(server);
 		return server;
 	}
 	

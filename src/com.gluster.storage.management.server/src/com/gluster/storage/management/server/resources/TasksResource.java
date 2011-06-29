@@ -45,9 +45,9 @@ import javax.ws.rs.core.Response;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.exceptions.GlusterValidationException;
-import com.gluster.storage.management.core.model.Task;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.response.TaskInfoListResponse;
+import com.gluster.storage.management.server.tasks.Task;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Path(RESOURCE_PATH_CLUSTERS + "/{" + PATH_PARAM_CLUSTER_NAME + "}/" + RESOURCE_TASKS)
@@ -130,8 +130,8 @@ public class TasksResource extends AbstractResource {
 				task.commit();
 			}
 			// updateTask(taskId, taskOperation);
-			return (Response) acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS, clusterName, RESOURCE_TASKS,
-					taskId);
+			return (Response) acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/"
+					+ RESOURCE_TASKS + "/" + taskId);
 		} catch(GlusterValidationException ve) {
 			return badRequestResponse(ve.getMessage());
 		} catch (GlusterRuntimeException e) {

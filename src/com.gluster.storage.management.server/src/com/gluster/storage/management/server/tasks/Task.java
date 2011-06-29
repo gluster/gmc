@@ -18,29 +18,53 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package com.gluster.storage.management.core.model;
+package com.gluster.storage.management.server.tasks;
 
+import com.gluster.storage.management.core.exceptions.ConnectionException;
+import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.core.model.TaskInfo;
+import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
+import com.gluster.storage.management.server.services.ClusterService;
 
 public abstract class Task {
 	public String[] TASK_TYPE_STR = { "Format Disk", "Migrate Brick", "Volume Rebalance" };
 	
-	protected TaskInfo taskInfo;
+	protected TaskInfo taskInfo;	
+	protected String clusterName;
+	private ClusterService clusterService;
 	
-	protected String serverName;
-	
-	public Task(TASK_TYPE type, String reference, String desc, boolean canPause, boolean canStop, boolean canCommit) {
-		taskInfo = new TaskInfo();
+	public Task(ClusterService clusterService, String clusterName, TASK_TYPE type, String reference, String desc, boolean canPause, boolean canStop, boolean canCommit) {
+		TaskInfo taskInfo = new TaskInfo();
 		taskInfo.setType(type);
 		taskInfo.setReference(reference);
 		taskInfo.setDescription(desc);
 		
 		// IMPORTANT. This call must be in the end since getId may need to use the values set in above statements
-		taskInfo.setName(getId()); 
+		taskInfo.setName(getId());
+		init(clusterService, clusterName, taskInfo);
 	}
 	
-	public Task(TaskInfo taskInfo) {
+	public Task(ClusterService clusterService, String clusterName, TaskInfo taskInfo) {
+		init(clusterService, clusterName, taskInfo);
+	}
+	
+	private void init(ClusterService clusterService, String clusterName, TaskInfo taskInfo) {
+		this.clusterService = clusterService;
+		setClusterName(clusterName);
 		setTaskInfo(taskInfo);
+	}
+	
+	protected GlusterServer getOnlineServer() {
+		return clusterService.getOnlineServer(clusterName);
+	}
+	
+	protected GlusterServer getNewOnlineServer() {
+		return clusterService.getNewOnlineServer(clusterName);
+	}
+	
+	protected GlusterServer getNewOnlineServer(String exceptServerName) {
+		return clusterService.getNewOnlineServer(clusterName, exceptServerName);
 	}
 
 	public String getTypeStr() {
@@ -51,12 +75,12 @@ public abstract class Task {
 		return getTaskInfo().getType();
 	}
 	
-	public String getOnlineServer() {
-		return serverName;
+	public String getClusterName() {
+		return clusterName;
 	}
 	
-	public void setOnlineServer(String serverName) {
-		this.serverName = serverName;
+	public void setClusterName(String clusterName) {
+		this.clusterName = clusterName;
 	}
 	
 	public TaskInfo getTaskInfo() {
