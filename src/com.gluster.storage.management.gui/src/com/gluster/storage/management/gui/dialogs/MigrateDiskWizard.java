@@ -18,12 +18,16 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.dialogs;
 
+import java.net.URI;
+
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.wizard.Wizard;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.client.TasksClient;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Brick;
-import com.gluster.storage.management.core.model.Disk;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 
 public class MigrateDiskWizard extends Wizard {
@@ -53,10 +57,15 @@ public class MigrateDiskWizard extends Wizard {
 		VolumesClient volumesClient = new VolumesClient();
 
 		try {
-			volumesClient.startMigration(volume.getName(), sourceDir, targetDir, autoCommit);
-			MessageDialog.openInformation(getShell(), "Brick migration",
-			"Brick migration is initiated, Please check the status...");
-			//TODO Add the task to model
+			URI uri = volumesClient.startMigration(volume.getName(), sourceDir, targetDir, autoCommit);
+
+			// To get the object
+			TasksClient taskClient = new TasksClient();
+			TaskInfo taskInfo = taskClient.getTaskInfo(uri);
+			if (taskInfo != null && taskInfo instanceof TaskInfo) {
+				GlusterDataModelManager.getInstance().getModel().getCluster().addTaskInfo(taskInfo);
+			}
+			MessageDialog.openInformation(getShell(), "Brick migration", "Brick migration started successfully");
 		} catch (Exception e) {
 			MessageDialog.openError(getShell(), "Error: Migrate brick", e.getMessage());
 		}

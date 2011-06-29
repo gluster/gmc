@@ -20,12 +20,13 @@
  */
 package com.gluster.storage.management.client;
 
+import java.net.URI;
 import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
 
+import com.gluster.storage.management.client.utils.ClientUtil;
 import com.gluster.storage.management.core.constants.RESTConstants;
-import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.response.TaskInfoListResponse;
 import com.sun.jersey.api.representation.Form;
@@ -86,7 +87,11 @@ public class TasksClient extends AbstractClient {
 	public void deleteTask(String taskId) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_DELETE);
-		
+		 
 		deleteSubResource(taskId, queryParams);
+	}
+	
+	public TaskInfo getTaskInfo(URI uri) {		
+		return ((TaskInfo) fetchResource(uri, TaskInfo.class));
 	}
 }

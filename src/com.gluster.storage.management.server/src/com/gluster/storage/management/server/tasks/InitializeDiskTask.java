@@ -21,10 +21,10 @@
 package com.gluster.storage.management.server.tasks;
 
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.model.Task;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.core.model.TaskStatus;
+import com.gluster.storage.management.server.services.ClusterService;
 import com.gluster.storage.management.server.utils.SshUtil;
 
 public class InitializeDiskTask extends Task {
@@ -36,15 +36,16 @@ public class InitializeDiskTask extends Task {
 	private String diskName;
 	private SshUtil sshUtil = new SshUtil();
 
-	public InitializeDiskTask( String serverName, String diskName) {
-		super(TASK_TYPE.DISK_FORMAT, diskName, "Initialize disk " + serverName + ":" + diskName, false, false, false);
+	public InitializeDiskTask(ClusterService clusterService, String clusterName, String serverName, String diskName) {
+		super(clusterService, clusterName, TASK_TYPE.DISK_FORMAT, diskName, "Initialize disk " + serverName + ":"
+				+ diskName, false, false, false);
 
 		setServerName(serverName);
 		setDiskName(diskName);
 	}
 
-	public InitializeDiskTask(TaskInfo info) {
-		super(info);
+	public InitializeDiskTask(ClusterService clusterService, String clusterName, TaskInfo info) {
+		super(clusterService, clusterName, info);
 	}
 
 	@Override

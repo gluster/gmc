@@ -80,18 +80,20 @@ public class UsersClient extends AbstractClient {
 	}
 
 	public static void main(String[] args) {
-		UsersClient authClient = new UsersClient();
-
-		// authenticate user
-		authClient.authenticate("gluster", "gluster");
-
-		// change password to gluster1
-		authClient.changePassword("gluster", "gluster", "gluster1");
-
-		// change it back to gluster
-		authClient.changePassword("gluster", "gluster1", "gluster");
-		
-		System.out.println("success");
+//		UsersClient authClient = new UsersClient();
+//
+//		// authenticate user
+//		authClient.authenticate("gluster", "gluster");
+//
+//		// change password to gluster1
+//		authClient.changePassword("gluster", "gluster", "gluster1");
+//
+//		// change it back to gluster
+//		authClient.changePassword("gluster", "gluster1", "gluster");
+//		
+//		System.out.println("success");
+		System.out.println(new String(Base64.encode("abcdefghijklmnopqrstuvwxyz")));
+		System.out.println(new String(Base64.decode("YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo=")));
 	}
 
 	/*

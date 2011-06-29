@@ -20,13 +20,15 @@
  */
 package com.gluster.storage.management.server.tasks;
 
+import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
+import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.model.Task;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.utils.ProcessResult;
+import com.gluster.storage.management.server.services.ClusterService;
 import com.gluster.storage.management.server.utils.SshUtil;
 
 public class MigrateDiskTask extends Task {
@@ -61,15 +63,15 @@ public class MigrateDiskTask extends Task {
 		this.autoCommit = autoCommit;
 	}
 
-	public MigrateDiskTask(String volumeName, String fromBrick, String toBrick) {
-		super(TASK_TYPE.BRICK_MIGRATE, volumeName, "Brick Migration on volume [" + volumeName + "] from [" + fromBrick
-				+ "] to [" + toBrick + "]", true, true, true);
+	public MigrateDiskTask(ClusterService clusterService, String clusterName, String volumeName, String fromBrick, String toBrick) {
+		super(clusterService, clusterName, TASK_TYPE.BRICK_MIGRATE, volumeName, "Brick Migration on volume ["
+				+ volumeName + "] from [" + fromBrick + "] to [" + toBrick + "]", true, true, true);
 		setFromBrick(fromBrick);
 		setToBrick(toBrick);
 	}
 
-	public MigrateDiskTask(TaskInfo info) {
-		super(info);
+	public MigrateDiskTask(ClusterService clusterService, String clusterName, TaskInfo info) {
+		super(clusterService, clusterName, info);
 	}
 
 	@Override
@@ -79,31 +81,48 @@ public class MigrateDiskTask extends Task {
 
 	@Override
 	public void start() {
-		String command = "gluster volume replace-brick " + getTaskInfo().getReference() + " " + getFromBrick() + " "
-				+ getToBrick() + " start";
-		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
-		TaskStatus taskStatus = new TaskStatus();
-		if (processResult.isSuccess()) {
-			if (processResult.getOutput().trim().matches(".*started successfully$")) {
-				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
-			} else {
-				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
-			}
-		} else {
-			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+		try {
+			startMigration(getOnlineServer().getName());
+		} catch(ConnectionException e) {
+			// online server might have gone offline. try with a new one.
+			startMigration(getNewOnlineServer().getName());
 		}
-		taskStatus.setMessage(processResult.getOutput()); // Common
-		getTaskInfo().setStatus(taskStatus);
 	}
 
-	
+	private void startMigration(String onlineServerName) {
+		String command = "gluster volume replace-brick " + getTaskInfo().getReference() + " " + getFromBrick() + " "
+				+ getToBrick() + " start";
+		ProcessResult processResult = sshUtil.executeRemote(onlineServerName, command);
+		
+		System.out.println(command);
+		System.out.println("[" + processResult.getExitValue() + "] " + processResult.getOutput() );
+		
+		if (processResult.isSuccess()) {
+			if (processResult.getOutput().trim().matches(".*started successfully$")) {
+				getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, processResult.getOutput())));
+				return;
+			}
+		}
+		
+		// if we come here, it means task couldn't be started successfully.
+		throw new GlusterRuntimeException(processResult.toString());
+	}
 
 	@Override
 	public void pause() {
+		try {
+			pauseMigration(getOnlineServer().getName());
+		} catch(ConnectionException e) {
+			// online server might have gone offline. try with a new one.
+			pauseMigration(getNewOnlineServer().getName());
+		}
+	}
+
+	private void pauseMigration(String onlineServer) {
 		String command = "gluster volume replace-brick " + getTaskInfo().getReference() + " " + getFromBrick() + " " + getToBrick()
 		+ " pause";
 
-		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
+		ProcessResult processResult = sshUtil.executeRemote(onlineServer, command);
 		TaskStatus taskStatus = new TaskStatus();
 		if (processResult.isSuccess()) {
 			if (processResult.getOutput().matches("*pause")) {
@@ -131,6 +150,15 @@ public class MigrateDiskTask extends Task {
 
 	@Override
 	public void stop() {
+		try {
+			stopMigration(getOnlineServer().getName());
+		} catch(ConnectionException e) {
+			// online server might have gone offline. try with a new one.
+			stopMigration(getNewOnlineServer().getName());
+		}
+	}
+
+	private void stopMigration(String serverName) {
 		String command = "gluster volume replace-brick " + getTaskInfo().getReference() + " " + getFromBrick() + " " + getToBrick()
 		+ " abort";
 		
@@ -152,6 +180,15 @@ public class MigrateDiskTask extends Task {
 	
 	@Override
 	public TaskStatus checkStatus() {
+		try {
+			return checkMigrationStatus(getOnlineServer().getName());
+		} catch(ConnectionException e) {
+			// online server might have gone offline. try with a new one.
+			return checkMigrationStatus(getNewOnlineServer().getName());
+		}
+	}
+
+	private TaskStatus checkMigrationStatus(String serverName) {
 		String command = "gluster volume replace-brick " + getTaskInfo().getReference() + " " + getFromBrick() + " "
 				+ getToBrick() + " status";
 		ProcessResult processResult = sshUtil.executeRemote(serverName, command);

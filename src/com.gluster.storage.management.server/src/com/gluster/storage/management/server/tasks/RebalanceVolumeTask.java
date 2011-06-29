@@ -20,12 +20,14 @@
  */
 package com.gluster.storage.management.server.tasks;
 
+import com.gluster.storage.management.core.exceptions.ConnectionException;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.model.Task;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.utils.ProcessResult;
+import com.gluster.storage.management.server.services.ClusterService;
 import com.gluster.storage.management.server.utils.SshUtil;
 
 public class RebalanceVolumeTask extends Task {
@@ -33,12 +35,12 @@ public class RebalanceVolumeTask extends Task {
 	private String layout;
 	private SshUtil sshUtil = new SshUtil();
 
-	public RebalanceVolumeTask(TaskInfo taskInfo) {
-		super(taskInfo);
+	public RebalanceVolumeTask(ClusterService clusterService, String clusterName, TaskInfo taskInfo) {
+		super(clusterService, clusterName, taskInfo);
 	}
 
-	public RebalanceVolumeTask(String volumeName) {
-		super(TASK_TYPE.VOLUME_REBALANCE, volumeName, "Volume rebalance running on " + volumeName, false, true, false);
+	public RebalanceVolumeTask(ClusterService clusterService, String clusterName, String volumeName) {
+		super(clusterService, clusterName, TASK_TYPE.VOLUME_REBALANCE, volumeName, "Volume rebalance running on " + volumeName, false, true, false);
 	}
 
 	@Override
@@ -48,20 +50,25 @@ public class RebalanceVolumeTask extends Task {
 
 	@Override
 	public void start() {
+		try {
+			startRebalance(getOnlineServer().getName());
+		} catch(ConnectionException e) {
+			// online server might have gone offline. try with a new one
+			startRebalance(getNewOnlineServer().getName());
+		}
+	}
+
+	private void startRebalance(String serverName) {
 		String command = "gluster volume rebalance " + getTaskInfo().getReference() + " " + getLayout() + " start";
 		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
-		TaskStatus taskStatus = new TaskStatus();
 		if (processResult.isSuccess()) {
 			if (processResult.getOutput().trim().matches(".*has been successful$")) {
-				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
-			} else {
-				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+				getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, processResult.getOutput())));
 			}
-		} else {
-			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
 		}
-		taskStatus.setMessage(processResult.getOutput()); // Common
-		getTaskInfo().setStatus(taskStatus);
+		
+		// if we reach here, it means rebalance start failed.
+		throw new GlusterRuntimeException(processResult.toString());
 	}
 
 	@Override
@@ -72,6 +79,15 @@ public class RebalanceVolumeTask extends Task {
 
 	@Override
 	public void stop() {
+		try {
+			stopRebalance(getOnlineServer().getName());
+		} catch(ConnectionException e) {
+			// online server might have gone offline. try with a new one
+			stopRebalance(getNewOnlineServer().getName());
+		}
+	}
+
+	private void stopRebalance(String serverName) {
 		String command = "gluster volume rebalance " + getTaskInfo().getReference() + " stop";
 		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
 		TaskStatus taskStatus = new TaskStatus();
@@ -96,6 +112,16 @@ public class RebalanceVolumeTask extends Task {
 
 	@Override
 	public TaskStatus checkStatus() {
+		try {
+			return checkRebalanceStatus(getOnlineServer().getName());
+		} catch(ConnectionException e) {
+			// online server might have gone offline. try with a new one. 
+			return checkRebalanceStatus(getNewOnlineServer().getName());
+		}
+	}
+	
+	// TODO: This method should move to glusterUtil
+	private TaskStatus checkRebalanceStatus(String serverName) {
 		String command = "gluster volume rebalance " + getTaskInfo().getReference() + " status";
 		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
 		TaskStatus taskStatus = new TaskStatus();

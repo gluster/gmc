@@ -65,12 +65,12 @@ public class AbstractResource {
 	 * Creates a response with HTTP status code of 202 (accepted), also setting the location header to given location.
 	 * This is typically done while triggering long running tasks
 	 * 
-	 * @param uriElements
-	 *            URI Elements to be appended to the base URI
+	 * @param locationURI
+	 *            URI to be appended to the base URI
 	 * @return the {@link Response} object
 	 */
-	protected Response acceptedResponse(Object...uriElements) {
-		return Response.status(Status.ACCEPTED).location(createAbsoluteURI(uriElements)).build();
+	protected Response acceptedResponse(String locationURI) {
+		return Response.status(Status.ACCEPTED).location(createAbsoluteURI(locationURI)).build();
 	}
 
 	/**
@@ -86,11 +86,11 @@ public class AbstractResource {
 
 	/**
 	 * Creates a new URI that is relative to the <b>base URI</b> of the application
-	 * @param uriElements URI Elements to be appended to the base URI
+	 * @param uriString URI String to be appended to the base URI
 	 * @return newly created URI
 	 */
-	private URI createAbsoluteURI(Object[] uriElements) {
-		return uriInfo.getBaseUriBuilder().build(uriElements);
+	private URI createAbsoluteURI(String uriString) {
+		return uriInfo.getBaseUriBuilder().path(uriString).build();
 	}
 
 	/**
