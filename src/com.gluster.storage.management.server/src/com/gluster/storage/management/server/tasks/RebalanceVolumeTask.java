@@ -100,7 +100,7 @@ public class RebalanceVolumeTask extends Task {
 		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
 		TaskStatus taskStatus = new TaskStatus();
 		if (processResult.isSuccess()) {
-			if (processResult.getOutput().trim().matches("Rebalance completed!")) {
+			if (processResult.getOutput().trim().matches(".*rebalance completed$")) {
 				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
 			} else {
 				taskStatus.setCode(Status.STATUS_CODE_RUNNING);

@@ -562,7 +562,6 @@ public class GlusterUtil {
 		int status = rebalanceTask.getTaskInfo().getStatus().getCode();
 		
 		if(status != Status.STATUS_CODE_FAILURE) {
-			TasksResource taskResource = new TasksResource();
 			taskResource.addTask(rebalanceTask);
 		} else {
 			throw new GlusterRuntimeException( rebalanceTask.getTaskInfo().getStatus().getMessage());
