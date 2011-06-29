@@ -153,7 +153,7 @@ public class GlusterServersResource extends AbstractServersResource {
 
 		ClusterInfo cluster = clusterService.getCluster(clusterName);
 		if (cluster == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 
 		if (cluster.getServers().size() == 0) {
@@ -314,7 +314,7 @@ public class GlusterServersResource extends AbstractServersResource {
 
 		ClusterInfo cluster = clusterService.getCluster(clusterName);
 		if (cluster == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 
 		boolean publicKeyInstalled = sshUtil.isPublicKeyInstalled(serverName);
@@ -377,7 +377,7 @@ public class GlusterServersResource extends AbstractServersResource {
 
 		ClusterInfo cluster = clusterService.getCluster(clusterName);
 		if (cluster == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 
 		List<ServerInfo> servers = cluster.getServers();
