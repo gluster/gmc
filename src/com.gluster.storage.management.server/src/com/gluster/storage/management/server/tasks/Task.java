@@ -20,11 +20,10 @@
  */
 package com.gluster.storage.management.server.tasks;
 
-import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.TaskInfo;
-import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
+import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.server.services.ClusterService;
 
 public abstract class Task {
@@ -39,10 +38,12 @@ public abstract class Task {
 		taskInfo.setType(type);
 		taskInfo.setReference(reference);
 		taskInfo.setDescription(desc);
+		taskInfo.setCanPause(canPause);
+		taskInfo.setCanStop(canStop);
+		taskInfo.setCanCommit(canCommit);
 		
-		// IMPORTANT. This call must be in the end since getId may need to use the values set in above statements
-		taskInfo.setName(getId());
 		init(clusterService, clusterName, taskInfo);
+		
 	}
 	
 	public Task(ClusterService clusterService, String clusterName, TaskInfo taskInfo) {

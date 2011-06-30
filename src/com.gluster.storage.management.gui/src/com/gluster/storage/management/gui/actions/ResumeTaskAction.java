@@ -8,6 +8,7 @@ import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.TasksClient;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
+import com.gluster.storage.management.core.model.TaskStatus;
 
 public class ResumeTaskAction extends AbstractActionDelegate {
 	private TaskInfo taskInfo;
@@ -23,9 +24,9 @@ public class ResumeTaskAction extends AbstractActionDelegate {
 
 				try {
 					new TasksClient().resumeTask(taskInfo.getName());
-					// TODO Update taskInfo in the model
-					// modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
-					modelManager.updateTaskStatus(taskInfo, new Status(Status.STATUS_CODE_PAUSE, taskInfo.getName() + " is Resumed"));
+					taskInfo.setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, taskInfo.getName()
+							+ " is Resumed")));
+					modelManager.updateTask(taskInfo);
 				} catch (Exception e) {
 					showErrorDialog(actionDesc,
 							"Task [" + taskInfo.getName() + "] could not be Resumed! Error: [" + e.getMessage() + "]");

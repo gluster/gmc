@@ -950,7 +950,7 @@ public class VolumesResource extends AbstractResource {
 		migrateDiskTask.setAutoCommit(autoCommit);
 		migrateDiskTask.start();
 		taskResource.addTask(migrateDiskTask);
-		return migrateDiskTask.getId();
+		return migrateDiskTask.getTaskInfo().getName(); // Return Task ID
 	}
 	
 	private String rebalanceStart(String clusterName, String volumeName, Boolean isFixLayout, Boolean isMigrateData,
@@ -1005,6 +1005,10 @@ public class VolumesResource extends AbstractResource {
 		// System.out.println("Code : " + status.getCode());
 		// System.out.println("Message " + status.getMessage());
 
-		vr.removeBricks("testCluster", "test", "192.168.1.210:sdb", true);
+		// vr.removeBricks("testCluster", "test", "192.168.1.210:sdb", true);
+
+		String taskId = vr.migrateBrickStart("myGluster", "students", "devserver1:/export/sdc/students",
+				"devserver2:/export/sdb/students", true);
+		
 	}
 }

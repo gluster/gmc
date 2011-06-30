@@ -362,14 +362,28 @@ public class GlusterDataModelManager {
 		}
 	}
 
-	public void updateTaskStatus(TaskInfo taskInfo, Status newStatus) {
-		taskInfo.getStatus().setCode(newStatus.getCode());
-		taskInfo.getStatus().setMessage(newStatus.getMessage());
+	public void addTask(TaskInfo taskInfo) {
+		Cluster cluster = model.getCluster();
+		cluster.addTaskInfo(taskInfo);
+		for (ClusterListener listener : listeners) {
+			listener.taskAdded(taskInfo);
+		}
+	}
+	
+	// Updating the Task
+	public void updateTask(TaskInfo taskInfo) {
 		for (ClusterListener listener : listeners) {
 			listener.taskUpdated(taskInfo);
 		}
 	}
 	
+	public void removeTask(TaskInfo taskInfo) {
+		Cluster cluster = model.getCluster();
+		cluster.removeTaskInfo(taskInfo);
+		for (ClusterListener listener : listeners) {
+			listener.taskAdded(taskInfo);
+		}
+	}
 	
 	public List<VolumeOptionInfo> getVolumeOptionsDefaults() {
 		return volumeOptionsDefaults;

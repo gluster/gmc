@@ -115,6 +115,10 @@ public class Cluster extends Entity {
 	public void addTaskInfo(TaskInfo taskInfo) {
 		this.taskInfoList.add(taskInfo);
 	}
+	
+	public void removeTaskInfo(TaskInfo taskInfo) {
+		this.taskInfoList.remove(taskInfo);
+	}
 
 	public List<Alert> getAlerts() {
 		return alerts;
