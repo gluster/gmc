@@ -25,7 +25,7 @@ public class ClearTaskAction extends AbstractActionDelegate {
 					new TasksClient().resumeTask(taskInfo.getName());
 					// TODO Update taskInfo in the model
 					// modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
-					modelManager.updateTaskStatus(taskInfo, new Status(Status.STATUS_CODE_PART_SUCCESS, taskInfo.getName() +  " is cleared from task list"));
+					modelManager.removeTask(taskInfo);
 				} catch (Exception e) {
 					showErrorDialog(actionDesc,
 							"Task [" + taskInfo.getName() + "] could not be cleared! Error: [" + e.getMessage() + "]");

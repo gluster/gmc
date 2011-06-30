@@ -25,7 +25,6 @@ import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
 
-import com.gluster.storage.management.client.utils.ClientUtil;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.response.TaskInfoListResponse;
@@ -73,6 +72,13 @@ public class TasksClient extends AbstractClient {
 	public void stopTask(String taskId) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_STOP);
+		
+		putRequest(taskId, form);
+	}
+	
+	public void commitTask(String taskId) {
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_COMMIT);
 		
 		putRequest(taskId, form);
 	}

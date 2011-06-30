@@ -22,7 +22,7 @@ package com.gluster.storage.management.core.model;
 
 public class TaskStatus extends Status {
 
-	private boolean isPercentageSupported;
+	private boolean isPercentageSupported = false;
 	private float percentCompleted;
 	private String description;
 
