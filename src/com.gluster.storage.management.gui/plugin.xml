@@ -685,6 +685,22 @@
          </action>
          <action
                allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.CommitTaskAction"
+               definitionId="com.gluster.storage.management.gui.commands.Commit"
+               icon="icons/stop.png"
+               id="com.gluster.storage.management.gui.actions.Commit"
+               label="&amp;Commit TaskTask"
+               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="To Commit the selected task">
+         </action>
+         <action
+               allowLabelUpdate="false"
                class="com.gluster.storage.management.gui.actions.StopTaskAction"
                definitionId="com.gluster.storage.management.gui.commands.Stop"
                icon="icons/stop_task.png"

@@ -23,12 +23,10 @@ package com.gluster.storage.management.gui;
 import org.eclipse.swt.graphics.Image;
 
 import com.gluster.storage.management.core.model.TaskInfo;
-import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.views.pages.TasksPage.TASK_TABLE_COLUMN_INDICES;
 
 
 public class TasksTableLabelProvider extends TableLabelProviderAdapter {
-	private GUIHelper guiHelper = GUIHelper.getInstance();
 	
 	@Override
 	public Image getColumnImage(Object element, int columnIndex) {
@@ -42,6 +40,6 @@ public class TasksTableLabelProvider extends TableLabelProviderAdapter {
 		}
 
 		TaskInfo taskInfo = (TaskInfo) element;
-		return (columnIndex == TASK_TABLE_COLUMN_INDICES.TASK.ordinal()) ? taskInfo.getDescription() : taskInfo.getStatus().getMessage();
+		return (columnIndex == TASK_TABLE_COLUMN_INDICES.TASK.ordinal()) ? taskInfo.getDescription().trim() : taskInfo.getStatus().getMessage().trim();
 	}
 }

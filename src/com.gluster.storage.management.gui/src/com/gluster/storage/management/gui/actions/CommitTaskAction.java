@@ -10,7 +10,7 @@ import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.TaskStatus;
 
-public class StopTaskAction extends AbstractActionDelegate {
+public class CommitTaskAction extends AbstractActionDelegate {
 	private TaskInfo taskInfo;
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 
@@ -23,8 +23,9 @@ public class StopTaskAction extends AbstractActionDelegate {
 				final String actionDesc = action.getDescription();
 
 				try {
-					new TasksClient().resumeTask(taskInfo.getName());
-					taskInfo.setStatus( new TaskStatus( new Status(Status.STATUS_CODE_SUCCESS, taskInfo.getName() +  " is Stopped")));
+					new TasksClient().commitTask(taskInfo.getName());
+					taskInfo.setStatus(new TaskStatus(new Status(Status.STATUS_CODE_SUCCESS, taskInfo.getName()
+							+ " is commited")));
 					modelManager.updateTask(taskInfo);
 				} catch (Exception e) {
 					showErrorDialog(actionDesc,
@@ -40,9 +41,8 @@ public class StopTaskAction extends AbstractActionDelegate {
 		action.setEnabled(false);
 		if (selectedEntity instanceof TaskInfo) {
 			taskInfo = (TaskInfo) selectedEntity;
-			action.setEnabled(taskInfo.canStop()
-					&& (taskInfo.getStatus().getCode() == Status.STATUS_CODE_PAUSE 
-							|| taskInfo.getStatus().getCode() == Status.STATUS_CODE_RUNNING));
+			action.setEnabled(taskInfo.canCommit()
+					&& taskInfo.getStatus().getCode() == Status.STATUS_CODE_COMMIT_PENDING);
 		}
 	}
 

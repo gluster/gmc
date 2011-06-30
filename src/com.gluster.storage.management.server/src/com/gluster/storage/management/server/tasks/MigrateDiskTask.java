@@ -22,7 +22,6 @@ package com.gluster.storage.management.server.tasks;
 
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
-import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
@@ -30,6 +29,7 @@ import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.server.services.ClusterService;
 import com.gluster.storage.management.server.utils.SshUtil;
+import com.sun.jersey.core.util.Base64;
 
 public class MigrateDiskTask extends Task {
 
@@ -68,6 +68,7 @@ public class MigrateDiskTask extends Task {
 				+ volumeName + "] from [" + fromBrick + "] to [" + toBrick + "]", true, true, true);
 		setFromBrick(fromBrick);
 		setToBrick(toBrick);
+		taskInfo.setName(getId());
 	}
 
 	public MigrateDiskTask(ClusterService clusterService, String clusterName, TaskInfo info) {
@@ -76,7 +77,7 @@ public class MigrateDiskTask extends Task {
 
 	@Override
 	public String getId() {
-		return taskInfo.getType() + "-" + taskInfo.getReference() + "-" + fromBrick + "-" + toBrick;
+		return new String( Base64.encode( taskInfo.getType() + "-" + taskInfo.getReference() + "-" + fromBrick + "-" + toBrick ));
 	}
 
 	@Override
@@ -93,13 +94,9 @@ public class MigrateDiskTask extends Task {
 		String command = "gluster volume replace-brick " + getTaskInfo().getReference() + " " + getFromBrick() + " "
 				+ getToBrick() + " start";
 		ProcessResult processResult = sshUtil.executeRemote(onlineServerName, command);
-		
-		System.out.println(command);
-		System.out.println("[" + processResult.getExitValue() + "] " + processResult.getOutput() );
-		
 		if (processResult.isSuccess()) {
 			if (processResult.getOutput().trim().matches(".*started successfully$")) {
-				getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, processResult.getOutput())));
+				getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, processResult.getOutput().trim())));
 				return;
 			}
 		}
@@ -125,16 +122,16 @@ public class MigrateDiskTask extends Task {
 		ProcessResult processResult = sshUtil.executeRemote(onlineServer, command);
 		TaskStatus taskStatus = new TaskStatus();
 		if (processResult.isSuccess()) {
-			if (processResult.getOutput().matches("*pause")) {
+			if (processResult.getOutput().matches("*pause")) { //TODO replace correct pattern to identify the pause status
 				taskStatus.setCode(Status.STATUS_CODE_PAUSE);
-			} else {
-				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+				taskStatus.setMessage(processResult.getOutput());
+				getTaskInfo().setStatus(taskStatus);
+				return;
 			}
-		} else {
-			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
-		}
-		taskStatus.setMessage(processResult.getOutput()); // Common
-		getTaskInfo().setStatus(taskStatus);
+		} 
+		
+		// if we reach here, it means rebalance start failed.
+		throw new GlusterRuntimeException(processResult.toString());
 	}
 	
 	
@@ -145,7 +142,12 @@ public class MigrateDiskTask extends Task {
 	
 	@Override
 	public void commit() {
-		// TODO Auto-generated method stub
+		try {
+			commitMigration(getOnlineServer().getName());
+		} catch(ConnectionException e) {
+			// online server might have gone offline. try with a new one.
+			commitMigration(getNewOnlineServer().getName());
+		}
 	}
 
 	@Override
@@ -167,14 +169,14 @@ public class MigrateDiskTask extends Task {
 		if (processResult.isSuccess()) {
 			if (processResult.getOutput().trim().matches(".*aborted successfully$")) {
 				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
-			} else {
-				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
-			}
-		} else {
-			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
-		}
-		taskStatus.setMessage(processResult.getOutput()); // Common
-		getTaskInfo().setStatus(taskStatus);
+				taskStatus.setMessage(processResult.getOutput());
+				getTaskInfo().setStatus(taskStatus);
+				return;
+			} 
+		} 
+		
+		// if we reach here, it means rebalance start failed.
+		throw new GlusterRuntimeException(processResult.toString());
 	}
 
 	
@@ -187,6 +189,27 @@ public class MigrateDiskTask extends Task {
 			return checkMigrationStatus(getNewOnlineServer().getName());
 		}
 	}
+	
+	
+	public void commitMigration(String serverName) {
+		String command = "gluster volume replace-brick " + getTaskInfo().getReference() + " " + getFromBrick() + " "
+		+ getToBrick() + " commit";
+		
+		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
+		TaskStatus taskStatus = new TaskStatus();
+		if (processResult.isSuccess()) {
+			if (processResult.getOutput().trim().matches(".*commit successful$")) {
+				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
+				taskStatus.setMessage(processResult.getOutput()); // Common
+				getTaskInfo().setStatus(taskStatus);
+				return;
+			}
+		}
+		
+		// if we reach here, it means rebalance start failed.
+		throw new GlusterRuntimeException(processResult.toString());
+	}
+	
 
 	private TaskStatus checkMigrationStatus(String serverName) {
 		String command = "gluster volume replace-brick " + getTaskInfo().getReference() + " " + getFromBrick() + " "
@@ -195,7 +218,10 @@ public class MigrateDiskTask extends Task {
 		TaskStatus taskStatus = new TaskStatus();
 		if (processResult.isSuccess()) {
 			if (processResult.getOutput().trim().matches("^Number of files migrated.*Migration complete$")) {
-				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
+				taskStatus.setCode(Status.STATUS_CODE_COMMIT_PENDING);
+				if (autoCommit) {
+					commitMigration(serverName);
+				}
 			} else if (	processResult.getOutput().trim().matches("^Number of files migrated.*Current file=.*")) {
 				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
 			} else {
@@ -204,7 +230,9 @@ public class MigrateDiskTask extends Task {
 		} else {
 			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
 		}
-		taskStatus.setMessage(processResult.getOutput()); // Common
+				
+		taskStatus.setMessage(processResult.getOutput()); // common
+		taskInfo.setStatus(taskStatus); // Update the task status
 		return taskStatus;
 	}
 }

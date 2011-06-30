@@ -126,12 +126,10 @@ public class TasksResource extends AbstractResource {
 				task.pause();
 			} else if (taskOperation.equals(RESTConstants.TASK_STOP)) {
 				task.stop();
-			} else if(taskOperation.equals(RESTConstants.TASK_COMMIT)) {
+			} else if (taskOperation.equals(RESTConstants.TASK_COMMIT)) {
 				task.commit();
 			}
-			// updateTask(taskId, taskOperation);
-			return (Response) acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/"
-					+ RESOURCE_TASKS + "/" + taskId);
+			return (Response) noContentResponse();
 		} catch(GlusterValidationException ve) {
 			return badRequestResponse(ve.getMessage());
 		} catch (GlusterRuntimeException e) {

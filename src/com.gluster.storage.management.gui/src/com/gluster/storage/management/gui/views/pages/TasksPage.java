@@ -45,6 +45,7 @@ public class TasksPage extends AbstractTableViewerPage<TaskInfo> {
 	private static final String[] TASK_TABLE_COLUMN_NAMES = new String[] { "Task", "Status"};
 	
 
+	@SuppressWarnings("unchecked")
 	public TasksPage(IWorkbenchSite site, Composite parent, int style, Object taskInfo) {
 		super(site, parent, style, false, false, taskInfo);
 		this.taskInfoList = (List<TaskInfo>) taskInfo;
