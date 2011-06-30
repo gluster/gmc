@@ -33,8 +33,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.utils.LRUCache;
 import com.gluster.storage.management.server.data.ClusterInfo;
 import com.gluster.storage.management.server.data.PersistenceDao;
@@ -75,7 +77,7 @@ public class ClusterService {
 	
 	// uses cache
 	public GlusterServer getOnlineServer(String clusterName, String exceptServerName) {
-		GlusterServer server = getOnlineServer(clusterName);
+		GlusterServer server = onlineServerCache.get(clusterName);
 		if (server != null && !server.getName().equals(exceptServerName)) {
 			return server;
 		}
@@ -100,11 +102,17 @@ public class ClusterService {
 
 		for (ServerInfo serverInfo : cluster.getServers()) {
 			GlusterServer server = new GlusterServer(serverInfo.getName());
-			serverUtil.fetchServerDetails(server);
-			if (server.isOnline() && !server.getName().equals(exceptServerName)) {
-				// server is online. add it to cache and return
-				addOnlineServer(clusterName, server);
-				return server;
+			server.setStatus(SERVER_STATUS.ONLINE);
+			try {
+				serverUtil.fetchServerDetails(server);
+				if (server.isOnline() && !server.getName().equals(exceptServerName)) {
+					// server is online. add it to cache and return
+					addOnlineServer(clusterName, server);
+					return server;
+				}
+			} catch(ConnectionException e) {
+				// server is offline. continue checking next one.
+				continue;
 			}
 		}
 

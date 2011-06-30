@@ -88,7 +88,6 @@ public class ServerUtil {
 		// fetch standard server details like cpu, disk, memory details
 		Object response = executeOnServer(true, server.getName(), "get_server_details.py --only-data-disks", Server.class);
 		if (response instanceof Status) {
-			// TODO: check if this happened because the server is not reachable, and if yes, set it's status as offline
 			throw new GlusterRuntimeException(((Status)response).getMessage());
 		}
 		server.copyFrom((Server) response); // Update the details in <Server> object
