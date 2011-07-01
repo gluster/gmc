@@ -39,7 +39,7 @@ import com.richclientgui.toolbox.duallists.IRemovableContentProvider;
  * @author root
  * 
  */
-public class AddDiskPage extends WizardPage {
+public class AddBrickPage extends WizardPage {
 	private List<Disk> availableDisks = new ArrayList<Disk>();
 	private List<Disk> selectedDisks = new ArrayList<Disk>();
 	private Volume volume = null;
@@ -51,7 +51,7 @@ public class AddDiskPage extends WizardPage {
 	/**
 	 * @param pageName
 	 */
-	protected AddDiskPage(Volume volume) {
+	protected AddBrickPage(Volume volume) {
 		super(PAGE_NAME);
 		this.volume = volume;
 		setTitle("Add Brick");

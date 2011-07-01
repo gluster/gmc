@@ -36,7 +36,6 @@ import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
@@ -45,8 +44,6 @@ import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.server.resources.TasksResource;
-import com.gluster.storage.management.server.tasks.MigrateDiskTask;
-import com.gluster.storage.management.server.tasks.RebalanceVolumeTask;
 import com.sun.jersey.api.core.InjectParam;
 
 @Component
@@ -388,26 +385,7 @@ public class GlusterUtil {
 	}
 
 	private void addBrickToVolume(Volume volume, String serverName, String brickDir) {
-		// TODO: Brick status should be same as the server status (online/offline)
-		System.out.println(brickDir);
 		volume.addBrick(new Brick(serverName, BRICK_STATUS.ONLINE, brickDir.split("/")[2].trim(), brickDir));
-
-		// volume.getBricks().get(0).getName();
-		//
-		// try {
-		// volume.addDisk(serverName + ":" + brickDir.split("/")[2].trim());
-		// } catch (ArrayIndexOutOfBoundsException e) {
-		// // brick directory of a different form, most probably created manually
-		// // connect to the server and get disk for the brick directory
-		// Status status = new ServerUtil().getDiskForDir(serverName, brickDir);
-		// if (status.isSuccess()) {
-		// volume.addDisk(serverName + ":" + status.getMessage());
-		// } else {
-		// // Couldn't fetch disk for the brick directory. Log error and add "unknown" as disk name.
-		// System.out.println("Couldn't fetch disk name for brick [" + serverName + ":" + brickDir + "]");
-		// volume.addDisk(serverName + ":unknown");
-		// }
-		// }
 	}
 
 	private boolean readBrickGroup(String line) {
@@ -549,6 +527,17 @@ public class GlusterUtil {
 		if(!result.isSuccess()) {
 			throw new GlusterRuntimeException("Couldn't remove server [" + serverName + "]! Error: " + result);
 		}
+	}
+	
+	
+	public ProcessResult executeBrickMigration(String onlineServerName, String volumeName, String fromBrick,
+			String toBrick, String operation) {
+		String command = "gluster volume replace-brick " + volumeName + " " + fromBrick + " " + toBrick + " " + operation;
+		ProcessResult processResult = sshUtil.executeRemote(onlineServerName, command);
+		if (!processResult.isSuccess()) {
+			throw new GlusterRuntimeException(processResult.toString());
+		}
+		return processResult;
 	}
 
 	public static void main(String args[]) {

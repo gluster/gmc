@@ -32,7 +32,10 @@ import org.eclipse.ui.IWorkbenchSite;
 
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
+import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.TaskInfo;
+import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.gui.TasksTableLabelProvider;
 
 public class TasksPage extends AbstractTableViewerPage<TaskInfo> {
@@ -45,10 +48,9 @@ public class TasksPage extends AbstractTableViewerPage<TaskInfo> {
 	private static final String[] TASK_TABLE_COLUMN_NAMES = new String[] { "Task", "Status"};
 	
 
-	@SuppressWarnings("unchecked")
-	public TasksPage(IWorkbenchSite site, Composite parent, int style, Object taskInfo) {
+	public TasksPage(IWorkbenchSite site, Composite parent, int style, List<TaskInfo> taskInfo) {
 		super(site, parent, style, false, false, taskInfo);
-		this.taskInfoList = (List<TaskInfo>) taskInfo;
+		this.taskInfoList = taskInfo;
 	}
 	
 	/* (non-Javadoc)
@@ -67,10 +69,26 @@ public class TasksPage extends AbstractTableViewerPage<TaskInfo> {
 				refreshViewer();
 			}
 			
+			@Override
+			public void taskUpdated(TaskInfo taskInfo) {
+				refreshViewer();
+			}
+			
 			private void refreshViewer() {
 				tableViewer.refresh();
 				parent.update();
 			}
+			
+			@Override
+			public void volumeChanged(Volume volume, Event event) {
+				super.volumeChanged(volume, event);
+				if (event.getEventType() == EVENT_TYPE.BRICK_REPLACED) {
+					if (!tableViewer.getControl().isDisposed()) {
+						tableViewer.refresh();
+					}
+				}
+			}
+			
 		};
 	}
 

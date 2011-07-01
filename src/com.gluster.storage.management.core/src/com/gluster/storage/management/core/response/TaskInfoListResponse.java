@@ -20,6 +20,7 @@
  */
 package com.gluster.storage.management.core.response;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -29,7 +30,7 @@ import com.gluster.storage.management.core.model.TaskInfo;
 
 @XmlRootElement(name = "tasks")
 public class TaskInfoListResponse {
-	private List<TaskInfo> taskInfoList;
+	private List<TaskInfo> taskInfoList = new ArrayList<TaskInfo>();
 
 	public TaskInfoListResponse() {
 

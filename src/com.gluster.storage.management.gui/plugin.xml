@@ -476,7 +476,7 @@
             visible="false">
          <action
                allowLabelUpdate="false"
-               class="com.gluster.storage.management.gui.actions.MigrateDiskAction"
+               class="com.gluster.storage.management.gui.actions.MigrateBrickAction"
                definitionId="com.gluster.storage.management.gui.commands.MigrateDisk"
                icon="icons/disk-migrate.png"
                id="com.gluster.storage.management.gui.actions.MigrateDiskAction"
@@ -593,7 +593,7 @@
          </action>
          <action
                allowLabelUpdate="false"
-               class="com.gluster.storage.management.gui.actions.RemoveDiskAction"
+               class="com.gluster.storage.management.gui.actions.RemoveBrickAction"
                definitionId="com.gluster.storage.management.gui.commands.RemoveDisk"
                icon="icons/disk.png"
                id="com.gluster.storage.management.gui.actions.RemoveDiskAction"
@@ -609,7 +609,7 @@
          </action>
          <action
                allowLabelUpdate="false"
-               class="com.gluster.storage.management.gui.actions.AddDiskAction"
+               class="com.gluster.storage.management.gui.actions.AddBrickAction"
                definitionId="com.gluster.storage.management.gui.commands.AddDisk"
                icon="icons/disk.png"
                id="com.gluster.storage.management.gui.actions.AddDiskAction"
@@ -659,7 +659,7 @@
                definitionId="com.gluster.storage.management.gui.commands.Commit"
                icon="icons/stop.png"
                id="com.gluster.storage.management.gui.actions.Commit"
-               label="&amp;Commit TaskTask"
+               label="&amp;Commit Task"
                menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
                mode="FORCE_TEXT"
                pulldown="false"
@@ -1206,7 +1206,7 @@
             objectClass="com.gluster.storage.management.core.model.Volume">
          <action
                allowLabelUpdate="false"
-               class="com.gluster.storage.management.gui.actions.MigrateDiskAction"
+               class="com.gluster.storage.management.gui.actions.MigrateBrickAction"
                definitionId="com.gluster.storage.management.gui.commands.MigrateDisk"
                enablesFor="1"
                icon="icons/disk-migrate.png"

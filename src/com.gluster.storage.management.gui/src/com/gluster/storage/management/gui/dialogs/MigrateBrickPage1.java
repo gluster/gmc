@@ -1,21 +1,24 @@
-/*******************************************************************************
+/**
+ * MigrateBrickPage1.java
+ *
  * Copyright (c) 2011 Gluster, Inc. <http://www.gluster.com>
  * This file is part of Gluster Management Console.
  *
- * Gluster Management Console is free software; you can redistribute it and/or 
+ * Gluster Management Console is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- *  
- * Gluster Management Console is distributed in the hope that it will be useful, 
+ *
+ * Gluster Management Console is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License
  * for more details.
- *  
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ */
+
 package com.gluster.storage.management.gui.dialogs;
 
 import java.util.List;
@@ -48,7 +51,7 @@ import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.TableLabelProviderAdapter;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
-public class MigrateDiskPage1 extends WizardPage {
+public class MigrateBrickPage1 extends WizardPage {
 	private static final String PAGE_NAME = "migrate.disk.page.1";
 
 	private enum DISK_TABLE_COLUMN_INDICES {
@@ -118,7 +121,7 @@ public class MigrateDiskPage1 extends WizardPage {
 	/**
 	 * Create the wizard.
 	 */
-	public MigrateDiskPage1(Volume volume, Brick brick) {
+	public MigrateBrickPage1(Volume volume, Brick brick) {
 		super(PAGE_NAME);
 		this.volume = volume;
 		this.fromBrick = brick;

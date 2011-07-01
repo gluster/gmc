@@ -30,12 +30,12 @@ import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 
-public class MigrateDiskWizard extends Wizard {
+public class MigrateBrickWizard extends Wizard {
 	private Volume volume;
 	private Brick brick;
-	private MigrateDiskPage1 page;
+	private MigrateBrickPage1 page;
 
-	public MigrateDiskWizard(Volume volume, Brick brick) {
+	public MigrateBrickWizard(Volume volume, Brick brick) {
 		setWindowTitle("Gluster Management Console - Migrate Brick [" + volume.getName() + "]");
 		this.volume = volume;
 		this.brick = brick;
@@ -44,7 +44,7 @@ public class MigrateDiskWizard extends Wizard {
 
 	@Override
 	public void addPages() {
-		page = new MigrateDiskPage1(volume, brick);
+		page = new MigrateBrickPage1(volume, brick);
 		addPage(page);
 	}
 

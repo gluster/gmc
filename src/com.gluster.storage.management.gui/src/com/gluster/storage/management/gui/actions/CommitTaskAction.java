@@ -2,13 +2,14 @@ package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.TasksClient;
+import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.TaskStatus;
+import com.gluster.storage.management.core.model.Volume;
 
 public class CommitTaskAction extends AbstractActionDelegate {
 	private TaskInfo taskInfo;
@@ -16,23 +17,20 @@ public class CommitTaskAction extends AbstractActionDelegate {
 
 	@Override
 	protected void performAction(final IAction action) {
-		Display.getDefault().asyncExec(new Runnable() {
+		final String actionDesc = action.getDescription();
+		try {
+			new TasksClient().commitTask(taskInfo.getName());
+			taskInfo.setStatus(new TaskStatus(new Status(Status.STATUS_CODE_SUCCESS, "Committed")));
+			modelManager.removeTask(taskInfo);
+			Volume volume = (new VolumesClient()).getVolume(taskInfo.getReference());
+			modelManager.updateVolumeBricks(modelManager.getModel().getCluster().getVolume(taskInfo.getReference()),
+					volume.getBricks());
 
-			@Override
-			public void run() {
-				final String actionDesc = action.getDescription();
-
-				try {
-					new TasksClient().commitTask(taskInfo.getName());
-					taskInfo.setStatus(new TaskStatus(new Status(Status.STATUS_CODE_SUCCESS, taskInfo.getName()
-							+ " is commited")));
-					modelManager.updateTask(taskInfo);
-				} catch (Exception e) {
-					showErrorDialog(actionDesc,
-							"Task [" + taskInfo.getName() + "] could not be Stopped! Error: [" + e.getMessage() + "]");
-				}
-			}
-		});
+			showInfoDialog(actionDesc, "Commit successful");
+		} catch (Exception e) {
+			showErrorDialog(actionDesc,
+					"Task [" + taskInfo.getName() + "] could not be Committed! Error: [" + e.getMessage() + "]");
+		}
 	}
 
 	@Override
@@ -41,7 +39,7 @@ public class CommitTaskAction extends AbstractActionDelegate {
 		action.setEnabled(false);
 		if (selectedEntity instanceof TaskInfo) {
 			taskInfo = (TaskInfo) selectedEntity;
-			action.setEnabled(taskInfo.canCommit()
+			action.setEnabled(taskInfo.getCommitSupported()
 					&& taskInfo.getStatus().getCode() == Status.STATUS_CODE_COMMIT_PENDING);
 		}
 	}
@@ -50,5 +48,4 @@ public class CommitTaskAction extends AbstractActionDelegate {
 	public void dispose() {
 
 	}
-
 }
