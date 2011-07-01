@@ -21,6 +21,20 @@
 		<constructor-arg value="vmware" />
 	</bean>
 
+	<!-- SSH timeouts - all in milliseconds. zero means no timeout. -->
+	<!-- Connect the underlying TCP socket to the server with the given timeout value (SSH) -->
+	<bean id="sshConnectTimeout" class="java.lang.Integer">
+		<constructor-arg value="10000" />
+	</bean>
+	<!-- Timeout for complete connection establishment (SSH) -->
+	<bean id="sshKexTimeout" class="java.lang.Integer">
+		<constructor-arg value="60000" />
+	</bean>
+	<!-- Command execution timeout (SSH) -->
+	<bean id="sshExecTimeout" class="java.lang.Integer">
+		<constructor-arg value="120000" />
+	</bean>
+	
 	<!-- Gluster Management Gateway Version -->
 	<bean id="appVersion" class="java.lang.String">
 		<constructor-arg value="1.0.0" />

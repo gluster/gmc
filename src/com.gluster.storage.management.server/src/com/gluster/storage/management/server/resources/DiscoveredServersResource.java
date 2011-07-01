@@ -18,6 +18,8 @@
  *******************************************************************************/
 package com.gluster.storage.management.server.resources;
 
+import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_SERVER_NAME;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DETAILS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_DISCOVERED_SERVERS;
 
 import java.util.ArrayList;
@@ -29,16 +31,13 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.springframework.stereotype.Component;
 
-import com.gluster.storage.management.core.constants.CoreConstants;
-import com.gluster.storage.management.core.model.Response;
 import com.gluster.storage.management.core.model.Server;
-import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.ServerListResponse;
-import com.gluster.storage.management.core.response.StringListResponse;
+import com.gluster.storage.management.core.response.ServerNameListResponse;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Component
@@ -67,57 +66,76 @@ public class DiscoveredServersResource extends AbstractServersResource {
 
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-	@SuppressWarnings("rawtypes")
-	public Response getDiscoveredServers(@QueryParam("details") Boolean getDetails) {
-		if(getDetails != null && getDetails == true) {
-			return getDiscoveredServerDetails();
-		}
-		return new StringListResponse(getDiscoveredServerNames());
+	public Response getDiscoveredServersXML(@QueryParam(QUERY_PARAM_DETAILS) Boolean details) {
+		return getDiscoveredServersResponse(details, MediaType.APPLICATION_XML);
 	}
 
-	private ServerListResponse getDiscoveredServerDetails() {
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getDiscoveredServersJSON(@QueryParam(QUERY_PARAM_DETAILS) Boolean details) {
+		return getDiscoveredServersResponse(details, MediaType.APPLICATION_JSON);
+	}
+
+	private Response getDiscoveredServersResponse(Boolean details, String mediaType) {
+		if(details != null && details == true) {
+			try {
+				List<Server> discoveredServers = getDiscoveredServerDetails();
+				return okResponse(new ServerListResponse(discoveredServers), mediaType);
+			} catch(Exception e) {
+				return errorResponse(e.getMessage());
+			}
+		} else {		
+			return okResponse(new ServerNameListResponse(getDiscoveredServerNames()), mediaType);
+		}
+	}
+
+	private List<Server> getDiscoveredServerDetails() {
 		List<Server> discoveredServers = new ArrayList<Server>();
-		List<String> serverNames = getDiscoveredServerNames();
-		GenericResponse<Server> discoveredServerResponse;
-		int errCount = 0;
-		StringBuilder errMsg = new StringBuilder("Couldn't fetch details for server(s): ");
-		for (String serverName : serverNames) {
-			discoveredServerResponse = getDiscoveredServer(serverName);
-			if (!discoveredServerResponse.getStatus().isSuccess()) {
-				errMsg.append(CoreConstants.NEWLINE + serverName + " : " + discoveredServerResponse.getStatus());
-				errCount++;
-			} else {
-				discoveredServers.add(discoveredServerResponse.getData());
+		for (String serverName : getDiscoveredServerNames()) {
+			try {
+				discoveredServers.add(getDiscoveredServer(serverName));
+			} catch(Exception e) {
+				// TODO: Log the exception 
+				// continue with next discovered server
 			}
 		}
-		Status status = null;
-		if(errCount == 0) {
-			status = new Status(Status.STATUS_CODE_SUCCESS, "Success");
-		} else if(errCount == serverNames.size()) {
-			status = new Status(Status.STATUS_CODE_FAILURE, errMsg.toString());
-		} else {
-			status = new Status(Status.STATUS_CODE_PART_SUCCESS, errMsg.toString());
-		}
-		return new ServerListResponse(status, discoveredServers);
+		return discoveredServers;
 	}
 	
-	@Path("/{serverName}")
+	@Path("{" + PATH_PARAM_SERVER_NAME + "}")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-	public GenericResponse<Server> getDiscoveredServer(@PathParam("serverName") String serverName) {
-		Server server = new Server(serverName);
-		try {
-			fetchServerDetails(server);
-		} catch (Exception e) {
-			return new GenericResponse<Server>(new Status(e), null);
+	public Response getDiscoveredServerXML(@PathParam(PATH_PARAM_SERVER_NAME) String serverName) {
+		return getDiscoveredServerResponse(serverName, MediaType.APPLICATION_XML);
+	}
+
+	@Path("{" + PATH_PARAM_SERVER_NAME + "}")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getDiscoveredServerJSON(@PathParam(PATH_PARAM_SERVER_NAME) String serverName) {
+		return getDiscoveredServerResponse(serverName, MediaType.APPLICATION_JSON);
+	}
+
+	private Response getDiscoveredServerResponse(String serverName, String mediaType) {
+		if(serverName == null || serverName.isEmpty()) {
+			return badRequestResponse("Server name must not be empty!");
 		}
-		return new GenericResponse<Server>(Status.STATUS_SUCCESS, server);
+		try {
+			return okResponse(getDiscoveredServer(serverName), mediaType);
+		} catch (Exception e) {
+			// TODO: Log the exception
+			return errorResponse(e.getMessage());
+		}
+	}
+	
+	private Server getDiscoveredServer(String serverName) {
+		Server server = new Server(serverName);
+		serverUtil.fetchServerDetails(server);
+		return server;
 	}
 	
 	public static void main(String[] args) {
-		StringListResponse listResponse = (StringListResponse)new DiscoveredServersResource().getDiscoveredServers(false);
-		for (String server : listResponse.getData()) {
-			System.out.println(server);
-		}
+		Response response = (Response)new DiscoveredServersResource().getDiscoveredServersXML(false);
+		System.out.println(response.getEntity());
 	}
 }

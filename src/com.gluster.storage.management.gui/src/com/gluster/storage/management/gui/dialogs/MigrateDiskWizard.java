@@ -18,12 +18,16 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.dialogs;
 
+import java.net.URI;
+
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.wizard.Wizard;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.client.TasksClient;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Brick;
-import com.gluster.storage.management.core.model.Disk;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 
 public class MigrateDiskWizard extends Wizard {
@@ -47,14 +51,24 @@ public class MigrateDiskWizard extends Wizard {
 	@Override
 	public boolean performFinish() {
 
-		Disk sourceDisk = page.getSourceDisk();
-		Disk targetDisk = page.getTargetDisk();
-		Boolean autoCommit = true; //TODO get auto commit from user selection 
-		// TODO add custom confirm dialog
-		
+		String sourceDir = page.getSourceBrickDir();
+		String targetDir = page.getTargetBrickDir();
+		Boolean autoCommit = page.getAutoCommitSelection();
 		VolumesClient volumesClient = new VolumesClient();
-		volumesClient.startMigration(volume.getName(), sourceDisk.getQualifiedName(), targetDisk.getQualifiedName(), autoCommit);
-		
+
+		try {
+			URI uri = volumesClient.startMigration(volume.getName(), sourceDir, targetDir, autoCommit);
+
+			// To get the object
+			TasksClient taskClient = new TasksClient();
+			TaskInfo taskInfo = taskClient.getTaskInfo(uri);
+			if (taskInfo != null && taskInfo instanceof TaskInfo) {
+				GlusterDataModelManager.getInstance().getModel().getCluster().addTaskInfo(taskInfo);
+			}
+			MessageDialog.openInformation(getShell(), "Brick migration", "Brick migration started successfully");
+		} catch (Exception e) {
+			MessageDialog.openError(getShell(), "Error: Migrate brick", e.getMessage());
+		}
 		return true;
 	}
 }

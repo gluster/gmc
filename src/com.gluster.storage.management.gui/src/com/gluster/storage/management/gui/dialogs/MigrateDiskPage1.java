@@ -23,13 +23,16 @@ import java.util.List;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnWeightData;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
@@ -62,6 +65,8 @@ public class MigrateDiskPage1 extends WizardPage {
 
 	private TableViewer tableViewerFrom;
 
+	private Button autoCompleteCheckbox;
+
 	private ITableLabelProvider getDiskLabelProvider(final String volumeName) {
 		return new TableLabelProviderAdapter() {
 			
@@ -74,9 +79,9 @@ public class MigrateDiskPage1 extends WizardPage {
 				return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? disk.getServerName()
 						: columnIndex == DISK_TABLE_COLUMN_INDICES.BRICK_DIRECTORY.ordinal() ? disk.getMountPoint() + "/" + volumeName
 								: columnIndex == DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? NumberUtil
-										.formatNumber(disk.getFreeSpace())
+										.formatNumber(disk.getFreeSpace() / 1024 )  /* Coverted to GB */
 										: columnIndex == DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? NumberUtil
-												.formatNumber(disk.getSpace()) : "Invalid");
+												.formatNumber(disk.getSpace() / 1024) : "Invalid");
 			}
 		};
 	}
@@ -118,10 +123,6 @@ public class MigrateDiskPage1 extends WizardPage {
 		this.volume = volume;
 		this.fromBrick = brick;
 		setTitle("Migrate Brick [" + volume.getName() + "]");
-		// setDescription("Migrate data from one disk to another for the chosen Volume. " +
-		// "This will copy all data present in the \"from disk\" of the volume " +
-		// "to \"to disk\", remove \"from disk\" from the volume, and " +
-		// "add \"to disk\" to the volume");
 		setPageDescription(null, null);
 		setPageComplete(false);
 	}
@@ -162,12 +163,18 @@ public class MigrateDiskPage1 extends WizardPage {
 		return tableViewerComposite;
 	}
 
-	public Disk getSourceDisk() {
-		return getSelectedDisk(tableViewerFrom);
+	public String getSourceBrickDir() {
+		Disk sourceDisk = getSelectedDisk(tableViewerFrom); 
+		return sourceDisk.getQualifiedBrickName(volume.getName());
 	}
 
-	public Disk getTargetDisk() {
-		return getSelectedDisk(tableViewerTo);
+	public String getTargetBrickDir() {
+		Disk targetDisk = getSelectedDisk(tableViewerTo);
+		return targetDisk.getQualifiedBrickName(volume.getName());
+	}
+	
+	public Boolean getAutoCommitSelection() {
+		return autoCompleteCheckbox.getSelection();
 	}
 
 	/**
@@ -200,7 +207,7 @@ public class MigrateDiskPage1 extends WizardPage {
 
 		GlusterDataModelManager glusterDataModelManager = GlusterDataModelManager.getInstance();
 		List<Disk> fromBricks = glusterDataModelManager.getReadyDisksOfVolume(volume);
-		List<Disk> toDisks = glusterDataModelManager.getReadyDisksOfAllServersExcluding( glusterDataModelManager.getReadyDisksOfVolume(volume));
+		List<Disk> toDisks = glusterDataModelManager.getReadyDisksOfAllServersExcluding( fromBricks );
 		
 		tableViewerFrom = createTableViewer(container, diskLabelProvider, fromBricks, txtFilterFrom);
 		
@@ -208,6 +215,17 @@ public class MigrateDiskPage1 extends WizardPage {
 			setFromDisk(tableViewerFrom, fromBrick);
 		}
 		tableViewerTo = createTableViewer(container, diskLabelProvider, toDisks, txtFilterTo);
+		
+		// Auto commit selection field
+		Composite autoCommitContainer = new Composite(container, SWT.NONE);
+		GridData data = new GridData();
+		data.horizontalSpan = 2;
+		autoCommitContainer.setLayoutData(data);
+		autoCompleteCheckbox = new Button(autoCommitContainer, SWT.CHECK);
+		autoCompleteCheckbox.setSelection(true);
+		Label lblAutoComplete = new Label(autoCommitContainer, SWT.NONE);
+		lblAutoComplete.setText("Auto commit on migration complete");
+		autoCommitContainer.setLayout( container.getLayout());
 	}
 
 	private void setFromDisk(TableViewer tableViewer, Brick brickToSelect) {
@@ -220,9 +238,17 @@ public class MigrateDiskPage1 extends WizardPage {
 			}
 		}
 	}
+	
+	private void refreshButtonStatus() {
+		if(tableViewerFrom.getSelection().isEmpty() || tableViewerTo.getSelection().isEmpty()) {
+			setPageComplete(false);
+		} else {
+			setPageComplete(true);
+		}
+	}
 
 	private TableViewer createTableViewer(Composite container, ITableLabelProvider diskLabelProvider,
-			List<Disk> fromDisks, Text txtFilterText) {
+			List<Disk> bricks, Text txtFilterText) {
 		Composite tableViewerComposite = createTableViewerComposite(container);
 
 		TableViewer tableViewer = new TableViewer(tableViewerComposite, SWT.SINGLE);
@@ -232,7 +258,15 @@ public class MigrateDiskPage1 extends WizardPage {
 		setupDiskTable(tableViewerComposite, tableViewer.getTable());
 		guiHelper.createFilter(tableViewer, txtFilterText, false);
 
-		tableViewer.setInput(fromDisks.toArray());
+		tableViewer.setInput(bricks.toArray());
+		
+		tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+			
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				refreshButtonStatus();
+			}
+		});
 		return tableViewer;
 	}
 

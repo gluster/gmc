@@ -20,24 +20,31 @@
  */
 package com.gluster.storage.management.core.model;
 
-import com.gluster.storage.management.core.model.Task.TASK_TYPE;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
-public class TaskInfo extends Status {
-	private String id;
+import com.gluster.storage.management.core.utils.StringUtil;
+
+@XmlRootElement
+public class TaskInfo extends Entity {
+	public enum TASK_TYPE {
+		DISK_FORMAT, BRICK_MIGRATE, VOLUME_REBALANCE
+	}
+
 	private TASK_TYPE type;
 	private String reference;
 	private String description;
-	private Boolean canPause;
-	private Boolean canStop;
+	private Boolean pauseSupported;
+	private Boolean stopSupported;
+	private Boolean commitSupported;
 	private TaskStatus status;
 	
-
-	public String getId() {
-		return id;
+	public TaskInfo() {
 	}
 
-	public void setId(String id) {
-		this.id = id;
+	@XmlElement(name="id")
+	public String getName() {
+		return super.getName();
 	}
 
 	public TASK_TYPE getType() {
@@ -72,20 +79,35 @@ public class TaskInfo extends Status {
 		this.status = status;
 	}
 
-	public Boolean getCanPause() {
-		return canPause;
+	public Boolean canPause() {
+		return pauseSupported;
 	}
 
 	public void setCanPause(Boolean canPause) {
-		this.canPause = canPause;
+		this.pauseSupported = canPause;
 	}
 
-	public Boolean getCanStop() {
-		return canStop;
+	public Boolean canStop() {
+		return stopSupported;
 	}
 
 	public void setCanStop(Boolean canStop) {
-		this.canStop = canStop;
+		this.stopSupported = canStop;
+	}
+	
+	public Boolean canCommit() {
+		return this.commitSupported;
+	}
+	
+	public void setCanCommit(Boolean canCommit) {
+		this.commitSupported = canCommit;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.core.model.Entity#filter(java.lang.String, boolean)
+	 */
+	@Override
+	public boolean filter(String filterString, boolean caseSensitive) {
+		return StringUtil.filterString(getDescription() + getStatus().getMessage(), filterString, caseSensitive);
+	}
 }

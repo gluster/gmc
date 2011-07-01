@@ -9,6 +9,7 @@ import static com.gluster.storage.management.client.constants.ClientConstants.TR
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.security.KeyStore;
 
 import javax.net.ssl.HostnameVerifier;
@@ -21,6 +22,7 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import com.gluster.storage.management.client.utils.ClientUtil;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
@@ -31,6 +33,7 @@ import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
+
 public abstract class AbstractClient {
 	private static final String HTTP_HEADER_AUTH = "Authorization";
 	protected static final MultivaluedMap<String, String> NO_PARAMS = new MultivaluedMapImpl();
@@ -39,6 +42,7 @@ public abstract class AbstractClient {
 	protected WebResource resource;
 	private String securityToken;
 	private String authHeader;
+	private Client client;
 
 	/**
 	 * This constructor will work only after the data model manager has been initialized.
@@ -59,11 +63,16 @@ public abstract class AbstractClient {
 		this.clusterName = clusterName;
 		setSecurityToken(securityToken);
 
-		SSLContext context = initializeSSLContext();
-		DefaultClientConfig config = createClientConfig(context);
+		createClient(); 
 
 		// this must be after setting clusterName as sub-classes may refer to cluster name in the getResourcePath method
-		resource = Client.create(config).resource(ClientUtil.getServerBaseURI()).path(getResourcePath());
+		resource = client.resource(ClientUtil.getServerBaseURI()).path(getResourcePath());
+	}
+
+	private void createClient() {
+		SSLContext context = initializeSSLContext();
+		DefaultClientConfig config = createClientConfig(context);
+		client = Client.create(config);
 	}
 
 	private DefaultClientConfig createClientConfig(SSLContext context) {
@@ -121,12 +130,12 @@ public abstract class AbstractClient {
 	 * @return Object of responseClass received as a result of the GET request
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private Object fetchResource(WebResource res, MultivaluedMap<String, String> queryParams, Class responseClass) {
+	private <T> T fetchResource(WebResource res, MultivaluedMap<String, String> queryParams, Class<T> responseClass) {
 		try {
 			return res.queryParams(queryParams)
 					.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML).get(responseClass);
 		} catch(UniformInterfaceException e) {
-			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
+			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class), e);
 		}
 	}
 
@@ -139,13 +148,14 @@ public abstract class AbstractClient {
 			}
 
 			InputStream inputStream = response.getEntityInputStream();
-			byte[] data = new byte[inputStream.available()];
-			inputStream.read(data);
+			FileOutputStream outputStream = new FileOutputStream(filePath);
+			
+			int c;
+			while((c = inputStream.read()) != -1) {
+				outputStream.write(c);
+			}
 			inputStream.close();
-
-			FileOutputStream os = new FileOutputStream(filePath);
-			os.write(data);
-			os.close();
+			outputStream.close();
 		} catch (IOException e) {
 			throw new GlusterRuntimeException("Error while downloading resource [" + res.getURI().getPath() + "]", e);
 		}
@@ -262,9 +272,13 @@ public abstract class AbstractClient {
 		postRequest(resource.path(subResourceName), form);
 	}
 	
-	private void putRequest(WebResource resource, Form form) {
+	private ClientResponse putRequest(WebResource resource, Form form) {
 		try {
-			prepareFormRequestBuilder(resource).put(form);
+			ClientResponse response = prepareFormRequestBuilder(resource).put(ClientResponse.class, form);
+			if(response.getStatus() >= 300) {
+				throw new GlusterRuntimeException(response.getEntity(String.class));
+			}
+			return response;
 		} catch (UniformInterfaceException e) {
 			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
 		}
@@ -285,6 +299,12 @@ public abstract class AbstractClient {
 	 */
 	protected void putRequest(String subResourceName, Form form) {
 		putRequest(resource.path(subResourceName), form);
+	}
+	
+	
+	protected URI putRequestURI(String subResourceName, Form form) {
+		ClientResponse response = putRequest(resource.path(subResourceName), form);
+		return response.getLocation();
 	}
 
 	/**
@@ -352,5 +372,14 @@ public abstract class AbstractClient {
 	protected void setSecurityToken(String securityToken) {
 		this.securityToken = securityToken;
 		authHeader = "Basic " + securityToken;
+	}
+
+	/**
+	 * @param uri The URI to be fetched using GET API
+	 * @param responseClass Expected type of response object
+	 * @return Object of the given class
+	 */
+	protected <T> T fetchResource(URI uri, Class<T> responseClass) {
+		return fetchResource(client.resource(uri), NO_PARAMS, responseClass);
 	}
 }

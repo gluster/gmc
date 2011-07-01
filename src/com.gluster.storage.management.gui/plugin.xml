@@ -30,14 +30,6 @@
             restorable="true">
       </view>
       <view
-            category="org.eclipse.ui"
-            class="org.eclipse.ui.ExtensionFactory:progressView"
-            icon="icons/progress-bar.png"
-            id="org.eclipse.ui.views.ProgressView"
-            name="Tasks in Progress"
-            restorable="true">
-      </view>
-      <view
             allowMultiple="false"
             category="com.gluster.storage.management.gui.category"
             class="com.gluster.storage.management.gui.views.DiscoveredServersView"
@@ -62,7 +54,7 @@
             allowMultiple="false"
             category="com.gluster.storage.management.gui.category"
             class="com.gluster.storage.management.gui.views.VolumesView"
-            icon="icons/volumes.png"
+            icon="icons/tango/16x16/volume.png"
             id="com.gluster.storage.management.gui.views.VolumesView"
             name="Volumes"
             restorable="true">
@@ -107,7 +99,7 @@
             allowMultiple="false"
             category="com.gluster.storage.management.gui.category"
             class="com.gluster.storage.management.gui.views.VolumeOptionsView"
-            icon="icons/preferences.png"
+            icon="icons/tango/16x16/settings.png"
             id="com.gluster.storage.management.gui.views.VolumeOptionsView"
             name="Volume Options"
             restorable="true">
@@ -116,7 +108,7 @@
             allowMultiple="false"
             category="com.gluster.storage.management.gui.category"
             class="com.gluster.storage.management.gui.views.VolumeLogsView"
-            icon="icons/logs.png"
+            icon="icons/tango/16x16/logs.png"
             id="com.gluster.storage.management.gui.views.VolumeLogsView"
             name="Volume Logs"
             restorable="true">
@@ -134,7 +126,7 @@
             allowMultiple="false"
             category="com.gluster.storage.management.gui.category"
             class="com.gluster.storage.management.gui.views.GlusterServersView"
-            icon="icons/servers.png"
+            icon="icons/tango/16x16/servers.png"
             id="com.gluster.storage.management.gui.views.GlusterServersView"
             name="Servers"
             restorable="true">
@@ -143,7 +135,7 @@
             allowMultiple="false"
             category="com.gluster.storage.management.gui.category"
             class="com.gluster.storage.management.gui.views.DisksView"
-            icon="icons/disks.png"
+            icon="icons/tango/16x16/disk.png"
             id="com.gluster.storage.management.gui.views.DisksView"
             name="Disks"
             restorable="true">
@@ -161,7 +153,7 @@
             allowMultiple="false"
             category="com.gluster.storage.management.gui.category"
             class="com.gluster.storage.management.gui.views.GlusterServerDisksView"
-            icon="icons/disks.png"
+            icon="icons/tango/16x16/disk.png"
             id="com.gluster.storage.management.gui.views.GlusterServerDisksView"
             name="Server Disks"
             restorable="true">
@@ -170,9 +162,18 @@
             allowMultiple="false"
             category="com.gluster.storage.management.gui.category"
             class="com.gluster.storage.management.gui.views.GlusterServerLogsView"
-            icon="icons/logs.png"
+            icon="icons/tango/16x16/logs.png"
             id="com.gluster.storage.management.gui.views.GlusterServerLogsView"
             name="Server Logs"
+            restorable="true">
+      </view>
+      <view
+            allowMultiple="false"
+            category="com.gluster.storage.management.gui.category"
+            class="com.gluster.storage.management.gui.views.TasksView"
+            icon="icons/progress-bar.png"
+            id="com.gluster.storage.management.gui.views.TasksView"
+            name="Tasks"
             restorable="true">
       </view>
    </extension>
@@ -249,9 +250,34 @@
             name="Remove Brick">
       </command>
       <command
+            categoryId="com.gluster.storage.management.gui.category"
             description="Add Brick"
             id="com.gluster.storage.management.gui.commands.AddDisk"
             name="Add Brick">
+      </command>
+      <command
+            categoryId="com.gluster.storage.management.gui.category"
+            description="Pause Task"
+            id="com.gluster.storage.management.gui.commands.Pause"
+            name="Pause">
+      </command>
+      <command
+            categoryId="com.gluster.storage.management.gui.category"
+            description="Resume Task"
+            id="com.gluster.storage.management.gui.commands.Resume"
+            name="Resume">
+      </command>
+      <command
+            categoryId="com.gluster.storage.management.gui.category"
+            description="Stop Task"
+            id="com.gluster.storage.management.gui.commands.Stop"
+            name="Stop">
+      </command>
+      <command
+            categoryId="com.gluster.storage.management.gui.category"
+            description="Delete Task"
+            id="com.gluster.storage.management.gui.commands.Delete"
+            name="Delete">
       </command>
    </extension>
    <extension
@@ -374,7 +400,7 @@
                allowLabelUpdate="false"
                class="com.gluster.storage.management.gui.actions.PreferencesAction"
                definitionId="org.eclipse.ui.window.preferences"
-               icon="icons/preferences.png"
+               icon="icons/tango/32x32/settings.png"
                id="com.gluster.storage.management.gui.actions.AddServerAction"
                label="&amp;Settings"
                menubarPath="com.gluster.storage.management.gui.menu.edit/edit"
@@ -519,7 +545,7 @@
                allowLabelUpdate="false"
                class="com.gluster.storage.management.gui.actions.DownloadVolumeLogsAction"
                definitionId="com.gluster.storage.management.gui.commands.DownloadVolumeLogs"
-               icon="icons/logs.png"
+               icon="icons/tango/16x16/logs.png"
                id="com.gluster.storage.management.gui.actions.DownloadVolumeLogsAction"
                label="Download &amp;Logs"
                menubarPath="com.gluster.storage.management.gui.menu.volume/volume"
@@ -535,7 +561,7 @@
                allowLabelUpdate="false"
                class="com.gluster.storage.management.gui.actions.ResetVolumeOptionsAction"
                definitionId="com.gluster.storage.management.gui.commands.ResetVolumeOptions"
-               icon="icons/reset-options.png"
+               icon="icons/tango/16x16/settings.png"
                id="com.gluster.storage.management.gui.actions.ResetVolumeOptionsAction"
                label="Reset &amp;Options"
                menubarPath="com.gluster.storage.management.gui.menu.volume/volume"
@@ -643,9 +669,89 @@
             visible="false">
          <action
                allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.ClearTaskAction"
+               definitionId="com.gluster.storage.management.gui.commands.Clear"
+               icon="icons/close_task.png"
+               id="com.gluster.storage.management.gui.actions.Clear"
+               label="&amp;Clear Task"
+               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="To clear selected task from task list">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.CommitTaskAction"
+               definitionId="com.gluster.storage.management.gui.commands.Commit"
+               icon="icons/stop.png"
+               id="com.gluster.storage.management.gui.actions.Commit"
+               label="&amp;Commit TaskTask"
+               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="To Commit the selected task">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.StopTaskAction"
+               definitionId="com.gluster.storage.management.gui.commands.Stop"
+               icon="icons/stop_task.png"
+               id="com.gluster.storage.management.gui.actions.Stop"
+               label="&amp;Stop Task"
+               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="To Stop the selected task">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.ResumeTaskAction"
+               definitionId="com.gluster.storage.management.gui.commands.Pause"
+               icon="icons/start_task.gif"
+               id="com.gluster.storage.management.gui.actions.Resume"
+               label="&amp;Resume Task"
+               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="To Resume the selected task">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.PauseTaskAction"
+               definitionId="com.gluster.storage.management.gui.commands.Pause"
+               icon="icons/pause_task.png"
+               id="com.gluster.storage.management.gui.actions.Pause"
+               label="&amp;Pause Task"
+               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="To Pause the selected task">
+         </action>
+         <action
+               allowLabelUpdate="false"
                class="com.gluster.storage.management.gui.actions.CreateVolumeAction"
                definitionId="com.gluster.storage.management.gui.commands.CreateVolume"
-               icon="icons/volume-create.png"
+               icon="icons/tango/32x32/volume-create.png"
                id="com.gluster.storage.management.gui.actions.CreateVolumeAction"
                label="Create &amp;Volume"
                menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
@@ -997,6 +1103,18 @@
          <view
                closeable="false"
                id="com.gluster.storage.management.gui.views.GlusterServerLogsView"
+               minimized="false"
+               moveable="false"
+               ratio="0.30f"
+               relationship="stack"
+               relative="com.gluster.storage.management.gui.views.ClusterSummaryView"
+               showTitle="true"
+               standalone="false"
+               visible="false">
+         </view>
+         <view
+               closeable="false"
+               id="com.gluster.storage.management.gui.views.TasksView"
                minimized="false"
                moveable="false"
                ratio="0.30f"

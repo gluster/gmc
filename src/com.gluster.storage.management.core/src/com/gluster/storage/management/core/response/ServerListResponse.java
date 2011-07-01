@@ -22,47 +22,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 import com.gluster.storage.management.core.model.Server;
-import com.gluster.storage.management.core.model.Status;
 
-@XmlRootElement(name = "response")
-public class ServerListResponse extends AbstractResponse {
+@XmlRootElement(name = "servers")
+public class ServerListResponse {
 	private List<Server> servers = new ArrayList<Server>();
 
 	public ServerListResponse() {
 	}
 
-	public ServerListResponse(Status status, List<Server> servers) {
-		setStatus(status);
+	public ServerListResponse(List<Server> servers) {
 		setServers(servers);
 	}
 
-	@XmlElementWrapper(name = "servers")
 	@XmlElement(name = "server", type=Server.class)
 	public List<Server> getServers() {
 		return servers;
 	}
 
-	/**
-	 * @param servers
-	 *            the servers to set
-	 */
 	public void setServers(List<Server> servers) {
 		this.servers = servers;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.gluster.storage.management.core.model.Response#getData()
-	 */
-	@Override
-	@XmlTransient
-	public List<Server> getData() {
-		return getServers();
 	}
 }

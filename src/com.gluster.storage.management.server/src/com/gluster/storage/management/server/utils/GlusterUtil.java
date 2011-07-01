@@ -36,7 +36,6 @@ import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.model.Task.TASK_TYPE;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
@@ -47,6 +46,7 @@ import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.server.resources.TasksResource;
 import com.gluster.storage.management.server.tasks.MigrateDiskTask;
+import com.gluster.storage.management.server.tasks.RebalanceVolumeTask;
 import com.sun.jersey.api.core.InjectParam;
 
 @Component
@@ -534,21 +534,6 @@ public class GlusterUtil {
 		}
 		logFileName = logFileName.replaceAll(File.separator, "-") + ".log";
 		return logFileName;
-	}
-
-	
-	public String migrateBrickStart(String volumeName, String fromBrick, String toBrick, Boolean autoCommit,
-			String knownServer) {
-		MigrateDiskTask migrateDiskTask = new MigrateDiskTask(TASK_TYPE.BRICK_MIGRATE, volumeName, fromBrick, toBrick);
-		migrateDiskTask.setOnlineServer(knownServer);
-		migrateDiskTask.setAutoCommit(autoCommit);
-
-		TaskInfo taskInfo = migrateDiskTask.start();
-		if (taskInfo.isSuccess()) {
-			taskResource.addTask(migrateDiskTask);
-		}
-		
-		return taskInfo.getId();
 	}
 
 	public Status removeBricks(String volumeName, List<String> bricks, String knownServer) {

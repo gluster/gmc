@@ -74,27 +74,29 @@ public class ClustersClient extends AbstractClient {
 	
 	public static void main(String args[]) {
 		UsersClient usersClient = new UsersClient();
-		Status authStatus = usersClient.authenticate("gluster", "gluster");
-		if (authStatus.isSuccess()) {
-			ClustersClient client = new ClustersClient();
-			client.setSecurityToken(usersClient.getSecurityToken());
-			System.out.println(client.getClusterNames());
-			try {
-				client.createCluster("test1");
-			} catch(GlusterRuntimeException e) {
-				System.out.println(e.getMessage());
-			}
-			
-			System.out.println(client.getClusterNames());
-			
-			try {
-				client.deleteCluster("test1");
-			} catch (GlusterRuntimeException e) {
-				System.out.println(e.getMessage());
-			}
-			System.out.println(client.getClusterNames());
-		} else {
-			System.out.println("authentication failed: " + authStatus);
+		
+		try {
+			usersClient.authenticate("gluster", "gluster");
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
+		
+		ClustersClient client = new ClustersClient();
+		client.setSecurityToken(usersClient.getSecurityToken());
+		System.out.println(client.getClusterNames());
+		try {
+			client.createCluster("test1");
+		} catch (GlusterRuntimeException e) {
+			System.out.println(e.getMessage());
+		}
+
+		System.out.println(client.getClusterNames());
+
+		try {
+			client.deleteCluster("test1");
+		} catch (GlusterRuntimeException e) {
+			System.out.println(e.getMessage());
+		}
+		System.out.println(client.getClusterNames());
 	}
 }

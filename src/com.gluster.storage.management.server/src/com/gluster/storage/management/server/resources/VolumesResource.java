@@ -23,8 +23,12 @@ package com.gluster.storage.management.server.resources;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_ACCESS_PROTOCOLS;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_AUTO_COMMIT;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_BRICKS;
-import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_CLUSTER_NAME;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_FIX_LAYOUT;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_FORCED_DATA_MIGRATE;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_MIGRATE_DATA;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_OPERATION;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_OPTION_KEY;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_OPTION_VALUE;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_REPLICA_COUNT;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SOURCE;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_STRIPE_COUNT;
@@ -33,7 +37,6 @@ import static com.gluster.storage.management.core.constants.RESTConstants.FORM_P
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VOLUME_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VOLUME_OPTIONS;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VOLUME_TYPE;
-import static com.gluster.storage.management.core.constants.RESTConstants.*;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_VOLUME_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_BRICKS;
@@ -44,13 +47,13 @@ import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_LINE_COUNT;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_LOG_SEVERITY;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_TO_TIMESTAMP;
-import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_VOLUME_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_BRICKS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_DEFAULT_OPTIONS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_DOWNLOAD;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_LOGS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_OPTIONS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_TASKS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_VOLUMES;
 import static com.gluster.storage.management.core.constants.RESTConstants.TASK_START;
 import static com.gluster.storage.management.core.constants.RESTConstants.TASK_STOP;
@@ -91,16 +94,16 @@ import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.model.VolumeLogMessage;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.LogMessageListResponse;
-import com.gluster.storage.management.core.response.TaskResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 import com.gluster.storage.management.core.utils.DateUtil;
 import com.gluster.storage.management.core.utils.FileUtil;
-import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
 import com.gluster.storage.management.server.data.ClusterInfo;
 import com.gluster.storage.management.server.services.ClusterService;
+import com.gluster.storage.management.server.tasks.MigrateDiskTask;
+import com.gluster.storage.management.server.tasks.RebalanceVolumeTask;
 import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.ServerUtil;
 import com.sun.jersey.api.core.InjectParam;
@@ -109,12 +112,8 @@ import com.sun.jersey.spi.resource.Singleton;
 @Singleton
 @Path(RESOURCE_PATH_CLUSTERS + "/{" + PATH_PARAM_CLUSTER_NAME + "}/" + RESOURCE_VOLUMES)
 public class VolumesResource extends AbstractResource {
-	private static final String PREPARE_BRICK_SCRIPT = "create_volume_directory.py";
 	private static final String VOLUME_DIRECTORY_CLEANUP_SCRIPT = "clear_volume_directory.py";
 	private static final String VOLUME_BRICK_LOG_SCRIPT = "get_volume_brick_log.py";
-
-	@InjectParam
-	private GlusterServersResource glusterServersResource;
 
 	@InjectParam
 	private ServerUtil serverUtil;
@@ -128,6 +127,9 @@ public class VolumesResource extends AbstractResource {
 	@InjectParam
 	private VolumeOptionsDefaults volumeOptionsDefaults;
 
+	@InjectParam
+	private TasksResource taskResource;
+	
 	@GET
 	@Produces({MediaType.APPLICATION_XML})
 	public Response getVolumesXML(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
@@ -145,15 +147,21 @@ public class VolumesResource extends AbstractResource {
 			return badRequestResponse("Cluster name must not be empty!");
 		}
 
-		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+		ClusterInfo cluster = clusterService.getCluster(clusterName);
+		if (cluster == null) {
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
+		}
+		
+		if(cluster.getServers().size() == 0) {
+			// no server added yet. return an empty array.
+			return okResponse(new VolumeListResponse(), mediaType);
 		}
 
 		return okResponse(getVolumes(clusterName), mediaType);
 	}
 
 	public VolumeListResponse getVolumes(String clusterName) {
-		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
 		if (onlineServer == null) {
 			return new VolumeListResponse(new ArrayList<Volume>());
 		}
@@ -162,7 +170,7 @@ public class VolumesResource extends AbstractResource {
 			return new VolumeListResponse(glusterUtil.getAllVolumes(onlineServer.getName()));
 		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
-			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			onlineServer = clusterService.getNewOnlineServer(clusterName);
 			if (onlineServer == null) {
 				return new VolumeListResponse(new ArrayList<Volume>());
 			}
@@ -188,7 +196,7 @@ public class VolumesResource extends AbstractResource {
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 		
 		if (volumeType.equals(VOLUME_TYPE.DISTRIBUTED_MIRROR) && replicaCount <= 0) {
@@ -199,7 +207,7 @@ public class VolumesResource extends AbstractResource {
 			return badRequestResponse("Stripe count must be a positive integer");
 		}
 
-		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
 		if (onlineServer == null) {
 			return errorResponse("No online servers found in cluster [" + clusterName + "]");
 		}
@@ -209,7 +217,7 @@ public class VolumesResource extends AbstractResource {
 			return createdResponse(volumeName);
 		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
-			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			onlineServer = clusterService.getNewOnlineServer(clusterName);
 			if (onlineServer == null) {
 				return errorResponse("No online servers found in cluster [" + clusterName + "]");
 			}
@@ -274,7 +282,7 @@ public class VolumesResource extends AbstractResource {
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 		
 		try {
@@ -287,7 +295,7 @@ public class VolumesResource extends AbstractResource {
 
 	private Volume getVolume(String clusterName, String volumeName) {
 		Volume volume;
-		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
 		if (onlineServer == null) {
 			throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 		}
@@ -296,7 +304,7 @@ public class VolumesResource extends AbstractResource {
 			volume = glusterUtil.getVolume(volumeName, onlineServer.getName());
 		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
-			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			onlineServer = clusterService.getNewOnlineServer(clusterName);
 			if (onlineServer == null) {
 				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 			}
@@ -309,7 +317,10 @@ public class VolumesResource extends AbstractResource {
 	@PUT
 	@Path("{" + PATH_PARAM_VOLUME_NAME + "}")
 	public Response performOperation(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
-			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_OPERATION) String operation) {
+			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_OPERATION) String operation,
+			@FormParam(FORM_PARAM_FIX_LAYOUT) Boolean isFixLayout,
+			@FormParam(FORM_PARAM_MIGRATE_DATA) Boolean isMigrateData,
+			@FormParam(FORM_PARAM_FORCED_DATA_MIGRATE) Boolean isForcedDataMigrate) {
 		if (clusterName == null || clusterName.isEmpty()) {
 			return badRequestResponse("Cluster name must not be empty!");
 		}
@@ -319,31 +330,38 @@ public class VolumesResource extends AbstractResource {
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 		
-		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
-		if (onlineServer == null) {
-			return errorResponse("No online servers found in cluster [" + clusterName + "]");
-		}
-
 		try {
-			performOperation(volumeName, operation, onlineServer);			
+			if (operation.equals(RESTConstants.TASK_REBALANCE_START)) {
+				String taskId = rebalanceStart(clusterName, volumeName, isFixLayout, isMigrateData, isForcedDataMigrate);
+				return acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/" + RESOURCE_TASKS
+						+ "/" + taskId);
+			} else if (operation.equals(RESTConstants.TASK_REBALANCE_STOP)) {
+				rebalanceStop(clusterName, volumeName);
+			} else {
+				performVolumeOperation(clusterName, volumeName, operation);
+			}
+			return noContentResponse();
+		} catch(Exception e) {
+			return errorResponse(e.getMessage());
+		}
+	}
+	
+	private void performVolumeOperation(String clusterName, String volumeName, String operation) {
+		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
+		try {
+			if (onlineServer == null) {
+				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
+			}
+
+			performOperation(volumeName, operation, onlineServer);
 		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
-			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
-			if (onlineServer == null) {
-				return errorResponse("No online servers found in cluster [" + clusterName + "]");
-			}
-			
-			try {
-				performOperation(volumeName, operation, onlineServer);
-			} catch(Exception e1) {
-				// TODO: Log the exception
-				return errorResponse(e1.getMessage());
-			}
+			onlineServer = clusterService.getNewOnlineServer(clusterName);
+			performOperation(volumeName, operation, onlineServer);
 		}
-		return noContentResponse();
 	}
 
 	private Status performOperation(String volumeName, String operation, GlusterServer onlineServer) {
@@ -370,7 +388,7 @@ public class VolumesResource extends AbstractResource {
 		}
 		
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 		
 		if (deleteFlag == null) {
@@ -386,7 +404,7 @@ public class VolumesResource extends AbstractResource {
 		}
 		
 		List<Brick> bricks = volume.getBricks();
-		Status status = glusterUtil.deleteVolume(volumeName, glusterServersResource.getOnlineServer(clusterName)
+		Status status = glusterUtil.deleteVolume(volumeName, clusterService.getOnlineServer(clusterName)
 				.getName());
 		if(!status.isSuccess()) {
 			return errorResponse("Couldn't delete volume [" + volumeName + "]. Error: " + status);
@@ -423,14 +441,14 @@ public class VolumesResource extends AbstractResource {
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 		
 		if(deleteFlag == null) {
 			deleteFlag = false;
 		}
 
-		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
 		if (onlineServer == null) {
 			return errorResponse("No online servers found in cluster [" + clusterName + "]");
 		}
@@ -456,7 +474,7 @@ public class VolumesResource extends AbstractResource {
 			glusterUtil.removeBricks(volumeName, brickList, onlineServer.getName());
 		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
-			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			onlineServer = clusterService.getNewOnlineServer(clusterName);
 			if (onlineServer == null) {
 				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 			}
@@ -530,10 +548,10 @@ public class VolumesResource extends AbstractResource {
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 		
-		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
 		if (onlineServer == null) {
 			return errorResponse("No online servers found in cluster [" + clusterName + "]");
 		}
@@ -542,7 +560,7 @@ public class VolumesResource extends AbstractResource {
 			glusterUtil.setOption(volumeName, key, value, onlineServer.getName());
 		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
-			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			onlineServer = clusterService.getNewOnlineServer(clusterName);
 			if (onlineServer == null) {
 				return errorResponse("No online servers found in cluster [" + clusterName + "]");
 			}
@@ -572,10 +590,10 @@ public class VolumesResource extends AbstractResource {
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 
-		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
 		if (onlineServer == null) {
 			return errorResponse("No online servers found in cluster [" + clusterName + "]");
 		}
@@ -584,7 +602,7 @@ public class VolumesResource extends AbstractResource {
 			glusterUtil.resetOptions(volumeName, onlineServer.getName());
 		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
-			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			onlineServer = clusterService.getNewOnlineServer(clusterName);
 			if (onlineServer == null) {
 				return errorResponse("No online servers found in cluster [" + clusterName + "]");
 			}
@@ -628,27 +646,20 @@ public class VolumesResource extends AbstractResource {
 		// Usage: get_volume_disk_log.py <volumeName> <diskName> <lineCount>
 		Object responseObj = serverUtil.executeOnServer(true, brick.getServerName(), VOLUME_BRICK_LOG_SCRIPT + " "
 				+ logFilePath + " " + lineCount, LogMessageListResponse.class);
-		Status status = null;
+
 		LogMessageListResponse response = null;
 		if (responseObj instanceof LogMessageListResponse) {
 			response = (LogMessageListResponse) responseObj;
-			status = response.getStatus();
+			// populate disk and trim other fields
+			List<VolumeLogMessage> logMessages = response.getLogMessages();
+			for (VolumeLogMessage logMessage : logMessages) {
+				logMessage.setBrickDirectory(brick.getBrickDirectory());
+			}
+			return logMessages;
 		} else {
-			status = (Status) responseObj;
-		}
-
-		if (!status.isSuccess()) {
+			Status status = (Status) responseObj;
 			throw new GlusterRuntimeException(status.toString());
 		}
-
-		// populate disk and trim other fields
-		List<VolumeLogMessage> logMessages = response.getLogMessages();
-		for (VolumeLogMessage logMessage : logMessages) {
-			logMessage.setBrickDirectory(brick.getBrickDirectory());
-			logMessage.setMessage(logMessage.getMessage().trim());
-			logMessage.setSeverity(logMessage.getSeverity().trim());
-		}
-		return logMessages;
 	}
 
 	@GET
@@ -665,7 +676,7 @@ public class VolumesResource extends AbstractResource {
 		}
 		
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 		
 		try {
@@ -757,7 +768,7 @@ public class VolumesResource extends AbstractResource {
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 
 		List<VolumeLogMessage> logMessages = null;
@@ -862,10 +873,10 @@ public class VolumesResource extends AbstractResource {
 		}
 
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 		
-		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
 		if (onlineServer == null) {
 			return errorResponse("No online servers found in cluster [" + clusterName + "]");
 		}
@@ -875,7 +886,7 @@ public class VolumesResource extends AbstractResource {
 			glusterUtil.addBricks(volumeName, brickList, onlineServer.getName());
 		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
-			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
+			onlineServer = clusterService.getNewOnlineServer(clusterName);
 			if (onlineServer == null) {
 				return errorResponse("No online servers found in cluster [" + clusterName + "]");
 			}
@@ -915,10 +926,10 @@ public class VolumesResource extends AbstractResource {
 		}
 		
 		if (clusterService.getCluster(clusterName) == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] not found!");
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 
-		GlusterServer onlineServer = glusterServersResource.getOnlineServer(clusterName);
+		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
 		if (onlineServer == null) {
 			return errorResponse("No online servers found in cluster [" + clusterName + "]");
 		}
@@ -929,23 +940,54 @@ public class VolumesResource extends AbstractResource {
 		
 		String taskId = null;
 		try {
-			taskId = glusterUtil.migrateBrickStart(volumeName, fromBrick, toBrick, autoCommit, onlineServer.getName());
-		} catch (ConnectionException e) {
-			// online server has gone offline! try with a different one.
-			onlineServer = glusterServersResource.getNewOnlineServer(clusterName);
-			
-			try {
-				taskId = glusterUtil.migrateBrickStart(volumeName, fromBrick, toBrick, autoCommit, onlineServer.getName());
-			} catch(Exception e1) {
-				return errorResponse(e1.getMessage());
-			}
-		} catch(Exception e1) {
-			return errorResponse(e1.getMessage());
+			taskId = migrateBrickStart(clusterName, volumeName, fromBrick, toBrick, autoCommit);
+		}catch(Exception e) {
+			return errorResponse(e.getMessage());
 		}
 		
-		return acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS, clusterName, RESOURCE_TASKS, taskId);
+		return acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/" + RESOURCE_TASKS + "/"
+				+ taskId);
 	}
-
+	
+	private String migrateBrickStart(String clusterName, String volumeName, String fromBrick, String toBrick,
+			Boolean autoCommit) {
+		MigrateDiskTask migrateDiskTask = new MigrateDiskTask(clusterService, clusterName, volumeName, fromBrick,
+				toBrick);
+		migrateDiskTask.setAutoCommit(autoCommit);
+		migrateDiskTask.start();
+		taskResource.addTask(migrateDiskTask);
+		return migrateDiskTask.getTaskInfo().getName(); // Return Task ID
+	}
+	
+	private String rebalanceStart(String clusterName, String volumeName, Boolean isFixLayout, Boolean isMigrateData,
+			Boolean isForcedDataMigrate) {
+		String layout = "";
+		if (isForcedDataMigrate) {
+			layout = "forced-data-migrate";
+		} else if (isMigrateData) {
+			layout = "migrate-data";
+		} else if (isFixLayout) {
+			layout = "fix-layout";
+		}
+		
+		return rebalanceStart(clusterName, volumeName, layout);
+	}
+	
+	public String rebalanceStart(String clusterName, String volumeName, String layout) {
+		RebalanceVolumeTask rebalanceTask = new RebalanceVolumeTask(clusterService, clusterName, volumeName);
+		rebalanceTask.setLayout(layout);
+		rebalanceTask.start();
+		taskResource.addTask(rebalanceTask);
+		return rebalanceTask.getId();
+	}
+	
+	public void rebalanceStop(String clusterName, String volumeName) {
+		// TODO: arrive at the task id and fetch it
+		String taskId = "";
+		
+		taskResource.getTask(taskId).stop();
+	}
+	
 	public static void main(String[] args) throws ClassNotFoundException {
 		VolumesResource vr = new VolumesResource();
 		// VolumeListResponse response = vr.getAllVolumes();
@@ -969,6 +1011,10 @@ public class VolumesResource extends AbstractResource {
 		// System.out.println("Code : " + status.getCode());
 		// System.out.println("Message " + status.getMessage());
 
-		vr.removeBricks("testCluster", "test", "192.168.1.210:sdb", true);
+		// vr.removeBricks("testCluster", "test", "192.168.1.210:sdb", true);
+
+		String taskId = vr.migrateBrickStart("myGluster", "students", "devserver1:/export/sdc/students",
+				"devserver2:/export/sdb/students", true);
+		
 	}
 }

@@ -25,6 +25,7 @@ package com.gluster.storage.management.core.constants;
  */
 public class RESTConstants {
 	// REST Resource paths
+	public static final String RESOURCE_PATH_USERS = "/users";
 	public static final String RESOURCE_PATH_CLUSTERS = "/clusters";
 	public static final String RESOURCE_PATH_DISCOVERED_SERVERS = "/discoveredservers";
 	
@@ -44,8 +45,12 @@ public class RESTConstants {
 	public static final String TASK_PAUSE = "pause";
 	public static final String TASK_RESUME = "resume";
 	public static final String TASK_STOP = "stop";
+	public static final String TASK_COMMIT = "commit";
 	public static final String TASK_STATUS = "status";
 	public static final String TASK_DELETE = "delete";
+	public static final String TASK_REBALANCE_START = "rebalanceStart";
+	public static final String TASK_REBALANCE_STATUS = "rebalanceStatus";
+	public static final String TASK_REBALANCE_STOP = "rebalanceStop";
 
 	public static final String FORM_PARAM_VOLUME_NAME = "name";
 	public static final String FORM_PARAM_VOLUME_TYPE = "volumeType";
@@ -55,7 +60,6 @@ public class RESTConstants {
 	public static final String FORM_PARAM_BRICKS = "bricks";
 	public static final String FORM_PARAM_ACCESS_PROTOCOLS = "accessProtocols";
 	public static final String FORM_PARAM_VOLUME_OPTIONS = "options";
-
 
 	public static final String FORM_PARAM_CLUSTER_NAME = "clusterName";
 	public static final String FORM_PARAM_SERVER_NAME = "serverName";
@@ -67,12 +71,17 @@ public class RESTConstants {
 	public static final String FORM_PARAM_SOURCE = "source";
 	public static final String FORM_PARAM_TARGET = "target";
 	public static final String FORM_PARAM_AUTO_COMMIT = "autoCommit";
+	public static final String FORM_PARAM_FIX_LAYOUT = "fix-layout";
+	public static final String FORM_PARAM_MIGRATE_DATA = "migrate-data";
+	public static final String FORM_PARAM_FORCED_DATA_MIGRATE = "forced-data-migrate";
 	
 	public static final String PATH_PARAM_FORMAT = "format";
 	public static final String PATH_PARAM_VOLUME_NAME = "volumeName";
 	public static final String PATH_PARAM_CLUSTER_NAME = "clusterName";
 	public static final String PATH_PARAM_SERVER_NAME = "serverName";
 	public static final String PATH_PARAM_TASK_ID = "taskId";
+	public static final String PATH_PARAM_DISK_NAME = "diskName";
+	public static final String PATH_PARAM_USER = "user";
 	
 	public static final String QUERY_PARAM_BRICK_NAME = "brickName";
 	public static final String QUERY_PARAM_DISKS = "disks";
@@ -85,6 +94,7 @@ public class RESTConstants {
 	public static final String QUERY_PARAM_TO_TIMESTAMP = "toTimestamp";
 	public static final String QUERY_PARAM_DOWNLOAD = "download";
 	public static final String QUERY_PARAM_SERVER_NAME = "serverName";
+	public static final String QUERY_PARAM_DETAILS = "details";
 	
 	public static final String FORMAT_XML = "xml";
 	public static final String FORMAT_JSON = "json";

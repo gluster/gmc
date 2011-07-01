@@ -42,4 +42,10 @@ public interface ClusterListener {
 	public void volumeCreated(Volume volume);
 
 	public void volumeDeleted(Volume volume);
+	
+	public void taskAdded(TaskInfo taskInfo);
+	
+	public void taskRemoved(TaskInfo taskInfo);
+	
+	public void taskUpdated(TaskInfo taskInfo);
 }

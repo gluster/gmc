@@ -49,7 +49,7 @@ public class GlusterServersPage extends AbstractTableViewerPage<GlusterServer> {
 			"IP Address(es)", "Number\nof CPUs", "Total\nMemory (GB)", "Free Space (GB)", "Total \n Space (GB)", "Status" }; // Removed "Preferred\nNetwork", 
 
 	public GlusterServersPage(IWorkbenchSite site, final Composite parent, int style, final EntityGroup<GlusterServer> servers) {
-		super(site, parent, style, servers);
+		super(site, parent, style, true, true, servers);
 		this.glusterServers = servers.getEntities();
 	}
 

@@ -26,6 +26,7 @@ import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -50,15 +51,20 @@ import com.gluster.storage.management.gui.utils.GUIHelper;
 public abstract class AbstractTableViewerPage<T> extends Composite {
 
 	protected final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
-	protected CheckboxTableViewer tableViewer;
+	protected TableViewer tableViewer;
+	private boolean useCheckboxes;
+	private boolean multiSelection;
 	protected GUIHelper guiHelper = GUIHelper.getInstance();
 	protected Composite parent;
 	
 	private Hyperlink linkAll, linkNone;
 
-	public AbstractTableViewerPage(IWorkbenchSite site, final Composite parent, int style, Object model) {
+	public AbstractTableViewerPage(IWorkbenchSite site, final Composite parent, int style, boolean useChechboxes, boolean multiSelection, Object model) {
 		super(parent, style);
 		this.parent = parent;
+		
+		this.useCheckboxes = useChechboxes;
+		this.multiSelection = multiSelection;
 
 		toolkit.adapt(this);
 		toolkit.paintBordersFor(this);
@@ -69,7 +75,7 @@ public abstract class AbstractTableViewerPage<T> extends Composite {
 
 		Text filterText = guiHelper.createFilterText(toolkit, this);
 		
-		setupServerTableViewer(site, filterText);
+		setupTableViewer(site, filterText);
 
 		tableViewer.setInput(model);
 		parent.layout(); // Important - this actually paints the table
@@ -78,27 +84,35 @@ public abstract class AbstractTableViewerPage<T> extends Composite {
 	}
 
 	public void createCheckboxSelectionLinks() {
-		// create the "select all/none" links
-		toolkit.createLabel(this, "Select");
-		linkAll = toolkit.createHyperlink(this, "all", SWT.NONE);
-		linkAll.addHyperlinkListener(new HyperlinkAdapter() {
-			@Override
-			public void linkActivated(org.eclipse.ui.forms.events.HyperlinkEvent e) {
-				tableViewer.setAllChecked(true);
-				tableViewer.setSelection(new StructuredSelection(getAllEntities()));
-			}
-		});
-		
-		toolkit.createLabel(this, " / ");
-		
-		linkNone = toolkit.createHyperlink(this, "none", SWT.NONE);
-		linkNone.addHyperlinkListener(new HyperlinkAdapter() {
-			@Override
-			public void linkActivated(org.eclipse.ui.forms.events.HyperlinkEvent e) {
-				tableViewer.setAllChecked(false);
-				tableViewer.setSelection(null);
-			}
-		});
+		if (useCheckboxes) {
+			// create the "select all/none" links
+			toolkit.createLabel(this, "Select");
+			linkAll = toolkit.createHyperlink(this, "all", SWT.NONE);
+			linkAll.addHyperlinkListener(new HyperlinkAdapter() {
+				@Override
+				public void linkActivated(org.eclipse.ui.forms.events.HyperlinkEvent e) {
+					((CheckboxTableViewer) tableViewer).setAllChecked(true);
+					tableViewer.setSelection(new StructuredSelection(getAllEntities()));
+				}
+			});
+
+			toolkit.createLabel(this, " / ");
+
+			linkNone = toolkit.createHyperlink(this, "none", SWT.NONE);
+			linkNone.addHyperlinkListener(new HyperlinkAdapter() {
+				@Override
+				public void linkActivated(org.eclipse.ui.forms.events.HyperlinkEvent e) {
+					((CheckboxTableViewer) tableViewer).setAllChecked(false);
+					tableViewer.setSelection(null);
+				}
+			});
+		} else {
+			// create dummy labels to maintain layout
+			toolkit.createLabel(this, "");
+			toolkit.createLabel(this, "");
+			toolkit.createLabel(this, "");
+			toolkit.createLabel(this, "");
+		}
 	}
 
 	private void createListeners(final Composite parent) {
@@ -145,7 +159,7 @@ public abstract class AbstractTableViewerPage<T> extends Composite {
 		setLayout(layout);
 	}
 
-	private void setupServerTable(Composite parent, Table table) {
+	protected void setupTable(Composite parent, Table table) {
 		table.setHeaderVisible(true);
 		table.setLinesVisible(false);
 
@@ -155,15 +169,19 @@ public abstract class AbstractTableViewerPage<T> extends Composite {
 		setColumnProperties(table);
 	}
 
-	private CheckboxTableViewer createServerTableViewer(Composite parent) {
-		CheckboxTableViewer tableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.MULTI);
+	private void createTableViewer(Composite parent) {
+		int style = SWT.FLAT | SWT.FULL_SELECTION;
+		style |= (multiSelection ? SWT.MULTI : SWT.SINGLE);
+		
+		if(useCheckboxes) {
+			tableViewer = CheckboxTableViewer.newCheckList(parent, style);
+		} else {
+			tableViewer = new TableViewer(parent, style);
+		}
 		
 		tableViewer.setLabelProvider(getLabelProvider());
 		tableViewer.setContentProvider(getContentProvider());
-
-		setupServerTable(parent, tableViewer.getTable());
-
-		return tableViewer;
+		setupTable(parent, tableViewer.getTable());
 	}
 
 	private Composite createTableViewerComposite() {
@@ -182,13 +200,15 @@ public abstract class AbstractTableViewerPage<T> extends Composite {
 		return tableViewerComposite;
 	}
 
-	private void setupServerTableViewer(IWorkbenchSite site, final Text filterText) {
+	private void setupTableViewer(IWorkbenchSite site, final Text filterText) {
 		Composite tableViewerComposite = createTableViewerComposite();
-		tableViewer = createServerTableViewer(tableViewerComposite);
+		createTableViewer(tableViewerComposite);
 		site.setSelectionProvider(tableViewer);
 
-		// make sure that table selection is driven by checkbox selection
-		guiHelper.configureCheckboxTableViewer(tableViewer);
+		if(useCheckboxes) {
+			// make sure that table selection is driven by checkbox selection
+			guiHelper.configureCheckboxTableViewer((CheckboxTableViewer)tableViewer);
+		}
 
 		// Create a case insensitive filter for the table viewer using the filter text field
 		guiHelper.createFilter(tableViewer, filterText, false);

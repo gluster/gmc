@@ -25,6 +25,7 @@ public class PreferenceConstants {
 	
 	public static final String P_SHOW_CLUSTER_SELECTION_DIALOG = "show.cluster.selection.dialog";
 	public static final String P_DEFAULT_CLUSTER_NAME = "default.cluster.name";
+	public static final String P_DATA_REFRESH_INTERVAL = "data.refresh.interval";
 
 	// TODO: Remove after proper preferences are added
 	public static final String P_PATH = "pathPreference";

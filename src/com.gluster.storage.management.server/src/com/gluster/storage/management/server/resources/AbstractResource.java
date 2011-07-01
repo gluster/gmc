@@ -65,21 +65,32 @@ public class AbstractResource {
 	 * Creates a response with HTTP status code of 202 (accepted), also setting the location header to given location.
 	 * This is typically done while triggering long running tasks
 	 * 
-	 * @param uriElements
-	 *            URI Elements to be appended to the base URI
+	 * @param locationURI
+	 *            URI to be appended to the base URI
 	 * @return the {@link Response} object
 	 */
-	protected Response acceptedResponse(Object...uriElements) {
-		return Response.status(Status.ACCEPTED).location(createAbsoluteURI(uriElements)).build();
+	protected Response acceptedResponse(String locationURI) {
+		return Response.status(Status.ACCEPTED).location(createAbsoluteURI(locationURI)).build();
+	}
+
+	/**
+	 * Creates a response with HTTP status code of 404 (not found), also setting the given message in the response body
+	 * 
+	 * @param message
+	 *            Message to be set in the response body
+	 * @return the {@link Response} object
+	 */
+	protected Response notFoundResponse(String message) {
+		return Response.status(Status.NOT_FOUND).type(MediaType.TEXT_HTML).entity(message).build();
 	}
 
 	/**
 	 * Creates a new URI that is relative to the <b>base URI</b> of the application
-	 * @param uriElements URI Elements to be appended to the base URI
+	 * @param uriString URI String to be appended to the base URI
 	 * @return newly created URI
 	 */
-	private URI createAbsoluteURI(Object[] uriElements) {
-		return uriInfo.getBaseUriBuilder().build(uriElements);
+	private URI createAbsoluteURI(String uriString) {
+		return uriInfo.getBaseUriBuilder().path(uriString).build();
 	}
 
 	/**
@@ -123,6 +134,15 @@ public class AbstractResource {
 	protected Response badRequestResponse(String errMessage) {
 		return Response.status(Status.BAD_REQUEST).type(MediaType.TEXT_HTML).entity(errMessage).build();
 	}
+	
+	/**
+	 * Creates a response with HTTP status code of 401 (unauthorized)
+	 * 
+	 * @return the {@link Response} object
+	 */
+	protected Response unauthorizedResponse() {
+		return Response.status(Status.UNAUTHORIZED).build();
+	}
 
 	/**
 	 * Creates an OK response and sets the entity in the response body.
@@ -135,6 +155,17 @@ public class AbstractResource {
 	 */
 	protected Response okResponse(Object entity, String mediaType) {
 		return Response.ok(entity).type(mediaType).build();
+	}
+
+	/**
+	 * Creates an OK response without any entity in the response body.
+	 * 
+	 * @param mediaType
+	 *            Media type to be set on the response
+	 * @return the {@link Response} object
+	 */
+	protected Response okResponse(String mediaType) {
+		return Response.ok().type(mediaType).build();
 	}
 
 	/**

@@ -32,6 +32,8 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -334,6 +336,26 @@ public class VolumeLogsPage extends Composite {
 	private void createLineCountText(Composite composite) {
 		lineCountText = toolkit.createText(composite, "100", SWT.NONE);
 		lineCountText.setBounds(85, 15, 60, 20);
+		lineCountText.setTextLimit(4);
+		lineCountText.addVerifyListener(new VerifyListener() {
+
+			@Override
+			public void verifyText(VerifyEvent event) {
+				// Assume we allow it
+				event.doit = true;
+
+				String text = event.text;
+				char[] chars = text.toCharArray();
+
+				// Don't allow if text contains non-digit characters
+				for (int i = 0; i < chars.length; i++) {
+					if (!Character.isDigit(chars[i])) {
+						event.doit = false;
+						break;
+					}
+				}
+			}
+		});
 	}
 
 	private void createLineCountLabel(Composite composite) {

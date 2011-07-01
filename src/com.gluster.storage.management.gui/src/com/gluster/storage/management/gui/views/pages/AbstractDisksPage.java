@@ -38,6 +38,7 @@ import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.ImageHyperlink;
 
+import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Disk;
@@ -56,7 +57,7 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 	protected abstract int getStatusColumnIndex();
 
 	public AbstractDisksPage(final Composite parent, int style, IWorkbenchSite site, List<Disk> disks) {
-		super(site, parent, style, disks);
+		super(site, parent, style, true, true, disks);
 		this.disks = disks;
 		
 		// creates hyperlinks for "unitialized" disks
@@ -199,8 +200,11 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 		@Override
 		public void linkActivated(HyperlinkEvent e) {
 			updateStatus(DISK_STATUS.INITIALIZING, true);
+			
+			GlusterServersClient serversClient = new GlusterServersClient();
+			serversClient.initializeDisk(disk.getServerName(), disk.getName());
+			
 			guiHelper.showProgressView();
-
 			new InitializeDiskJob(disk).schedule();
 		}
 	}

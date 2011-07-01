@@ -20,20 +20,22 @@
  */
 package com.gluster.storage.management.client;
 
+import java.net.URI;
 import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.gluster.storage.management.core.constants.RESTConstants;
-import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
-import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
-import com.gluster.storage.management.core.response.TaskListResponse;
-import com.gluster.storage.management.core.response.TaskResponse;
+import com.gluster.storage.management.core.response.TaskInfoListResponse;
 import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class TasksClient extends AbstractClient {
+
+	public TasksClient() {
+		super();
+	}
 
 	public TasksClient(String clusterName) {
 		super(clusterName);
@@ -48,14 +50,8 @@ public class TasksClient extends AbstractClient {
 		return RESTConstants.RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/" + RESTConstants.RESOURCE_TASKS + "/";
 	}
 	
-	@SuppressWarnings("unchecked")
 	public List<TaskInfo> getAllTasks() { // TaskListResponse get only the list of taskInfo not list of Tasks
-		TaskListResponse response = (TaskListResponse) fetchResource(TaskListResponse.class);
-		if (response.getStatus().isSuccess()) {
-			return (List<TaskInfo>) response.getData();
-		} else {
-			throw new GlusterRuntimeException("Exception on fetching tasks [" + response.getStatus().getMessage() + "]");
-		}
+		return ((TaskInfoListResponse) fetchResource(TaskInfoListResponse.class)).getTaskList();
 	}
 	
 	// see startMigration @ VolumesClient, etc
@@ -79,6 +75,13 @@ public class TasksClient extends AbstractClient {
 		
 		putRequest(taskId, form);
 	}
+	
+	public void commitTask(String taskId) {
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_COMMIT);
+		
+		putRequest(taskId, form);
+	}
 
 	public void getTaskStatus(String taskId) {
 		Form form = new Form();
@@ -90,7 +93,11 @@ public class TasksClient extends AbstractClient {
 	public void deleteTask(String taskId) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_DELETE);
-		
+		 
 		deleteSubResource(taskId, queryParams);
+	}
+	
+	public TaskInfo getTaskInfo(URI uri) {		
+		return ((TaskInfo) fetchResource(uri, TaskInfo.class));
 	}
 }

@@ -20,10 +20,10 @@ package com.gluster.storage.management.gui;
 
 public interface IImageKeys {
 	public static final String CLUSTER = "icons/cluster.png";
-	public static final String VOLUMES = "icons/volumes.png";
-	public static final String SERVERS = "icons/servers.png";
-	public static final String VOLUME = "icons/volume.png";
-	public static final String SERVER = "icons/server.png";
+	public static final String VOLUMES = "icons/tango/16x16/volume.png";
+	public static final String SERVERS = "icons/tango/16x16/servers.png";
+	public static final String VOLUME = "icons/tango/16x16/volume.png";
+	public static final String SERVER = "icons/tango/16x16/server.png";
 	public static final String SERVER_WARNING = "icons/server-warning.png";
 	public static final String MEMORY = "icons/memory.png";
 	public static final String GSN = "icons/gsn.png";
@@ -31,10 +31,10 @@ public interface IImageKeys {
 	public static final String ADD = "icons/plus-white.png";
 	public static final String REMOVE = "icons/minus-white.png";
 	public static final String CREATE_VOLUME = "icons/volume-create.png";
-	public static final String CREATE_VOLUME_BIG = "icons/volume-create-big.png";
+	public static final String CREATE_VOLUME_BIG = "icons/tango/48x48/volume-create.png";
 	public static final String REMOVE_VOLUME = "icons/volume-delete.png";
 	public static final String ADD_SERVER = "icons/server-add.png";
-	public static final String ADD_SERVER_BIG = "icons/server-add-big.png";
+	public static final String ADD_SERVER_BIG = "icons/tango/48x48/server.png";
 	public static final String REMOVE_SERVER = "icons/server-remove.png";
 	public static final String HELP = "icons/question.png";
 	public static final String STATUS_OFFLINE = "icons/status-offline.png";
@@ -44,8 +44,8 @@ public interface IImageKeys {
 	public static final String WORK_IN_PROGRESS = "icons/progress-bar.png";
 	public static final String CHECKBOX_UNCHECKED = "icons/ui-check-box-uncheck.png";
 	public static final String CHECKBOX_CHECKED = "icons/ui-check-box.png";
-	public static final String DISK = "icons/disk.png";
-	public static final String DISKS = "icons/disks.png";
+	public static final String DISK = "icons/tango/16x16/disk.png";
+	public static final String DISKS = "icons/tango/16x16/disk.png";
 	public static final String DISK_UNINITIALIZED = "icons/disk-uninitialized.png";
 	public static final String SEARCH = "icons/search.png";
 	public static final String ARROW_UP = "icons/arrow-up.png";
@@ -55,9 +55,14 @@ public interface IImageKeys {
 	public static final String LOW_DISK_SPACE = "icons/disk.png";
 	public static final String DISK_OFFLINE = "icons/status-offline.png";
 
+	public static final String PAUSE_TASK = "icons/pause_task.gif";
+	public static final String RESUME_TASK = "icons/resume_task.gif";
+	public static final String STOP_TASK = "icons/stop_task.gif";
+	public static final String CLEAR_TASK = "icons/close_task.gif";
+	
 	public static final String OVERLAY_OFFLINE = "icons/status-offline-small.png";
 	public static final String OVERLAY_ONLINE = "icons/status-online-small.png";
-	public static final String OVERLAY_STAR = "icons/star-small.png";
+	public static final String OVERLAY_STAR = "icons/star.png";
 
 	public static final String SPLASH_IMAGE = "splash.bmp";
 	public static final String DIALOG_SPLASH_IMAGE = "splash/splash-dialog.bmp";

@@ -33,15 +33,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.GlusterServer;
-import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
+import com.gluster.storage.management.core.utils.LRUCache;
 import com.gluster.storage.management.server.data.ClusterInfo;
 import com.gluster.storage.management.server.data.PersistenceDao;
 import com.gluster.storage.management.server.data.ServerInfo;
 import com.gluster.storage.management.server.utils.GlusterUtil;
+import com.gluster.storage.management.server.utils.ServerUtil;
 import com.gluster.storage.management.server.utils.SshUtil;
-import com.sun.jersey.api.core.InjectParam;
 
 /**
  * Service class for functionality related to clusters
@@ -60,12 +62,70 @@ public class ClusterService {
 	@Autowired
 	private SshUtil sshUtil;
 	
+	@Autowired
+	private ServerUtil serverUtil;
+
+	private LRUCache<String, GlusterServer> onlineServerCache = new LRUCache<String, GlusterServer>(3);
+	
+	public void addOnlineServer(String clusterName, GlusterServer server) {
+		onlineServerCache.put(clusterName, server);
+	}
+	
+	public void removeOnlineServer(String clusterName) {
+		onlineServerCache.remove(clusterName);
+	}
+	
+	// uses cache
+	public GlusterServer getOnlineServer(String clusterName, String exceptServerName) {
+		GlusterServer server = onlineServerCache.get(clusterName);
+		if (server != null && !server.getName().equals(exceptServerName)) {
+			return server;
+		}
+
+		return getNewOnlineServer(clusterName, exceptServerName);
+	}
+
+	public GlusterServer getNewOnlineServer(String clusterName) {
+		return getNewOnlineServer(clusterName, "");
+	}
+	
+	public GlusterServer getOnlineServer(String clusterName) {
+		return getOnlineServer(clusterName, "");
+	}
+
+	// Doesn't use cache
+	public GlusterServer getNewOnlineServer(String clusterName, String exceptServerName) {
+		ClusterInfo cluster = getCluster(clusterName);
+		if (cluster == null) {
+			throw new GlusterRuntimeException("Cluster [" + clusterName + "] is not found!");
+		}
+
+		for (ServerInfo serverInfo : cluster.getServers()) {
+			GlusterServer server = new GlusterServer(serverInfo.getName());
+			server.setStatus(SERVER_STATUS.ONLINE);
+			try {
+				serverUtil.fetchServerDetails(server);
+				if (server.isOnline() && !server.getName().equals(exceptServerName)) {
+					// server is online. add it to cache and return
+					addOnlineServer(clusterName, server);
+					return server;
+				}
+			} catch(ConnectionException e) {
+				// server is offline. continue checking next one.
+				continue;
+			}
+		}
+
+		// no online server found.
+		throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
+	}
+	
 	public List<ClusterInfo> getAllClusters() {
 		return clusterDao.findAll();
 	}
 	
 	public ClusterInfo getCluster(String clusterName) {
-		List<ClusterInfo> clusters = clusterDao.findBy("name = ?1", clusterName);
+		List<ClusterInfo> clusters = clusterDao.findBy("UPPER(name) = ?1", clusterName.toUpperCase());
 		if(clusters.size() == 0) {
 			return null;
 		}
@@ -74,7 +134,7 @@ public class ClusterService {
 	}
 	
 	public ClusterInfo getClusterForServer(String serverName) {
-		List<ServerInfo> servers = serverDao.findBy("name = ?1", serverName);
+		List<ServerInfo> servers = serverDao.findBy("UPPER(name) = ?1", serverName.toUpperCase());
 		if(servers.size() == 0) {
 			return null;
 		}
