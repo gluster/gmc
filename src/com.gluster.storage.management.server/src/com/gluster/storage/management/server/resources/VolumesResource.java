@@ -89,7 +89,6 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.model.VolumeLogMessage;
@@ -101,6 +100,7 @@ import com.gluster.storage.management.core.utils.DateUtil;
 import com.gluster.storage.management.core.utils.FileUtil;
 import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
+import com.gluster.storage.management.server.data.ClusterInfo;
 import com.gluster.storage.management.server.services.ClusterService;
 import com.gluster.storage.management.server.tasks.MigrateDiskTask;
 import com.gluster.storage.management.server.tasks.RebalanceVolumeTask;
@@ -147,8 +147,14 @@ public class VolumesResource extends AbstractResource {
 			return badRequestResponse("Cluster name must not be empty!");
 		}
 
-		if (clusterService.getCluster(clusterName) == null) {
+		ClusterInfo cluster = clusterService.getCluster(clusterName);
+		if (cluster == null) {
 			return notFoundResponse("Cluster [" + clusterName + "] not found!");
+		}
+		
+		if(cluster.getServers().size() == 0) {
+			// no server added yet. return an empty array.
+			return okResponse(new VolumeListResponse(), mediaType);
 		}
 
 		return okResponse(getVolumes(clusterName), mediaType);
