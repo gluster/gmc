@@ -415,11 +415,15 @@ public class GlusterServersResource extends AbstractServersResource {
 		}
 
 		InitializeDiskTask initializeTask = new InitializeDiskTask(clusterService, clusterName, serverName, diskName);
-		initializeTask.start();
-		taskResource.addTask(initializeTask);
+		try {
+			initializeTask.start();
+			taskResource.addTask(initializeTask);
 
-		return acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/" + RESOURCE_TASKS + "/"
-				+ initializeTask.getId());
+			return acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/" + RESOURCE_TASKS + "/"
+					+ initializeTask.getId());
+		} catch (Exception e) {
+			return errorResponse(e.getMessage());
+		}
 	}
 
 	private void setGlusterUtil(GlusterUtil glusterUtil) {

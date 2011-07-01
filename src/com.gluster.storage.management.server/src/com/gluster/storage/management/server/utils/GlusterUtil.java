@@ -573,6 +573,16 @@ public class GlusterUtil {
 		return taskStatus;
 	}
 	
+	public void stopRebalance(String serverName, String volumeName) {
+		String command = "gluster volume rebalance " + volumeName + " stop";
+		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
+		TaskStatus taskStatus = new TaskStatus();
+		if (processResult.isSuccess()) {
+			taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
+			taskStatus.setMessage(processResult.getOutput());
+		}
+	}
+	
 	public TaskStatus checkInitializeDiskStatus(String serverName, String diskName) {
 		ProcessResult processResult = sshUtil.executeRemote(serverName, INITIALIZE_DISK_STATUS_SCRIPT + " " + diskName);
 		TaskStatus taskStatus = new TaskStatus();
@@ -581,7 +591,9 @@ public class GlusterUtil {
 			if (processResult.getOutput().trim().matches(".*Initailize completed$")) {
 				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
 			} else {
+				// TODO: Percentage completed needs to be set, according to the script output
 				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
+				// taskStatus.setPercentCompleted(processResult.getOutput());
 			}
 		} else {
 			taskStatus.setCode(Status.STATUS_CODE_FAILURE);

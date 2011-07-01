@@ -55,22 +55,29 @@ public class InitializeDiskTask extends Task {
 
 	@Override
 	public String getId() {
-		return new String(Base64.encode(taskInfo.getType() + "-" + serverName + ":" + diskName));
+		return new String(
+				Base64.encode(getClusterName() + "-" + taskInfo.getType() + "-" + serverName + ":" + diskName));
 	}
 
 	@Override
 	public void resume() {
-		getTaskInfo().setStatus( new TaskStatus( new Status(Status.STATUS_CODE_FAILURE, "Can not resume disk initialization")));
+		getTaskInfo().setStatus(
+				new TaskStatus(new Status(Status.STATUS_CODE_FAILURE,
+						"Stop/Pause/Resume is not supported in Disk Initialization")));
 	}
 
 	@Override
 	public void stop() {
-		getTaskInfo().setStatus( new TaskStatus( new Status(Status.STATUS_CODE_FAILURE, "Can not stop disk initialization")));
+		getTaskInfo().setStatus(
+				new TaskStatus(new Status(Status.STATUS_CODE_FAILURE,
+						"Stop/Pause/Resume is not supported in Disk Initialization")));
 	}
 
 	@Override
 	public void pause() {
-		getTaskInfo().setStatus( new TaskStatus( new Status(Status.STATUS_CODE_FAILURE, "Can not suspend disk initialization")));
+		getTaskInfo().setStatus(
+				new TaskStatus(new Status(Status.STATUS_CODE_FAILURE,
+						"Stop/Pause/Resume is not supported in Disk Initialization")));
 	}
 	
 	@Override
@@ -91,24 +98,20 @@ public class InitializeDiskTask extends Task {
 	@Override
 	public void start() {
 		try {
-			startInitializeDisk(getOnlineServer().getName());
+			startInitializeDisk(serverName);
 		} catch(ConnectionException e) {
-			// online server might have gone offline. try with a new one
-			startInitializeDisk(getNewOnlineServer().getName());
+			// online server might have gone offline.  update the failure status
+			getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_FAILURE, e.getMessage())));
 		}
 	}
 
 	private void startInitializeDisk(String serverName) {
 		ProcessResult processResult = sshUtil.executeRemote(serverName, INITIALIZE_DISK_SCRIPT + " " + getDiskName());
 		if (processResult.isSuccess()) {
-			// TODO: Message needs to change according to the script return
-			if (processResult.getOutput().trim().matches(".*has been successful$")) {
-				getTaskInfo().setStatus(
-						new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, processResult.getOutput())));
-				return;
-			}
+			getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, processResult.getOutput())));
+			return;
 		}
-		
+
 		// if we reach here, it means Initialize disk start failed.
 		throw new GlusterRuntimeException(processResult.toString());
 		
@@ -118,10 +121,10 @@ public class InitializeDiskTask extends Task {
 	public TaskStatus checkStatus() {
 		
 		try {
-			return glusterUtil.checkInitializeDiskStatus(getOnlineServer().getName(), getDiskName());
+			return glusterUtil.checkInitializeDiskStatus(serverName, getDiskName());
 		} catch(ConnectionException e) {
-			// online server might have gone offline. try with a new one
-			return glusterUtil.checkInitializeDiskStatus(getNewOnlineServer().getName(), getDiskName());
+			// online server might have gone offline. update the failure status
+			return new TaskStatus(new Status(Status.STATUS_CODE_FAILURE, e.getMessage()));
 		}
 	}
 	
