@@ -29,6 +29,7 @@ import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
+import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.GlusterDataModel;
@@ -43,6 +44,7 @@ import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
+import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 
 public class GlusterDataModelManager {
 	private static GlusterDataModelManager instance = new GlusterDataModelManager();
@@ -80,10 +82,14 @@ public class GlusterDataModelManager {
 	}
 
 	public void initializeModel(String securityToken, String clusterName) {
-		model = new GlusterDataModel("Gluster Data Model");
 		setSecurityToken(securityToken);
 		setClusterName(clusterName);
 
+		model = fetchData(clusterName);
+	}
+
+	public GlusterDataModel fetchData(String clusterName) {
+		GlusterDataModel model = new GlusterDataModel("Gluster Data Model");
 		Cluster cluster = new Cluster(clusterName, model);
 
 		initializeGlusterServers(cluster);
@@ -96,6 +102,46 @@ public class GlusterDataModelManager {
 		initializeVolumeOptionsDefaults();
 
 		model.addCluster(cluster);
+		return model;
+	}
+	
+	public void updateModel(GlusterDataModel model) {
+		updateVolumes(model);
+	}
+
+	private void updateVolumes(GlusterDataModel model) {
+		List<Volume> currentVolumes = this.model.getCluster().getVolumes();
+		List<Volume> latestVolumes = model.getCluster().getVolumes();
+		
+		List<Volume> addedVolumes = getAddedVolumes(currentVolumes, latestVolumes);
+		for(ClusterListener listener : listeners) {
+			for(Volume addedVolume : addedVolumes) {
+				listener.volumeAdded(addedVolume);
+			}
+		}
+		
+		List<Volume> removedVolumes = getRemovedVolumes(currentVolumes, latestVolumes);
+		for(ClusterListener listener : listeners) {
+			for(Volume removedVolume : addedVolumes) {
+				listener.volumeRemoved(removedVolume);
+			}
+		}
+	}
+	
+	private List<Volume> getRemovedVolumes(List<Volume> currentVolumes, List<Volume> latestVolumes) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private List<Volume> getAddedVolumes(List<Volume> currentVolumes, List<Volume> newVolumes) {
+		List<Volume> addedVolumes = new ArrayList<Volume>();
+		for(Volume newVolume : addedVolumes) {
+			if(!GlusterCoreUtil.containsEntity(currentVolumes, newVolume, false)) {
+				// current volume list doesn't contain this volume. mark it.
+				addedVolumes.add(newVolume);
+			}
+		}
+		return addedVolumes;
 	}
 
 	private void initializeGlusterServers(Cluster cluster) {
@@ -465,5 +511,4 @@ public class GlusterDataModelManager {
 		}
 		return volumeNames;
 	}
-	
 }

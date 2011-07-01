@@ -26,6 +26,7 @@ import java.util.Set;
 
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Disk;
+import com.gluster.storage.management.core.model.Entity;
 
 
 public class GlusterCoreUtil {
@@ -44,5 +45,43 @@ public class GlusterCoreUtil {
 			qualifiedBricks.add(brick.getQualifiedName());
 		}
 		return qualifiedBricks;
+	}
+	
+	/**
+	 * Compares the two entity lists and returns the list of entities present only in the second argument
+	 * <code>newEntities</code>
+	 * 
+	 * @param oldEntities
+	 * @param newEntities
+	 * @return List of entities that are present only in the second argument <code>newEntities</code>
+	 */
+	public static List<Entity> getAddedEntities(List<? extends Entity> oldEntities, List<Entity> newEntities) {
+		List<Entity> addedEntities = new ArrayList<Entity>();
+		for(Entity newEntity : newEntities) {
+			if(!containsEntity(oldEntities, newEntity, false)) {
+				// old entity list doesn't contain this entity. mark it as new.
+				addedEntities.add(newEntity);
+			}
+		}
+		return addedEntities;
+	}
+
+	public static boolean containsEntity(List<? extends Entity> entityList, Entity searchEntity, boolean caseInsensitive) {
+		String searchEntityName = searchEntity.getName();
+		if(caseInsensitive) {
+			searchEntityName = searchEntityName.toUpperCase();
+		}
+		
+		for(Entity entity : entityList) {
+			String nextEntityName = entity.getName();
+			if(caseInsensitive) {
+				nextEntityName = nextEntityName.toUpperCase();
+			}
+			if(nextEntityName.equals(searchEntityName)) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 }
