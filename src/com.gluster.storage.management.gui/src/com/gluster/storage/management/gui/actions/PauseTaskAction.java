@@ -22,7 +22,6 @@ package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.TasksClient;
@@ -37,33 +36,25 @@ public class PauseTaskAction extends AbstractActionDelegate {
 	
 	@Override
 	protected void performAction(final IAction action) {
-		Display.getDefault().asyncExec(new Runnable() {
-			
-			@Override
-			public void run() {
-				final String actionDesc = action.getDescription();
+		final String actionDesc = action.getDescription();
 
-				try {
-					new TasksClient().pauseTask(taskInfo.getName());
-					taskInfo.setStatus(new TaskStatus(new Status(Status.STATUS_CODE_PAUSE, taskInfo.getName()
-							+ " is Paused")));
-					modelManager.updateTask(taskInfo);
-				} catch (Exception e) {
-					showErrorDialog(actionDesc,
-							"Task [" + taskInfo.getName() + "] could not be Paused! Error: [" + e.getMessage() + "]");
-				}
-			}
-		});
+		try {
+			new TasksClient().pauseTask(taskInfo.getName());
+			taskInfo.setStatus(new TaskStatus(new Status(Status.STATUS_CODE_PAUSE, "Paused")));
+			modelManager.updateTask(taskInfo);
+		} catch (Exception e) {
+			showErrorDialog(actionDesc,
+					"Task [" + taskInfo.getDescription() + "] could not be Paused! Error: [" + e.getMessage() + "]");
+		}
 	}
-	
-	
+
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		super.selectionChanged(action, selection);
 		action.setEnabled(false);
 		if (selectedEntity instanceof TaskInfo) {
 			taskInfo = (TaskInfo) selectedEntity;
-			action.setEnabled(taskInfo.canPause() && taskInfo.getStatus().getCode() == Status.STATUS_CODE_RUNNING);
+			action.setEnabled(taskInfo.getPauseSupported() && taskInfo.getStatus().getCode() == Status.STATUS_CODE_RUNNING);
 		}
 	}
 

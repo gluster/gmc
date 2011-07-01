@@ -38,9 +38,9 @@ public abstract class Task {
 		taskInfo.setType(type);
 		taskInfo.setReference(reference);
 		taskInfo.setDescription(desc);
-		taskInfo.setCanPause(canPause);
-		taskInfo.setCanStop(canStop);
-		taskInfo.setCanCommit(canCommit);
+		taskInfo.setPauseSupported(canPause);
+		taskInfo.setStopSupported(canStop);
+		taskInfo.setCommitSupported(canCommit);
 		
 		init(clusterService, clusterName, taskInfo);
 		

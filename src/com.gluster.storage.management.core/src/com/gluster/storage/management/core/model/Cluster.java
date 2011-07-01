@@ -55,7 +55,7 @@ public class Cluster extends Entity {
 	}
 
 	public void deleteVolume(Volume volume) {
-		volumes.remove(volume);		
+		volumes.remove(volume);
 	}
 	
 	public void setServers(List<GlusterServer> servers) {
@@ -92,6 +92,15 @@ public class Cluster extends Entity {
 	
 	public void addVolume(Volume volume) {
 		this.volumes.add(volume);
+	}
+	
+	public void updateVolume(String volumeName, List<Brick> bricks) {
+		for (Volume volume : volumes) {
+			if (volume.getName().equals(volumeName)) {
+				volume.setBricks(bricks);
+				return;
+			}
+		}
 	}
 
 	public Cluster(String name, Entity parent) {

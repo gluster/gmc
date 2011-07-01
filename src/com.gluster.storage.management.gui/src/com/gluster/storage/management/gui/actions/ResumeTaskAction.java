@@ -2,7 +2,6 @@ package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.TasksClient;
@@ -16,23 +15,16 @@ public class ResumeTaskAction extends AbstractActionDelegate {
 
 	@Override
 	protected void performAction(final IAction action) {
-		Display.getDefault().asyncExec(new Runnable() {
+		final String actionDesc = action.getDescription();
 
-			@Override
-			public void run() {
-				final String actionDesc = action.getDescription();
-
-				try {
-					new TasksClient().resumeTask(taskInfo.getName());
-					taskInfo.setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, taskInfo.getName()
-							+ " is Resumed")));
-					modelManager.updateTask(taskInfo);
-				} catch (Exception e) {
-					showErrorDialog(actionDesc,
-							"Task [" + taskInfo.getName() + "] could not be Resumed! Error: [" + e.getMessage() + "]");
-				}
-			}
-		});
+		try {
+			new TasksClient().resumeTask(taskInfo.getName());
+			taskInfo.setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, "Resumed")));
+			modelManager.updateTask(taskInfo);
+		} catch (Exception e) {
+			showErrorDialog(actionDesc,
+					"Task [" + taskInfo.getDescription() + "] could not be Resumed! Error: [" + e.getMessage() + "]");
+		}
 	}
 	
 	@Override
@@ -47,9 +39,7 @@ public class ResumeTaskAction extends AbstractActionDelegate {
 	
 	@Override
 	public void dispose() {
-		
 
 	}
-
 
 }

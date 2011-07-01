@@ -122,7 +122,7 @@ public class MigrateDiskTask extends Task {
 		ProcessResult processResult = sshUtil.executeRemote(onlineServer, command);
 		TaskStatus taskStatus = new TaskStatus();
 		if (processResult.isSuccess()) {
-			if (processResult.getOutput().matches("*pause")) { //TODO replace correct pattern to identify the pause status
+			if (processResult.getOutput().trim().matches(".*paused successfully$")) { //TODO replace correct pattern to identify the pause status
 				taskStatus.setCode(Status.STATUS_CODE_PAUSE);
 				taskStatus.setMessage(processResult.getOutput());
 				getTaskInfo().setStatus(taskStatus);
@@ -172,8 +172,8 @@ public class MigrateDiskTask extends Task {
 				taskStatus.setMessage(processResult.getOutput());
 				getTaskInfo().setStatus(taskStatus);
 				return;
-			} 
-		} 
+			}
+		}
 		
 		// if we reach here, it means rebalance start failed.
 		throw new GlusterRuntimeException(processResult.toString());
@@ -212,8 +212,14 @@ public class MigrateDiskTask extends Task {
 	
 
 	private TaskStatus checkMigrationStatus(String serverName) {
+		 // TODO: If the task is already paused return the same status till FS gives correct status
+		if (getTaskInfo().getStatus().getCode() == Status.STATUS_CODE_PAUSE ) {
+			return getTaskInfo().getStatus();
+		}
+		
 		String command = "gluster volume replace-brick " + getTaskInfo().getReference() + " " + getFromBrick() + " "
 				+ getToBrick() + " status";
+
 		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
 		TaskStatus taskStatus = new TaskStatus();
 		if (processResult.isSuccess()) {
@@ -221,8 +227,13 @@ public class MigrateDiskTask extends Task {
 				taskStatus.setCode(Status.STATUS_CODE_COMMIT_PENDING);
 				if (autoCommit) {
 					commitMigration(serverName);
+					return getTaskInfo().getStatus(); // return the committed status
+				} else {
+					taskStatus.setMessage(processResult.getOutput().trim()
+							.replaceAll("Migration complete", "Commit pending"));
 				}
-			} else if (	processResult.getOutput().trim().matches("^Number of files migrated.*Current file=.*")) {
+				return taskStatus;
+			} else if (processResult.getOutput().trim().matches("^Number of files migrated.*Current file=.*")) {
 				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
 			} else {
 				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
@@ -230,7 +241,6 @@ public class MigrateDiskTask extends Task {
 		} else {
 			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
 		}
-				
 		taskStatus.setMessage(processResult.getOutput()); // common
 		taskInfo.setStatus(taskStatus); // Update the task status
 		return taskStatus;
