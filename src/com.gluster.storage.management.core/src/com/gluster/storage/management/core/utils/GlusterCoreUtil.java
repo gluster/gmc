@@ -53,12 +53,13 @@ public class GlusterCoreUtil {
 	 * 
 	 * @param oldEntities
 	 * @param newEntities
+	 * @param caseInsensitive If true, the entity name comparison will be done in case insensitive manner
 	 * @return List of entities that are present only in the second argument <code>newEntities</code>
 	 */
-	public static List<Entity> getAddedEntities(List<? extends Entity> oldEntities, List<Entity> newEntities) {
-		List<Entity> addedEntities = new ArrayList<Entity>();
-		for(Entity newEntity : newEntities) {
-			if(!containsEntity(oldEntities, newEntity, false)) {
+	public static <T extends Entity> List<T> getAddedEntities(List<T> oldEntities, List<T> newEntities, boolean caseInsensitive) {
+		List<T> addedEntities = new ArrayList<T>();
+		for(T newEntity : newEntities) {
+			if(!containsEntity(oldEntities, newEntity, caseInsensitive)) {
 				// old entity list doesn't contain this entity. mark it as new.
 				addedEntities.add(newEntity);
 			}
@@ -66,13 +67,13 @@ public class GlusterCoreUtil {
 		return addedEntities;
 	}
 
-	public static boolean containsEntity(List<? extends Entity> entityList, Entity searchEntity, boolean caseInsensitive) {
+	public static <T extends Entity> boolean containsEntity(List<T> entityList, Entity searchEntity, boolean caseInsensitive) {
 		String searchEntityName = searchEntity.getName();
 		if(caseInsensitive) {
 			searchEntityName = searchEntityName.toUpperCase();
 		}
 		
-		for(Entity entity : entityList) {
+		for(T entity : entityList) {
 			String nextEntityName = entity.getName();
 			if(caseInsensitive) {
 				nextEntityName = nextEntityName.toUpperCase();

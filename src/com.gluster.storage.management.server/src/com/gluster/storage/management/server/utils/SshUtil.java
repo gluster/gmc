@@ -226,6 +226,10 @@ public class SshUtil {
 		return conn;
 	}
 
+	private boolean wasTerminated(int condition) {
+		return ((condition | ChannelCondition.EXIT_SIGNAL) == condition);
+	}
+
 	private boolean hasErrors(int condition, Session session) {
 		return (hasErrorStream(condition) || (exitedGracefully(condition) && exitedWithError(session)));
 	}
@@ -239,7 +243,7 @@ public class SshUtil {
 	}
 
 	private boolean exitedGracefully(int condition) {
-		return (condition == ChannelCondition.EXIT_STATUS);
+		return (condition | ChannelCondition.EXIT_STATUS) == condition;
 	}
 
 	private boolean hasErrorStream(int condition) {
@@ -292,24 +296,19 @@ public class SshUtil {
 
 	private ProcessResult prepareProcessResult(Session session, int condition, String output) {
 		ProcessResult result = null;
-		switch(condition) {
-		case ChannelCondition.TIMEOUT:
-			result = new ProcessResult(ProcessResult.FAILURE, "Command timed out!");
-			break;
-		case ChannelCondition.EXIT_SIGNAL:
-			// terminated
+		
+		if (wasTerminated(condition)) {
 			result = new ProcessResult(ProcessResult.FAILURE, output);
-			break;
-		default:
-			if (hasErrors(condition, session)) {
-				Integer exitStatus = session.getExitStatus();
-				int statusCode = (exitStatus == null ? ProcessResult.FAILURE : exitStatus);
-				result = new ProcessResult(statusCode, output);
-			} else {
-				result = new ProcessResult(ProcessResult.SUCCESS, output);
-			}
-			break;
+		} else if (timedOut(condition)) {
+			result = new ProcessResult(ProcessResult.FAILURE, "Command timed out!");
+		} else if (hasErrors(condition, session)) {
+			Integer exitStatus = session.getExitStatus();
+			int statusCode = (exitStatus == null ? ProcessResult.FAILURE : exitStatus);
+			result = new ProcessResult(statusCode, output);
+		} else {
+			result = new ProcessResult(ProcessResult.SUCCESS, output);
 		}
+		
 		return result;
 	}
 
