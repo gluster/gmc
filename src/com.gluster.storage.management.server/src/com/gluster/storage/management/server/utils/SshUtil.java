@@ -26,6 +26,8 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.ssh2.ChannelCondition;
@@ -59,6 +61,15 @@ public class SshUtil {
 	private static final String USER_NAME = "root";
 	// TODO: Make default password configurable
 	private static final String DEFAULT_PASSWORD = "syst3m";
+	
+	private static final Logger logger = Logger.getLogger(SshUtil.class);
+	
+	@Autowired
+	private Integer sshConnectTimeout;
+	@Autowired
+	private Integer sshKexTimeout;
+	@Autowired
+	private Integer sshExecTimeout;
 
 	public boolean hasDefaultPassword(String serverName) {
 		try {
@@ -207,21 +218,20 @@ public class SshUtil {
 		Connection conn;
 		conn = new Connection(serverName);
 		try {
-			// tcp connection timeout = 3 sec, ssh connection timeout = 10 sec
-			conn.connect(null, 3000, 10000);
+			conn.connect(null, sshConnectTimeout, sshKexTimeout);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error("Couldn't establish SSH connection with server [" + serverName + "]", e);
 			throw new ConnectionException("Exception while creating SSH connection with server [" + serverName + "]", e);
 		}
 		return conn;
 	}
 
-	private boolean wasTerminated(int condition) {
-		return ((condition | ChannelCondition.EXIT_SIGNAL) == condition);
-	}
-
 	private boolean hasErrors(int condition, Session session) {
 		return (hasErrorStream(condition) || (exitedGracefully(condition) && exitedWithError(session)));
+	}
+	
+	private boolean timedOut(int condition) {
+		return (condition == ChannelCondition.TIMEOUT);
 	}
 
 	private boolean exitedWithError(Session session) {
@@ -229,7 +239,7 @@ public class SshUtil {
 	}
 
 	private boolean exitedGracefully(int condition) {
-		return (condition | ChannelCondition.EXIT_STATUS) == condition;
+		return (condition == ChannelCondition.EXIT_STATUS);
 	}
 
 	private boolean hasErrorStream(int condition) {
@@ -248,8 +258,10 @@ public class SshUtil {
 			session.close();
 			return result;
 		} catch (IOException e) {
-			throw new GlusterRuntimeException("Exception while executing command [" + command + "] on ["
-					+ sshConnection.getHostname() + "]", e);
+			String errMsg = "Exception while executing command [" + command + "] on [" + sshConnection.getHostname()
+					+ "]";
+			logger.error(errMsg, e);
+			throw new GlusterRuntimeException(errMsg, e);
 		}
 	}
 
@@ -258,29 +270,37 @@ public class SshUtil {
 		// a) gracefully with an exit status, OR
 		// b) because of a termination signal
 		// c) command takes to long to exit (timeout)
-		int condition = session.waitForCondition(ChannelCondition.EXIT_SIGNAL | ChannelCondition.EXIT_STATUS
-				| ChannelCondition.TIMEOUT, 5000);
+		int condition = session.waitForCondition(ChannelCondition.EXIT_SIGNAL | ChannelCondition.EXIT_STATUS,
+				sshExecTimeout);
 		StringBuilder output = new StringBuilder();
 
 		try {
-			readFromStream(stdoutReader, output);
-			if (hasErrors(condition, session)) {
-				readFromStream(stderrReader, output);
+			if(!timedOut(condition)) {
+				readFromStream(stdoutReader, output);
+				if (hasErrors(condition, session)) {
+					readFromStream(stderrReader, output);
+				}
 			}
 
 			return prepareProcessResult(session, condition, output.toString().trim());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
+			String errMsg = "Error while reading output stream from SSH connection!";
+			logger.error(errMsg, e);
+			return new ProcessResult(ProcessResult.FAILURE, errMsg);
 		}
 	}
 
 	private ProcessResult prepareProcessResult(Session session, int condition, String output) {
 		ProcessResult result = null;
-		if (wasTerminated(condition)) {
+		switch(condition) {
+		case ChannelCondition.TIMEOUT:
+			result = new ProcessResult(ProcessResult.FAILURE, "Command timed out!");
+			break;
+		case ChannelCondition.EXIT_SIGNAL:
+			// terminated
 			result = new ProcessResult(ProcessResult.FAILURE, output);
-		} else {
+			break;
+		default:
 			if (hasErrors(condition, session)) {
 				Integer exitStatus = session.getExitStatus();
 				int statusCode = (exitStatus == null ? ProcessResult.FAILURE : exitStatus);
@@ -288,12 +308,12 @@ public class SshUtil {
 			} else {
 				result = new ProcessResult(ProcessResult.SUCCESS, output);
 			}
+			break;
 		}
 		return result;
 	}
 
-	private void readFromStream(BufferedReader streamReader, StringBuilder output) throws IOException,
-			UnsupportedEncodingException {
+	private void readFromStream(BufferedReader streamReader, StringBuilder output) throws IOException {
 		while (true) {
 			String line = streamReader.readLine();
 			if (line == null) {
