@@ -33,7 +33,6 @@ public class GlusterServer extends Server {
 
 	private String uuid;
 	private SERVER_STATUS status;
-	private Cluster cluster;
 
 	public GlusterServer() {
 	}
@@ -48,12 +47,6 @@ public class GlusterServer extends Server {
 		setStatus(status);
 	}
 
-	public GlusterServer(String name, Entity parent, SERVER_STATUS status, int numOfCPUs, double cpuUsage,
-			double totalMemory, double memoryInUse, Cluster cluster) {
-		this(name, parent, status, numOfCPUs, cpuUsage, totalMemory, memoryInUse);
-		setCluster(cluster);
-	}
-	
 	public Boolean isOnline() {
 		return getStatus() == SERVER_STATUS.ONLINE;
 	}
@@ -78,32 +71,31 @@ public class GlusterServer extends Server {
 		this.uuid = uuid;
 	}
 
-	
-//	public NetworkInterface getPreferredNetworkInterface() {
-//		return preferredNetworkInterface;
-//	}
-//
-//	public void setPreferredNetworkInterface(NetworkInterface preferredNetworkInterface) {
-//		this.preferredNetworkInterface = preferredNetworkInterface;
-//		preferredNetworkInterface.setPreferred(true);
-//	}
-
-	
-	@XmlTransient
-	public Cluster getCluster() {
-		return cluster;
-	}
-
-	public void setCluster(Cluster cluster) {
-		this.cluster = cluster;
-	}
-
 	/**
-	 * Filter matches if any of the properties name, status and primary/secondary/third
-	 * DNS contains the filter string
+	 * Filter matches if any of the properties name and status contains the filter string
 	 */
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
 		return StringUtil.filterString(getName() + getStatusStr(), filterString, caseSensitive);
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(!(obj instanceof GlusterServer)) {
+			return false;
+		}
+		GlusterServer server = (GlusterServer)obj;
+		
+		if(super.equals(server) && getUuid().equals(server.getUuid()) && getStatus() == server.getStatus()){
+			return true;
+		}
+		
+		return false;
+	}
+	
+	public void copyFrom(GlusterServer server) {
+		super.copyFrom(server);
+		setUuid(server.getUuid());
+		setStatus(server.getStatus());
 	}
 }

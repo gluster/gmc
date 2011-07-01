@@ -132,4 +132,31 @@ public class Disk extends Entity {
 	public String getQualifiedBrickName(String volumeName) {
 		return getServerName() + ":" + getMountPoint() + File.separator + volumeName;
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(!(obj instanceof Disk)) {
+			return false;
+		}
+		Disk disk = (Disk)obj;
+		
+		if (getName().equals(disk.getName()) && getServerName().equals(disk.getServerName())
+				&& getMountPoint().equals(disk.getMountPoint()) && getDescription().equals(disk.getDescription())
+				&& getStatus() == disk.getStatus() && getSpace() == disk.getSpace()
+				&& getSpaceInUse() == disk.getSpaceInUse()) {
+			return true;
+		}
+		
+		return false;
+	}
+
+	public void copyFrom(Disk newDisk) {
+		setName(newDisk.getName());
+		setDescription(newDisk.getDescription());
+		setMountPoint(newDisk.getMountPoint());
+		setServerName(newDisk.getServerName());
+		setStatus(newDisk.getStatus());
+		setSpace(newDisk.getSpace());
+		setSpaceInUse(newDisk.getSpaceInUse());
+	}
 }

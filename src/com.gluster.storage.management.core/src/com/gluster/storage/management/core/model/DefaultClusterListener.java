@@ -26,79 +26,83 @@ public class DefaultClusterListener implements ClusterListener {
 
 	@Override
 	public void serverAdded(GlusterServer server) {
-		clusterChanged();
+		modelChanged();
 	}
 
 	@Override
 	public void serverRemoved(GlusterServer server) {
-		clusterChanged();
+		modelChanged();
 	}
 
 	@Override
 	public void serverChanged(GlusterServer server, Event event) {
-		clusterChanged();
+		modelChanged();
 	}
 
 	@Override
 	public void volumeAdded(Volume volume) {
-		clusterChanged();
+		modelChanged();
 	}
 
 	@Override
 	public void volumeRemoved(Volume volume) {
-		clusterChanged();
+		modelChanged();
 	}
 
 	@Override
 	public void volumeChanged(Volume volume, Event event) {		
-		clusterChanged();
+		modelChanged();
 	}
 
 	@Override
 	public void discoveredServerAdded(Server server) {
-		clusterChanged();
+		modelChanged();
 	}
 
 	@Override
 	public void discoveredServerRemoved(Server server) {
-		clusterChanged();
+		modelChanged();
 	}
 
 	@Override
 	public void volumeCreated(Volume volume) {
-		clusterChanged();
+		modelChanged();
 	}
 	
 	@Override
 	public void volumeDeleted(Volume volume) {
-		clusterChanged();
+		modelChanged();
 	}
 	
 	
 	@Override
 	public void taskAdded(TaskInfo taskInfo) {
-		clusterChanged();
+		modelChanged();
 	}
 
 	
 	@Override
 	public void taskRemoved(TaskInfo taskInfo) {
-		clusterChanged();
+		modelChanged();
 	}
 
 	
 	@Override
 	public void taskUpdated(TaskInfo taskInfo) {
-		clusterChanged();
+		modelChanged();
 	}
-	
+
 	/**
 	 * This method is called by every other event method. Thus, if a view/listener is interested in performing the same
-	 * task on any change happening in the cluster data model, it can simply override this method and implement the
-	 * logic. e.g. A view may simply refresh its tree/table viewer whenever the cluster data model changes.
+	 * task on any change happening in the data model, it can simply override this method and implement the
+	 * logic. e.g. A view may simply refresh its tree/table viewer whenever the data model changes.
 	 */
-	public void clusterChanged() {
+	public void modelChanged() {
 		
 	}
-	
+
+	@Override
+	public void discoveredServerChanged(Server server, Event event) {
+		modelChanged();
+	}
 }

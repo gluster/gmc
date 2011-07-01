@@ -21,7 +21,9 @@
 package com.gluster.storage.management.gui.dialogs;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -90,12 +92,11 @@ public class AddBrickPage extends WizardPage {
 		return availableDisks;
 	}
 
-
-	public List<Disk> getChosenDisks( ) {
-		return page.getChosenDisks();
+	public Set<Disk> getChosenDisks() {
+		return new HashSet<Disk>(page.getChosenDisks());
 	}
 	
-	public List<Brick> getChosenBricks( String volumeName ) {
+	public Set<Brick> getChosenBricks( String volumeName ) {
 		return page.getChosenBricks(volumeName);
 	}
 	

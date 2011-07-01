@@ -139,7 +139,7 @@ public class VolumesClient extends AbstractClient {
 				VolumeOptionInfoListResponse.class)).getOptions();
 	}
 
-	public void addBricks(String volumeName, List<String> brickList) {
+	public void addBricks(String volumeName, Set<String> brickList) {
 		String bricks = StringUtil.collectionToString(brickList, ",");
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_BRICKS, bricks);

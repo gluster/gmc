@@ -88,7 +88,6 @@ public class GlusterDummyModel {
 		initializeAutoDiscoveredServers(cluster);
 		initializeDisks();
 		addDisksToServers();
-		addDisksToVolumes();
 		addVolumeOptions();
 
 		createDummyLogMessages();
@@ -170,27 +169,6 @@ public class GlusterDummyModel {
 		server5.addDisk(s5db);
 	}
 
-	private void addDisksToVolumes() {
-		volume1.addDisk("server1:sda");
-
-		volume2.addDisk("server2:sda");
-		volume2.addDisk("server1:sdb");
-		volume2.addDisk("server3:sda");
-		volume2.addDisk("server4:sda");
-
-		volume3.addDisk("server2:sdb");
-		volume3.addDisk("server4:sda");
-		volume3.addDisk("server5:sda");
-
-		volume4.addDisk("server1:sda");
-		volume4.addDisk("server3:sda");
-		volume4.addDisk("server4:sda");
-		volume4.addDisk("server5:sdb");
-
-		volume5.addDisk("server2:sda");
-		volume5.addDisk("server5:sdb");
-	}
-
 	private void initializeGlusterServers(Cluster cluster) {
 		List<GlusterServer> servers = new ArrayList<GlusterServer>();
 		server1 = addGlusterServer(servers, cluster, "Server1", SERVER_STATUS.ONLINE, "eth0", 4, 56.3, 16, 8.4);
@@ -252,33 +230,6 @@ public class GlusterDummyModel {
 			}
 		}
 		return null;
-	}
-
-	public List<Disk> getReadyDisksOfVolume(Volume volume) {
-		// List<Disk> disks = new ArrayList<Disk>();
-		// for (Disk disk : volume.getDisks()) {
-		// if (disk.isReady()) {
-		// disks.add(disk);
-		// }
-		// }
-		// return disks;
-		Disk disk = null;
-		List<Disk> volumeDisks = new ArrayList<Disk>();
-		for (String volumeDisk : volume.getDisks()) {
-			disk = getVolumeDisk(volumeDisk);
-			if (disk != null && disk.isReady()) {
-				volumeDisks.add(disk);
-			}
-		}
-		return volumeDisks;
-	}
-
-	public List<Disk> getReadyDisksOfAllVolumes() {
-		List<Disk> disks = new ArrayList<Disk>();
-		for (Volume volume : ((Cluster) model.getChildren().get(0)).getVolumes()) {
-			disks.addAll(getReadyDisksOfVolume(volume));
-		}
-		return disks;
 	}
 
 	public List<Disk> getReadyDisksOfAllServers() {

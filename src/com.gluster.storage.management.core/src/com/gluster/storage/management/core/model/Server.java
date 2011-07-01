@@ -19,17 +19,18 @@
 package com.gluster.storage.management.core.model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.StringUtil;
 
 @XmlRootElement(name = "server")
 public class Server extends Entity {
-	private List<NetworkInterface> networkInterfaces = new ArrayList<NetworkInterface>();
 	private int numOfCPUs;
 	private double cpuUsage;
 	private double totalMemory;
@@ -37,6 +38,7 @@ public class Server extends Entity {
 	private double totalDiskSpace = 0;
 	private double diskSpaceInUse = 0;
 	private List<Disk> disks = new ArrayList<Disk>();
+	private List<NetworkInterface> networkInterfaces = new ArrayList<NetworkInterface>();
 
 	public Server() {
 
@@ -143,7 +145,7 @@ public class Server extends Entity {
 		}
 	}
 
-	public void addDisks(List<Disk> disks) {
+	public void addDisks(Collection<Disk> disks) {
 		for (Disk disk : disks) {
 			addDisk(disk);
 		}
@@ -184,19 +186,54 @@ public class Server extends Entity {
 	public boolean filter(String filterString, boolean caseSensitive) {
 		return StringUtil.filterString(getName() + getIpAddressesAsString(), filterString, caseSensitive);
 	}
-	
+
+	/**
+	 * Note: this method doesn't copy the disks. Clients should write separate code to identify added/removed/modified
+	 * disks and update the server disks appropriately.
+	 * 
+	 * @param server
+	 */
 	@SuppressWarnings("unchecked")
 	public void copyFrom(Server server) {
-		this.setName(server.getName());
-		this.setParent(server.getParent());
-		this.setChildren(( List<Entity>) server.getChildren());
-		this.setNetworkInterfaces(server.getNetworkInterfaces());
-		this.setNumOfCPUs(server.getNumOfCPUs());
-		this.setCpuUsage(server.getCpuUsage());
-		this.setTotalMemory(server.getTotalMemory());
-		this.setMemoryInUse(server.getMemoryInUse());
-		this.setTotalDiskSpace(server.getTotalDiskSpace());
-		this.setDiskSpaceInUse(server.getDiskSpaceInUse());
-		this.setDisks(server.getDisks());
+		setName(server.getName());
+		setParent(server.getParent());
+		setChildren((List<Entity>) server.getChildren());
+		setNetworkInterfaces(server.getNetworkInterfaces());
+		setNumOfCPUs(server.getNumOfCPUs());
+		setCpuUsage(server.getCpuUsage());
+		setTotalMemory(server.getTotalMemory());
+		setMemoryInUse(server.getMemoryInUse());
+		setTotalDiskSpace(server.getTotalDiskSpace());
+		setDiskSpaceInUse(server.getDiskSpaceInUse());
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(!(obj instanceof Server)) {
+			return false;
+		}
+		Server server = (Server)obj;
+		
+		if (!(getName().equals(server.getName()) && getNumOfCPUs() == server.getNumOfCPUs()
+				&& getCpuUsage() == server.getCpuUsage() && getTotalMemory() == server.getTotalMemory()
+				&& getMemoryInUse() == server.getMemoryInUse() && getDisks().size() == server.getDisks().size() && getNetworkInterfaces()
+				.size() == server.getNetworkInterfaces().size())) {
+			return false;
+		}
+		
+		for(Disk disk : getDisks()) {
+			if (!disk.equals(GlusterCoreUtil.getEntity(server.getDisks(), disk.getName(), false))) {
+				return false;
+			}
+		}
+		
+		for (NetworkInterface networkInterface : getNetworkInterfaces()) {
+			if (!networkInterface.equals(GlusterCoreUtil.getEntity(server.getNetworkInterfaces(),
+					networkInterface.getName(), false))) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

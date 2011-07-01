@@ -47,10 +47,6 @@ public class RemoveBrickAction extends AbstractActionDelegate {
 				VolumesClient client = new VolumesClient();
 				try {
 					client.removeBricks(volume.getName(), bricks, confirmDelete);
-					// Remove the bricks from the volume object
-					for (Brick brick : bricks) {
-						volume.removeBrick(brick);
-					}
 					// Update model with removed bricks in the volume
 					modelManager.removeBricks(volume, bricks);
 

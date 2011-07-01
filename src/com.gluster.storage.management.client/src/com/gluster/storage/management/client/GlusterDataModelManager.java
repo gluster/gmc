@@ -20,6 +20,7 @@ package com.gluster.storage.management.client;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -29,7 +30,6 @@ import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
-import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.GlusterDataModel;
@@ -111,44 +111,173 @@ public class GlusterDataModelManager {
 	
 	private void updateModel(GlusterDataModel model) {
 		updateVolumes(model);
-		updateServers(model);
-		// TODO: Update other entities like discovered servers
+		updateGlusterServers(model);
+		updateDiscoveredServers(model);
 	}
 
-	private void updateServers(GlusterDataModel newModel) {
+	private void updateDiscoveredServers(GlusterDataModel newModel) {
+		List<Server> oldServers = model.getCluster().getAutoDiscoveredServers();
+		List<Server> newServers = newModel.getCluster().getAutoDiscoveredServers();
+		
+		Set<Server> addedServers = GlusterCoreUtil.getAddedEntities(oldServers, newServers, true);
+		for (Server addedServer : addedServers) {
+			addDiscoveredServer(addedServer);
+		}
+
+		Set<Server> removedServers = GlusterCoreUtil.getAddedEntities(newServers, oldServers, true);
+		for (Server removedServer : removedServers) {
+			removeDiscoveredServer(removedServer);
+		}
+		
+		Map<Server, Server> modifiedServers = GlusterCoreUtil.getModifiedEntities(oldServers, newServers);
+		for(Entry<Server, Server> entry : modifiedServers.entrySet()) {
+			discoveredServerChanged(entry.getKey(), entry.getValue());
+		}
+	}
+
+	private void updateGlusterServers(GlusterDataModel newModel) {
 		List<GlusterServer> oldServers = model.getCluster().getServers();
 		List<GlusterServer> newServers = newModel.getCluster().getServers();
 		
-		List<GlusterServer> addedServers = GlusterCoreUtil.getAddedEntities(oldServers, newServers, true);
+		Set<GlusterServer> addedServers = GlusterCoreUtil.getAddedEntities(oldServers, newServers, true);
 		for (GlusterServer addedServer : addedServers) {
 			addGlusterServer(addedServer);
 		}
 
-		List<GlusterServer> removedServers = GlusterCoreUtil.getAddedEntities(newServers, oldServers, true);
+		Set<GlusterServer> removedServers = GlusterCoreUtil.getAddedEntities(newServers, oldServers, true);
 		for (GlusterServer removedServer : removedServers) {
 			removeGlusterServer(removedServer);
 		}
 		
-		// TODO: Refresh "modified" servers
+		Map<GlusterServer, GlusterServer> modifiedServers = GlusterCoreUtil.getModifiedEntities(oldServers, newServers);
+		for(Entry<GlusterServer, GlusterServer> entry : modifiedServers.entrySet()) {
+			glusterServerChanged(entry.getKey(), entry.getValue());
+		}
+	}
+	
+	public void glusterServerChanged(GlusterServer oldServer, GlusterServer newServer) {
+		oldServer.copyFrom(newServer);
+		for (ClusterListener listener : listeners) {
+			listener.serverChanged(oldServer, new Event(EVENT_TYPE.GLUSTER_SERVER_CHANGED, newServer));
+		}
+		
+		updateDisks(oldServer, oldServer.getDisks(), newServer.getDisks());
+	}
+
+	private void updateDisks(Server server, List<Disk> oldDisks, List<Disk> newDisks) {
+		Set<Disk> addedDisks = GlusterCoreUtil.getAddedEntities(oldDisks, newDisks, false);
+		addDisks(server, addedDisks);
+
+		Set<Disk> removedDisks = GlusterCoreUtil.getAddedEntities(newDisks, oldDisks, false);
+		removeDisks(server, removedDisks);
+		
+		Map<Disk, Disk> modifiedDisks = GlusterCoreUtil.getModifiedEntities(oldDisks, newDisks);
+		disksChanged(server, modifiedDisks);
+	}
+	
+	private void disksChanged(Server server, Map<Disk, Disk> modifiedDisks) {
+		if(modifiedDisks.size() == 0) {
+			return;
+		}
+		
+		for (Entry<Disk, Disk> entry : modifiedDisks.entrySet()) {
+			entry.getKey().copyFrom(entry.getValue());
+		}
+		for (ClusterListener listener : listeners) {
+			if (server instanceof GlusterServer) {
+				listener.serverChanged((GlusterServer) server, new Event(EVENT_TYPE.DISKS_CHANGED, modifiedDisks));
+			} else {
+				listener.discoveredServerChanged(server, new Event(EVENT_TYPE.DISKS_CHANGED, modifiedDisks));
+			}
+		}
+	}
+
+	public void addDisks(Server server, Set<Disk> disks) {
+		if(disks.size() == 0) {
+			return;
+		}
+		
+		server.addDisks(disks);
+		for (ClusterListener listener : listeners) {
+			if(server instanceof GlusterServer) {
+				listener.serverChanged((GlusterServer)server, new Event(EVENT_TYPE.DISKS_ADDED, disks));
+			} else {
+				listener.discoveredServerChanged(server, new Event(EVENT_TYPE.DISKS_ADDED, disks));
+			}
+		}
+	}
+
+	public void removeDisks(Server server, Set<Disk> disks) {
+		if(disks.size() == 0) {
+			return;
+		}
+		
+		for(Disk disk : disks) {
+			server.removeDisk(disk);
+		}
+		
+		for (ClusterListener listener : listeners) {
+			if(server instanceof GlusterServer) {
+				listener.serverChanged((GlusterServer)server, new Event(EVENT_TYPE.DISKS_REMOVED, disks));
+			} else {
+				listener.discoveredServerChanged(server, new Event(EVENT_TYPE.DISKS_REMOVED, disks));
+			}
+		}
 	}
 
 	private void updateVolumes(GlusterDataModel newModel) {
 		List<Volume> oldVolumes = model.getCluster().getVolumes();
 		List<Volume> newVolumes = newModel.getCluster().getVolumes();
 		
-		List<Volume> addedVolumes = GlusterCoreUtil.getAddedEntities(oldVolumes, newVolumes, false);
+		Set<Volume> addedVolumes = GlusterCoreUtil.getAddedEntities(oldVolumes, newVolumes, false);
 		for (Volume addedVolume : addedVolumes) {
 			addVolume(addedVolume);
 		}
 		
-		List<Volume> removedVolumes = GlusterCoreUtil.getAddedEntities(newVolumes, oldVolumes, false);
+		Set<Volume> removedVolumes = GlusterCoreUtil.getAddedEntities(newVolumes, oldVolumes, false);
 		for (Volume removedVolume : removedVolumes) {
 			deleteVolume(removedVolume);
 		}
 		
-		// TODO: Refresh "modified" volumes
+		Map<Volume, Volume> modifiedVolumes = GlusterCoreUtil.getModifiedEntities(oldVolumes, newVolumes);
+		for(Entry<Volume, Volume> entry : modifiedVolumes.entrySet()) {
+			volumeChanged(entry.getKey(), entry.getValue());
+		}
 	}
 	
+	private void volumeChanged(Volume oldVolume, Volume newVolume) {
+		oldVolume.copyFrom(newVolume);
+		for (ClusterListener listener : listeners) {
+			listener.volumeChanged(oldVolume, new Event(EVENT_TYPE.VOLUME_CHANGED, newVolume));
+		}
+		updateBricks(oldVolume, oldVolume.getBricks(), newVolume.getBricks());
+	}
+
+	private void updateBricks(Volume volume, List<Brick> oldBricks, List<Brick> newBricks) {
+		Set<Brick> addedBricks = GlusterCoreUtil.getAddedEntities(oldBricks, newBricks, false);
+		addBricks(volume, addedBricks);
+
+		Set<Brick> removedBricks = GlusterCoreUtil.getAddedEntities(newBricks, oldBricks, false);
+		removeBricks(volume, removedBricks);
+		
+		Map<Brick, Brick> modifiedBricks = GlusterCoreUtil.getModifiedEntities(oldBricks, newBricks);
+		bricksChanged(volume, modifiedBricks);
+	}
+
+	public void bricksChanged(Volume volume, Map<Brick, Brick> modifiedBricks) {
+		if(modifiedBricks.size() == 0) {
+			return;
+		}
+		
+		for(Entry<Brick, Brick> entry : modifiedBricks.entrySet()) {
+			entry.getKey().copyFrom(entry.getValue());
+		}
+		
+		for (ClusterListener listener : listeners) {
+			listener.volumeChanged(volume, new Event(EVENT_TYPE.BRICKS_CHANGED, modifiedBricks));
+		}
+	}
+
 	private void initializeGlusterServers(Cluster cluster) {
 		cluster.setServers(new GlusterServersClient().getServers());
 	}
@@ -341,6 +470,14 @@ public class GlusterDataModelManager {
 		}
 	}
 	
+	public void discoveredServerChanged(Server oldServer, Server newServer) {
+		oldServer.copyFrom(newServer);
+		for (ClusterListener listener : listeners) {
+			listener.discoveredServerChanged(oldServer, new Event(EVENT_TYPE.DISCOVERED_SERVER_CHANGED, newServer));
+		}
+		updateDisks(oldServer, oldServer.getDisks(), newServer.getDisks());
+	}
+	
 	public void removeDiscoveredServer(String serverName) {
 		Cluster cluster = model.getCluster();
 		// TODO: Move auto-discovered servers outside the cluster
@@ -398,13 +535,27 @@ public class GlusterDataModelManager {
 		}
 	}
 
-	public void addBricks(Volume volume, List<Brick> bricks) {
+	public void addBricks(Volume volume, Set<Brick> bricks) {
+		if(bricks.size() == 0) {
+			return;
+		}
+		
+		volume.addBricks(bricks);
 		for (ClusterListener listener : listeners) {
 			listener.volumeChanged(volume, new Event(EVENT_TYPE.BRICKS_ADDED, bricks));
 		}
 	}
 	
 	public void removeBricks(Volume volume, Set<Brick> bricks) {
+		if(bricks.size() == 0) {
+			return;
+		}
+		
+		// Remove the bricks from the volume object
+		for (Brick brick : bricks) {
+			volume.removeBrick(brick);
+		}
+
 		for (ClusterListener listener : listeners) {
 			listener.volumeChanged(volume, new Event(EVENT_TYPE.BRICKS_REMOVED, bricks));
 		}

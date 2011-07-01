@@ -92,4 +92,21 @@ public class NetworkInterface extends Entity {
 		this.speed = speed;
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof NetworkInterface)) {
+			return false;
+		}
+
+		NetworkInterface networkInterface = (NetworkInterface) obj;
+		if (getName().equals(networkInterface.getName()) && getHwAddr().equals(networkInterface.getHwAddr())
+				&& getIpAddress().equals(networkInterface.getIpAddress())
+				&& getDefaultGateway().equals(networkInterface.getDefaultGateway())
+				&& getNetMask().equals(networkInterface.getNetMask()) && getSpeed().equals(networkInterface.getSpeed())
+				&& getModel().equals(networkInterface.getModel())) {
+			return true;
+		}
+
+		return false;
+	}
 }

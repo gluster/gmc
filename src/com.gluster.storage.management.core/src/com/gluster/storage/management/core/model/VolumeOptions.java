@@ -86,4 +86,30 @@ public class VolumeOptions {
 	public boolean containsKey(String key) {
 		return optionsMap.containsKey(key);
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(!(obj instanceof VolumeOptions)) {
+			return false;
+		}
+		
+		VolumeOptions options = (VolumeOptions)obj;
+		if(getOptions().size() != options.size()) {
+			return false;
+		}
+		
+		for(VolumeOption option : getOptions()) {
+			if(!(option.getValue().equals(options.get(option.getKey())))) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
+
+	public void copyFrom(VolumeOptions options) {
+		for(Entry<String, String> entry : options.entrySet()) {
+			optionsMap.put(entry.getKey(), entry.getValue());
+		}
+	}
 }

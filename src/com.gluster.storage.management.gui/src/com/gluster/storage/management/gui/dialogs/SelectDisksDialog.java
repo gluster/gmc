@@ -18,8 +18,8 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.dialogs;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -112,7 +112,7 @@ public class SelectDisksDialog extends Dialog {
 		return disksPage.getChosenDisks();
 	}
 
-	public List<Brick> getSelectedBricks(String volumeName) {
+	public Set<Brick> getSelectedBricks(String volumeName) {
 		return disksPage.getChosenBricks(volumeName);
 	}
 }
