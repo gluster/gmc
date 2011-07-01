@@ -20,21 +20,26 @@
  */
 package com.gluster.storage.management.server.tasks;
 
+import com.gluster.storage.management.core.exceptions.ConnectionException;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.core.model.TaskStatus;
+import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.server.services.ClusterService;
+import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.SshUtil;
+import com.sun.jersey.core.util.Base64;
 
 public class InitializeDiskTask extends Task {
 
 	private static final String INITIALIZE_DISK_SCRIPT = "initialize_disk.py";
-	private static final String INITIALIZE_DISK_STATUS_SCRIPT = "initialize_disk_status.py";
 	
 	private String serverName;
 	private String diskName;
 	private SshUtil sshUtil = new SshUtil();
+	private GlusterUtil glusterUtil;
 
 	public InitializeDiskTask(ClusterService clusterService, String clusterName, String serverName, String diskName) {
 		super(clusterService, clusterName, TASK_TYPE.DISK_FORMAT, diskName, "Initialize disk " + serverName + ":"
@@ -50,7 +55,7 @@ public class InitializeDiskTask extends Task {
 
 	@Override
 	public String getId() {
-		return taskInfo.getType() + "-" + serverName + ":" + diskName;
+		return new String(Base64.encode(taskInfo.getType() + "-" + serverName + ":" + diskName));
 	}
 
 	@Override
@@ -85,17 +90,41 @@ public class InitializeDiskTask extends Task {
 
 	@Override
 	public void start() {
-		getTaskInfo().setStatus(
-				new TaskStatus(new Status(sshUtil.executeRemote(getServerName(), INITIALIZE_DISK_SCRIPT + " "
-						+ getDiskName()))));
+		try {
+			startInitializeDisk(getOnlineServer().getName());
+		} catch(ConnectionException e) {
+			// online server might have gone offline. try with a new one
+			startInitializeDisk(getNewOnlineServer().getName());
+		}
+	}
+
+	private void startInitializeDisk(String serverName) {
+		ProcessResult processResult = sshUtil.executeRemote(serverName, INITIALIZE_DISK_SCRIPT + " " + getDiskName());
+		if (processResult.isSuccess()) {
+			// TODO: Message needs to change according to the script return
+			if (processResult.getOutput().trim().matches(".*has been successful$")) {
+				getTaskInfo().setStatus(
+						new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, processResult.getOutput())));
+				return;
+			}
+		}
+		
+		// if we reach here, it means Initialize disk start failed.
+		throw new GlusterRuntimeException(processResult.toString());
+		
 	}
 
 	@Override
 	public TaskStatus checkStatus() {
-		return new TaskStatus(new Status(sshUtil.executeRemote(getServerName(), INITIALIZE_DISK_STATUS_SCRIPT + " "
-				+ getDiskName())));
+		
+		try {
+			return glusterUtil.checkInitializeDiskStatus(getOnlineServer().getName(), getDiskName());
+		} catch(ConnectionException e) {
+			// online server might have gone offline. try with a new one
+			return glusterUtil.checkInitializeDiskStatus(getNewOnlineServer().getName(), getDiskName());
+		}
 	}
-
+	
 	public void setDiskName(String diskName) {
 		this.diskName = diskName;
 	}

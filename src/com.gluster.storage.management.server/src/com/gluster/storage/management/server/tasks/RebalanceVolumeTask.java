@@ -28,33 +28,40 @@ import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.server.services.ClusterService;
+import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.SshUtil;
+import com.sun.jersey.core.util.Base64;
 
 public class RebalanceVolumeTask extends Task {
 
 	private String layout;
+	private String serverName;
 	private SshUtil sshUtil = new SshUtil();
+	private GlusterUtil glusterUtil = new GlusterUtil();
 
 	public RebalanceVolumeTask(ClusterService clusterService, String clusterName, TaskInfo taskInfo) {
 		super(clusterService, clusterName, taskInfo);
 	}
 
 	public RebalanceVolumeTask(ClusterService clusterService, String clusterName, String volumeName) {
-		super(clusterService, clusterName, TASK_TYPE.VOLUME_REBALANCE, volumeName, "Volume rebalance running on " + volumeName, false, true, false);
+		super(clusterService, clusterName, TASK_TYPE.VOLUME_REBALANCE, volumeName, "Volume rebalance running on "
+				+ volumeName, false, true, false);
 	}
 
 	@Override
 	public String getId() {
-		return taskInfo.getType() + "-" + taskInfo.getReference();
+		return new String(Base64.encode(taskInfo.getType() + "-" + taskInfo.getReference()));
 	}
 
 	@Override
 	public void start() {
 		try {
-			startRebalance(getOnlineServer().getName());
+			serverName = getOnlineServer().getName();
+			startRebalance(serverName);
 		} catch(ConnectionException e) {
 			// online server might have gone offline. try with a new one
-			startRebalance(getNewOnlineServer().getName());
+			serverName = getNewOnlineServer().getName();
+			startRebalance(serverName);
 		}
 	}
 
@@ -63,7 +70,9 @@ public class RebalanceVolumeTask extends Task {
 		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
 		if (processResult.isSuccess()) {
 			if (processResult.getOutput().trim().matches(".*has been successful$")) {
-				getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, processResult.getOutput())));
+				getTaskInfo().setStatus(
+						new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, processResult.getOutput())));
+				return;
 			}
 		}
 		
@@ -74,34 +83,34 @@ public class RebalanceVolumeTask extends Task {
 	@Override
 	public void resume() {
 		getTaskInfo().setStatus(
-				new TaskStatus(new Status(Status.STATUS_CODE_FAILURE, "Pause/Resume is not supported in Volume Rebalance")));
+				new TaskStatus(new Status(Status.STATUS_CODE_FAILURE,
+						"Pause/Resume is not supported in Volume Rebalance")));
 	}
 
 	@Override
 	public void stop() {
 		try {
-			stopRebalance(getOnlineServer().getName());
-		} catch(ConnectionException e) {
-			// online server might have gone offline. try with a new one
-			stopRebalance(getNewOnlineServer().getName());
+			stopRebalance(serverName);
+		} catch (ConnectionException e) {
+			// online server might have gone offline. update the failure status
+			getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_FAILURE, e.getMessage())));
 		}
 	}
 
 	private void stopRebalance(String serverName) {
 		String command = "gluster volume rebalance " + getTaskInfo().getReference() + " stop";
 		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
-		TaskStatus taskStatus = new TaskStatus();
+
 		if (processResult.isSuccess()) {
 			if (processResult.getOutput().trim().matches(".*has been successful$")) {
-				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
-			} else {
-				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+				getTaskInfo().setStatus(
+						new TaskStatus(new Status(Status.STATUS_CODE_SUCCESS, processResult.getOutput())));
+				return;
 			}
-		} else {
-			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
 		}
-		taskStatus.setMessage(processResult.getOutput()); // Common
-		getTaskInfo().setStatus(taskStatus);
+		
+		// if we reach here, it means rebalance stop failed.
+		throw new GlusterRuntimeException(processResult.toString());
 	}
 
 	@Override
@@ -113,31 +122,14 @@ public class RebalanceVolumeTask extends Task {
 	@Override
 	public TaskStatus checkStatus() {
 		try {
-			return checkRebalanceStatus(getOnlineServer().getName());
+			return glusterUtil.checkRebalanceStatus(serverName, getTaskInfo().getReference());
 		} catch(ConnectionException e) {
-			// online server might have gone offline. try with a new one. 
-			return checkRebalanceStatus(getNewOnlineServer().getName());
+			// online server might have gone offline. update the failure status
+			getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_FAILURE, e.getMessage())));
+			return getTaskInfo().getStatus();
 		}
 	}
 	
-	// TODO: This method should move to glusterUtil
-	private TaskStatus checkRebalanceStatus(String serverName) {
-		String command = "gluster volume rebalance " + getTaskInfo().getReference() + " status";
-		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
-		TaskStatus taskStatus = new TaskStatus();
-		if (processResult.isSuccess()) {
-			if (processResult.getOutput().trim().matches(".*rebalance completed$")) {
-				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
-			} else {
-				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
-			}
-		} else {
-			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
-		}
-		taskStatus.setMessage(processResult.getOutput()); // Common
-		return taskStatus;
-	}
-
 	public void setLayout(String layout) {
 		this.layout = layout;
 	}

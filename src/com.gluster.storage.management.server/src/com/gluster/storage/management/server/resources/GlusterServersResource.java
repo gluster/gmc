@@ -414,15 +414,12 @@ public class GlusterServersResource extends AbstractServersResource {
 			return badRequestResponse("Disk name must not be empty!");
 		}
 
-		InitializeDiskTask initializeTask = new InitializeDiskTask(clusterService, clusterName, diskName, serverName);
-		try {
-			initializeTask.start();
-			taskResource.addTask(initializeTask);
-			return acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/" + RESOURCE_TASKS
-					+ "/" + initializeTask.getId());
-		} catch (ConnectionException e) {
-			return errorResponse(e.getMessage());
-		}
+		InitializeDiskTask initializeTask = new InitializeDiskTask(clusterService, clusterName, serverName, diskName);
+		initializeTask.start();
+		taskResource.addTask(initializeTask);
+
+		return acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/" + RESOURCE_TASKS + "/"
+				+ initializeTask.getId());
 	}
 
 	private void setGlusterUtil(GlusterUtil glusterUtil) {
