@@ -37,6 +37,7 @@ import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
+import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
@@ -71,6 +72,8 @@ public class GlusterUtil {
 	private static final String VOLUME_TYPE_REPLICATE = "Replicate";
 	
 	private static final GlusterCoreUtil glusterCoreUtil = new GlusterCoreUtil();
+	
+	private static final String INITIALIZE_DISK_STATUS_SCRIPT = "initialize_disk_status.py";
 
 	@Autowired
 	private SshUtil sshUtil;
@@ -549,6 +552,54 @@ public class GlusterUtil {
 		if(!result.isSuccess()) {
 			throw new GlusterRuntimeException("Couldn't remove server [" + serverName + "]! Error: " + result);
 		}
+	}
+	
+	public TaskStatus checkRebalanceStatus(String serverName, String volumeName) {
+		String command = "gluster volume rebalance " + volumeName + " status";
+		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
+		TaskStatus taskStatus = new TaskStatus();
+		if (processResult.isSuccess()) {
+			if (processResult.getOutput().trim().matches("^rebalance completed.*")) {
+				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
+			} else if(processResult.getOutput().trim().matches(".*in progress:.*")) {
+				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
+			} else {
+				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+			}
+		} else {
+			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+		}
+		taskStatus.setMessage(processResult.getOutput()); // Common
+		return taskStatus;
+	}
+	
+	public void stopRebalance(String serverName, String volumeName) {
+		String command = "gluster volume rebalance " + volumeName + " stop";
+		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
+		TaskStatus taskStatus = new TaskStatus();
+		if (processResult.isSuccess()) {
+			taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
+			taskStatus.setMessage(processResult.getOutput());
+		}
+	}
+	
+	public TaskStatus checkInitializeDiskStatus(String serverName, String diskName) {
+		ProcessResult processResult = sshUtil.executeRemote(serverName, INITIALIZE_DISK_STATUS_SCRIPT + " " + diskName);
+		TaskStatus taskStatus = new TaskStatus();
+		if (processResult.isSuccess()) {
+			// TODO: Message needs to change according to the script return
+			if (processResult.getOutput().trim().matches(".*Initailize completed$")) {
+				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
+			} else {
+				// TODO: Percentage completed needs to be set, according to the script output
+				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
+				// taskStatus.setPercentCompleted(processResult.getOutput());
+			}
+		} else {
+			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+		}
+		taskStatus.setMessage(processResult.getOutput());
+		return taskStatus;
 	}
 
 	public static void main(String args[]) {

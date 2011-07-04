@@ -33,7 +33,8 @@ public abstract class Task {
 	protected String clusterName;
 	private ClusterService clusterService;
 	
-	public Task(ClusterService clusterService, String clusterName, TASK_TYPE type, String reference, String desc, boolean canPause, boolean canStop, boolean canCommit) {
+	public Task(ClusterService clusterService, String clusterName, TASK_TYPE type, String reference, String desc,
+			boolean canPause, boolean canStop, boolean canCommit) {
 		TaskInfo taskInfo = new TaskInfo();
 		taskInfo.setType(type);
 		taskInfo.setReference(reference);
@@ -41,7 +42,7 @@ public abstract class Task {
 		taskInfo.setCanPause(canPause);
 		taskInfo.setCanStop(canStop);
 		taskInfo.setCanCommit(canCommit);
-		
+
 		init(clusterService, clusterName, taskInfo);
 		
 	}

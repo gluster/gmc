@@ -241,12 +241,6 @@ public class VolumesClient extends AbstractClient {
 		putRequest(volumeName, form);
 	}
 	
-	public void rebalanceStatus(String volumeName) {
-		Form form = new Form();
-		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_REBALANCE_STATUS);
-		putRequest(volumeName, form);
-	}
-	
 	public void rebalanceStop(String volumeName) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_REBALANCE_STOP);

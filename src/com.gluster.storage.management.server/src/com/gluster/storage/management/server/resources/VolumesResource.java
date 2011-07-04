@@ -978,7 +978,7 @@ public class VolumesResource extends AbstractResource {
 		return rebalanceStart(clusterName, volumeName, layout);
 	}
 	
-	public String rebalanceStart(String clusterName, String volumeName, String layout) {
+	private String rebalanceStart(String clusterName, String volumeName, String layout) {
 		RebalanceVolumeTask rebalanceTask = new RebalanceVolumeTask(clusterService, clusterName, volumeName);
 		rebalanceTask.setLayout(layout);
 		rebalanceTask.start();
