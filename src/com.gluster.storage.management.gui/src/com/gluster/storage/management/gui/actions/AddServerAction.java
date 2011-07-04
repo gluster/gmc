@@ -53,7 +53,6 @@ public class AddServerAction extends AbstractActionDelegate {
 
 					try {
 						glusterServersClient.addServer(server);
-						modelManager.removeDiscoveredServer(server);
 						modelManager.addGlusterServer(glusterServersClient.getGlusterServer(server.getName()));
 						successServers.add(server);
 					} catch (Exception e) {

@@ -105,45 +105,50 @@ public class GlusterDataModelManager {
 		return model;
 	}
 	
-	public void updateModel(GlusterDataModel model) {
-		updateVolumes(model);
-	}
-
-	private void updateVolumes(GlusterDataModel model) {
-		List<Volume> currentVolumes = this.model.getCluster().getVolumes();
-		List<Volume> latestVolumes = model.getCluster().getVolumes();
-		
-		List<Volume> addedVolumes = getAddedVolumes(currentVolumes, latestVolumes);
-		for(ClusterListener listener : listeners) {
-			for(Volume addedVolume : addedVolumes) {
-				listener.volumeAdded(addedVolume);
-			}
-		}
-		
-		List<Volume> removedVolumes = getRemovedVolumes(currentVolumes, latestVolumes);
-		for(ClusterListener listener : listeners) {
-			for(Volume removedVolume : addedVolumes) {
-				listener.volumeRemoved(removedVolume);
-			}
-		}
+	public void refreshModel() {
+		updateModel(fetchData(clusterName));
 	}
 	
-	private List<Volume> getRemovedVolumes(List<Volume> currentVolumes, List<Volume> latestVolumes) {
-		// TODO Auto-generated method stub
-		return null;
+	private void updateModel(GlusterDataModel model) {
+		updateVolumes(model);
+		updateServers(model);
+		// TODO: Update other entities like discovered servers
 	}
 
-	private List<Volume> getAddedVolumes(List<Volume> currentVolumes, List<Volume> newVolumes) {
-		List<Volume> addedVolumes = new ArrayList<Volume>();
-		for(Volume newVolume : addedVolumes) {
-			if(!GlusterCoreUtil.containsEntity(currentVolumes, newVolume, false)) {
-				// current volume list doesn't contain this volume. mark it.
-				addedVolumes.add(newVolume);
-			}
+	private void updateServers(GlusterDataModel newModel) {
+		List<GlusterServer> oldServers = model.getCluster().getServers();
+		List<GlusterServer> newServers = newModel.getCluster().getServers();
+		
+		List<GlusterServer> addedServers = GlusterCoreUtil.getAddedEntities(oldServers, newServers, true);
+		for (GlusterServer addedServer : addedServers) {
+			addGlusterServer(addedServer);
 		}
-		return addedVolumes;
+
+		List<GlusterServer> removedServers = GlusterCoreUtil.getAddedEntities(newServers, oldServers, true);
+		for (GlusterServer removedServer : removedServers) {
+			removeGlusterServer(removedServer);
+		}
+		
+		// TODO: Refresh "modified" servers
 	}
 
+	private void updateVolumes(GlusterDataModel newModel) {
+		List<Volume> oldVolumes = model.getCluster().getVolumes();
+		List<Volume> newVolumes = newModel.getCluster().getVolumes();
+		
+		List<Volume> addedVolumes = GlusterCoreUtil.getAddedEntities(oldVolumes, newVolumes, false);
+		for (Volume addedVolume : addedVolumes) {
+			addVolume(addedVolume);
+		}
+		
+		List<Volume> removedVolumes = GlusterCoreUtil.getAddedEntities(newVolumes, oldVolumes, false);
+		for (Volume removedVolume : removedVolumes) {
+			deleteVolume(removedVolume);
+		}
+		
+		// TODO: Refresh "modified" volumes
+	}
+	
 	private void initializeGlusterServers(Cluster cluster) {
 		cluster.setServers(new GlusterServersClient().getServers());
 	}
@@ -323,6 +328,8 @@ public class GlusterDataModelManager {
 		for (ClusterListener listener : listeners) {
 			listener.serverAdded(server);
 		}
+		
+		removeDiscoveredServer(server.getName());
 	}
 	
 	public void addDiscoveredServer(Server server) {
@@ -331,6 +338,17 @@ public class GlusterDataModelManager {
 		
 		for (ClusterListener listener : listeners) {
 			listener.discoveredServerAdded(server);;
+		}
+	}
+	
+	public void removeDiscoveredServer(String serverName) {
+		Cluster cluster = model.getCluster();
+		// TODO: Move auto-discovered servers outside the cluster
+		for(Server server : cluster.getAutoDiscoveredServers()) {
+			if(server.getName().toUpperCase().equals(serverName.toUpperCase())) {
+				removeDiscoveredServer(server);
+				break;
+			}
 		}
 	}
 
