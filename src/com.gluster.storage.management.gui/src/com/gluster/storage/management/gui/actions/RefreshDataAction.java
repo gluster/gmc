@@ -20,6 +20,8 @@ package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
+
 /**
  *
  */
@@ -39,7 +41,6 @@ public class RefreshDataAction extends AbstractActionDelegate {
 	 */
 	@Override
 	protected void performAction(IAction action) {
-		// TODO Auto-generated method stub
-
+		GlusterDataModelManager.getInstance().refreshModel();
 	}
 }
