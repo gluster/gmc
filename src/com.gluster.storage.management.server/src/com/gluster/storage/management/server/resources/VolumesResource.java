@@ -208,7 +208,7 @@ public class VolumesResource extends AbstractResource {
 		}
 
 		try {
-			createVolume(clusterName, volumeName, volumeType, transportType, replicaCount, stripeCount, bricks, accessProtocols,
+			performCreateVolume(clusterName, volumeName, volumeType, transportType, replicaCount, stripeCount, bricks, accessProtocols,
 					options);
 			return createdResponse(volumeName);
 		} catch (Exception e) {
