@@ -29,6 +29,7 @@ import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
+import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.GlusterDataModel;
@@ -43,6 +44,7 @@ import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
+import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 
 public class GlusterDataModelManager {
 	private static GlusterDataModelManager instance = new GlusterDataModelManager();
@@ -80,10 +82,14 @@ public class GlusterDataModelManager {
 	}
 
 	public void initializeModel(String securityToken, String clusterName) {
-		model = new GlusterDataModel("Gluster Data Model");
 		setSecurityToken(securityToken);
 		setClusterName(clusterName);
 
+		model = fetchData(clusterName);
+	}
+
+	public GlusterDataModel fetchData(String clusterName) {
+		GlusterDataModel model = new GlusterDataModel("Gluster Data Model");
 		Cluster cluster = new Cluster(clusterName, model);
 
 		initializeGlusterServers(cluster);
@@ -96,8 +102,53 @@ public class GlusterDataModelManager {
 		initializeVolumeOptionsDefaults();
 
 		model.addCluster(cluster);
+		return model;
+	}
+	
+	public void refreshModel() {
+		updateModel(fetchData(clusterName));
+	}
+	
+	private void updateModel(GlusterDataModel model) {
+		updateVolumes(model);
+		updateServers(model);
+		// TODO: Update other entities like discovered servers
 	}
 
+	private void updateServers(GlusterDataModel newModel) {
+		List<GlusterServer> oldServers = model.getCluster().getServers();
+		List<GlusterServer> newServers = newModel.getCluster().getServers();
+		
+		List<GlusterServer> addedServers = GlusterCoreUtil.getAddedEntities(oldServers, newServers, true);
+		for (GlusterServer addedServer : addedServers) {
+			addGlusterServer(addedServer);
+		}
+
+		List<GlusterServer> removedServers = GlusterCoreUtil.getAddedEntities(newServers, oldServers, true);
+		for (GlusterServer removedServer : removedServers) {
+			removeGlusterServer(removedServer);
+		}
+		
+		// TODO: Refresh "modified" servers
+	}
+
+	private void updateVolumes(GlusterDataModel newModel) {
+		List<Volume> oldVolumes = model.getCluster().getVolumes();
+		List<Volume> newVolumes = newModel.getCluster().getVolumes();
+		
+		List<Volume> addedVolumes = GlusterCoreUtil.getAddedEntities(oldVolumes, newVolumes, false);
+		for (Volume addedVolume : addedVolumes) {
+			addVolume(addedVolume);
+		}
+		
+		List<Volume> removedVolumes = GlusterCoreUtil.getAddedEntities(newVolumes, oldVolumes, false);
+		for (Volume removedVolume : removedVolumes) {
+			deleteVolume(removedVolume);
+		}
+		
+		// TODO: Refresh "modified" volumes
+	}
+	
 	private void initializeGlusterServers(Cluster cluster) {
 		cluster.setServers(new GlusterServersClient().getServers());
 	}
@@ -277,6 +328,8 @@ public class GlusterDataModelManager {
 		for (ClusterListener listener : listeners) {
 			listener.serverAdded(server);
 		}
+		
+		removeDiscoveredServer(server.getName());
 	}
 	
 	public void addDiscoveredServer(Server server) {
@@ -285,6 +338,17 @@ public class GlusterDataModelManager {
 		
 		for (ClusterListener listener : listeners) {
 			listener.discoveredServerAdded(server);;
+		}
+	}
+	
+	public void removeDiscoveredServer(String serverName) {
+		Cluster cluster = model.getCluster();
+		// TODO: Move auto-discovered servers outside the cluster
+		for(Server server : cluster.getAutoDiscoveredServers()) {
+			if(server.getName().toUpperCase().equals(serverName.toUpperCase())) {
+				removeDiscoveredServer(server);
+				break;
+			}
 		}
 	}
 
@@ -465,5 +529,4 @@ public class GlusterDataModelManager {
 		}
 		return volumeNames;
 	}
-	
 }

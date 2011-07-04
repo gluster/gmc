@@ -207,27 +207,32 @@ public class VolumesResource extends AbstractResource {
 			return badRequestResponse("Stripe count must be a positive integer");
 		}
 
+		try {
+			createVolume(clusterName, volumeName, volumeType, transportType, replicaCount, stripeCount, bricks, accessProtocols,
+					options);
+			return createdResponse(volumeName);
+		} catch (Exception e) {
+			return errorResponse(e.getMessage());
+		}
+	}
+
+	public void performCreateVolume(String clusterName, String volumeName, String volumeType, String transportType, Integer replicaCount,
+			Integer stripeCount, String bricks, String accessProtocols, String options) {
 		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
 		if (onlineServer == null) {
-			return errorResponse("No online servers found in cluster [" + clusterName + "]");
+			throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 		}
 
-		try {
+		try  {
 			glusterUtil.createVolume(onlineServer.getName(), volumeName, volumeType, transportType, replicaCount, stripeCount, bricks, accessProtocols, options);
-			return createdResponse(volumeName);
 		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
 			onlineServer = clusterService.getNewOnlineServer(clusterName);
 			if (onlineServer == null) {
-				return errorResponse("No online servers found in cluster [" + clusterName + "]");
+				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 			}
 			
-			try {
-				glusterUtil.createVolume(onlineServer.getName(), volumeName, volumeType, transportType, replicaCount, stripeCount, bricks, accessProtocols, options);
-				return createdResponse(volumeName);
-			} catch(Exception e1) {
-				return errorResponse(e1.getMessage());
-			}
+			glusterUtil.createVolume(onlineServer.getName(), volumeName, volumeType, transportType, replicaCount, stripeCount, bricks, accessProtocols, options);
 		}
 	}
 
