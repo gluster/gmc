@@ -167,8 +167,8 @@ public class GlusterDataModelManager {
 	}
 
 	public void initializeTasks(Cluster cluster) {
-		// List<TaskInfo> taskInfoList = new TasksClient(cluster.getName()).getAllTasks();
-		List<TaskInfo> taskInfoList = getDummyTasks();
+		List<TaskInfo> taskInfoList = new TasksClient(cluster.getName()).getAllTasks();
+		// List<TaskInfo> taskInfoList = getDummyTasks();
 		cluster.setTaskInfoList(taskInfoList);
 	}
 
@@ -179,8 +179,8 @@ public class GlusterDataModelManager {
 		TaskInfo taskInfo = new TaskInfo();
 		taskInfo.setType(TASK_TYPE.BRICK_MIGRATE);
 		taskInfo.setName("Migrate Brick-music");
-		taskInfo.setCanPause(true);
-		taskInfo.setCanStop(true);
+		taskInfo.setPauseSupported(true);
+		taskInfo.setStopSupported(true);
 		taskInfo.setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, "")));
 		
 		taskInfo.getStatus().setMessage("Migrating file xxxxx to yyyy");
@@ -190,8 +190,8 @@ public class GlusterDataModelManager {
 		taskInfo = new TaskInfo();
 		taskInfo.setType(TASK_TYPE.DISK_FORMAT);
 		taskInfo.setName("Format Disk-server1:sdc");
-		taskInfo.setCanPause(false);
-		taskInfo.setCanStop(false);
+		taskInfo.setPauseSupported(false);
+		taskInfo.setStopSupported(false);
 		taskInfo.setStatus( new TaskStatus(new Status(Status.STATUS_CODE_FAILURE, ""))); 
 		taskInfo.getStatus().setMessage("Format completes 80% ...");
 		taskInfo.setDescription("Formatting disk server1:sdc.");
@@ -423,6 +423,13 @@ public class GlusterDataModelManager {
 
 		for (ClusterListener listener : listeners) {
 			listener.volumeCreated(volume);
+		}
+	}
+	
+	public void updateVolumeBricks(Volume volume, List<Brick> bricks) {
+		model.getCluster().updateVolume( volume.getName(), bricks );
+		for (ClusterListener listener : listeners) {
+			listener.volumeChanged(volume, new Event(EVENT_TYPE.BRICK_REPLACED , bricks));
 		}
 	}
 

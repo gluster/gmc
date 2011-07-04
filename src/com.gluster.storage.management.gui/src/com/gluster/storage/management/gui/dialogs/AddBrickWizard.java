@@ -38,18 +38,18 @@ import com.gluster.storage.management.core.utils.StringUtil;
 /**
  *
  */
-public class AddDiskWizard extends Wizard {
-	private AddDiskPage page;
+public class AddBrickWizard extends Wizard {
+	private AddBrickPage page;
 	private Volume volume;
 
-	public AddDiskWizard(Volume volume) {
+	public AddBrickWizard(Volume volume) {
 		setWindowTitle("Gluster Management Console - Add Brick");
 		setHelpAvailable(false); // TODO: Introduce wizard help
 		this.volume = volume;
 	}
 
 	public void addPages() {
-		page = new AddDiskPage(volume);
+		page = new AddBrickPage(volume);
 		addPage(page);
 	}
 

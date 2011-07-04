@@ -18,8 +18,6 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.actions;
 
-import java.util.Set;
-
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
@@ -31,13 +29,13 @@ import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 import org.eclipse.ui.internal.UIPlugin;
 
 import com.gluster.storage.management.core.model.Entity;
-import com.gluster.storage.management.gui.utils.GUIHelper;
 
 /**
  * All action delegates in the application should extend from this class. It provides common functionality of grabbing
  * the Window object on initialization and extracting the selected entity in case of selection change on the navigation
  * tree.
  */
+@SuppressWarnings("restriction")
 public abstract class AbstractActionDelegate implements IWorkbenchWindowActionDelegate {
 	protected IWorkbenchWindow window;
 	
@@ -56,7 +54,7 @@ public abstract class AbstractActionDelegate implements IWorkbenchWindowActionDe
 		});
 	}
 
-	abstract protected void performAction(IAction action);
+	abstract protected void performAction(final IAction action);
 
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {

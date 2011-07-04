@@ -102,7 +102,7 @@ import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
 import com.gluster.storage.management.server.data.ClusterInfo;
 import com.gluster.storage.management.server.services.ClusterService;
-import com.gluster.storage.management.server.tasks.MigrateDiskTask;
+import com.gluster.storage.management.server.tasks.MigrateBrickTask;
 import com.gluster.storage.management.server.tasks.RebalanceVolumeTask;
 import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.ServerUtil;
@@ -956,7 +956,7 @@ public class VolumesResource extends AbstractResource {
 	
 	private String migrateBrickStart(String clusterName, String volumeName, String fromBrick, String toBrick,
 			Boolean autoCommit) {
-		MigrateDiskTask migrateDiskTask = new MigrateDiskTask(clusterService, clusterName, volumeName, fromBrick,
+		MigrateBrickTask migrateDiskTask = new MigrateBrickTask(clusterService, clusterName, volumeName, fromBrick,
 				toBrick);
 		migrateDiskTask.setAutoCommit(autoCommit);
 		migrateDiskTask.start();
