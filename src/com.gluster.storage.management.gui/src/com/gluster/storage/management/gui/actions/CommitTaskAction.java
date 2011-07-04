@@ -22,9 +22,10 @@ public class CommitTaskAction extends AbstractActionDelegate {
 			new TasksClient().commitTask(taskInfo.getName());
 			taskInfo.setStatus(new TaskStatus(new Status(Status.STATUS_CODE_SUCCESS, "Committed")));
 			modelManager.removeTask(taskInfo);
-			Volume volume = (new VolumesClient()).getVolume( taskInfo.getReference());
-			modelManager.updateVolumeBricks(getVolume(taskInfo.getReference()), volume.getBricks());
-			
+			Volume volume = (new VolumesClient()).getVolume(taskInfo.getReference());
+			modelManager.updateVolumeBricks(modelManager.getModel().getCluster().getVolume(taskInfo.getReference()),
+					volume.getBricks());
+
 			showInfoDialog(actionDesc, "Commit successful");
 		} catch (Exception e) {
 			showErrorDialog(actionDesc,
@@ -47,14 +48,4 @@ public class CommitTaskAction extends AbstractActionDelegate {
 	public void dispose() {
 
 	}
-	
-	private Volume getVolume(String volumeName) {
-		for (Volume volume : modelManager.getModel().getCluster().getVolumes() ) {
-			if (volume.getName().equals(volumeName)) {
-				return volume;
-			}
-		}
-		return null;
-	}
-
 }

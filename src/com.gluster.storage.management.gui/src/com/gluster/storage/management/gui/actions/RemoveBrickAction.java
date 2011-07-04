@@ -20,7 +20,7 @@ import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.views.VolumeBricksView;
 
-public class RemoveDiskAction extends AbstractActionDelegate {
+public class RemoveBrickAction extends AbstractActionDelegate {
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 	private Set<Brick> bricks;

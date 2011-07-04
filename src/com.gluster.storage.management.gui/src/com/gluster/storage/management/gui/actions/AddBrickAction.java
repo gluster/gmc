@@ -1,5 +1,5 @@
 /**
- * AddDiskAction.java
+ * AddBrickAction.java
  *
  * Copyright (c) 2011 Gluster, Inc. <http://www.gluster.com>
  * This file is part of Gluster Management Console.
@@ -27,9 +27,9 @@ import org.eclipse.jface.wizard.WizardDialog;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.gui.dialogs.AddDiskWizard;
+import com.gluster.storage.management.gui.dialogs.AddBrickWizard;
 
-public class AddDiskAction extends AbstractActionDelegate {
+public class AddBrickAction extends AbstractActionDelegate {
 	private Volume volume;
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 	
@@ -43,7 +43,7 @@ public class AddDiskAction extends AbstractActionDelegate {
 		// TODO: open a dialog box
 		// MessageDialog.openInformation(getShell(), "Action captured", action.getDescription() + "\n" +
 		// volume.getName());
-		AddDiskWizard wizard = new AddDiskWizard(volume); // Also add single page
+		AddBrickWizard wizard = new AddBrickWizard(volume); // Also add single page
 
 		WizardDialog dialog = new WizardDialog(getShell(), wizard);
 		dialog.create();
