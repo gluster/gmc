@@ -194,7 +194,7 @@ def getNetSpeed(deviceName):
     for line in rv["Stdout"].split("\n"):
         tokens = line.strip().split(":")
         if tokens[0].upper() == "SPEED":
-            return tokens[1].strip().upper()
+            return tokens[1].strip().upper().split("MB")[0]
     return None
 
 def getLinkStatus(deviceName):
@@ -264,9 +264,7 @@ def setBondMode(deviceName, mode, fileName=None):
 
 def getNetDeviceList(root=""):
     netDeviceList = []
-
     for deviceName in os.listdir("/sys/class/net/"):
-    #for device in getHardwareList():
         netDevice = {}
         netDevice["device"] = None
         netDevice["description"] = None
@@ -298,11 +296,11 @@ def getNetDeviceList(root=""):
         netDevice["mode"] = getBondMode(deviceName, root + Globals.MODPROBE_CONF_FILE)
         netDevice["model"] = getNetModel(deviceName)
         netDevice["speed"] = getNetSpeed(deviceName)
-
         try:
             netDevice["hwaddr"] = open("/sys/class/net/%s/address" % deviceName).read().strip()
         except IOError:
             pass
+        
         netDeviceList.append(netDevice)
 
         conf = readIfcfgConfFile(deviceName, root)
