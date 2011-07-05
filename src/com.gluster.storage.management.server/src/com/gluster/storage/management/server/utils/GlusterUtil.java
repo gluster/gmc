@@ -67,6 +67,7 @@ public class GlusterUtil {
 	private static final String VOLUME_LOG_LOCATION_PFX = "log file location:";
 	private static final String VOLUME_TYPE_DISTRIBUTE = "Distribute";
 	private static final String VOLUME_TYPE_REPLICATE = "Replicate";
+	private static final String GLUSTERD_INFO_FILE = "/etc/glusterd/glusterd.info";
 	
 	private static final GlusterCoreUtil glusterCoreUtil = new GlusterCoreUtil();
 	
@@ -112,6 +113,15 @@ public class GlusterUtil {
 		}
 		return null;
 	}
+	
+	private String getUuid(String serverName) {
+		ProcessResult result = getSshUtil().executeRemote(serverName, "cat " + GLUSTERD_INFO_FILE);
+		if (!result.isSuccess()) {
+			throw new GlusterRuntimeException("Couldn't read file [" + GLUSTERD_INFO_FILE + "]. Error: "
+					+ result.toString());
+		}
+		return result.getOutput().split("=")[1];
+	}
 
 	public List<GlusterServer> getGlusterServers(GlusterServer knownServer) {
 		String output = getPeerStatus(knownServer.getName());
@@ -119,9 +129,11 @@ public class GlusterUtil {
 			return null;
 		}
 
+		knownServer.setUuid(getUuid(knownServer.getName()));
+		
 		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();
-		// TODO: Append the known server. But where? Order matters in replication/striping
 		glusterServers.add(knownServer);
+		
 		GlusterServer server = null;
 		boolean foundHost = false;
 		boolean foundUuid = false;
