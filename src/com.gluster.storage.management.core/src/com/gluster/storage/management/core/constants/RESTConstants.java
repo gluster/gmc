@@ -60,6 +60,7 @@ public class RESTConstants {
 	public static final String FORM_PARAM_BRICKS = "bricks";
 	public static final String FORM_PARAM_ACCESS_PROTOCOLS = "accessProtocols";
 	public static final String FORM_PARAM_VOLUME_OPTIONS = "options";
+	public static final String FORM_PARAM_FSTYPE = "fsType";
 
 	public static final String FORM_PARAM_CLUSTER_NAME = "clusterName";
 	public static final String FORM_PARAM_SERVER_NAME = "serverName";
