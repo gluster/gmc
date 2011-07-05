@@ -20,8 +20,9 @@
  */
 package com.gluster.storage.management.gui.dialogs;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.wizard.Wizard;
@@ -29,27 +30,24 @@ import org.eclipse.jface.wizard.Wizard;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Brick;
-import com.gluster.storage.management.core.model.Disk;
-import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.StringUtil;
 
 /**
  *
  */
-public class AddDiskWizard extends Wizard {
-	private AddDiskPage page;
+public class AddBrickWizard extends Wizard {
+	private AddBrickPage page;
 	private Volume volume;
 
-	public AddDiskWizard(Volume volume) {
+	public AddBrickWizard(Volume volume) {
 		setWindowTitle("Gluster Management Console - Add Brick");
 		setHelpAvailable(false); // TODO: Introduce wizard help
 		this.volume = volume;
 	}
 
 	public void addPages() {
-		page = new AddDiskPage(volume);
+		page = new AddBrickPage(volume);
 		addPage(page);
 	}
 
@@ -60,15 +58,12 @@ public class AddDiskWizard extends Wizard {
 	 */
 	@Override
 	public boolean performFinish() {
-		List<Brick> bricks = page.getChosenBricks(volume.getName());
+		Set<Brick> bricks = page.getChosenBricks(volume.getName());
 		VolumesClient volumeClient = new VolumesClient();
 		try {
-			List<String> brickList = getBrickList(bricks);
+			Set<String> brickList = getBrickList(bricks);
 			
 			volumeClient.addBricks(volume.getName(), brickList);
-			List<Disk> disks = page.getChosenDisks();
-			volume.addDisks(GlusterCoreUtil.getQualifiedDiskNames(disks));
-			volume.addBricks(bricks);
 
 			// Update model with new bricks in the volume
 			GlusterDataModelManager.getInstance().addBricks(volume, bricks);
@@ -82,8 +77,8 @@ public class AddDiskWizard extends Wizard {
 		}
 	}
 
-	private List<String> getBrickList(List<Brick> bricks) {
-		List<String> brickList = new ArrayList<String>();
+	private Set<String> getBrickList(Set<Brick> bricks) {
+		Set<String> brickList = new HashSet<String>();
 		for(Brick brick : bricks) {
 			brickList.add(brick.getServerName() + ":" + brick.getBrickDirectory());
 		}

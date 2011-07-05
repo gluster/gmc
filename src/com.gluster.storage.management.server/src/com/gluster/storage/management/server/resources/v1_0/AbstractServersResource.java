@@ -18,7 +18,7 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package com.gluster.storage.management.server.resources;
+package com.gluster.storage.management.server.resources.v1_0;
 
 import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.ServerUtil;

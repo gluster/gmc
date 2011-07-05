@@ -16,7 +16,7 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.server.resources;
+package com.gluster.storage.management.server.resources.v1_0;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -155,17 +155,6 @@ public class AbstractResource {
 	 */
 	protected Response okResponse(Object entity, String mediaType) {
 		return Response.ok(entity).type(mediaType).build();
-	}
-
-	/**
-	 * Creates an OK response without any entity in the response body.
-	 * 
-	 * @param mediaType
-	 *            Media type to be set on the response
-	 * @return the {@link Response} object
-	 */
-	protected Response okResponse(String mediaType) {
-		return Response.ok().type(mediaType).build();
 	}
 
 	/**

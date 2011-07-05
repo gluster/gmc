@@ -91,6 +91,7 @@ public class ServerUtil {
 			throw new GlusterRuntimeException(((Status)response).getMessage());
 		}
 		server.copyFrom((Server) response); // Update the details in <Server> object
+		server.setDisks(((Server) response).getDisks());
 	}
 
 	/**

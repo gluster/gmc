@@ -19,6 +19,7 @@
 package com.gluster.storage.management.core.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import com.gluster.storage.management.core.utils.StringUtil;
 
@@ -33,6 +34,12 @@ public class Brick extends Entity {
 	private BRICK_STATUS status;
 
 	public Brick() {
+	}
+	
+	@Override
+	@XmlTransient
+	public String getName() {
+		return getQualifiedName();
 	}
 	
 	public BRICK_STATUS getStatus() {
@@ -83,12 +90,33 @@ public class Brick extends Entity {
 	}
 
 	public boolean filter(String filterString, boolean caseSensitive) {
-		return StringUtil.filterString(getServerName() + getBrickDirectory() + getDiskName(), filterString,
+		return StringUtil.filterString(getServerName() + getBrickDirectory() + getDiskName() + getStatusStr(), filterString,
 				caseSensitive);
 	}
 	
 	@Override
 	public String toString() {
 		return getQualifiedName();
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(!(obj instanceof Brick)) {
+			return false;
+		}
+		
+		Brick brick = (Brick)obj;
+		if(getQualifiedName().equals(brick.getQualifiedName()) && getStatus() == brick.getStatus()) {
+			return true;
+		}
+		
+		return false;
+	}
+
+	public void copyFrom(Brick newBrick) {
+		setServerName(newBrick.getServerName());
+		setBrickDirectory(newBrick.getBrickDirectory());
+		setDiskName(newBrick.getDiskName());
+		setStatus(newBrick.getStatus());
 	}
 }

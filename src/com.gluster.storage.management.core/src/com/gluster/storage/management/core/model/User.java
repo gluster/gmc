@@ -19,6 +19,7 @@
 package com.gluster.storage.management.core.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 @XmlRootElement
 public class User {
@@ -31,6 +32,8 @@ public class User {
 	public void setUserId(String userId) {
 		this.userId = userId;
 	}
+	
+	@XmlTransient
 	public String getPassword() {
 		return password;
 	}

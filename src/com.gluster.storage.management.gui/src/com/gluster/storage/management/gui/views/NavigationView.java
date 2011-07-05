@@ -82,7 +82,7 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 
 		// Refresh the navigation tree whenever there is a change to the data model
 		GlusterDataModelManager.getInstance().addClusterListener(new DefaultClusterListener() {
-			public void clusterChanged() {
+			public void modelChanged() {
 				treeViewer.refresh();
 			}
 			

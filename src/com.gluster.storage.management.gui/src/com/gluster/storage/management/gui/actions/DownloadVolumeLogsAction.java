@@ -34,20 +34,13 @@ import com.gluster.storage.management.gui.utils.GUIHelper;
 public class DownloadVolumeLogsAction extends AbstractActionDelegate {
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.IWorkbenchWindowActionDelegate#dispose()
-	 */
 	@Override
 	public void dispose() {
 	}
 
-	/* (non-Javadoc)
-	 * @see com.gluster.storage.management.gui.actions.AbstractActionDelegate#performAction(org.eclipse.jface.action.IAction)
-	 */
 	@Override
 	protected void performAction(IAction action) {
 		final VolumesClient client = new VolumesClient();
-		
 		final Runnable downloadLogsThread = new Runnable() {
 			
 			@Override

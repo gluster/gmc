@@ -53,13 +53,6 @@ public class StartVolumeAction extends AbstractActionDelegate {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.gluster.storage.management.gui.actions.AbstractActionDelegate#selectionChanged(org.eclipse.jface.action.IAction
-	 * , org.eclipse.jface.viewers.ISelection)
-	 */
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		super.selectionChanged(action, selection);

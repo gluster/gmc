@@ -16,22 +16,16 @@ public class StopTaskAction extends AbstractActionDelegate {
 
 	@Override
 	protected void performAction(final IAction action) {
-		Display.getDefault().asyncExec(new Runnable() {
+		final String actionDesc = action.getDescription();
 
-			@Override
-			public void run() {
-				final String actionDesc = action.getDescription();
-
-				try {
-					new TasksClient().resumeTask(taskInfo.getName());
-					taskInfo.setStatus( new TaskStatus( new Status(Status.STATUS_CODE_SUCCESS, taskInfo.getName() +  " is Stopped")));
-					modelManager.updateTask(taskInfo);
-				} catch (Exception e) {
-					showErrorDialog(actionDesc,
-							"Task [" + taskInfo.getName() + "] could not be Stopped! Error: [" + e.getMessage() + "]");
-				}
-			}
-		});
+		try {
+			new TasksClient().resumeTask(taskInfo.getName());
+			taskInfo.setStatus(new TaskStatus(new Status(Status.STATUS_CODE_SUCCESS, "Stopped")));
+			modelManager.updateTask(taskInfo);
+		} catch (Exception e) {
+			showErrorDialog(actionDesc,
+					"Task [" + taskInfo.getDescription() + "] could not be Stopped! Error: [" + e.getMessage() + "]");
+		}
 	}
 
 	@Override
@@ -40,7 +34,7 @@ public class StopTaskAction extends AbstractActionDelegate {
 		action.setEnabled(false);
 		if (selectedEntity instanceof TaskInfo) {
 			taskInfo = (TaskInfo) selectedEntity;
-			action.setEnabled(taskInfo.canStop()
+			action.setEnabled(taskInfo.getStopSupported()
 					&& (taskInfo.getStatus().getCode() == Status.STATUS_CODE_PAUSE 
 							|| taskInfo.getStatus().getCode() == Status.STATUS_CODE_RUNNING));
 		}

@@ -26,16 +26,16 @@ import org.eclipse.jface.wizard.WizardDialog;
 
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.gui.dialogs.MigrateDiskWizard;
+import com.gluster.storage.management.gui.dialogs.MigrateBrickWizard;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
-public class MigrateDiskAction extends AbstractActionDelegate {
+public class MigrateBrickAction extends AbstractActionDelegate {
 	private Volume volume;
 	private Brick brick;
 
 	@Override
 	protected void performAction(IAction action) {
-		MigrateDiskWizard wizard = new MigrateDiskWizard(volume, brick);
+		MigrateBrickWizard wizard = new MigrateBrickWizard(volume, brick);
 
 		WizardDialog dialog = new WizardDialog(window.getShell(), wizard);
 		dialog.create();
@@ -61,7 +61,5 @@ public class MigrateDiskAction extends AbstractActionDelegate {
 
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
-
 	}
 }

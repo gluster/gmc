@@ -16,7 +16,7 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.server.resources;
+package com.gluster.storage.management.server.resources.v1_0;
 
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SERVER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
@@ -414,13 +414,14 @@ public class GlusterServersResource extends AbstractServersResource {
 			return badRequestResponse("Disk name must not be empty!");
 		}
 
-		InitializeDiskTask initializeTask = new InitializeDiskTask(clusterService, clusterName, diskName, serverName);
+		InitializeDiskTask initializeTask = new InitializeDiskTask(clusterService, clusterName, serverName, diskName);
 		try {
 			initializeTask.start();
 			taskResource.addTask(initializeTask);
-			return acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/" + RESOURCE_TASKS
-					+ "/" + initializeTask.getId());
-		} catch (ConnectionException e) {
+
+			return acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/" + RESOURCE_TASKS + "/"
+					+ initializeTask.getId());
+		} catch (Exception e) {
 			return errorResponse(e.getMessage());
 		}
 	}

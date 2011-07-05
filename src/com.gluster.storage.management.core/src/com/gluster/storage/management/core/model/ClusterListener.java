@@ -27,6 +27,8 @@ public interface ClusterListener {
 	
 	public void discoveredServerRemoved(Server server);
 	
+	public void discoveredServerChanged(Server server, Event event);
+
 	public void serverAdded(GlusterServer server);
 
 	public void serverRemoved(GlusterServer server);

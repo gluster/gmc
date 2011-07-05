@@ -20,6 +20,7 @@ package com.gluster.storage.management.core.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -30,6 +31,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.StringUtil;
 
 @XmlRootElement
@@ -62,16 +64,12 @@ public class Volume extends Entity {
 	private static final String[] STATUS_STR = new String[] { "Online", "Offline" };
 	private static final String[] NAS_PROTOCOL_STR = new String[] { "Gluster", "NFS" };
 
-	private Cluster cluster;
 	private VOLUME_TYPE volumeType;
 	private TRANSPORT_TYPE transportType;
 	private VOLUME_STATUS status;
 	private int replicaCount;
 	private int stripeCount;
 	private VolumeOptions options = new VolumeOptions();
-
-	private double totalDiskSpace = 0;
-	private List<String> disks = new ArrayList<String>();
 	private List<Brick> bricks = new ArrayList<Brick>();
 
 	public Volume() {
@@ -105,10 +103,6 @@ public class Volume extends Entity {
 		return STATUS_STR[getStatus().ordinal()];
 	}
 
-	public int getNumOfDisks() {
-		return disks.size();
-	}
-	
 	public int getNumOfBricks() {
 		return bricks.size();
 	}
@@ -164,15 +158,6 @@ public class Volume extends Entity {
 		this.status = status;
 	}
 
-	@XmlTransient
-	public Cluster getCluster() {
-		return cluster;
-	}
-
-	public void setCluster(Cluster cluster) {
-		this.cluster = cluster;
-	}
-
 	@XmlElementWrapper(name = "nasProtocols")
 	@XmlElement(name = "nasProtocol", type=NAS_PROTOCOL.class)
 	public Set<NAS_PROTOCOL> getNASProtocols() {
@@ -214,38 +199,11 @@ public class Volume extends Entity {
 		this.options.setOptionsMap(options);
 	}
 
-	public double getTotalDiskSpace() {
-		return totalDiskSpace;
-	}
-
-	public List<String> getDisks() {
-		return disks;
-	}
-
-	public void addDisk(String disk) {
-		disks.add(disk);
-	}
-
-	public void addDisks(List<String> disks) {
-		for (String disk : disks) {
-			addDisk(disk);
-		}
-	}
-
-	public void removeDisk(String disk) {
-		disks.remove(disk);
-	}
-
-	public void removeAllDisks() {
-		disks.clear();
-		totalDiskSpace = 0;
-	}
-
 	public void addBrick(Brick brick) {
 		bricks.add(brick);
 	}
 	
-	public void addBricks(List<Brick> bricks) {
+	public void addBricks(Collection<Brick> bricks) {
 		this.bricks.addAll(bricks);
 	}
 	
@@ -264,11 +222,6 @@ public class Volume extends Entity {
 		return bricks;
 	}
 
-	public void setDisks(List<String> disks) {
-		removeAllDisks();
-		addDisks(disks);
-	}
-
 	public void enableNFS() {
 		nasProtocols.add(NAS_PROTOCOL.NFS);
 	}
@@ -284,13 +237,6 @@ public class Volume extends Entity {
 		setStatus(status);
 	}
 
-	public Volume(String name, Entity parent, Cluster cluster, VOLUME_TYPE volumeType, TRANSPORT_TYPE transportType,
-			VOLUME_STATUS status) {
-		this(name, parent, volumeType, transportType, status);
-
-		setCluster(cluster);
-	}
-
 	/**
 	 * Filter matches if any of the properties name, volume type, transport type, status and number of disks contains
 	 * the filter string
@@ -298,7 +244,7 @@ public class Volume extends Entity {
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
 		return StringUtil.filterString(getName() + getVolumeTypeStr() + getTransportTypeStr() + getStatusStr()
-				+ getNumOfDisks(), filterString, caseSensitive);
+				+ getNumOfBricks(), filterString, caseSensitive);
 	}
 	
 	public List<String> getBrickDirectories() {
@@ -307,5 +253,52 @@ public class Volume extends Entity {
 			brickDirectories.add(brick.getQualifiedName());
 		}
 		return brickDirectories;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(!(obj instanceof Volume)) {
+			return false;
+		}
+		
+		Volume volume = (Volume)obj;
+
+		if (!(getName().equals(volume.getName()) && getVolumeType() == volume.getVolumeType()
+				&& getTransportType() == volume.getTransportType() && getStatus() == volume.getStatus()
+				&& getReplicaCount() == volume.getReplicaCount() && getStripeCount() == volume.getStripeCount())
+				&& getOptions().equals(volume.getOptions())) {
+			return false;
+		}
+
+		for(NAS_PROTOCOL nasProtocol : getNASProtocols()) {
+			if(!(volume.getNASProtocols().contains(nasProtocol))) {
+				return false;
+			}
+		}
+		
+		for (Brick brick : getBricks()) {
+			if (!(brick.equals(GlusterCoreUtil.getEntity(volume.getBricks(), brick.getName(), false)))) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
+
+	/**
+	 * Note: this method doesn't copy the bricks. Clients should write separate code to identify added/removed/modified
+	 * bricks and update the volume bricks appropriately.
+	 * 
+	 * @param newVolume
+	 */
+	public void copyFrom(Volume newVolume) {
+		setName(newVolume.getName());
+		setVolumeType(newVolume.getVolumeType());
+		setTransportType(newVolume.getTransportType());
+		setStatus(newVolume.getStatus());
+		setReplicaCount(newVolume.getReplicaCount());
+		setStripeCount(newVolume.getStripeCount());
+		setNASProtocols(newVolume.getNASProtocols());
+		getOptions().copyFrom(newVolume.getOptions());
 	}
 }

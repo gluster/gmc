@@ -21,7 +21,9 @@
 package com.gluster.storage.management.gui.dialogs;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -39,7 +41,7 @@ import com.richclientgui.toolbox.duallists.IRemovableContentProvider;
  * @author root
  * 
  */
-public class AddDiskPage extends WizardPage {
+public class AddBrickPage extends WizardPage {
 	private List<Disk> availableDisks = new ArrayList<Disk>();
 	private List<Disk> selectedDisks = new ArrayList<Disk>();
 	private Volume volume = null;
@@ -51,7 +53,7 @@ public class AddDiskPage extends WizardPage {
 	/**
 	 * @param pageName
 	 */
-	protected AddDiskPage(Volume volume) {
+	protected AddBrickPage(Volume volume) {
 		super(PAGE_NAME);
 		this.volume = volume;
 		setTitle("Add Brick");
@@ -90,12 +92,11 @@ public class AddDiskPage extends WizardPage {
 		return availableDisks;
 	}
 
-
-	public List<Disk> getChosenDisks( ) {
-		return page.getChosenDisks();
+	public Set<Disk> getChosenDisks() {
+		return new HashSet<Disk>(page.getChosenDisks());
 	}
 	
-	public List<Brick> getChosenBricks( String volumeName ) {
+	public Set<Brick> getChosenBricks( String volumeName ) {
 		return page.getChosenBricks(volumeName);
 	}
 	

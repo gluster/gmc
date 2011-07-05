@@ -22,6 +22,8 @@ import java.net.ConnectException;
 
 import javax.ws.rs.core.Response;
 
+import org.apache.log4j.Logger;
+
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Status;
 import com.sun.jersey.api.client.UniformInterfaceException;
@@ -32,6 +34,7 @@ public class UsersClient extends AbstractClient {
 	private static final String RESOURCE_NAME = "users";
 	private static final String FORM_PARAM_OLD_PASSWORD = "oldpassword";
 	private static final String FORM_PARAM_NEW_PASSWORD = "newpassword";
+	private static final Logger logger = Logger.getLogger(UsersClient.class);
 
 	private String generateSecurityToken(String user, String password) {
 		return new String(Base64.encode(user + ":" + password));
@@ -44,7 +47,7 @@ public class UsersClient extends AbstractClient {
 	public void authenticate(String user, String password) {
 		setSecurityToken(generateSecurityToken(user, password));
 		try {
-			fetchSubResource(user, String.class);
+			fetchSubResource(user, Status.class);
 		} catch (RuntimeException e) {
 			Throwable cause = e.getCause();
 			if(cause == null) {
@@ -58,14 +61,16 @@ public class UsersClient extends AbstractClient {
 					setSecurityToken(null);
 					throw new GlusterRuntimeException("Invalid user id or password!");
 				} else {
-					// TODO: Log the exception
-					throw new GlusterRuntimeException("Exception during authentication: ["
-							+ e1.getResponse().getStatus() + "]");
+					String errMsg = "Exception during authentication: [" + e1.getResponse().getStatus() + "]";
+					logger.error(errMsg);
+					throw new GlusterRuntimeException(errMsg);
 				}
 			} else if(cause instanceof ConnectException) {
 				throw new GlusterRuntimeException("Couldn't connect to Gluster Management Gateway!");
 			} else {
-				throw new GlusterRuntimeException("Exception during authentication: [" + e.getMessage() + "]");
+				String errMsg = "Exception during authentication: [" + e.getMessage() + "]";
+				logger.error(errMsg);
+				throw new GlusterRuntimeException(errMsg);
 			}
 		}
 	}
@@ -80,20 +85,18 @@ public class UsersClient extends AbstractClient {
 	}
 
 	public static void main(String[] args) {
-//		UsersClient authClient = new UsersClient();
-//
-//		// authenticate user
-//		authClient.authenticate("gluster", "gluster");
-//
-//		// change password to gluster1
-//		authClient.changePassword("gluster", "gluster", "gluster1");
-//
-//		// change it back to gluster
-//		authClient.changePassword("gluster", "gluster1", "gluster");
-//		
-//		System.out.println("success");
-		System.out.println(new String(Base64.encode("abcdefghijklmnopqrstuvwxyz")));
-		System.out.println(new String(Base64.decode("YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo=")));
+		UsersClient authClient = new UsersClient();
+
+		// authenticate user
+		authClient.authenticate("gluster", "gluster");
+
+		// change password to gluster1
+		authClient.changePassword("gluster", "gluster", "gluster1");
+
+		// change it back to gluster
+		authClient.changePassword("gluster", "gluster1", "gluster");
+		
+		System.out.println("success");
 	}
 
 	/*

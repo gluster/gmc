@@ -36,7 +36,7 @@ import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.model.TaskInfo;
+import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
@@ -44,9 +44,7 @@ import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.StringUtil;
-import com.gluster.storage.management.server.resources.TasksResource;
-import com.gluster.storage.management.server.tasks.MigrateDiskTask;
-import com.gluster.storage.management.server.tasks.RebalanceVolumeTask;
+import com.gluster.storage.management.server.resources.v1_0.TasksResource;
 import com.sun.jersey.api.core.InjectParam;
 
 @Component
@@ -69,8 +67,11 @@ public class GlusterUtil {
 	private static final String VOLUME_LOG_LOCATION_PFX = "log file location:";
 	private static final String VOLUME_TYPE_DISTRIBUTE = "Distribute";
 	private static final String VOLUME_TYPE_REPLICATE = "Replicate";
+	private static final String GLUSTERD_INFO_FILE = "/etc/glusterd/glusterd.info";
 	
 	private static final GlusterCoreUtil glusterCoreUtil = new GlusterCoreUtil();
+	
+	private static final String INITIALIZE_DISK_STATUS_SCRIPT = "initialize_disk_status.py";
 
 	@Autowired
 	private SshUtil sshUtil;
@@ -112,6 +113,15 @@ public class GlusterUtil {
 		}
 		return null;
 	}
+	
+	private String getUuid(String serverName) {
+		ProcessResult result = getSshUtil().executeRemote(serverName, "cat " + GLUSTERD_INFO_FILE);
+		if (!result.isSuccess()) {
+			throw new GlusterRuntimeException("Couldn't read file [" + GLUSTERD_INFO_FILE + "]. Error: "
+					+ result.toString());
+		}
+		return result.getOutput().split("=")[1];
+	}
 
 	public List<GlusterServer> getGlusterServers(GlusterServer knownServer) {
 		String output = getPeerStatus(knownServer.getName());
@@ -119,9 +129,11 @@ public class GlusterUtil {
 			return null;
 		}
 
+		knownServer.setUuid(getUuid(knownServer.getName()));
+		
 		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();
-		// TODO: Append the known server. But where? Order matters in replication/striping
 		glusterServers.add(knownServer);
+		
 		GlusterServer server = null;
 		boolean foundHost = false;
 		boolean foundUuid = false;
@@ -388,26 +400,7 @@ public class GlusterUtil {
 	}
 
 	private void addBrickToVolume(Volume volume, String serverName, String brickDir) {
-		// TODO: Brick status should be same as the server status (online/offline)
-		System.out.println(brickDir);
 		volume.addBrick(new Brick(serverName, BRICK_STATUS.ONLINE, brickDir.split("/")[2].trim(), brickDir));
-
-		// volume.getBricks().get(0).getName();
-		//
-		// try {
-		// volume.addDisk(serverName + ":" + brickDir.split("/")[2].trim());
-		// } catch (ArrayIndexOutOfBoundsException e) {
-		// // brick directory of a different form, most probably created manually
-		// // connect to the server and get disk for the brick directory
-		// Status status = new ServerUtil().getDiskForDir(serverName, brickDir);
-		// if (status.isSuccess()) {
-		// volume.addDisk(serverName + ":" + status.getMessage());
-		// } else {
-		// // Couldn't fetch disk for the brick directory. Log error and add "unknown" as disk name.
-		// System.out.println("Couldn't fetch disk name for brick [" + serverName + ":" + brickDir + "]");
-		// volume.addDisk(serverName + ":unknown");
-		// }
-		// }
 	}
 
 	private boolean readBrickGroup(String line) {
@@ -549,6 +542,64 @@ public class GlusterUtil {
 		if(!result.isSuccess()) {
 			throw new GlusterRuntimeException("Couldn't remove server [" + serverName + "]! Error: " + result);
 		}
+	}
+	
+	public TaskStatus checkRebalanceStatus(String serverName, String volumeName) {
+		String command = "gluster volume rebalance " + volumeName + " status";
+		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
+		TaskStatus taskStatus = new TaskStatus();
+		if (processResult.isSuccess()) {
+			if (processResult.getOutput().trim().matches("^rebalance completed.*")) {
+				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
+			} else if(processResult.getOutput().trim().matches(".*in progress:.*")) {
+				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
+			} else {
+				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+			}
+		} else {
+			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+		}
+		taskStatus.setMessage(processResult.getOutput()); // Common
+		return taskStatus;
+	}
+	
+	public void stopRebalance(String serverName, String volumeName) {
+		String command = "gluster volume rebalance " + volumeName + " stop";
+		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
+		TaskStatus taskStatus = new TaskStatus();
+		if (processResult.isSuccess()) {
+			taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
+			taskStatus.setMessage(processResult.getOutput());
+		}
+	}
+	
+	public TaskStatus checkInitializeDiskStatus(String serverName, String diskName) {
+		ProcessResult processResult = sshUtil.executeRemote(serverName, INITIALIZE_DISK_STATUS_SCRIPT + " " + diskName);
+		TaskStatus taskStatus = new TaskStatus();
+		if (processResult.isSuccess()) {
+			// TODO: Message needs to change according to the script return
+			if (processResult.getOutput().trim().matches(".*Initailize completed$")) {
+				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
+			} else {
+				// TODO: Percentage completed needs to be set, according to the script output
+				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
+				// taskStatus.setPercentCompleted(processResult.getOutput());
+			}
+		} else {
+			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+		}
+		taskStatus.setMessage(processResult.getOutput());
+		return taskStatus;
+	}
+	
+	public ProcessResult executeBrickMigration(String onlineServerName, String volumeName, String fromBrick,
+			String toBrick, String operation) {
+		String command = "gluster volume replace-brick " + volumeName + " " + fromBrick + " " + toBrick + " " + operation;
+		ProcessResult processResult = sshUtil.executeRemote(onlineServerName, command);
+		if (!processResult.isSuccess()) {
+			throw new GlusterRuntimeException(processResult.toString());
+		}
+		return processResult;
 	}
 
 	public static void main(String args[]) {

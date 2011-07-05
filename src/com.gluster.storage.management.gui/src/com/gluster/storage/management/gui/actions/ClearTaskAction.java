@@ -2,7 +2,6 @@ package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.TasksClient;
@@ -15,23 +14,15 @@ public class ClearTaskAction extends AbstractActionDelegate {
 
 	@Override
 	protected void performAction(final IAction action) {
-		Display.getDefault().asyncExec(new Runnable() {
+		final String actionDesc = action.getDescription();
 
-			@Override
-			public void run() {
-				final String actionDesc = action.getDescription();
-
-				try {
-					new TasksClient().resumeTask(taskInfo.getName());
-					// TODO Update taskInfo in the model
-					// modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
-					modelManager.removeTask(taskInfo);
-				} catch (Exception e) {
-					showErrorDialog(actionDesc,
-							"Task [" + taskInfo.getName() + "] could not be cleared! Error: [" + e.getMessage() + "]");
-				}
-			}
-		});
+		try {
+			new TasksClient().resumeTask(taskInfo.getName());
+			modelManager.removeTask(taskInfo);
+		} catch (Exception e) {
+			showErrorDialog(actionDesc,
+					"Task [" + taskInfo.getName() + "] could not be cleared! Error: [" + e.getMessage() + "]");
+		}
 	}
 
 	@Override

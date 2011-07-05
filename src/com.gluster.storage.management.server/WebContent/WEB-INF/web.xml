@@ -30,12 +30,12 @@
 
 	<!-- Jersey REST servlet -->
 	<servlet>
-		<servlet-name>gluster-resources</servlet-name>
+		<servlet-name>gluster-resources-1.0</servlet-name>
 		<!-- servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class -->
 		<servlet-class>com.sun.jersey.spi.spring.container.servlet.SpringServlet</servlet-class>
 		<init-param>
 			<param-name>com.sun.jersey.config.property.packages</param-name>
-			<param-value>com.gluster.storage.management.server.resources</param-value>
+			<param-value>com.gluster.storage.management.server.resources.v1_0</param-value>
 		</init-param>
 		<init-param>
 			<param-name>com.sun.jersey.spi.container.ResourceFilters</param-name>
@@ -44,8 +44,8 @@
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 	<servlet-mapping>
-		<servlet-name>gluster-resources</servlet-name>
-		<url-pattern>/resources/*</url-pattern>
+		<servlet-name>gluster-resources-1.0</servlet-name>
+		<url-pattern>/1.0/*</url-pattern>
 	</servlet-mapping>
 
 	<!-- JNLP download servlet -->

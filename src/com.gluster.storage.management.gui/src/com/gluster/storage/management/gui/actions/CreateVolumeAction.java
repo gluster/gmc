@@ -33,27 +33,21 @@ import com.gluster.storage.management.gui.dialogs.CreateVolumeWizard;
 public class CreateVolumeAction extends AbstractActionDelegate {
 	@Override
 	protected void performAction(IAction action) {
-		Display.getDefault().asyncExec(new Runnable() {
-			
+		CreateVolumeWizard wizard = new CreateVolumeWizard();
+
+		WizardDialog dialog = new WizardDialog(getShell(), wizard) {
 			@Override
-			public void run() {
-				CreateVolumeWizard wizard = new CreateVolumeWizard();
-				
-				WizardDialog dialog = new WizardDialog(getShell(), wizard) {
-					@Override
-					protected Button createButton(Composite parent, int id, String label, boolean defaultButton) {
-						Button button = super.createButton(parent, id, label, defaultButton);
-						if(id == IDialogConstants.FINISH_ID) {
-							button.setText("&Create");
-						}
-						return button;
-					}
-				};
-		        dialog.create();
-		        dialog.getShell().setSize(500, 550);	
-		        dialog.open();
+			protected Button createButton(Composite parent, int id, String label, boolean defaultButton) {
+				Button button = super.createButton(parent, id, label, defaultButton);
+				if (id == IDialogConstants.FINISH_ID) {
+					button.setText("&Create");
+				}
+				return button;
 			}
-		});
+		};
+		dialog.create();
+		dialog.getShell().setSize(500, 550);
+		dialog.open();
 	}
 
 	@Override

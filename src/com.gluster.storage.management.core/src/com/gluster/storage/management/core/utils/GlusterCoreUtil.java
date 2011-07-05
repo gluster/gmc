@@ -21,7 +21,10 @@
 package com.gluster.storage.management.core.utils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.gluster.storage.management.core.model.Brick;
@@ -48,6 +51,25 @@ public class GlusterCoreUtil {
 	}
 	
 	/**
+	 * Compares the two entity lists and returns the list of entities from first list that have been modified in the second
+	 * 
+	 * @param oldEntities
+	 * @param newEntities
+	 * @return List of entities that have been modified
+	 */
+	public static <T extends Entity> Map<T, T> getModifiedEntities(List<T> oldEntities, List<T> newEntities) {
+		Map<T, T> modifiedEntities = new HashMap<T, T>();
+		for (T oldEntity : oldEntities) {
+			T newEntity = getEntity(newEntities, oldEntity.getName(), false);
+			if(newEntity != null && !oldEntity.equals(newEntity)) {
+				// old and new entities differ. mark it as modified.
+				modifiedEntities.put(oldEntity, newEntity);
+			}
+		}
+		return modifiedEntities;
+	}
+
+	/**
 	 * Compares the two entity lists and returns the list of entities present only in the second argument
 	 * <code>newEntities</code>
 	 * 
@@ -56,10 +78,11 @@ public class GlusterCoreUtil {
 	 * @param caseInsensitive If true, the entity name comparison will be done in case insensitive manner
 	 * @return List of entities that are present only in the second argument <code>newEntities</code>
 	 */
-	public static <T extends Entity> List<T> getAddedEntities(List<T> oldEntities, List<T> newEntities, boolean caseInsensitive) {
-		List<T> addedEntities = new ArrayList<T>();
-		for(T newEntity : newEntities) {
-			if(!containsEntity(oldEntities, newEntity, caseInsensitive)) {
+	public static <T extends Entity> Set<T> getAddedEntities(List<T> oldEntities, List<T> newEntities,
+			boolean caseInsensitive) {
+		Set<T> addedEntities = new HashSet<T>();
+		for (T newEntity : newEntities) {
+			if (!containsEntity(oldEntities, newEntity, caseInsensitive)) {
 				// old entity list doesn't contain this entity. mark it as new.
 				addedEntities.add(newEntity);
 			}
@@ -67,22 +90,26 @@ public class GlusterCoreUtil {
 		return addedEntities;
 	}
 
-	public static <T extends Entity> boolean containsEntity(List<T> entityList, Entity searchEntity, boolean caseInsensitive) {
-		String searchEntityName = searchEntity.getName();
-		if(caseInsensitive) {
+	public static <T extends Entity> boolean containsEntity(List<T> entityList, Entity searchEntity,
+			boolean caseInsensitive) {
+		return getEntity(entityList, searchEntity.getName(), caseInsensitive) != null;
+	}
+
+	public static <T extends Entity> T getEntity(List<T> entityList, String searchEntityName, boolean caseInsensitive) {
+		if (caseInsensitive) {
 			searchEntityName = searchEntityName.toUpperCase();
 		}
-		
-		for(T entity : entityList) {
+
+		for (T entity : entityList) {
 			String nextEntityName = entity.getName();
-			if(caseInsensitive) {
+			if (caseInsensitive) {
 				nextEntityName = nextEntityName.toUpperCase();
 			}
-			if(nextEntityName.equals(searchEntityName)) {
-				return true;
+			if (nextEntityName.equals(searchEntityName)) {
+				return entity;
 			}
 		}
-		
-		return false;
+
+		return null;
 	}
 }

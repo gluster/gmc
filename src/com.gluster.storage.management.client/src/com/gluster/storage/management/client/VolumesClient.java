@@ -139,7 +139,7 @@ public class VolumesClient extends AbstractClient {
 				VolumeOptionInfoListResponse.class)).getOptions();
 	}
 
-	public void addBricks(String volumeName, List<String> brickList) {
+	public void addBricks(String volumeName, Set<String> brickList) {
 		String bricks = StringUtil.collectionToString(brickList, ",");
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_BRICKS, bricks);
@@ -238,12 +238,6 @@ public class VolumesClient extends AbstractClient {
 		form.add(RESTConstants.FORM_PARAM_FIX_LAYOUT, fixLayout);
 		form.add(RESTConstants.FORM_PARAM_MIGRATE_DATA, migrateData);
 		form.add(RESTConstants.FORM_PARAM_FORCED_DATA_MIGRATE, forcedDataMigrate);
-		putRequest(volumeName, form);
-	}
-	
-	public void rebalanceStatus(String volumeName) {
-		Form form = new Form();
-		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_REBALANCE_STATUS);
 		putRequest(volumeName, form);
 	}
 	

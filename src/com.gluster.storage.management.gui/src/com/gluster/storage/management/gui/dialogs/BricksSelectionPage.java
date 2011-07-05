@@ -19,7 +19,9 @@
 package com.gluster.storage.management.gui.dialogs;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.swt.SWT;
@@ -314,11 +316,11 @@ public class BricksSelectionPage extends Composite {
 		return null;
 	}
 
-	public List<Brick> getChosenBricks(String volumeName) {
+	public Set<Brick> getChosenBricks(String volumeName) {
 		Object[] bricksArr = (Object[]) chosenBricksContentProvider.getElements(dualTableViewer);
 
 		if (bricksArr != null) {
-			List<Brick> bricks = new ArrayList<Brick>();
+			Set<Brick> bricks = new HashSet<Brick>();
 			for (Object disk : bricksArr) {
 				bricks.add(new Brick(((Disk) disk).getServerName(), BRICK_STATUS.ONLINE, ((Disk) disk).getName(),
 						((Disk) disk).getMountPoint() + "/" + volumeName)); // Assumption mount point is not having

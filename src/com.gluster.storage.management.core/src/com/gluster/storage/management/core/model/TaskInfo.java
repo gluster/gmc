@@ -78,28 +78,28 @@ public class TaskInfo extends Entity {
 	public void setStatus(TaskStatus status) {
 		this.status = status;
 	}
-
-	public Boolean canPause() {
+	
+	public Boolean getPauseSupported() {
 		return pauseSupported;
 	}
 
-	public void setCanPause(Boolean canPause) {
+	public void setPauseSupported(Boolean canPause) {
 		this.pauseSupported = canPause;
 	}
 
-	public Boolean canStop() {
+	public Boolean getStopSupported() {
 		return stopSupported;
 	}
-
-	public void setCanStop(Boolean canStop) {
+	
+	public void setStopSupported(Boolean canStop) {
 		this.stopSupported = canStop;
 	}
 	
-	public Boolean canCommit() {
+	public Boolean getCommitSupported() {
 		return this.commitSupported;
 	}
 	
-	public void setCanCommit(Boolean canCommit) {
+	public void setCommitSupported(Boolean canCommit) {
 		this.commitSupported = canCommit;
 	}
 

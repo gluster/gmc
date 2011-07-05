@@ -18,7 +18,7 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  */
-package com.gluster.storage.management.server.resources;
+package com.gluster.storage.management.server.resources.v1_0;
 
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_ACCESS_PROTOCOLS;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_AUTO_COMMIT;
@@ -102,7 +102,7 @@ import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.gluster.storage.management.server.constants.VolumeOptionsDefaults;
 import com.gluster.storage.management.server.data.ClusterInfo;
 import com.gluster.storage.management.server.services.ClusterService;
-import com.gluster.storage.management.server.tasks.MigrateDiskTask;
+import com.gluster.storage.management.server.tasks.MigrateBrickTask;
 import com.gluster.storage.management.server.tasks.RebalanceVolumeTask;
 import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.ServerUtil;
@@ -208,7 +208,7 @@ public class VolumesResource extends AbstractResource {
 		}
 
 		try {
-			createVolume(clusterName, volumeName, volumeType, transportType, replicaCount, stripeCount, bricks, accessProtocols,
+			performCreateVolume(clusterName, volumeName, volumeType, transportType, replicaCount, stripeCount, bricks, accessProtocols,
 					options);
 			return createdResponse(volumeName);
 		} catch (Exception e) {
@@ -956,7 +956,7 @@ public class VolumesResource extends AbstractResource {
 	
 	private String migrateBrickStart(String clusterName, String volumeName, String fromBrick, String toBrick,
 			Boolean autoCommit) {
-		MigrateDiskTask migrateDiskTask = new MigrateDiskTask(clusterService, clusterName, volumeName, fromBrick,
+		MigrateBrickTask migrateDiskTask = new MigrateBrickTask(clusterService, clusterName, volumeName, fromBrick,
 				toBrick);
 		migrateDiskTask.setAutoCommit(autoCommit);
 		migrateDiskTask.start();
@@ -978,7 +978,7 @@ public class VolumesResource extends AbstractResource {
 		return rebalanceStart(clusterName, volumeName, layout);
 	}
 	
-	public String rebalanceStart(String clusterName, String volumeName, String layout) {
+	private String rebalanceStart(String clusterName, String volumeName, String layout) {
 		RebalanceVolumeTask rebalanceTask = new RebalanceVolumeTask(clusterService, clusterName, volumeName);
 		rebalanceTask.setLayout(layout);
 		rebalanceTask.start();
