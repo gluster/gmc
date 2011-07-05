@@ -20,6 +20,7 @@ package com.gluster.storage.management.gui.views.pages;
 
 import java.util.List;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
@@ -46,7 +47,9 @@ import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IEntityListener;
+import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.jobs.InitializeDiskJob;
+import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> implements IEntityListener {
 	private List<Disk> disks;
@@ -199,11 +202,28 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 
 		@Override
 		public void linkActivated(HyperlinkEvent e) {
+			Integer formatOption = new MessageDialog(getShell(), "Initialize Disk", GUIHelper.getInstance().getImage(
+					IImageKeys.DISK), "Please choose the file system to Initialize the disk?", MessageDialog.QUESTION, new String[] {
+					"Cancel", "Ext3", "Ext4", "Xfs" }, -1).open();
+
+			if (formatOption <= 0) { // By Cancel button(0) or Escape key(-1)
+				return;
+			}
+
+			String fsType = null;
+			if (formatOption == 1) {
+				fsType = "ext3";
+			} else if (formatOption == 2) {
+				fsType = "ext4";
+			} else if (formatOption == 3) {
+				fsType = "xfs";
+			}
+
 			updateStatus(DISK_STATUS.INITIALIZING, true);
-			
+
 			GlusterServersClient serversClient = new GlusterServersClient();
-			serversClient.initializeDisk(disk.getServerName(), disk.getName());
-			
+			serversClient.initializeDisk(disk.getServerName(), disk.getName(), fsType);
+
 			guiHelper.showProgressView();
 			new InitializeDiskJob(disk).schedule();
 		}

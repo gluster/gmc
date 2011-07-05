@@ -38,15 +38,17 @@ public class InitializeDiskTask extends Task {
 	
 	private String serverName;
 	private String diskName;
+	private String fsType;
 	private SshUtil sshUtil = new SshUtil();
 	private GlusterUtil glusterUtil;
 
-	public InitializeDiskTask(ClusterService clusterService, String clusterName, String serverName, String diskName) {
+	public InitializeDiskTask(ClusterService clusterService, String clusterName, String serverName, String diskName, String fsType) {
 		super(clusterService, clusterName, TASK_TYPE.DISK_FORMAT, diskName, "Initialize disk " + serverName + ":"
 				+ diskName, false, false, false);
 
 		setServerName(serverName);
 		setDiskName(diskName);
+		setFsType(fsType);
 	}
 
 	public InitializeDiskTask(ClusterService clusterService, String clusterName, TaskInfo info) {
@@ -106,9 +108,17 @@ public class InitializeDiskTask extends Task {
 	}
 
 	private void startInitializeDisk(String serverName) {
-		ProcessResult processResult = sshUtil.executeRemote(serverName, INITIALIZE_DISK_SCRIPT + " " + getDiskName());
+		ProcessResult processResult = sshUtil.executeRemote(serverName, INITIALIZE_DISK_SCRIPT + " -t " + getFsType()
+				+ " " + getDiskName());
 		if (processResult.isSuccess()) {
 			getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, processResult.getOutput())));
+			TaskStatus taskStatus = null;
+			if (fsType.equals("xfs")) {
+				taskStatus.setPercentageSupported(false);
+			} else {
+				taskStatus.setPercentageSupported(true);
+			}
+				
 			return;
 		}
 
@@ -142,5 +152,13 @@ public class InitializeDiskTask extends Task {
 
 	public String getServerName() {
 		return serverName;
+	}
+
+	public void setFsType(String fsType) {
+		this.fsType = fsType;
+	}
+
+	public String getFsType() {
+		return fsType;
 	}
 }

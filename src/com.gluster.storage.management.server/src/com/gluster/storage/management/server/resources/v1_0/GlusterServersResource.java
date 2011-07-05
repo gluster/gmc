@@ -19,6 +19,7 @@
 package com.gluster.storage.management.server.resources.v1_0;
 
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SERVER_NAME;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_FSTYPE;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_DISK_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_SERVER_NAME;
@@ -400,7 +401,8 @@ public class GlusterServersResource extends AbstractServersResource {
 	@Produces(MediaType.APPLICATION_XML)
 	@Path("{" + PATH_PARAM_SERVER_NAME + "}/" + RESOURCE_DISKS + "/{" + PATH_PARAM_DISK_NAME + "}")
 	public Response initializeDisk(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
-			@PathParam(PATH_PARAM_SERVER_NAME) String serverName, @PathParam(PATH_PARAM_DISK_NAME) String diskName) {
+			@PathParam(PATH_PARAM_SERVER_NAME) String serverName, @PathParam(PATH_PARAM_DISK_NAME) String diskName,
+			@FormParam(FORM_PARAM_FSTYPE) String fsType) {
 
 		if (clusterName == null || clusterName.isEmpty()) {
 			return badRequestResponse("Cluster name must not be empty!");
@@ -413,8 +415,12 @@ public class GlusterServersResource extends AbstractServersResource {
 		if (diskName == null || diskName.isEmpty()) {
 			return badRequestResponse("Disk name must not be empty!");
 		}
+		
+		if (fsType == null || fsType.isEmpty()) {
+			return badRequestResponse("FSType must not be empty!");
+		}
 
-		InitializeDiskTask initializeTask = new InitializeDiskTask(clusterService, clusterName, serverName, diskName);
+		InitializeDiskTask initializeTask = new InitializeDiskTask(clusterService, clusterName, serverName, diskName, fsType);
 		try {
 			initializeTask.start();
 			taskResource.addTask(initializeTask);
