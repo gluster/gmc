@@ -16,7 +16,7 @@
 		<intercept-url pattern="/*" access="permitAll" /-->
 		
 		<!-- SSL Protection -->
-	<intercept-url pattern="/resources/*" access="hasRole('ROLE_ADMIN') 
+	<intercept-url pattern="/1.0/*" access="hasRole('ROLE_ADMIN') 
 			and fullyAuthenticated"
 		requires-channel="https" />
 	<intercept-url pattern="/*" access="permitAll" requires-channel="any" />

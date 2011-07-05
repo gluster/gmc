@@ -30,7 +30,7 @@ import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.server.data.ClusterInfo;
 import com.gluster.storage.management.server.data.PersistenceDao;
-import com.gluster.storage.management.server.resources.DiscoveredServersResource;
+import com.gluster.storage.management.server.resources.v1_0.DiscoveredServersResource;
 import com.gluster.storage.management.server.utils.ServerUtil;
 
 /**

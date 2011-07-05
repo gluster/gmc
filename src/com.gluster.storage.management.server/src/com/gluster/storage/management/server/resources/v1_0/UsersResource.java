@@ -16,7 +16,7 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.server.resources;
+package com.gluster.storage.management.server.resources.v1_0;
 
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_USER;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_USERS;
@@ -30,12 +30,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.encoding.PasswordEncoder;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.stereotype.Component;
 
+import com.gluster.storage.management.core.model.Status;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Singleton
@@ -47,6 +49,8 @@ public class UsersResource extends AbstractResource {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+	
+	private static final Logger logger = Logger.getLogger(UsersResource.class);
 
 	@Path("{" + PATH_PARAM_USER + "}")
 	@GET
@@ -67,8 +71,8 @@ public class UsersResource extends AbstractResource {
 	}
 
 	public Response getAuthenticationResponse(String user, String mediaType) {
-		return (SecurityContextHolder.getContext().getAuthentication().getName().equals(user) ? okResponse(mediaType)
-				: unauthorizedResponse());
+		return (SecurityContextHolder.getContext().getAuthentication().getName().equals(user) ? okResponse(
+				Status.STATUS_SUCCESS, mediaType) : unauthorizedResponse());
 	}
 
 	@Path("{" + PATH_PARAM_USER + "}")
@@ -78,9 +82,9 @@ public class UsersResource extends AbstractResource {
 		try {
 			jdbcUserService.changePassword(oldPassword, passwordEncoder.encodePassword(newPassword, null));
 		} catch (Exception ex) {
-			// TODO: Log the exception
-			ex.printStackTrace();
-			return errorResponse("Could not change password. Error: [" + ex.getMessage() + "]");
+			String errMsg = "Could not change password. Error: [" + ex.getMessage() + "]";
+			logger.error(errMsg, ex);
+			return errorResponse(errMsg);
 		}
 		return noContentResponse();
 	}

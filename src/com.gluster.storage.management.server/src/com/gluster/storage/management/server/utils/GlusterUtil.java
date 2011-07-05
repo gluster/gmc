@@ -44,7 +44,7 @@ import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.StringUtil;
-import com.gluster.storage.management.server.resources.TasksResource;
+import com.gluster.storage.management.server.resources.v1_0.TasksResource;
 import com.sun.jersey.api.core.InjectParam;
 
 @Component

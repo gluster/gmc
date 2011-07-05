@@ -9,7 +9,7 @@ import com.gluster.storage.management.client.constants.ClientConstants;
 public class ClientUtil {
 
 	public static URI getServerBaseURI() {
-		return UriBuilder.fromUri(getBaseURL()).path(ClientConstants.WEB_RESOURCE_BASE_PATH).build();
+		return UriBuilder.fromUri(getBaseURL()).path(ClientConstants.REST_API_VERSION).build();
 	}
 	
 	private static String getBaseURL() {

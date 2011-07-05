@@ -1,4 +1,4 @@
-package com.gluster.storage.management.server.resources;
+package com.gluster.storage.management.server.resources.v1_0;
 
 import static com.gluster.storage.management.core.constants.RESTConstants.*;
 
