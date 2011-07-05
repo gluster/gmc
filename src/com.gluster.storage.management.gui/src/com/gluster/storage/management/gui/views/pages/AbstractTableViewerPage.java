@@ -25,6 +25,7 @@ import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
@@ -39,6 +40,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.widgets.FormToolkit;
@@ -46,14 +49,16 @@ import org.eclipse.ui.forms.widgets.Hyperlink;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.ClusterListener;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
-public abstract class AbstractTableViewerPage<T> extends Composite {
+public abstract class AbstractTableViewerPage<T> extends Composite implements ISelectionListener {
 
-	protected final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
-	protected TableViewer tableViewer;
 	private boolean useCheckboxes;
 	private boolean multiSelection;
+	
+	protected final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
+	protected TableViewer tableViewer;
 	protected GUIHelper guiHelper = GUIHelper.getInstance();
 	protected Composite parent;
 	
@@ -76,8 +81,12 @@ public abstract class AbstractTableViewerPage<T> extends Composite {
 		Text filterText = guiHelper.createFilterText(toolkit, this);
 		
 		setupTableViewer(site, filterText);
-
 		tableViewer.setInput(model);
+		// register as selection provider so that other views can listen to any selection events on the tree
+		site.setSelectionProvider(tableViewer);
+		site.getPage().addSelectionListener(this);
+
+		
 		parent.layout(); // Important - this actually paints the table
 
 		createListeners(parent);
@@ -212,5 +221,12 @@ public abstract class AbstractTableViewerPage<T> extends Composite {
 
 		// Create a case insensitive filter for the table viewer using the filter text field
 		guiHelper.createFilter(tableViewer, filterText, false);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.ISelectionListener#selectionChanged(org.eclipse.ui.IWorkbenchPart, org.eclipse.jface.viewers.ISelection)
+	 */
+	@Override
+	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 	}
 }

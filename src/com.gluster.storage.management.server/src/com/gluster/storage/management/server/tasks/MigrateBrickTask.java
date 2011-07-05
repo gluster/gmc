@@ -23,6 +23,8 @@ package com.gluster.storage.management.server.tasks;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.derby.iapi.sql.execute.ExecPreparedStatement;
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.ContextLoader;
 
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
@@ -42,8 +44,6 @@ public class MigrateBrickTask extends Task {
 	private String toBrick;
 	private Boolean autoCommit;
 	private GlusterUtil glusterUtil = new GlusterUtil();
-
-	private SshUtil sshUtil = new SshUtil();
 
 	public String getFromBrick() {
 		return fromBrick;
@@ -78,10 +78,6 @@ public class MigrateBrickTask extends Task {
 		taskInfo.setName(getId());
 	}
 
-	public MigrateBrickTask(ClusterService clusterService, String clusterName, TaskInfo info) {
-		super(clusterService, clusterName, info);
-	}
-
 	@Override
 	public String getId() {
 		return new String(Base64.encode(clusterName + "-" + taskInfo.getType() + "-" + taskInfo.getReference() + "-" + fromBrick + "-"
@@ -99,6 +95,8 @@ public class MigrateBrickTask extends Task {
 	}
 
 	private void startMigration(String onlineServerName) {
+		ApplicationContext ctx = ContextLoader.getCurrentWebApplicationContext();
+		glusterUtil = ctx.getBean(GlusterUtil.class);
 		ProcessResult processResult = glusterUtil.executeBrickMigration(onlineServerName, getTaskInfo().getReference(),
 				getFromBrick(), getToBrick(), "start");
 		if (processResult.getOutput().trim().matches(".*started successfully$")) {

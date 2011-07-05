@@ -28,7 +28,7 @@ public interface IActionConstants {
 	public static final String ACTION_SET_GLUSTER_SERVER = "com.gluster.storage.management.gui.actionsets.glusterserver";
 	public static final String ACTION_SET_DISCOVERED_SERVERS = "com.gluster.storage.management.gui.actionsets.serversdiscovered";
 	public static final String ACTION_SET_DISCOVERED_SERVER = "com.gluster.storage.management.gui.actionsets.serverdiscovered";
-	
+	public static final String ACTION_SET_TASK = "com.gluster.storage.management.gui.actionsets.task";
 	public static final String ACTION_SET_EDIT = "com.gluster.storage.management.gui.actionsets.edit";
 	
 	public static final String COMMAND_CREATE_VOLUME = "com.gluster.storage.management.gui.commands.CreateVolume";

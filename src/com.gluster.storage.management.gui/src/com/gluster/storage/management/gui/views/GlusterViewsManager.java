@@ -49,7 +49,6 @@ public class GlusterViewsManager implements ViewsManager {
 	public void updateViews(Entity entity) {
 		closeAllViews();
 
-
 		try {
 			if (entity instanceof EntityGroup) {
 				showViewsForEntityGroup((EntityGroup)entity);
