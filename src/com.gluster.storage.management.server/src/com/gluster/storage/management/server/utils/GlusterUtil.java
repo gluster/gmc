@@ -595,7 +595,7 @@ public class GlusterUtil {
 			taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
 		} else if (initDiskStatusResponse.getStatus() == FORMAT_STATUS.IN_PROGRESS) {
 			taskStatus.setCode(Status.STATUS_CODE_RUNNING);
-			taskStatus.setPercentCompleted(initDiskStatusResponse.getCompleted() / initDiskStatusResponse.getTotal() * 100);
+			taskStatus.setPercentCompleted(initDiskStatusResponse.getCompletedBlocks() / initDiskStatusResponse.getTotalBlocks() * 100);
 		}
 
 		taskStatus.setMessage(initDiskStatusResponse.getMessage());

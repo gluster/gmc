@@ -40,6 +40,7 @@ import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.ImageHyperlink;
 
 import com.gluster.storage.management.client.GlusterServersClient;
+import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Disk;
@@ -204,7 +205,7 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 		public void linkActivated(HyperlinkEvent e) {
 			Integer formatOption = new MessageDialog(getShell(), "Initialize Disk", GUIHelper.getInstance().getImage(
 					IImageKeys.DISK), "Please choose the file system to Initialize the disk?", MessageDialog.QUESTION, new String[] {
-					"Cancel", "Ext3", "Ext4", "Xfs" }, -1).open();
+					"Cancel", GlusterConstants.FSTYPE_EXT_3, GlusterConstants.FSTYPE_EXT_4, GlusterConstants.FSTYPE_XFS }, -1).open();
 
 			if (formatOption <= 0) { // By Cancel button(0) or Escape key(-1)
 				return;
@@ -212,11 +213,11 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 
 			String fsType = null;
 			if (formatOption == 1) {
-				fsType = "ext3";
+				fsType = GlusterConstants.FSTYPE_EXT_3;
 			} else if (formatOption == 2) {
-				fsType = "ext4";
+				fsType = GlusterConstants.FSTYPE_EXT_4;
 			} else if (formatOption == 3) {
-				fsType = "xfs";
+				fsType = GlusterConstants.FSTYPE_XFS;
 			}
 
 			updateStatus(DISK_STATUS.INITIALIZING, true);
