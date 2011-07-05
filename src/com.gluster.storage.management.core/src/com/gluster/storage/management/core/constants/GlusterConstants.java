@@ -31,5 +31,4 @@ public class GlusterConstants {
 	};
 
 	public static final List<String> VOLUME_LOG_LEVELS_ARR = StringUtil.enumToArray(VOLUME_LOG_LEVELS.values());
-
 }

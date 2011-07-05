@@ -86,7 +86,7 @@ public class GlusterServer extends Server {
 		}
 		GlusterServer server = (GlusterServer)obj;
 		
-		if(super.equals(server) && getUuid().equals(server.getUuid()) && getStatus() == server.getStatus()){
+		if (super.equals(server) && getUuid().equals(server.getUuid()) && getStatus() == server.getStatus()) {
 			return true;
 		}
 		
