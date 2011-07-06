@@ -31,6 +31,7 @@ public class GlusterConstants {
 	};
 
 	public static final List<String> VOLUME_LOG_LEVELS_ARR = StringUtil.enumToArray(VOLUME_LOG_LEVELS.values());
+	public static final String FSTYPE_DEFAULT = "default";
 	public static final String FSTYPE_EXT_3 = "ext3";
 	public static final String FSTYPE_EXT_4 = "ext4";
 	public static final String FSTYPE_XFS = "xfs";

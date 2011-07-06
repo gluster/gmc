@@ -56,7 +56,8 @@ public class Disk extends Entity {
 	}
 	
 	public boolean isUninitialized() {
-		return getStatus() == DISK_STATUS.UNINITIALIZED;
+		return true;
+//		return getStatus() == DISK_STATUS.UNINITIALIZED;
 	}
 	
 	public boolean hasErrors() {
