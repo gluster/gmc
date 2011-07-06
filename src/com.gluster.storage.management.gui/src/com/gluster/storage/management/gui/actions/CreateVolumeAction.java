@@ -54,16 +54,4 @@ public class CreateVolumeAction extends AbstractActionDelegate {
 	public void dispose() {
 		window = null;
 	}
-
-	@SuppressWarnings("rawtypes")
-	@Override
-	public void selectionChanged(IAction action, ISelection selection) {
-		super.selectionChanged(action, selection);
-		
-		action.setEnabled(true);
-		if(selectedEntity instanceof EntityGroup && ((EntityGroup)selectedEntity).getEntityType() != Volume.class) {
-			// selected entity is either "servers" or "discovered servers".
-			action.setEnabled(false);
-		}
-	}
 }

@@ -25,21 +25,31 @@ import java.util.List;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.IContentProvider;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchSite;
 
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
+import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.gui.TasksTableLabelProvider;
+import com.gluster.storage.management.gui.actions.IActionConstants;
+import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
+import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public class TasksPage extends AbstractTableViewerPage<TaskInfo> {
 	private List<TaskInfo> taskInfoList;
+	private TaskInfo selectedTask;
 	
 	public enum TASK_TABLE_COLUMN_INDICES {
 		TASK, STATUS
@@ -131,5 +141,19 @@ public class TasksPage extends AbstractTableViewerPage<TaskInfo> {
 	@Override
 	protected List<TaskInfo> getAllEntities() {
 		return taskInfoList;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gui.views.pages.AbstractTableViewerPage#selectionChanged(org.eclipse.ui.IWorkbenchPart, org.eclipse.jface.viewers.ISelection)
+	 */
+	@Override
+	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+		if (selection instanceof StructuredSelection) {
+			Entity selectedEntity = (Entity) ((StructuredSelection) selection).getFirstElement();
+			if (selectedEntity != null && selectedEntity instanceof TaskInfo && selectedEntity != selectedTask) {
+				selectedTask = (TaskInfo)selectedEntity;
+				new GlusterToolbarManager(part.getSite().getWorkbenchWindow()).updateToolbar(selectedTask);
+			}
+		}	
 	}
 }

@@ -42,6 +42,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.springframework.stereotype.Component;
+
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.exceptions.GlusterValidationException;
@@ -52,6 +54,7 @@ import com.sun.jersey.spi.resource.Singleton;
 
 @Path(RESOURCE_PATH_CLUSTERS + "/{" + PATH_PARAM_CLUSTER_NAME + "}/" + RESOURCE_TASKS)
 @Singleton
+@Component
 public class TasksResource extends AbstractResource {
 	private Map<String, Task> tasksMap = new HashMap<String, Task>();
 
@@ -83,6 +86,16 @@ public class TasksResource extends AbstractResource {
 		}
 		return null;
 	}
+	
+	public List<Task> getAllTasks() {
+		List<Task> tasks = new ArrayList<Task>();
+		for (Map.Entry<String, Task> entry : tasksMap.entrySet()) {
+			checkTaskStatus(entry.getKey());
+			tasks.add( (Task) entry.getValue());
+		}
+		return tasks;
+	}
+	
 	
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
