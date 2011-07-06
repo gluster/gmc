@@ -61,12 +61,14 @@ public abstract class AbstractTableViewerPage<T> extends Composite implements IS
 	protected TableViewer tableViewer;
 	protected GUIHelper guiHelper = GUIHelper.getInstance();
 	protected Composite parent;
+	protected IWorkbenchSite site;
 	
 	private Hyperlink linkAll, linkNone;
 
 	public AbstractTableViewerPage(IWorkbenchSite site, final Composite parent, int style, boolean useChechboxes, boolean multiSelection, Object model) {
 		super(parent, style);
 		this.parent = parent;
+		this.site = site;
 		
 		this.useCheckboxes = useChechboxes;
 		this.multiSelection = multiSelection;

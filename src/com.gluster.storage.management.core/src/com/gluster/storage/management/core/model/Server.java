@@ -1,5 +1,4 @@
 /*******************************************************************************
- * Copyright (c) 2011 Gluster, Inc. <http://www.gluster.com>
  * This file is part of Gluster Management Console.
  *
  * Gluster Management Console is free software; you can redistribute it and/or 
@@ -35,8 +34,6 @@ public class Server extends Entity {
 	private double cpuUsage;
 	private double totalMemory;
 	private double memoryInUse;
-	private double totalDiskSpace = 0;
-	private double diskSpaceInUse = 0;
 	private List<Disk> disks = new ArrayList<Disk>();
 	private List<NetworkInterface> networkInterfaces = new ArrayList<NetworkInterface>();
 
@@ -89,19 +86,22 @@ public class Server extends Entity {
 	}
 
 	public double getTotalDiskSpace() {
+		double totalDiskSpace = 0;
+		for(Disk disk : getDisks()) {
+			if(disk.isReady()) {
+				totalDiskSpace += disk.getSpace();
+			}
+		}
 		return totalDiskSpace;
 	}
 
-	/**
-	 * Total disk space is automatically calculated, and hence this method should never be called. It is required only
-	 * to make sure that the element "totalDiskSpace" gets added to the XML tag when jersey converts the server object
-	 * to XML for sending to client.
-	 */
-	public void setTotalDiskSpace(double totalDiskSpace) {
-		this.totalDiskSpace = totalDiskSpace;
-	}
-
 	public double getDiskSpaceInUse() {
+		double diskSpaceInUse = 0;
+		for(Disk disk : getDisks()) {
+			if(disk.isReady()) {
+				diskSpaceInUse += disk.getSpaceInUse();
+			}
+		}
 		return diskSpaceInUse;
 	}
 	
@@ -109,15 +109,6 @@ public class Server extends Entity {
 		return getTotalDiskSpace() - getDiskSpaceInUse();
 	}
 	
-	/**
-	 * Total disk space in use is automatically calculated, and hence this method should never be called. It is required
-	 * only to make sure that the element "diskSpaceInUse" gets added to the XML tag when jersey converts the server
-	 * object to XML for sending to client.
-	 */
-	public void setDiskSpaceInUse(double diskSpaceInUse) {
-		this.diskSpaceInUse = diskSpaceInUse;
-	}
-
 	@XmlElementWrapper(name = "networkInterfaces")
 	@XmlElement(name = "networkInterface", type = NetworkInterface.class)
 	public List<NetworkInterface> getNetworkInterfaces() {
@@ -139,10 +130,7 @@ public class Server extends Entity {
 	}
 
 	public void addDisk(Disk disk) {
-		if (disks.add(disk) && disk.isReady()) {
-			totalDiskSpace += disk.getSpace();
-			diskSpaceInUse += disk.getSpaceInUse();
-		}
+		disks.add(disk);
 	}
 
 	public void addDisks(Collection<Disk> disks) {
@@ -152,16 +140,11 @@ public class Server extends Entity {
 	}
 
 	public void removeDisk(Disk disk) {
-		if (disks.remove(disk)) {
-			totalDiskSpace -= disk.getSpace();
-			diskSpaceInUse -= disk.getSpaceInUse();
-		}
+		disks.remove(disk);
 	}
 
 	public void removeAllDisks() {
 		disks.clear();
-		totalDiskSpace = 0;
-		diskSpaceInUse = 0;
 	}
 
 	public void setDisks(List<Disk> disks) {
@@ -203,8 +186,6 @@ public class Server extends Entity {
 		setCpuUsage(server.getCpuUsage());
 		setTotalMemory(server.getTotalMemory());
 		setMemoryInUse(server.getMemoryInUse());
-		setTotalDiskSpace(server.getTotalDiskSpace());
-		setDiskSpaceInUse(server.getDiskSpaceInUse());
 	}
 	
 	@Override
