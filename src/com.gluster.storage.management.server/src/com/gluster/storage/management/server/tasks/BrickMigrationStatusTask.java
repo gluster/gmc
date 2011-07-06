@@ -27,7 +27,7 @@ import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.server.resources.v1_0.TasksResource;
 
 @Component
-public class DiskMigrationStatusTask {
+public class BrickMigrationStatusTask {
 
 	@Autowired
 	private TasksResource tasksResource;
@@ -39,5 +39,4 @@ public class DiskMigrationStatusTask {
 			}
 		}
 	}
-
 }

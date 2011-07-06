@@ -28,8 +28,6 @@ import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.FocusAdapter;
-import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.IWorkbenchPart;
@@ -39,13 +37,11 @@ import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.Event;
+import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.gui.TasksTableLabelProvider;
-import com.gluster.storage.management.gui.actions.IActionConstants;
 import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
-import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public class TasksPage extends AbstractTableViewerPage<TaskInfo> {
 	private List<TaskInfo> taskInfoList;
@@ -77,11 +73,17 @@ public class TasksPage extends AbstractTableViewerPage<TaskInfo> {
 			@Override
 			public void taskRemoved(TaskInfo taskInfo) {
 				refreshViewer();
+				// hide the task related actionset as no task is selected
+				// site.getPage().hideActionSet(IActionConstants.ACTION_SET_TASK);
+				tableViewer.setSelection(new StructuredSelection(taskInfo));
 			}
 			
 			@Override
 			public void taskUpdated(TaskInfo taskInfo) {
 				refreshViewer();
+				// fire selection event so that toolbar gets updated
+				// (the action class listens to selection and enables/disables automatically)
+				tableViewer.setSelection(new StructuredSelection(taskInfo));
 			}
 			
 			private void refreshViewer() {
