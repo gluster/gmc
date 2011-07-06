@@ -20,22 +20,16 @@
  */
 package com.gluster.storage.management.server.tasks;
 
-import java.util.concurrent.ExecutionException;
-
-import org.apache.derby.iapi.sql.execute.ExecPreparedStatement;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.ContextLoader;
 
 import com.gluster.storage.management.core.exceptions.ConnectionException;
-import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.server.services.ClusterService;
 import com.gluster.storage.management.server.utils.GlusterUtil;
-import com.gluster.storage.management.server.utils.SshUtil;
 import com.sun.jersey.core.util.Base64;
 
 public class MigrateBrickTask extends Task {
@@ -142,6 +136,19 @@ public class MigrateBrickTask extends Task {
 			commitMigration(getNewOnlineServer().getName());
 		}
 	}
+	
+	private void commitMigration(String serverName) {
+		ProcessResult processResult = glusterUtil.executeBrickMigration(serverName, getTaskInfo().getReference(),
+				getFromBrick(), getToBrick(), "commit");
+		TaskStatus taskStatus = new TaskStatus();
+		if (processResult.isSuccess()) {
+			if (processResult.getOutput().trim().matches(".*commit successful$")) {
+				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
+				taskStatus.setMessage(processResult.getOutput()); 
+				getTaskInfo().setStatus(taskStatus);
+			}
+		}
+	}
 
 	@Override
 	public void stop() {
@@ -173,30 +180,25 @@ public class MigrateBrickTask extends Task {
 			return checkMigrationStatus(getNewOnlineServer().getName());
 		}
 	}
-
-	public void commitMigration(String serverName) {
-		ProcessResult processResult = glusterUtil.executeBrickMigration(serverName, getTaskInfo().getReference(),
-				getFromBrick(), getToBrick(), "commit");
-		TaskStatus taskStatus = new TaskStatus();
-		if (processResult.isSuccess()) {
-			if (processResult.getOutput().trim().matches(".*commit successful$")) {
-				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
-				taskStatus.setMessage(processResult.getOutput()); // Common
-				getTaskInfo().setStatus(taskStatus);
-			}
-		}
-	}
-
+	
 	private TaskStatus checkMigrationStatus(String serverName) {
 		if (getTaskInfo().getStatus().getCode() == Status.STATUS_CODE_PAUSE) {
 			return getTaskInfo().getStatus();
 		}
+		// For committed task, status command (CLI) is invalid, just return current status
+		if (getTaskInfo().getStatus().getCode() == Status.STATUS_CODE_SUCCESS) {
+			return getTaskInfo().getStatus();
+		}
+		
 
 		TaskStatus taskStatus = new TaskStatus();
 		try {
 			ProcessResult processResult = glusterUtil.executeBrickMigration(serverName, getTaskInfo().getReference(),
 					getFromBrick(), getToBrick(), "status");
-			if (processResult.getOutput().trim().matches("^Number of files migrated.*Migration complete$")) {
+			if (processResult.getOutput().trim().matches("^Number of files migrated.*Migration complete$")
+					|| processResult.getOutput().trim().matches("^Number of files migrated = 0 .*Current file=")) {
+				// Note: Workaround - if no file in the volume brick to migrate, Gluster CLI is not giving proper
+				// (complete) status
 				taskStatus.setCode(Status.STATUS_CODE_COMMIT_PENDING);
 				if (autoCommit) {
 					commitMigration(serverName);

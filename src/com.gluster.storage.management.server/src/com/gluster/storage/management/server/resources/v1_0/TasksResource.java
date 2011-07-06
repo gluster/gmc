@@ -153,7 +153,7 @@ public class TasksResource extends AbstractResource {
 	@DELETE
 	@Path("/{" + PATH_PARAM_TASK_ID + "}")
 	@Produces(MediaType.APPLICATION_XML)
-	public Response deleteTask(@PathParam(PATH_PARAM_TASK_ID) String taskId,
+	public Response clearTask(@PathParam(PATH_PARAM_TASK_ID) String taskId,
 			@QueryParam(FORM_PARAM_OPERATION) String taskOperation) {
 		Task task = getTask(taskId);
 		if (task == null) {

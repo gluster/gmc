@@ -2,13 +2,11 @@ package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.TasksClient;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
-import com.gluster.storage.management.core.model.TaskStatus;
 
 public class StopTaskAction extends AbstractActionDelegate {
 	private TaskInfo taskInfo;
@@ -19,9 +17,10 @@ public class StopTaskAction extends AbstractActionDelegate {
 		final String actionDesc = action.getDescription();
 
 		try {
-			new TasksClient().resumeTask(taskInfo.getName());
-			taskInfo.setStatus(new TaskStatus(new Status(Status.STATUS_CODE_SUCCESS, "Stopped")));
-			modelManager.updateTask(taskInfo);
+			new TasksClient().stopTask(taskInfo.getName());
+			// On successful stop clear from the task list
+			modelManager.removeTask(taskInfo);
+			action.setEnabled(false); // TODO disable other task buttons
 		} catch (Exception e) {
 			showErrorDialog(actionDesc,
 					"Task [" + taskInfo.getDescription() + "] could not be Stopped! Error: [" + e.getMessage() + "]");
@@ -42,7 +41,6 @@ public class StopTaskAction extends AbstractActionDelegate {
 
 	@Override
 	public void dispose() {
-
 	}
 
 }
