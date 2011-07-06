@@ -20,6 +20,10 @@
  */
 package com.gluster.storage.management.server.tasks;
 
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.ContextLoader;
+
+import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Status;
@@ -34,12 +38,12 @@ import com.sun.jersey.core.util.Base64;
 
 public class InitializeDiskTask extends Task {
 
-	private static final String INITIALIZE_DISK_SCRIPT = "initialize_disk.py";
+	private static final String INITIALIZE_DISK_SCRIPT = "format_device.py";
 	
 	private String serverName;
 	private String diskName;
 	private String fsType;
-	private SshUtil sshUtil = new SshUtil();
+	private SshUtil sshUtil;
 	private GlusterUtil glusterUtil;
 
 	public InitializeDiskTask(ClusterService clusterService, String clusterName, String serverName, String diskName, String fsType) {
@@ -49,12 +53,20 @@ public class InitializeDiskTask extends Task {
 		setServerName(serverName);
 		setDiskName(diskName);
 		setFsType(fsType);
+		init();
 	}
 
 	public InitializeDiskTask(ClusterService clusterService, String clusterName, TaskInfo info) {
 		super(clusterService, clusterName, info);
+		init();
 	}
 
+	private void init() {
+		ApplicationContext ctx = ContextLoader.getCurrentWebApplicationContext();
+		glusterUtil = ctx.getBean(GlusterUtil.class);
+		sshUtil = ctx.getBean(SshUtil.class);
+	}
+	
 	@Override
 	public String getId() {
 		return new String(
@@ -108,23 +120,18 @@ public class InitializeDiskTask extends Task {
 	}
 
 	private void startInitializeDisk(String serverName) {
-		ProcessResult processResult = sshUtil.executeRemote(serverName, INITIALIZE_DISK_SCRIPT + " -t " + getFsType()
-				+ " " + getDiskName());
+		String fsTypeCommand = (getFsType().equals(GlusterConstants.FSTYPE_DEFAULT)) ? "" : " -t " + getFsType();
+		ProcessResult processResult = sshUtil.executeRemote(serverName, INITIALIZE_DISK_SCRIPT + fsTypeCommand + " "
+				+ getDiskName());
 		if (processResult.isSuccess()) {
-			getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, processResult.getOutput())));
-			TaskStatus taskStatus = null;
-			if (fsType.equals("xfs")) {
-				taskStatus.setPercentageSupported(false);
-			} else {
-				taskStatus.setPercentageSupported(true);
-			}
-				
+			TaskStatus taskStatus = new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, processResult.getOutput()));
+			taskStatus.setPercentageSupported((getFsType().equals(GlusterConstants.FSTYPE_XFS)) ? false : true);
+			getTaskInfo().setStatus(taskStatus);
 			return;
 		}
 
 		// if we reach here, it means Initialize disk start failed.
 		throw new GlusterRuntimeException(processResult.toString());
-		
 	}
 
 	@Override

@@ -21,6 +21,7 @@ package com.gluster.storage.management.client;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_SERVERS;
 
+import java.net.URI;
 import java.util.List;
 
 import com.gluster.storage.management.core.constants.RESTConstants;
@@ -62,10 +63,10 @@ public class GlusterServersClient extends AbstractClient {
 		postRequest(form);
 	}
 	
-	public void initializeDisk(String serverName, String diskName, String fsType) {
+	public URI initializeDisk(String serverName, String diskName, String fsType) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_FSTYPE, fsType);
-		putRequest(serverName + "/" + RESTConstants.RESOURCE_DISKS + "/" + diskName, form);
+		return putRequestURI(serverName + "/" + RESTConstants.RESOURCE_DISKS + "/" + diskName, form);
 	}
 	
 	public void removeServer(String serverName) {
