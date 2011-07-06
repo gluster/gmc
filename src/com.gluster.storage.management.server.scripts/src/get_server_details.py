@@ -19,13 +19,9 @@
 import sys
 import syslog
 import socket
-import Globals
-import Commands
 import re
 import Common
 import DiskUtils
-from ServerUtils import *
-from Protocol import *
 from NetworkUtils import *
 from Disk import *
 from XmlHandler import ResponseXml
@@ -89,15 +85,11 @@ def getServerDetails(listall):
     responseDom.appendTag(serverTag)
     serverTag.appendChild(responseDom.createTag("numOfCPUs", int(os.sysconf('SC_NPROCESSORS_ONLN'))))
 
-
-    # refreshing hal data
-    DiskUtils.refreshHal()
-
     diskDom = DiskUtils.getDiskDom()
     if not diskDom:
-        print "No disk found!"
-        syslog.syslog(syslog.LOG_ERR, "Error finding disk information of server:%s" % serverName)
-        return None
+        sys.stderr.write("No disk found!")
+        Common.log("Failed to get disk details")
+        sys.exit(1)
 
     serverTag.appendChild(responseDom.createTag("cpuUsage", str(cpu)))
     serverTag.appendChild(responseDom.createTag("totalMemory", str(convertKbToMb(meminfo['MemTotal']))))
@@ -109,9 +101,7 @@ def getServerDetails(listall):
     return serverTag
 
 def main():
-    ME = os.path.basename(sys.argv[0])
-    parser = OptionParser(version="%s %s" % (ME, Globals.GLUSTER_PLATFORM_VERSION))
-
+    parser = OptionParser()
     parser.add_option("-N", "--only-data-disks",
                       action="store_false", dest="listall", default=True,
                       help="List only data disks")

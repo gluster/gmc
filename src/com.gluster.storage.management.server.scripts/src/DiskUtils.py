@@ -190,9 +190,9 @@ def getDiskInfo(diskDeviceList=None):
             disk["Size"] = long(halDevice.GetProperty('storage.size')) / 1024**2
         disk["Interface"] = str(halDevice.GetProperty('storage.bus'))
         disk["DriveType"] = str(halDevice.GetProperty('storage.drive_type'))
-        disk["Status"] = None
+        disk["Status"] = "UNINITIALIZED"
         if isDiskInFormatting(disk["Device"]):
-            disk["Status"] = "formatting in progress"
+            disk["Status"] = "FORMATTING IN PROGRESS"
         disk["Uuid"] = None
         disk["Init"] = False
         disk["Type"] = False
@@ -226,10 +226,12 @@ def getDiskInfo(diskDeviceList=None):
 
             if disk["Device"] == partitionDevice:
                 disk["Uuid"] = str(partitionHalDevice.GetProperty('volume.uuid'))
-                disk["Init"] = True # TODO: use isDataDiskPartitionFormatted function to cross verify this!
+                disk["Init"] = True # TODO: use isDataDiskPartitionFormatted function to cross verify this
+                disk["Status"] = "INITIALIZED"
                 mountPoint = str(partitionHalDevice.GetProperty('volume.mount_point'))
                 if "/export/" in mountPoint:
                     disk["Type"] = True
+                    disk["Status"] = "READY"
                 disk["FsType"] = str(partitionHalDevice.GetProperty('volume.fstype'))
                 disk["FsVersion"] = str(partitionHalDevice.GetProperty('volume.fsversion'))
                 disk["MountPoint"] = str(partitionHalDevice.GetProperty('volume.mount_point'))
@@ -242,9 +244,9 @@ def getDiskInfo(diskDeviceList=None):
             partition = {}
             partition["Init"] = False
             partition["Type"] = False
-            partition["Status"] = None
+            partition["Status"] = "UNINITIALIZED"
             if isDiskInFormatting(partitionDevice):
-                partition["Status"] = "formatting in progress"
+                partition["Status"] = "FORMATTING IN PROGRESS"
             partition["Interface"] = None # Partition will not have bus details, info.interfaces can be used here!
             partition["Device"] = partitionDevice
             partition["Uuid"] = str(partitionHalDevice.GetProperty('volume.uuid'))
@@ -257,10 +259,11 @@ def getDiskInfo(diskDeviceList=None):
             partition["SpaceInUse"] = used
             if partition["MountPoint"] or isDataDiskPartitionFormatted(partitionDevice):
                 partition["Init"] = True
+                partition["Status"] = "INITIALIZED"
             if "/export/" in partition["MountPoint"]:
                 partition["Type"] = True
+                partition["Status"] = "READY"
             partition["ReadOnlyAccess"] = str(partitionHalDevice.GetProperty('volume.is_mounted_read_only'))
-    
             partitionList.append(partition)
         disk["Partitions"] = partitionList
         if not disk["SpaceInUse"]:
@@ -394,15 +397,6 @@ def getDiskSizeInfo(partition):
     return total, used, free
 
 
-def refreshHal():
-    rv = Utils.runCommandFG(["lshal"], stdout=True, root=True)
-    if rv["Stderr"]:
-        error = Common.stripEmptyLines(rv["Stderr"])
-        Common.log(syslog.LOG_ERR, "failed to execute lshal command. Error: %s" % error)
-        return False
-    return True
-
-
 def isDataDiskPartitionFormatted(device):
     #Todo: Proper label needs to be added for data partition
     #if getDiskPartitionLabel(device) != Globals.DATA_PARTITION_LABEL:
@@ -483,7 +477,7 @@ def getDiskDom(diskDeviceList=None, bootPartition=None, skipDisk=None):
             partitionTag.appendChild(diskDom.createTag("init", str(partition["Init"]).lower()))
             partitionTag.appendChild(diskDom.createTag("type", str(partition["Type"]).lower()))
             partitionTag.appendChild(diskDom.createTag("interface", partition["Interface"]))
-            partitionTag.appendChild(diskDom.createTag("filesystem", partition["FsType"]))
+            partitionTag.appendChild(diskDom.createTag("fsType", partition["FsType"]))
             partitionTag.appendChild(diskDom.createTag("mountPoint", partition['MountPoint']))
             partitionTag.appendChild(diskDom.createTag("size", partition["Size"]))
             partitionTag.appendChild(diskDom.createTag("spaceInUse", partition["SpaceInUse"]))
@@ -518,7 +512,6 @@ def getDiskDom(diskDeviceList=None, bootPartition=None, skipDisk=None):
         raidDisksTag.appendChild(raidDiskPartitionsTag)
         raidDiskTag.appendChild(raidDisksTag)
         disksTag.appendChild(raidDiskTag)
-    #disksTag.appendChild(raidDisksTag)
     diskDom.addTag(disksTag)
     return diskDom
 
