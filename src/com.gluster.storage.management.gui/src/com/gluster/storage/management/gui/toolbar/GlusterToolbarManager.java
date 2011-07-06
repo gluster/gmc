@@ -29,12 +29,13 @@ import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.actions.IActionConstants;
 
 public class GlusterToolbarManager implements ToolbarManager {
 	private enum ENTITY_TYPE {
-		CLUSTER, VOLUMES, VOLUME, GLUSTER_SERVERS, GLUSTER_SERVER, DISCOVERED_SERVERS, DISCOVERED_SERVER
+		CLUSTER, VOLUMES, VOLUME, GLUSTER_SERVERS, GLUSTER_SERVER, DISCOVERED_SERVERS, DISCOVERED_SERVER, TASK
 	};
 
 	private IWorkbenchWindow window;
@@ -47,6 +48,7 @@ public class GlusterToolbarManager implements ToolbarManager {
 		entityTypeMap.put(Volume.class, ENTITY_TYPE.VOLUME);
 		entityTypeMap.put(Server.class, ENTITY_TYPE.DISCOVERED_SERVER);
 		entityTypeMap.put(GlusterServer.class, ENTITY_TYPE.GLUSTER_SERVER);
+		entityTypeMap.put(TaskInfo.class, ENTITY_TYPE.TASK);
 
 		return entityTypeMap;
 	}
@@ -60,6 +62,7 @@ public class GlusterToolbarManager implements ToolbarManager {
 		actionSetMap.put(ENTITY_TYPE.GLUSTER_SERVER, IActionConstants.ACTION_SET_GLUSTER_SERVER);
 		actionSetMap.put(ENTITY_TYPE.DISCOVERED_SERVERS, IActionConstants.ACTION_SET_DISCOVERED_SERVERS);
 		actionSetMap.put(ENTITY_TYPE.DISCOVERED_SERVER, IActionConstants.ACTION_SET_DISCOVERED_SERVER);
+		actionSetMap.put(ENTITY_TYPE.TASK, IActionConstants.ACTION_SET_TASK);
 
 		return actionSetMap;
 	}

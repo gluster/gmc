@@ -403,7 +403,7 @@
                icon="icons/volume-delete.png"
                id="com.gluster.storage.management.gui.actions.DeleteVolumeAction"
                label="&amp;Delete Volume(s)"
-               menubarPath="com.gluster.storage.management.gui.menu.volumes/volumes"
+               menubarPath="com.gluster.storage.management.gui.actionsets.volumes/volumes"
                mode="FORCE_TEXT"
                pulldown="false"
                retarget="false"
@@ -419,7 +419,7 @@
                icon="icons/volume-stop.png"
                id="com.gluster.storage.management.gui.actions.StopVolumeAction"
                label="S&amp;top Volume(s)"
-               menubarPath="com.gluster.storage.management.gui.menu.volumes/volumes"
+               menubarPath="com.gluster.storage.management.gui.actionsets.volumes/volumes"
                mode="FORCE_TEXT"
                pulldown="false"
                retarget="false"
@@ -435,7 +435,7 @@
                icon="icons/volume-start.png"
                id="com.gluster.storage.management.gui.actions.StartVolumeAction"
                label="&amp;Start Volume(s)"
-               menubarPath="com.gluster.storage.management.gui.menu.volumes/volumes"
+               menubarPath="com.gluster.storage.management.gui.actionsets.volumes/volumes"
                mode="FORCE_TEXT"
                pulldown="false"
                retarget="false"
@@ -448,10 +448,10 @@
                allowLabelUpdate="false"
                class="com.gluster.storage.management.gui.actions.CreateVolumeAction"
                definitionId="com.gluster.storage.management.gui.commands.CreateVolume"
-               icon="icons/volume-create.png"
+               icon="icons/tango/32x32/volume-create.png"
                id="com.gluster.storage.management.gui.actions.CreateVolumeAction"
-               label="&amp;Create Volume"
-               menubarPath="com.gluster.storage.management.gui.menu.volumes/volumes"
+               label="Create &amp;Volume"
+               menubarPath="com.gluster.storage.management.gui.actionsets.volumes/volumes"
                mode="FORCE_TEXT"
                pulldown="false"
                retarget="false"
@@ -461,7 +461,7 @@
                tooltip="Create a new Volume">
          </action>
          <menu
-               id="com.gluster.storage.management.gui.menu.volumes"
+               id="com.gluster.storage.management.gui.actionsets.volumes"
                label="&amp;Gluster"
                path="additions">
             <groupMarker
@@ -623,100 +623,6 @@
                toolbarPath="Normal"
                tooltip="Add Brick to Volume">
          </action>
-         <menu
-               id="com.gluster.storage.management.gui.menu.volume"
-               label="&amp;Gluster"
-               path="additions">
-            <groupMarker
-                  name="volume">
-            </groupMarker>
-         </menu>
-      </actionSet>
-      <actionSet
-            description="Set of actions that can be performed from &quot;Cluster&quot; context"
-            id="com.gluster.storage.management.gui.actionsets.gluster"
-            label="Cluster Action Set"
-            visible="false">
-         <action
-               allowLabelUpdate="false"
-               class="com.gluster.storage.management.gui.actions.ClearTaskAction"
-               definitionId="com.gluster.storage.management.gui.commands.Clear"
-               icon="icons/close_task.png"
-               id="com.gluster.storage.management.gui.actions.Clear"
-               label="&amp;Clear Task"
-               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
-               mode="FORCE_TEXT"
-               pulldown="false"
-               retarget="false"
-               state="false"
-               style="push"
-               toolbarPath="Normal"
-               tooltip="To clear selected task from task list">
-         </action>
-         <action
-               allowLabelUpdate="false"
-               class="com.gluster.storage.management.gui.actions.CommitTaskAction"
-               definitionId="com.gluster.storage.management.gui.commands.Commit"
-               icon="icons/stop.png"
-               id="com.gluster.storage.management.gui.actions.Commit"
-               label="&amp;Commit Task"
-               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
-               mode="FORCE_TEXT"
-               pulldown="false"
-               retarget="false"
-               state="false"
-               style="push"
-               toolbarPath="Normal"
-               tooltip="To Commit the selected task">
-         </action>
-         <action
-               allowLabelUpdate="false"
-               class="com.gluster.storage.management.gui.actions.StopTaskAction"
-               definitionId="com.gluster.storage.management.gui.commands.Stop"
-               icon="icons/stop_task.png"
-               id="com.gluster.storage.management.gui.actions.Stop"
-               label="&amp;Stop Task"
-               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
-               mode="FORCE_TEXT"
-               pulldown="false"
-               retarget="false"
-               state="false"
-               style="push"
-               toolbarPath="Normal"
-               tooltip="To Stop the selected task">
-         </action>
-         <action
-               allowLabelUpdate="false"
-               class="com.gluster.storage.management.gui.actions.ResumeTaskAction"
-               definitionId="com.gluster.storage.management.gui.commands.Pause"
-               icon="icons/start_task.gif"
-               id="com.gluster.storage.management.gui.actions.Resume"
-               label="&amp;Resume Task"
-               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
-               mode="FORCE_TEXT"
-               pulldown="false"
-               retarget="false"
-               state="false"
-               style="push"
-               toolbarPath="Normal"
-               tooltip="To Resume the selected task">
-         </action>
-         <action
-               allowLabelUpdate="false"
-               class="com.gluster.storage.management.gui.actions.PauseTaskAction"
-               definitionId="com.gluster.storage.management.gui.commands.Pause"
-               icon="icons/pause_task.png"
-               id="com.gluster.storage.management.gui.actions.Pause"
-               label="&amp;Pause Task"
-               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
-               mode="FORCE_TEXT"
-               pulldown="false"
-               retarget="false"
-               state="false"
-               style="push"
-               toolbarPath="Normal"
-               tooltip="To Pause the selected task">
-         </action>
          <action
                allowLabelUpdate="false"
                class="com.gluster.storage.management.gui.actions.CreateVolumeAction"
@@ -724,7 +630,7 @@
                icon="icons/tango/32x32/volume-create.png"
                id="com.gluster.storage.management.gui.actions.CreateVolumeAction"
                label="Create &amp;Volume"
-               menubarPath="com.gluster.storage.management.gui.menu.cluster/cluster"
+               menubarPath="com.gluster.storage.management.gui.menu.volume/volume"
                mode="FORCE_TEXT"
                pulldown="false"
                retarget="false"
@@ -734,10 +640,11 @@
                tooltip="Create a new Volume">
          </action>
          <menu
-               id="com.gluster.storage.management.gui.menu.cluster"
-               label="&amp;Gluster">
+               id="com.gluster.storage.management.gui.menu.volume"
+               label="&amp;Gluster"
+               path="additions">
             <groupMarker
-                  name="cluster">
+                  name="volume">
             </groupMarker>
          </menu>
       </actionSet>
@@ -761,6 +668,22 @@
                style="push"
                toolbarPath="Normal"
                tooltip="Remove Server(s)">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.CreateVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.CreateVolume"
+               icon="icons/tango/32x32/volume-create.png"
+               id="com.gluster.storage.management.gui.actions.CreateVolumeAction"
+               label="Create &amp;Volume"
+               menubarPath="com.gluster.storage.management.gui.menu.servers/servers"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Create a new Volume">
          </action>
          <menu
                id="com.gluster.storage.management.gui.menu.servers"
@@ -792,6 +715,22 @@
                toolbarPath="Normal"
                tooltip="Remove Server">
          </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.CreateVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.CreateVolume"
+               icon="icons/tango/32x32/volume-create.png"
+               id="com.gluster.storage.management.gui.actions.CreateVolumeAction"
+               label="Create &amp;Volume"
+               menubarPath="com.gluster.storage.management.gui.menu.glusterserver/glusterserver"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Create a new Volume">
+         </action>
          <menu
                id="com.gluster.storage.management.gui.menu.glusterserver"
                label="&amp;Gluster"
@@ -821,6 +760,22 @@
                style="push"
                toolbarPath="Normal"
                tooltip="Add Server(s) to Cluster">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.CreateVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.CreateVolume"
+               icon="icons/tango/32x32/volume-create.png"
+               id="com.gluster.storage.management.gui.actions.CreateVolumeAction"
+               label="Create &amp;Volume"
+               menubarPath="com.gluster.storage.management.gui.menu.discoveredservers/discoveredservers"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Create a new Volume">
          </action>
          <menu
                id="com.gluster.storage.management.gui.menu.discoveredservers"
@@ -852,12 +807,167 @@
                toolbarPath="Normal"
                tooltip="Add Server(s) to Cluster">
          </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.CreateVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.CreateVolume"
+               icon="icons/tango/32x32/volume-create.png"
+               id="com.gluster.storage.management.gui.actions.CreateVolumeAction"
+               label="Create &amp;Volume"
+               menubarPath="com.gluster.storage.management.gui.menu.discoveredserver/discoveredserver"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Create a new Volume">
+         </action>
          <menu
                id="com.gluster.storage.management.gui.menu.discoveredserver"
                label="&amp;Gluster"
                path="additions">
             <groupMarker
                   name="discoveredserver">
+            </groupMarker>
+         </menu>
+      </actionSet>
+      <actionSet
+            description="Set of actions that can be performed from &quot;Cluster&quot; context"
+            id="com.gluster.storage.management.gui.actionsets.task"
+            label="Task Action Set"
+            visible="false">
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.ClearTaskAction"
+               definitionId="com.gluster.storage.management.gui.commands.Clear"
+               icon="icons/close_task.png"
+               id="com.gluster.storage.management.gui.actions.Clear"
+               label="&amp;Clear Task"
+               menubarPath="com.gluster.storage.management.gui.menu.task/task"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="To clear selected task from task list">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.CommitTaskAction"
+               definitionId="com.gluster.storage.management.gui.commands.Commit"
+               icon="icons/stop.png"
+               id="com.gluster.storage.management.gui.actions.Commit"
+               label="&amp;Commit Task"
+               menubarPath="com.gluster.storage.management.gui.menu.task/task"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="To Commit the selected task">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.StopTaskAction"
+               definitionId="com.gluster.storage.management.gui.commands.Stop"
+               icon="icons/stop_task.png"
+               id="com.gluster.storage.management.gui.actions.Stop"
+               label="&amp;Stop Task"
+               menubarPath="com.gluster.storage.management.gui.menu.task/task"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="To Stop the selected task">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.ResumeTaskAction"
+               definitionId="com.gluster.storage.management.gui.commands.Pause"
+               icon="icons/start_task.gif"
+               id="com.gluster.storage.management.gui.actions.Resume"
+               label="&amp;Resume Task"
+               menubarPath="com.gluster.storage.management.gui.menu.task/task"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="To Resume the selected task">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.PauseTaskAction"
+               definitionId="com.gluster.storage.management.gui.commands.Pause"
+               icon="icons/pause_task.png"
+               id="com.gluster.storage.management.gui.actions.Pause"
+               label="&amp;Pause Task"
+               menubarPath="com.gluster.storage.management.gui.menu.task/task"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="To Pause the selected task">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.CreateVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.CreateVolume"
+               icon="icons/tango/32x32/volume-create.png"
+               id="com.gluster.storage.management.gui.actions.CreateVolumeAction"
+               label="Create &amp;Volume"
+               menubarPath="com.gluster.storage.management.gui.menu.task/task"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Create a new Volume">
+         </action>
+         <menu
+               id="com.gluster.storage.management.gui.menu.task"
+               label="&amp;Gluster">
+            <groupMarker
+                  name="task">
+            </groupMarker>
+         </menu>
+      </actionSet>
+      <actionSet
+            description="Set of actions that can be performed at Cluster context"
+            id="com.gluster.storage.management.gui.actionsets.gluster"
+            label="Gluster Actions"
+            visible="false">
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.CreateVolumeAction"
+               definitionId="com.gluster.storage.management.gui.commands.CreateVolume"
+               icon="icons/tango/32x32/volume-create.png"
+               id="com.gluster.storage.management.gui.actions.CreateVolumeAction"
+               label="Create &amp;Volume"
+               menubarPath="com.gluster.storage.management.gui.menu.gluster/gluster"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Create a new Volume">
+         </action>
+         <menu
+               id="com.gluster.storage.management.gui.menu.gluster"
+               label="&amp;Gluster"
+               path="additions">
+            <groupMarker
+                  name="gluster">
             </groupMarker>
          </menu>
       </actionSet>
@@ -896,7 +1006,7 @@
                state="false"
                style="push"
                toolbarPath="Normal"
-               tooltip="Preferences">
+               tooltip="Settings">
          </action>
          <menu
                id="com.gluster.storage.management.gui.menu.edit"
