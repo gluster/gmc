@@ -20,6 +20,7 @@ package com.gluster.storage.management.gui.views.pages;
 
 import java.util.List;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
@@ -39,6 +40,7 @@ import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.ImageHyperlink;
 
 import com.gluster.storage.management.client.GlusterServersClient;
+import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Disk;
@@ -46,7 +48,9 @@ import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IEntityListener;
+import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.jobs.InitializeDiskJob;
+import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> implements IEntityListener {
 	private List<Disk> disks;
@@ -199,10 +203,27 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 
 		@Override
 		public void linkActivated(HyperlinkEvent e) {
-			updateStatus(DISK_STATUS.INITIALIZING, true);
-			
+			Integer formatOption = new MessageDialog(getShell(), "Initialize Disk", GUIHelper.getInstance().getImage(
+					IImageKeys.DISK), "Please choose the file system to Initialize the disk?", MessageDialog.QUESTION, new String[] {
+					"Cancel", GlusterConstants.FSTYPE_EXT_3, GlusterConstants.FSTYPE_EXT_4, GlusterConstants.FSTYPE_XFS }, -1).open();
+
+			if (formatOption <= 0) { // By Cancel button(0) or Escape key(-1)
+				return;
+			}
+
+			String fsType = null;
+			if (formatOption == 1) {
+				fsType = GlusterConstants.FSTYPE_EXT_3;
+			} else if (formatOption == 2) {
+				fsType = GlusterConstants.FSTYPE_EXT_4;
+			} else if (formatOption == 3) {
+				fsType = GlusterConstants.FSTYPE_XFS;
+			}
+
 			GlusterServersClient serversClient = new GlusterServersClient();
-			serversClient.initializeDisk(disk.getServerName(), disk.getName());
+			serversClient.initializeDisk(disk.getServerName(), disk.getName(), fsType);
+
+			updateStatus(DISK_STATUS.INITIALIZING, true); 
 			
 			guiHelper.showProgressView();
 			new InitializeDiskJob(disk).schedule();

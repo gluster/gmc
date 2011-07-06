@@ -23,10 +23,14 @@ import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.databinding.observable.Realm;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.databinding.swt.SWTObservables;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -35,6 +39,8 @@ import org.eclipse.ui.PlatformUI;
 
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.gui.dialogs.LoginDialog;
+import com.gluster.storage.management.gui.jobs.DataSyncJob;
+import com.gluster.storage.management.gui.preferences.PreferenceConstants;
 
 /**
  * This class controls all aspects of the application's execution
@@ -45,6 +51,7 @@ public class Application implements IApplication {
 	private static Application instance;
 	private List<IEntityListener> entityListeners = Collections.synchronizedList(new ArrayList<IEntityListener>());
 	private IStatusLineManager statusLineManager;
+	private Job syncJob;
 
 	public Application() {
 		instance = this;
@@ -88,14 +95,34 @@ public class Application implements IApplication {
 			return IApplication.EXIT_OK;
 		}
 		try {
+			setupBackgroundJobs();
+			
 			int returnCode = PlatformUI.createAndRunWorkbench(display, new ApplicationWorkbenchAdvisor());
 			if (returnCode == PlatformUI.RETURN_RESTART) {
 				return IApplication.EXIT_RESTART;
 			}
+			
 			return IApplication.EXIT_OK;
 		} finally {
 			display.dispose();
 		}
+	}
+
+	private void setupBackgroundJobs() {
+		// 1 minute delay for first run
+		final IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
+		final long JOB_INTERVAL = preferenceStore.getLong(PreferenceConstants.P_DATA_SYNC_INTERVAL) * 1000;
+		
+		syncJob = new DataSyncJob("Syncing cluster data in background");
+		syncJob.schedule(JOB_INTERVAL);
+		syncJob.addJobChangeListener(new JobChangeAdapter() {
+			@Override
+			public void done(IJobChangeEvent event) {
+				super.done(event);
+				// job done. schedule again after the pre-defined interval
+				syncJob.schedule(JOB_INTERVAL);
+			}
+		});
 	}
 
 	private void setSystemProperties() {
@@ -116,6 +143,7 @@ public class Application implements IApplication {
 		final Display display = workbench.getDisplay();
 		display.syncExec(new Runnable() {
 			public void run() {
+				syncJob.cancel();
 				if (!display.isDisposed())
 					workbench.close();
 			}

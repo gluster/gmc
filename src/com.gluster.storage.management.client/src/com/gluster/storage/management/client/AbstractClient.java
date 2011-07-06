@@ -22,7 +22,6 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import com.gluster.storage.management.client.utils.ClientUtil;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
-import com.gluster.storage.management.core.model.TaskInfo;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;

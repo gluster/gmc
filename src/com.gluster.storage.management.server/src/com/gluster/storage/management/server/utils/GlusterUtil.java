@@ -35,6 +35,8 @@ import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
+import com.gluster.storage.management.core.model.InitDiskStatusResponse;
+import com.gluster.storage.management.core.model.InitDiskStatusResponse.FORMAT_STATUS;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.model.Volume;
@@ -75,6 +77,9 @@ public class GlusterUtil {
 
 	@Autowired
 	private SshUtil sshUtil;
+	
+	@Autowired
+	private ServerUtil serverUtil;
 	
 	@InjectParam
 	private TasksResource taskResource; 
@@ -574,21 +579,27 @@ public class GlusterUtil {
 	}
 	
 	public TaskStatus checkInitializeDiskStatus(String serverName, String diskName) {
-		ProcessResult processResult = sshUtil.executeRemote(serverName, INITIALIZE_DISK_STATUS_SCRIPT + " " + diskName);
+		Object response = serverUtil.executeOnServer(true, serverName, INITIALIZE_DISK_STATUS_SCRIPT + " " + diskName,
+				InitDiskStatusResponse.class);
+
 		TaskStatus taskStatus = new TaskStatus();
-		if (processResult.isSuccess()) {
-			// TODO: Message needs to change according to the script return
-			if (processResult.getOutput().trim().matches(".*Initailize completed$")) {
-				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
-			} else {
-				// TODO: Percentage completed needs to be set, according to the script output
-				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
-				// taskStatus.setPercentCompleted(processResult.getOutput());
-			}
-		} else {
+		if (response instanceof Status) {
 			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+			taskStatus.setMessage(((Status) response).getMessage());
+			throw new GlusterRuntimeException(((Status) response).getMessage());
 		}
-		taskStatus.setMessage(processResult.getOutput());
+
+		InitDiskStatusResponse initDiskStatusResponse = (InitDiskStatusResponse) response;
+
+		if (initDiskStatusResponse.getStatus() == FORMAT_STATUS.COMPLETED) {
+			taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
+		} else if (initDiskStatusResponse.getStatus() == FORMAT_STATUS.IN_PROGRESS) {
+			taskStatus.setCode(Status.STATUS_CODE_RUNNING);
+			taskStatus.setPercentCompleted(Math.round(initDiskStatusResponse.getCompletedBlocks()
+					/ initDiskStatusResponse.getTotalBlocks() * 100));
+		}
+
+		taskStatus.setMessage(initDiskStatusResponse.getMessage());
 		return taskStatus;
 	}
 	

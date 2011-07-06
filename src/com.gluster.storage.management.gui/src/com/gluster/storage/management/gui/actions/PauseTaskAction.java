@@ -28,6 +28,7 @@ import com.gluster.storage.management.client.TasksClient;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.TaskStatus;
+import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
 
 
 public class PauseTaskAction extends AbstractActionDelegate {

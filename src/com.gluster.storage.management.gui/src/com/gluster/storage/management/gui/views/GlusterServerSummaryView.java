@@ -41,11 +41,17 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.ViewPart;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.core.model.ClusterListener;
+import com.gluster.storage.management.core.model.DefaultClusterListener;
+import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
+import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.NetworkInterfaceTableLabelProvider;
+import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.richclientgui.toolbox.gauges.CoolGauge;
 
@@ -55,6 +61,7 @@ public class GlusterServerSummaryView extends ViewPart {
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	private ScrolledForm form;
 	private GlusterServer server;
+	private ClusterListener serverChangedListener;
 
 	public enum NETWORK_INTERFACE_TABLE_COLUMN_INDICES {
 		INTERFACE, MODEL, SPEED, IP_ADDRESS, NETMASK, GATEWAY
@@ -62,6 +69,7 @@ public class GlusterServerSummaryView extends ViewPart {
 
 	private static final String[] NETWORK_INTERFACE_TABLE_COLUMN_NAMES = { "Interface", "Model", "Speed", "IP Address",
 			"Netmask", "Gateway" };
+	private CoolGauge cpuGauge;
 
 	@Override
 	public void createPartControl(Composite parent) {
@@ -70,6 +78,28 @@ public class GlusterServerSummaryView extends ViewPart {
 		}
 		setPartName("Summary");
 		createSections(parent);
+		
+		final GlusterToolbarManager toolbarManager = new GlusterToolbarManager(getSite().getWorkbenchWindow());
+		// Refresh the navigation tree whenever there is a change to the data model
+		serverChangedListener = new DefaultClusterListener() {
+			@Override
+			public void serverChanged(GlusterServer server, Event event) {
+				updateServerDetails();
+				toolbarManager.updateToolbar(server);
+			}
+		};
+		GlusterDataModelManager.getInstance().addClusterListener(serverChangedListener);
+	}
+	
+	private void updateServerDetails() {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	@Override
+	public void dispose() {
+		super.dispose();
+		GlusterDataModelManager.getInstance().removeClusterListener(serverChangedListener);
 	}
 
 	private void createSections(Composite parent) {
@@ -100,15 +130,15 @@ public class GlusterServerSummaryView extends ViewPart {
 			// toolkit.createLabel(section, online ? "" + server.getCpuUsage() : "NA", SWT.NONE);
 
 			toolkit.createLabel(section, "% CPU Usage (avg): ", SWT.NONE);
-			CoolGauge gauge = new CoolGauge(section, guiHelper.getImage(IImageKeys.GAUGE_SMALL));
-			gauge.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false));
-			gauge.setGaugeNeedleColour(Display.getDefault().getSystemColor(SWT.COLOR_RED));
-			gauge.setGaugeNeedleWidth(2);
-			gauge.setGaugeNeedlePivot(new Point(66, 65));
+			cpuGauge = new CoolGauge(section, guiHelper.getImage(IImageKeys.GAUGE_SMALL));
+			cpuGauge.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false));
+			cpuGauge.setGaugeNeedleColour(Display.getDefault().getSystemColor(SWT.COLOR_RED));
+			cpuGauge.setGaugeNeedleWidth(2);
+			cpuGauge.setGaugeNeedlePivot(new Point(66, 65));
 
-			gauge.setPoints(getPnts());
-			gauge.setLevel(server.getCpuUsage() / 100);
-			gauge.setToolTipText(server.getCpuUsage() + "%");
+			cpuGauge.setPoints(getPnts());
+			cpuGauge.setLevel(server.getCpuUsage() / 100);
+			cpuGauge.setToolTipText(server.getCpuUsage() + "%");
 
 			toolkit.createLabel(section, "Memory Usage: ", SWT.NONE);
 			ProgressBar memoryUsageBar = new ProgressBar(section, SWT.SMOOTH);

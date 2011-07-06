@@ -94,7 +94,7 @@ public class InitServerTask extends JdbcDaoSupport {
 	}
 
 	private void initDatabase() {
-		logger.debug("Initializing server data...");
+		logger.info("Initializing server data...");
 		executeScriptsFrom(getDirFromRelativePath(SCRIPT_DIR + appVersion));
 
 		securePasswords(); // encrypt the passwords
@@ -134,7 +134,7 @@ public class InitServerTask extends JdbcDaoSupport {
 				upgradeData(dbVersion, appVersion);
 			}
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			logger.info("No cluster created yet. DB version query failed with error [" + ex.getMessage() + "]", ex);
 			// Database not created yet. Create it!
 			initDatabase();
 		}
@@ -148,7 +148,7 @@ public class InitServerTask extends JdbcDaoSupport {
 				logger.info("Cluster: [" + cluster.getId() + "][" + cluster.getName() + "]");
 			}
 		} else {
-			logger.info("No cluster created yet.");
+			
 		}
 	}
 

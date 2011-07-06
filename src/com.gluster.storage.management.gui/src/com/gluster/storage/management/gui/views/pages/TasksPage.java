@@ -25,21 +25,27 @@ import java.util.List;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.IContentProvider;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchSite;
 
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
+import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.Event;
+import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.gui.TasksTableLabelProvider;
+import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
 
 public class TasksPage extends AbstractTableViewerPage<TaskInfo> {
 	private List<TaskInfo> taskInfoList;
+	private TaskInfo selectedTask;
 	
 	public enum TASK_TABLE_COLUMN_INDICES {
 		TASK, STATUS
@@ -67,11 +73,17 @@ public class TasksPage extends AbstractTableViewerPage<TaskInfo> {
 			@Override
 			public void taskRemoved(TaskInfo taskInfo) {
 				refreshViewer();
+				// hide the task related actionset as no task is selected
+				// site.getPage().hideActionSet(IActionConstants.ACTION_SET_TASK);
+				tableViewer.setSelection(new StructuredSelection(taskInfo));
 			}
 			
 			@Override
 			public void taskUpdated(TaskInfo taskInfo) {
 				refreshViewer();
+				// fire selection event so that toolbar gets updated
+				// (the action class listens to selection and enables/disables automatically)
+				tableViewer.setSelection(new StructuredSelection(taskInfo));
 			}
 			
 			private void refreshViewer() {
@@ -131,5 +143,19 @@ public class TasksPage extends AbstractTableViewerPage<TaskInfo> {
 	@Override
 	protected List<TaskInfo> getAllEntities() {
 		return taskInfoList;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gui.views.pages.AbstractTableViewerPage#selectionChanged(org.eclipse.ui.IWorkbenchPart, org.eclipse.jface.viewers.ISelection)
+	 */
+	@Override
+	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+		if (selection instanceof StructuredSelection) {
+			Entity selectedEntity = (Entity) ((StructuredSelection) selection).getFirstElement();
+			if (selectedEntity != null && selectedEntity instanceof TaskInfo && selectedEntity != selectedTask) {
+				selectedTask = (TaskInfo)selectedEntity;
+				new GlusterToolbarManager(part.getSite().getWorkbenchWindow()).updateToolbar(selectedTask);
+			}
+		}	
 	}
 }
