@@ -37,5 +37,8 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
 		
 		store.setDefault(PreferenceConstants.P_SHOW_CLUSTER_SELECTION_DIALOG, true);
+		
+		// default data sync interval = 5 minutes
+		store.setDefault(PreferenceConstants.P_DATA_SYNC_INTERVAL, 300);
 	}
 }
