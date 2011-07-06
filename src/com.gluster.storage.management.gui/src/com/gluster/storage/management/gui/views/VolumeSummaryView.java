@@ -80,24 +80,14 @@ public class VolumeSummaryView extends ViewPart {
 		setPartName("Summary");
 		createSections();
 
+		final GlusterToolbarManager toolbarManager = new GlusterToolbarManager(getSite().getWorkbenchWindow());
 		// Refresh the navigation tree whenever there is a change to the data model
 		volumeChangedListener = new DefaultClusterListener() {
-			@SuppressWarnings("unchecked")
 			@Override
 			public void volumeChanged(Volume volume, Event event) {
-				if (event.getEventType() == EVENT_TYPE.VOLUME_STATUS_CHANGED) {
-					updateVolumeStatusLabel();
-					new GlusterToolbarManager(getSite().getWorkbenchWindow()).updateToolbar(volume);
-				} else if (event.getEventType() == EVENT_TYPE.VOLUME_OPTION_SET) {
-					Entry<String, String> option = (Entry<String, String>) event.getEventData();
-					if (option.getKey().equals(Volume.OPTION_AUTH_ALLOW)) {
-						// access control option value has changed. update the text field with new value.
-						populateAccessControlText();
-					}
-				} else if (event.getEventType() == EVENT_TYPE.VOLUME_OPTIONS_RESET) {
-					// all volume options reset. populate access control text with default value.
-					populateAccessControlText();
-				}
+				updateVolumeStatusLabel();
+				populateAccessControlText();
+				toolbarManager.updateToolbar(volume);
 			}
 		};
 		GlusterDataModelManager.getInstance().addClusterListener(volumeChangedListener);

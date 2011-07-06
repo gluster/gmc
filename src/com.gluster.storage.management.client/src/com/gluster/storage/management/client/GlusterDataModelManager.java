@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Cluster;
@@ -53,6 +55,8 @@ public class GlusterDataModelManager {
 	private List<ClusterListener> listeners = new ArrayList<ClusterListener>();
 	private List<VolumeOptionInfo> volumeOptionsDefaults;
 	private String clusterName;
+ 	private static Boolean syncInProgress = false;
+	private static final Logger logger = Logger.getLogger(GlusterDataModelManager.class);
 
 	private GlusterDataModelManager() {
 	}
@@ -106,7 +110,17 @@ public class GlusterDataModelManager {
 	}
 	
 	public void refreshModel() {
+		synchronized (syncInProgress) {
+			if(syncInProgress) {
+				logger.info("Previous data sync is still running. Skipping this one.");
+				return;
+			}
+			syncInProgress = true;
+		}
+		
+		logger.info("Starting data sync");
 		updateModel(fetchData(clusterName));
+		syncInProgress = false;
 	}
 	
 	private void updateModel(GlusterDataModel model) {
