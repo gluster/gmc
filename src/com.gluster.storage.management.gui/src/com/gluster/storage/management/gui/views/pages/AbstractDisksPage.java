@@ -220,11 +220,11 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 				fsType = GlusterConstants.FSTYPE_XFS;
 			}
 
-			updateStatus(DISK_STATUS.INITIALIZING, true);
-
 			GlusterServersClient serversClient = new GlusterServersClient();
 			serversClient.initializeDisk(disk.getServerName(), disk.getName(), fsType);
 
+			updateStatus(DISK_STATUS.INITIALIZING, true); 
+			
 			guiHelper.showProgressView();
 			new InitializeDiskJob(disk).schedule();
 		}
