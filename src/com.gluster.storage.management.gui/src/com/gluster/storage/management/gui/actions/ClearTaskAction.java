@@ -17,7 +17,7 @@ public class ClearTaskAction extends AbstractActionDelegate {
 		final String actionDesc = action.getDescription();
 
 		try {
-			new TasksClient().resumeTask(taskInfo.getName());
+			new TasksClient().deleteTask(taskInfo.getName()); // taskId
 			modelManager.removeTask(taskInfo);
 		} catch (Exception e) {
 			showErrorDialog(actionDesc,
@@ -33,6 +33,8 @@ public class ClearTaskAction extends AbstractActionDelegate {
 			taskInfo = (TaskInfo) selectedEntity;
 			action.setEnabled(taskInfo.getStatus().getCode() == Status.STATUS_CODE_SUCCESS 
 							|| taskInfo.getStatus().getCode() == Status.STATUS_CODE_FAILURE);
+		} else {
+			action.setEnabled(false);
 		}
 	}
 
