@@ -18,12 +18,14 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.views.pages;
 
+import java.net.URI;
 import java.util.List;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.events.DisposeEvent;
@@ -39,18 +41,18 @@ import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.ImageHyperlink;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.GlusterServersClient;
-import com.gluster.storage.management.core.constants.GlusterConstants;
+import com.gluster.storage.management.client.TasksClient;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.model.Entity;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IEntityListener;
-import com.gluster.storage.management.gui.IImageKeys;
-import com.gluster.storage.management.gui.jobs.InitializeDiskJob;
-import com.gluster.storage.management.gui.utils.GUIHelper;
+import com.gluster.storage.management.gui.dialogs.InitializeDiskTypeSelection;
 
 public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> implements IEntityListener {
 	private List<Disk> disks;
@@ -203,30 +205,26 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 
 		@Override
 		public void linkActivated(HyperlinkEvent e) {
-			Integer formatOption = new MessageDialog(getShell(), "Initialize Disk", GUIHelper.getInstance().getImage(
-					IImageKeys.DISK), "Please choose the file system to Initialize the disk?", MessageDialog.QUESTION, new String[] {
-					"Cancel", GlusterConstants.FSTYPE_EXT_3, GlusterConstants.FSTYPE_EXT_4, GlusterConstants.FSTYPE_XFS }, -1).open();
-
-			if (formatOption <= 0) { // By Cancel button(0) or Escape key(-1)
+			InitializeDiskTypeSelection formatDialog = new InitializeDiskTypeSelection(getShell());
+			int userAction = formatDialog.open();
+			if (userAction == Window.CANCEL) {
+				formatDialog.cancelPressed();
 				return;
 			}
 
-			String fsType = null;
-			if (formatOption == 1) {
-				fsType = GlusterConstants.FSTYPE_EXT_3;
-			} else if (formatOption == 2) {
-				fsType = GlusterConstants.FSTYPE_EXT_4;
-			} else if (formatOption == 3) {
-				fsType = GlusterConstants.FSTYPE_XFS;
-			}
-
 			GlusterServersClient serversClient = new GlusterServersClient();
-			serversClient.initializeDisk(disk.getServerName(), disk.getName(), fsType);
+			try {
+				URI uri = serversClient.initializeDisk(disk.getServerName(), disk.getName(), formatDialog.getFSType());
 
-			updateStatus(DISK_STATUS.INITIALIZING, true); 
-			
-			guiHelper.showProgressView();
-			new InitializeDiskJob(disk).schedule();
+				TasksClient taskClient = new TasksClient();
+				TaskInfo taskInfo = taskClient.getTaskInfo(uri);
+				if (taskInfo != null && taskInfo instanceof TaskInfo) {
+					GlusterDataModelManager.getInstance().getModel().getCluster().addTaskInfo(taskInfo);
+				}
+				updateStatus(DISK_STATUS.INITIALIZING, true);
+			} catch (Exception e1) {
+				MessageDialog.openError(getShell(), "Error: Initialize disk", e1.getMessage());
+			}
 		}
 	}
 
