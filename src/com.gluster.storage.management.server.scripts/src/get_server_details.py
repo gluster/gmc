@@ -17,15 +17,9 @@
 #  <http://www.gnu.org/licenses/>.
 
 import sys
-import syslog
 import socket
-import Globals
-import Commands
 import re
-import Common
 import DiskUtils
-from ServerUtils import *
-from Protocol import *
 from NetworkUtils import *
 from Disk import *
 from XmlHandler import ResponseXml
@@ -33,7 +27,6 @@ from optparse import OptionParser
 
 
 def getServerDetails(listall):
-
     serverName = socket.gethostname()
     meminfo = getMeminfo()
     cpu = 100 * float(getLoadavg())
@@ -90,17 +83,11 @@ def getServerDetails(listall):
     responseDom.appendTag(serverTag)
     serverTag.appendChild(responseDom.createTag("numOfCPUs", int(os.sysconf('SC_NPROCESSORS_ONLN'))))
 
-
-    # refreshing hal data
-    DiskUtils.refreshHal()
-
-    diskObj = Disk()
-    disks = diskObj.getMountableDiskList()
-
-    if disks is None:
-        print "No disk found!"
-        syslog.syslog(syslog.LOG_ERR, "Error finding disk information of server:%s" % serverName)
-        return None
+    diskDom = DiskUtils.getDiskDom()
+    if not diskDom:
+        sys.stderr.write("No disk found!")
+        Utils.log("Failed to get disk details")
+        sys.exit(1)
 
     serverTag.appendChild(responseDom.createTag("cpuUsage", str(cpu)))
     serverTag.appendChild(responseDom.createTag("totalMemory", str(convertKbToMb(meminfo['MemTotal']))))
@@ -108,45 +95,11 @@ def getServerDetails(listall):
     serverTag.appendChild(responseDom.createTag("status", "ONLINE"))
     serverTag.appendChild(responseDom.createTag("uuid", None))
 
-    totalDiskSpace = 0
-    diskSpaceInUse = 0
-    diskTag = responseDom.createTag("disks")
-    for disk in disks:
-        if not listall:
-            if not disk['mount_point'].startswith("/export/"):
-                continue
-        if disk['interface'] in ['usb', 'mmc']:
-            continue
-        partitionTag = responseDom.createTag("disk", None)
-        partitionTag.appendChild(responseDom.createTag("name", os.path.basename(disk['device'])))
-        partitionTag.appendChild(responseDom.createTag("mountPoint", disk['mount_point']))
-        partitionTag.appendChild(responseDom.createTag("serverName", serverName))
-        partitionTag.appendChild(responseDom.createTag("description", disk['description']))
-        total, used, free = 0, 0, 0
-        if disk['size']:
-            total, used, free = DiskUtils.getDiskSizeInfo(disk['device'])
-        if total:
-            partitionTag.appendChild(responseDom.createTag("space", str(total)))
-            totalDiskSpace += total
-        else:
-            partitionTag.appendChild(responseDom.createTag("space", "NA"))
-        if used:
-            partitionTag.appendChild(responseDom.createTag("spaceInUse", str(used)))
-            diskSpaceInUse += used
-            partitionTag.appendChild(responseDom.createTag("status", "AVAILABLE"))
-        else:
-            partitionTag.appendChild(responseDom.createTag("spaceInUse", "NA"))
-            partitionTag.appendChild(responseDom.createTag("status", "UNINITIALIZED"))
-        diskTag.appendChild(partitionTag)
-    serverTag.appendChild(diskTag)
-    serverTag.appendChild(responseDom.createTag("totalDiskSpace", str(totalDiskSpace)))
-    serverTag.appendChild(responseDom.createTag("diskSpaceInUse", str(diskSpaceInUse)))
+    serverTag.appendChild(diskDom.getElementsByTagRoute("disks")[0])
     return serverTag
 
 def main():
-    ME = os.path.basename(sys.argv[0])
-    parser = OptionParser(version="%s %s" % (ME, Globals.GLUSTER_PLATFORM_VERSION))
-
+    parser = OptionParser()
     parser.add_option("-N", "--only-data-disks",
                       action="store_false", dest="listall", default=True,
                       help="List only data disks")

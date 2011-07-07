@@ -34,7 +34,6 @@ import urllib
 
 import Globals
 import Protocol
-from Common import *
 
 RUN_COMMAND_ERROR = -1024
 LOG_SYSLOG = 1
@@ -703,7 +702,7 @@ def removeFile(fileName, root=False):
         os.remove(fileName)
         return True
     except OSError, e:
-        Utils.log("Failed to remove file %s: %s" % (fileName, e))
+        log("Failed to remove file %s: %s" % (fileName, e))
     return False
 
 
@@ -712,3 +711,354 @@ def isLiveMode():
 
 def convertKbToMb(kb):
     return kb / 1024.0
+
+
+def getIPIndex(indexFile):
+    try:
+        fp = open(indexFile)
+        line = fp.readline()
+        fp.close()
+        index = int(line)
+    except IOError:
+        index = 0
+    except ValueError:
+        index = False
+    return index
+
+def setIPIndex(index, indexFile):
+    try:
+        fp = open(indexFile, "w")
+        fp.write(str(index))
+        fp.close()
+    except IOError:
+        return False
+    return True
+
+def IP2Number(ipString):
+    try:
+        return socket.htonl(struct.unpack("I", socket.inet_aton(ipString))[0])
+    except socket.error:
+        return None
+    except TypeError:
+        return None
+    except struct.error:
+        return None
+
+def Number2IP(number):
+    try:
+        return socket.inet_ntoa(struct.pack("I", socket.ntohl(number)))
+    except socket.error:
+        return None
+    except AttributeError:
+        return None
+    except ValueError:
+        return None
+
+def hasEntryFoundInFile(searchString, dnsEntryFileName):
+    try:
+        addServerEntryList = open(dnsEntryFileName).read().split()
+    except IOError:
+        return None
+    if searchString in addServerEntryList:
+        return True
+    return False
+
+
+def computeIpAddress(ipAddress, startIp, endIp):
+    startIpNumber = IP2Number(startIp)
+    endIpNumber = IP2Number(endIp)
+    if not ipAddress:
+        return startIp
+    nextIpNumber = IP2Number(ipAddress)
+    while True:  
+        nextIpNumber = nextIpNumber + 1
+        ipAddress = Number2IP(nextIpNumber)
+        rv = runCommandFG(["ping", "-qnc", "1", ipAddress])
+        if type(rv) == type(True):
+            return False
+        if rv != 0:
+            break
+
+    if nextIpNumber >= startIpNumber and nextIpNumber <= endIpNumber:
+        return ipAddress
+
+    nextIpNumber = IP2Number(startIp)
+    while True:
+        ipAddress = Number2IP(nextIpNumber)
+        nextIpNumber = nextIpNumber + 1
+        rv = runCommandFG(["ping", "-qnc", "1", ipAddress])
+        if type(rv) == type(True):
+            return False
+        if rv != 0:
+            break
+
+    if IP2Number(ipAddress) >= startIpNumber and IP2Number(ipAddress) <= endIpNumber:
+        return ipAddress
+    return False
+
+
+def setHostNameAndIp(hostName, ipAddress, lastAddServerDetailFile):
+    try:
+        fp = open(lastAddServerDetailFile, "w")
+        fp.write("HOSTNAME=" + hostName + "\n")
+        fp.write("IPADDRESS=" + ipAddress);
+        fp.close()
+    except IOError:
+        return False
+    return True
+
+def getPort():
+    try:
+        fd = open(Globals.PORT_FILE, "r")
+        portString = fd.readline()
+        fd.close()
+        port = int(portString)
+    except IOError:
+        port = Globals.DEFAULT_PORT - 2
+    except ValueError:
+        port = Globals.DEFAULT_PORT - 2
+    return port
+
+def setPort(port):
+    try:
+        fd = open(Globals.PORT_FILE, "w")
+        fd.write(str(port))
+        fd.close()
+    except IOError:
+        return False
+    return True
+
+def getServerAgentCredentials():
+    try:
+        lines = open(Globals.SERVERAGENT_AUTH_FILE).readlines()
+    except IOError:
+        return None,None
+
+    userName = None
+    password = None
+
+    for l in lines:
+        if l[-1] == '\n':
+            l = l[:-1]
+        k = l[:l.index('=')]
+        v = l[l.index('=') + 1:]
+        if v[0] == "'" or v[0] == '"':
+            v = v[1:]
+        if v[-1] == "'" or v[-1] == '"':
+            v = v[:-1]
+        if k.upper() == "AGENT_ID":
+            userName = v
+        if k.upper() == "AGENT_PASSWORD":
+            password = v
+
+    return userName, password
+
+def getGatewayAgentCredentials():
+    try:
+        lines = open(Globals.GATEWAYAGENT_AUTH_FILE).readlines()
+    except IOError:
+        return None
+
+    #userName = None
+    password = None
+
+    for l in lines:
+        if l[-1] == '\n':
+            l = l[:-1]
+        k = l[:l.index('=')]
+        v = l[l.index('=') + 1:]
+        if v[0] == "'" or v[0] == '"':
+            v = v[1:]
+        if v[-1] == "'" or v[-1] == '"':
+            v = v[:-1]
+        #if k.upper() == "AGENT_ID":
+        #    userName = v
+        if k.upper() == "AGENT_PASSWORD":
+            password = v
+
+    return password
+
+def getWebAgentCredentials():
+    try:
+        lines = open(Globals.WEBAGENT_AUTH_FILE).readlines()
+    except IOError:
+        return None,None
+
+    userName = None
+    password = None
+
+    for l in lines:
+        if l[-1] == '\n':
+            l = l[:-1]
+        k = l[:l.index('=')]
+        v = l[l.index('=') + 1:]
+        if v[0] == "'" or v[0] == '"':
+            v = v[1:]
+        if v[-1] == "'" or v[-1] == '"':
+            v = v[:-1]
+        if k.upper() == "AGENT_ID":
+            userName = v
+        if k.upper() == "AGENT_PASSWORD":
+            password = v
+
+    return userName, password
+
+def daemonize():
+    try: 
+        pid = os.fork() 
+        if pid > 0:
+            # exit first parent
+            sys.exit(0) 
+    except OSError, e: 
+        #sys.stderr.write("fork #1 failed: %d (%s)\n" % (e.errno, e.strerror))
+        return False
+	
+    # decouple from parent environment
+    os.chdir("/") 
+    os.setsid() 
+    os.umask(0) 
+	
+    # do second fork
+    try: 
+        pid = os.fork() 
+        if pid > 0:
+            # exit from second parent
+            sys.exit(0) 
+    except OSError, e: 
+        #sys.stderr.write("fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
+        return False 
+	
+    # redirect standard file descriptors
+    sys.stdout.flush()
+    sys.stderr.flush()
+    si = file("/dev/null", 'r')
+    so = file("/dev/null", 'a+')
+    se = file("/dev/null", 'a+', 0)
+    os.dup2(si.fileno(), sys.stdin.fileno())
+    os.dup2(so.fileno(), sys.stdout.fileno())
+    os.dup2(se.fileno(), sys.stderr.fileno())
+    return True
+
+def getFreeIpAddress():
+    startRange, endRange = getStoragePoolInfo()
+    if not (startRange and endRange):
+        return None
+
+    startIpNumber = IP2Number(startRange)
+    endIpNumber = IP2Number(endRange)
+
+    for ipNumber in range(endIpNumber, startIpNumber, -1):
+        rv = runCommandFG(["ping", "-qnc", "1", Number2IP(ipNumber)])
+        if type(rv) == type(True):
+            return None
+        if rv != 0:
+            return Number2IP(ipNumber)
+    return None
+
+def getDhcpServerStatus():
+    status = runCommandFG(["sudo", "service", "dnsmasq", " status"])
+    if type(status) == type(True) or 0 != status:
+        return False
+    return True
+
+def startDhcpServer():
+    status = runCommandFG(["sudo", "service", "dnsmasq", " start"])
+    if type(status) == type(True) or 0 != status:
+        return False
+    return True
+
+def stopDhcpServer():
+    status = runCommandFG(["sudo", "service", "dnsmasq", " stop"])
+    if type(status) == type(True) or 0 != status:
+        return False
+    return True
+
+def getStoragePoolInfo():
+    startRange = None
+    endRange = None
+    try:
+        for line in open(Globals.GLUSTER_SERVER_POOL_FILE):
+            tokens = line.split("=")
+            if tokens[0] == "STARTRANGE":
+                startRange = tokens[1].strip()
+            if tokens[0] == "ENDRANGE":
+                endRange = tokens[1].strip()
+    except IOError:
+        log(syslog.LOG_ERR, "unable to read %s file" % Globals.GLUSTER_SERVER_POOL_FILE)
+    return startRange, endRange
+
+def configureDnsmasq(serverIpAddress, dhcpIpAddress):
+    dnsmasqConfFile = Globals.GLUSTER_CONF_CONF_DIR + "/dnsmasq.conf"
+    serverPortString = "68"
+    try:
+        for arg in open("/proc/cmdline").read().strip().split():
+            token = arg.split("=")
+            if token[0] == "dhcp":
+                serverPortString = token[1]
+                break
+    except IOError:
+        log(syslog.LOG_ERR, "Failed to read /proc/cmdline.  Continuing with default port 68")
+    try:
+        serverPort = int(serverPortString)
+    except ValueError:
+        log(syslog.LOG_ERR, "Invalid dhcp port '%s' in /proc/cmdline.  Continuing with default port 68" % serverPortString)
+        serverPort = 68
+
+    try:
+        fp = open(dnsmasqConfFile, "w")
+        fp.write("no-hosts\n")
+        #fp.write("addn-hosts=%s\n" % Globals.GLUSTER_DNS_ENTRIES)
+        fp.write("bind-interfaces\n")
+        fp.write("except-interface=lo\n")
+        fp.write("dhcp-range=%s,%s\n" % (dhcpIpAddress, dhcpIpAddress))
+        fp.write("dhcp-lease-max=1\n")
+        #fp.write("dhcp-option=option:router,%s\n" % serverIp)
+        #fp.write("dhcp-option=option:ntp-server,%s\n" % serverIp)
+        fp.write("dhcp-alternate-port=%s\n" % serverPort)
+        fp.write("server=%s\n" % serverIpAddress)
+        fp.write("dhcp-script=/usr/sbin/server-info\n")
+        fp.close()
+    except IOError:
+        log(syslog.LOG_ERR, "unable to write dnsmasq configuration %s" % dnsmasqConfFile)
+        return False
+    status = runCommandFG(["sudo", "cp", "-f", Globals.GLUSTER_CONF_CONF_DIR + "/dnsmasq.conf", Globals.DNSMASQ_CONF_FILE])
+    if type(status) == type(True) or 0 != status:
+        log(syslog.LOG_ERR, "unable to copy dnsmasq configuration to " + Globals.DNSMASQ_CONF_FILE)
+        return False
+    return True
+
+def configureDhcpServer(serverIpAddress, dhcpIpAddress):
+    return configureDnsmasq(serverIpAddress, dhcpIpAddress)
+
+def log(priority, message=None):
+    if type(priority) == type(""):
+        logPriority = syslog.LOG_INFO
+        logMessage = priority
+    else:
+        logPriority = priority
+        logMessage = message
+    if not logMessage:
+        return
+    #if Globals.DEBUG:
+    #    sys.stderr.write(logMessage)
+    else:
+        syslog.syslog(logPriority, logMessage)
+    return
+
+
+def stripEmptyLines(content):
+    ret = ""
+    for line in content.split("\n"):
+        if line.strip() != "":
+            ret += line
+    return ret
+
+
+def getDeviceFormatStatusFile(device):
+    return "/var/tmp/format_%s.status" % device.replace('/', '_')
+
+def getDeviceFormatLockFile(device):
+    return "/var/lock/format_%s.lock" % device.replace('/', '_')
+
+def getDeviceFormatOutputFile(device):
+    return "/var/tmp/format_%s.out" % device.replace('/', '_')

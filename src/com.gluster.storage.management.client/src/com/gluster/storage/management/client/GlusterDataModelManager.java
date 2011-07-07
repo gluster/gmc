@@ -19,7 +19,6 @@
 package com.gluster.storage.management.client;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -31,8 +30,8 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.ClusterListener;
+import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
-import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.GlusterDataModel;
@@ -605,10 +604,10 @@ public class GlusterDataModelManager {
 		}
 	}
 
-	public void setVolumeOption(Volume volume, Entry<String, String> entry) {
-		volume.setOption(entry.getKey(), (String) entry.getValue());
+	public void setVolumeOption(Volume volume, String optionKey, String optionValue) {
+		volume.setOption(optionKey, optionValue);
 		for (ClusterListener listener : listeners) {
-			listener.volumeChanged(volume, new Event(EVENT_TYPE.VOLUME_OPTION_SET, entry));
+			listener.volumeChanged(volume, new Event(EVENT_TYPE.VOLUME_OPTION_SET, optionKey));
 		}
 	}
 
@@ -673,8 +672,7 @@ public class GlusterDataModelManager {
 	}
 
 	public void setAccessControlList(Volume volume, String accessControlList) {
-		volume.setAccessControlList(accessControlList);
-		setVolumeOption(volume, getOptionEntry(volume, Volume.OPTION_AUTH_ALLOW));
+		setVolumeOption(volume, Volume.OPTION_AUTH_ALLOW, accessControlList);
 	}
 
 	public Server getGlusterServer(String serverName) {
@@ -684,17 +682,6 @@ public class GlusterDataModelManager {
 			}
 		}
 		return null;
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private Entry<String, String> getOptionEntry(Volume volume, String optionKey) {
-		for (Entry entry : volume.getOptions().entrySet()) {
-			if (entry.getKey().equals(optionKey)) {
-				return entry;
-			}
-		}
-		throw new GlusterRuntimeException("Couldn't find entry for option [" + optionKey + "] on volume ["
-				+ volume.getName());
 	}
 
 	private Boolean isDiskUsed(Volume volume, Disk disk) {
@@ -707,7 +694,7 @@ public class GlusterDataModelManager {
 	}
 
 	public String getDiskStatus(Disk disk) {
-		if (disk.getStatus() == DISK_STATUS.AVAILABLE) {
+		if (disk.getStatus() == DEVICE_STATUS.INITIALIZED) {
 			for (Volume volume : model.getCluster().getVolumes()) {
 				if (isDiskUsed(volume, disk)) {
 					return "In use";

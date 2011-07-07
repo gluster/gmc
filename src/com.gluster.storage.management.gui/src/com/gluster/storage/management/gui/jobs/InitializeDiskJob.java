@@ -25,8 +25,8 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.ui.progress.IProgressConstants;
 import org.eclipse.ui.progress.IProgressConstants2;
 
+import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
-import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.GUIHelper;
@@ -44,7 +44,7 @@ public class InitializeDiskJob extends Job {
 		setProperty(IProgressConstants.ICON_PROPERTY, guiHelper.getImageDescriptor(IImageKeys.WORK_IN_PROGRESS));
 	}
 
-	private void updateStatus(final DISK_STATUS status) {
+	private void updateStatus(final DEVICE_STATUS status) {
 		disk.setStatus(status);
 		disk.setSpaceInUse(0d);
 		app.entityChanged(disk, new String[] { "status", "spaceInUse" });
@@ -76,7 +76,7 @@ public class InitializeDiskJob extends Job {
 			e.printStackTrace();
 		}
 
-		updateStatus(DISK_STATUS.AVAILABLE);
+		updateStatus(DEVICE_STATUS.INITIALIZED);
 		setProperty(IProgressConstants.ICON_PROPERTY, guiHelper.getImageDescriptor(IImageKeys.STATUS_SUCCESS));
 
 		return new Status(Status.OK, Application.PLUGIN_ID, "Task Completed!");

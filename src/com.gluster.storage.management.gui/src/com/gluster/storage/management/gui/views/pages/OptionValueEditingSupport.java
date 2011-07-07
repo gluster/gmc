@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Display;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.VolumeOption;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
@@ -39,7 +40,7 @@ public class OptionValueEditingSupport extends EditingSupport {
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void setValue(final Object element, final Object value) {
-		final Entry<String, String> entry = (Entry<String, String>) element;
+		final VolumeOption entry = (VolumeOption)element;
 		final String optionKey = entry.getKey();
 		final String optionValue = (String)value;
 		final String oldValue = entry.getValue();
@@ -67,9 +68,9 @@ public class OptionValueEditingSupport extends EditingSupport {
 			public void run() {
 				VolumesClient client = new VolumesClient();
 				try {
-					client.setVolumeOption(volume.getName(), entry.getKey(), (String) value);
+					client.setVolumeOption(volume.getName(), optionKey, optionValue);
 					entry.setValue((String)value);
-					GlusterDataModelManager.getInstance().setVolumeOption(volume, entry);
+					GlusterDataModelManager.getInstance().setVolumeOption(volume, optionKey, optionValue);
 				} catch(Exception e) {
 					MessageDialog.openError(Display.getDefault().getActiveShell(), "Set Volume Option", e.getMessage());
 				}

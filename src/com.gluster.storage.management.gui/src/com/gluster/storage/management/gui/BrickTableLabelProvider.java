@@ -23,8 +23,8 @@ import org.eclipse.swt.graphics.Image;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Brick;
+import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
-import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.views.pages.BricksPage.BRICK_TABLE_COLUMN_INDICES;
@@ -44,9 +44,10 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 		Disk disk = GlusterDataModelManager.getInstance().getDiskDetails(brick.getDiskName());
 
 		if (columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
-			DISK_STATUS status = disk.getStatus();
+			DEVICE_STATUS status = disk.getStatus();
 			switch (status) {
-			case AVAILABLE:
+			case INITIALIZED:
+			case READY:
 				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
 			case IO_ERROR:
 				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
@@ -63,7 +64,7 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 	}
 
 	private String getDiskFreeSpace(Disk disk) {
-		if (disk.isReady() && disk.getFreeSpace() != null) {
+		if (disk != null && disk.isReady() && disk.getFreeSpace() != null) {
 			return NumberUtil.formatNumber((disk.getFreeSpace() / 1024));
 		} else {
 			return "NA";

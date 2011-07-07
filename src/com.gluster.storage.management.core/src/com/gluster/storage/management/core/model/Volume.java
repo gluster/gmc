@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -196,7 +197,11 @@ public class Volume extends Entity {
 	}
 
 	public void setOptions(LinkedHashMap<String, String> options) {
-		this.options.setOptionsMap(options);
+		List<VolumeOption> volumeOptions = new ArrayList<VolumeOption>();
+		for(Entry<String, String> entry : options.entrySet()) {
+			volumeOptions.add(new VolumeOption(entry.getKey(), entry.getValue()));
+		}
+		this.options.setOptions(volumeOptions);
 	}
 
 	public void addBrick(Brick brick) {

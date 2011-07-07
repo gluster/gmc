@@ -4,7 +4,6 @@
 package com.gluster.storage.management.gui.views.pages;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -17,6 +16,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.VolumeOption;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
 import com.gluster.storage.management.core.model.VolumeOptions;
 
@@ -73,7 +73,7 @@ public class OptionKeyEditingSupport extends EditingSupport {
 
 	@Override
 	protected Object getValue(Object element) {
-		Entry<String, String> entryBeingAdded = getEntryBeingAdded();
+		VolumeOption entryBeingAdded = getEntryBeingAdded();
 		if(entryBeingAdded == null) {
 			return cellEditor.getValue();
 		}
@@ -93,7 +93,7 @@ public class OptionKeyEditingSupport extends EditingSupport {
 		return cellEditor;
 	}
 
-	private int getIndexOfEntry(Entry<String, String> entryBeingAdded) {
+	private int getIndexOfEntry(VolumeOption entryBeingAdded) {
 		for(int index = 0; index < allowedKeys.length; index++) {
 			if(allowedKeys[index].equals(entryBeingAdded.getKey())) {
 				return index;
@@ -102,18 +102,16 @@ public class OptionKeyEditingSupport extends EditingSupport {
 		return -1;
 	}
 
-	protected Entry<String, String> getEntryBeingAdded() {
-		Entry<String, String> entryBeingAdded = null;
-		Iterator<Entry<String, String>> iter = volume.getOptions().entrySet().iterator();
-		while(iter.hasNext()) {
-			Entry<String, String> nextEntry = iter.next();
-			if(!iter.hasNext() && nextEntry.getValue().isEmpty()) {
-				// it's the LAST entry, and it's value is empty.
-				// means this is a new row being added in the table viewer.
-				entryBeingAdded = nextEntry;
-			}
+	protected VolumeOption getEntryBeingAdded() {
+		List<VolumeOption> options = volume.getOptions().getOptions();
+		int size = options.size();
+		String lastValue = options.get(size - 1).getValue();
+		if(lastValue == null || lastValue.isEmpty()) {
+			// it's the LAST entry, and it's value is empty.
+			// means this is a new row being added in the table viewer.
+			return options.get(size - 1);
 		}
-		return entryBeingAdded;
+		return null;
 	}
 
 	@SuppressWarnings("unchecked")

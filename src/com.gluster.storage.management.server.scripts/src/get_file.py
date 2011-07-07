@@ -16,8 +16,6 @@
 #  <http://www.gnu.org/licenses/>.
 
 import Globals
-import syslog
-import Commands
 import Utils
 from VolumeUtils import *
 from XmlHandler import ResponseXml

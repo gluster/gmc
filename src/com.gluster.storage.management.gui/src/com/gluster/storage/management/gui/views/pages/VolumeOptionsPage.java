@@ -58,6 +58,7 @@ import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.VolumeOption;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
 import com.gluster.storage.management.gui.VolumeOptionsTableLabelProvider;
 import com.gluster.storage.management.gui.utils.GUIHelper;
@@ -103,7 +104,7 @@ public class VolumeOptionsPage extends Composite {
 			setAddButtonsEnabled(false);
 		}
 
-		tableViewer.setInput(volume.getOptions().entrySet());
+		tableViewer.setInput(volume.getOptions());
 
 		parent.layout(); // Important - this actually paints the table
 		registerListeners(parent);
@@ -151,7 +152,7 @@ public class VolumeOptionsPage extends Composite {
 				if (!(addTopButton.isEnabled() || addBottomButton.isEnabled())) {
 					// user has selected key, but not added value. Since this is not a valid entry,
 					// remove the last option (without value) from the volume
-					Entry<String, String> entryBeingAdded = keyEditingSupport.getEntryBeingAdded();
+					VolumeOption entryBeingAdded = keyEditingSupport.getEntryBeingAdded();
 					volume.getOptions().remove(entryBeingAdded.getKey());
 				}
 			}
@@ -200,7 +201,7 @@ public class VolumeOptionsPage extends Composite {
 				}
 
 				// if this is the last option in the volume options, it must be the new option
-				return optionKey.equals(volume.getOptions().keySet().toArray()[volume.getOptions().size() - 1]);
+				return optionKey.equals(volume.getOptions().getOptions().get(volume.getOptions().size() - 1));
 			}
 		};
 		
@@ -219,8 +220,8 @@ public class VolumeOptionsPage extends Composite {
 				filterText.setEnabled(false);
 			}
 
-			private Entry<String, String> getEntry(String key) {
-				for (Entry<String, String> entry : volume.getOptions().entrySet()) {
+			private VolumeOption getEntry(String key) {
+				for (VolumeOption entry : volume.getOptions().getOptions()) {
 					if (entry.getKey().equals(key)) {
 						return entry;
 					}
