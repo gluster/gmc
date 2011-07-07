@@ -20,19 +20,21 @@
  *******************************************************************************/
 package com.gluster.storage.management.core.model;
 
+import javax.xml.bind.annotation.XmlRootElement;
 
-public class InitDiskStatusResponse extends Status {
+@XmlRootElement
+public class InitDiskStatusResponse {
 
 	public enum FORMAT_STATUS {
 		IN_PROGRESS, COMPLETED, NOT_RUNNING
 	};
 
-	private String[] FORMAT_STATUS_STR = { "Inprogress", "Completed", "Notrunning" };
+	private String[] FORMAT_STATUS_STR = { "In Progress", "Completed", "Not Running" };
 
 	private String device;
 	private String message;
-	private float total;
-	private float completed;
+	private float totalBlocks;
+	private float completedBlocks;
 	private FORMAT_STATUS status;
 
 	public InitDiskStatusResponse() {
@@ -55,20 +57,21 @@ public class InitDiskStatusResponse extends Status {
 		this.message = message;
 	}
 	
-	public void setTotal(float total) {
-		this.total = total;
+
+	public void setTotalBlocks(float totalBlocks) {
+		this.totalBlocks = totalBlocks;
 	}
 
-	public float getTotal() {
-		return total;
+	public float getTotalBlocks() {
+		return totalBlocks;
 	}
 
-	public void setCompleted(float completed) {
-		this.completed = completed;
+	public void setCompletedBlocks(float completedBlocks) {
+		this.completedBlocks = completedBlocks;
 	}
 
-	public float getCompleted() {
-		return completed;
+	public float getCompletedBlocks() {
+		return completedBlocks;
 	}
 
 	public String getStatusStr() {

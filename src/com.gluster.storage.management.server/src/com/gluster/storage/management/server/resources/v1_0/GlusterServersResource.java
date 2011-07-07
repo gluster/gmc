@@ -417,7 +417,7 @@ public class GlusterServersResource extends AbstractServersResource {
 		}
 		
 		if (fsType == null || fsType.isEmpty()) {
-			return badRequestResponse("FSType must not be empty!");
+			return badRequestResponse("Parameter [" + FORM_PARAM_FSTYPE + "] is missing in request!");
 		}
 
 		InitializeDiskTask initializeTask = new InitializeDiskTask(clusterService, clusterName, serverName, diskName, fsType);
