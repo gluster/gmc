@@ -19,9 +19,7 @@ import os
 import glob
 from copy import deepcopy
 import dbus
-import syslog
 import Globals
-import Common
 import time
 import Utils
 import Disk
@@ -78,7 +76,7 @@ def getUuidByDiskPartition(device):
 
 
 def getDiskPartitionUuid(partition):
-    Common.log("WARNING: getDiskPartitionUuid() is deprecated by getUuidByDiskPartition()")
+    Utils.log("WARNING: getDiskPartitionUuid() is deprecated by getUuidByDiskPartition()")
     return getUuidByDiskPartition(partition)
 
 
@@ -92,7 +90,7 @@ def getDiskPartitionByLabel(label):
 
 
 def getDeviceByLabel(label):
-    Common.log("WARNING: getDeviceByLabel() is deprecated by getDiskPartitionByLabel()")
+    Utils.log("WARNING: getDeviceByLabel() is deprecated by getDiskPartitionByLabel()")
     return getDiskPartitionByLabel(label)
 
 
@@ -155,7 +153,7 @@ def getRaidDisk():
 
 
 def getOsDisk():
-    Common.log("WARNING: getOsDisk() is deprecated by getRootPartition()")
+    Utils.log("WARNING: getOsDisk() is deprecated by getRootPartition()")
     return getRootPartition()
 
 
@@ -206,6 +204,7 @@ def getDiskInfo(diskDeviceList=None):
         partitionUdiList = halManager.FindDeviceStringMatch("info.parent", udi)
         diskSpaceInUse = 0
         for partitionUdi in partitionUdiList:
+            used = 0
             partitionHalDeviceObj = dbusSystemBus.get_object("org.freedesktop.Hal",
                                                              partitionUdi)
             partitionHalDevice = dbus.Interface(partitionHalDeviceObj,
@@ -279,7 +278,7 @@ def readFsTab(fsTabFile=Globals.FSTAB_FILE):
     try:
         fsTabfp = open(fsTabFile)
     except IOError, e:
-        Common.log("readFsTab(): " + str(e))
+        Utils.log("readFsTab(): " + str(e))
         return None
     
     fsTabEntryList = []
@@ -348,9 +347,9 @@ def getDiskSizeInfo(partition):
     free = None
     command = "df -kl -t ext3 -t ext4 -t xfs"
     rv = Utils.runCommandFG(command, stdout=True, root=True)
-    message = Common.stripEmptyLines(rv["Stdout"])
+    message = Utils.stripEmptyLines(rv["Stdout"])
     if rv["Stderr"]:
-        Common.log(syslog.LOG_ERR, "failed to get disk details. %s" % Common.stripEmptyLines(rv["Stdout"]))
+        Utils.log("failed to get disk details. %s" % Utils.stripEmptyLines(rv["Stdout"]))
         return None, None, None
     for line in rv["Stdout"].split("\n"):
         tokens = line.split()
@@ -378,9 +377,9 @@ def getDiskSizeInfo(partition):
     number = int(partitionNumber)
     command = "parted -ms %s unit kb print" % disk
     rv = Utils.runCommandFG(command, stdout=True, root=True)
-    message = Common.stripEmptyLines(rv["Stdout"])
+    message = Utils.stripEmptyLines(rv["Stdout"])
     if rv["Stderr"]:
-        Common.log(syslog.LOG_ERR, "failed to get disk details. %s" % Common.stripEmptyLines(rv["Stdout"]))
+        Utils.log("failed to get disk details. %s" % Utils.stripEmptyLines(rv["Stdout"]))
         return None, None, None
     
     lines = rv["Stdout"].split(";\n")
@@ -401,7 +400,7 @@ def isDataDiskPartitionFormatted(device):
     #Todo: Proper label needs to be added for data partition
     #if getDiskPartitionLabel(device) != Globals.DATA_PARTITION_LABEL:
     #    return False
-
+    device = getDeviceName(device)
     diskObj = Disk.Disk()
     for disk in  diskObj.getMountableDiskList():
         if disk['device'].upper() == device.upper():
@@ -527,9 +526,9 @@ def initializeDisk(disk, boot=False, startSize=0, sudo=False):
         command = "dd if=/dev/zero of=%s bs=1024K count=1" % diskObj["Device"]
         if runCommandFG(command, root=sudo) != 0:
             if boot:
-                Common.log("failed to clear boot sector of disk %s" % diskObj["Device"])
+                Utils.log("failed to clear boot sector of disk %s" % diskObj["Device"])
                 return False
-            Common.log("failed to clear boot sector of disk %s.  ignoring" % diskObj["Device"])
+            Utils.log("failed to clear boot sector of disk %s.  ignoring" % diskObj["Device"])
 
         command = "parted -s %s mklabel gpt" % diskObj["Device"]
         if runCommandFG(command, root=sudo) != 0:
@@ -560,15 +559,15 @@ def initializeDisk(disk, boot=False, startSize=0, sudo=False):
 
     if runCommandFG("udevadm settle", root=sudo) != 0:
         if runCommandFG("udevadm settle", root=sudo) != 0:
-            Common.log("udevadm settle for disk %s failed.  ignoring" % diskObj["Device"])
+            Utils.log("udevadm settle for disk %s failed.  ignoring" % diskObj["Device"])
     time.sleep(1)
 
     if runCommandFG("partprobe %s" % diskObj["Device"], root=sudo) != 0:
-        Common.log("partprobe %s failed" % diskObj["Device"])
+        Utils.log("partprobe %s failed" % diskObj["Device"])
         return False
 
     if runCommandFG("gptsync %s" % diskObj["Device"], root=sudo) != 0:
-        Common.log("gptsync %s failed.  ignoring" % diskObj["Device"])
+        Utils.log("gptsync %s failed.  ignoring" % diskObj["Device"])
 
     # wait forcefully to appear devices in /dev
     time.sleep(2)
@@ -576,12 +575,12 @@ def initializeDisk(disk, boot=False, startSize=0, sudo=False):
 
 
 def initializeOsDisk(diskObj):
-    Common.log("WARNING: initializeOsDisk() is deprecated by initializeDisk(boot=True)")
+    Utils.log("WARNING: initializeOsDisk() is deprecated by initializeDisk(boot=True)")
     return initializeDisk(diskObj, boot=True)
 
 
 def initializeDataDisk(diskObj):
-    Common.log("WARNING: initializeDataDisk() is deprecated by initializeDisk()")
+    Utils.log("WARNING: initializeDataDisk() is deprecated by initializeDisk()")
     return initializeDisk(diskObj)
 
 def getBootPartition(serverName):
@@ -638,7 +637,7 @@ def isDiskInFormatting(device):
 
 
 def isDiskInFormat(device):
-    Common.log("WARNING: isDiskInFormat() is deprecated by isDataDiskPartitionFormatted()")
+    Utils.log("WARNING: isDiskInFormat() is deprecated by isDataDiskPartitionFormatted()")
     return isDataDiskPartitionFormatted(device)
 
 
@@ -772,11 +771,11 @@ def compareDiskDom(diskDomA, diskDomB, requestFlag=True):
 def getServerConfigDiskDom(serverName, diskName=None):
     diskConfigDom = XDOM()
     if not diskConfigDom.parseFile("%s/%s/disk.xml" % (Globals.SERVER_VOLUME_CONF_DIR, serverName)):
-        Common.log("Unable to parse %s/%s/disk.xml" % (Globals.SERVER_VOLUME_CONF_DIR, serverName))
+        Utils.log("Unable to parse %s/%s/disk.xml" % (Globals.SERVER_VOLUME_CONF_DIR, serverName))
         return None
     diskTag = diskConfigDom.getElementsByTagRoute("disks.disk")
     if not diskTag:
-        Common.log("Unable to reterive disk information %s/%s/disk.xml" % (Globals.SERVER_VOLUME_CONF_DIR, serverName))
+        Utils.log("Unable to reterive disk information %s/%s/disk.xml" % (Globals.SERVER_VOLUME_CONF_DIR, serverName))
         return None
     if diskName:
         for tagE in diskTag:

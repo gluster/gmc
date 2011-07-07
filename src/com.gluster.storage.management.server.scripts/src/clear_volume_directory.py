@@ -22,13 +22,12 @@ import time
 from XmlHandler import ResponseXml
 import DiskUtils
 import Utils
-import Common
 from optparse import OptionParser
 
 def clearVolumeDirectory(diskMountPoint, volumeName, todelete):
     rs = ResponseXml()
     if not DiskUtils.checkDiskMountPoint(diskMountPoint):
-        Common.log(syslog.LOG_ERR, "failed to find disk mount point %s" % diskMountPoint) 
+        Utils.log("failed to find disk mount point %s" % diskMountPoint) 
         rs.appendTagRoute("status.code", "-1")
         rs.appendTagRoute("status.message", "Error: Mount point does not exists")
         return rs.toprettyxml()
@@ -48,11 +47,11 @@ def clearVolumeDirectory(diskMountPoint, volumeName, todelete):
     newVolumeDirectoryName = "%s_%s" % (volumeDirectory, time.time())
     command = ["sudo", "mv", "-f", volumeDirectory, newVolumeDirectoryName]
     rv = Utils.runCommandFG(command, stdout=True, root=True)
-    message = Common.stripEmptyLines(rv["Stdout"])
+    message = Utils.stripEmptyLines(rv["Stdout"])
     if rv["Stderr"]:
-        error = Common.stripEmptyLines(rv["Stderr"])
+        error = Utils.stripEmptyLines(rv["Stderr"])
         message += "Error: [%s]" % (error)
-        Common.log(syslog.LOG_ERR, "failed to rename volume directory %s, %s" % (volumeDirectory, error))
+        Utils.log("failed to rename volume directory %s, %s" % (volumeDirectory, error))
         rs.appendTagRoute("status.code", rv["Status"])
         rs.appendTagRoute("status.message", message)
         return rs.toprettyxml()
@@ -65,11 +64,11 @@ def clearVolumeDirectory(diskMountPoint, volumeName, todelete):
 
     command = ["sudo", "rm", "-fr", newVolumeDirectoryName]
     rv = Utils.runCommandFG(command, stdout=True, root=True)
-    message = Common.stripEmptyLines(rv["Stdout"])
+    message = Utils.stripEmptyLines(rv["Stdout"])
     if rv["Stderr"]:
-        error = Common.stripEmptyLines(rv["Stderr"])
+        error = Utils.stripEmptyLines(rv["Stderr"])
         message += "Error: [%s]" % (error)
-        Common.log(syslog.LOG_ERR, "failed to clear volume directory %s, %s" % (newVolumeDirectoryName, error))
+        Utils.log("failed to clear volume directory %s, %s" % (newVolumeDirectoryName, error))
         rs.appendTagRoute("status.code", rv["Status"])
         rs.appendTagRoute("status.message", message)
         return rs.toprettyxml()
@@ -86,7 +85,7 @@ def main():
     (options, args) = parser.parse_args()
 
     if len(args) != 2:
-        print >> sys.stderr, "usage: %s <disk mount point> <volume name> [-d/--delete]" % sys.argv[0]
+        sys.stderr.write("usage: %s <disk mount point> <volume name> [-d/--delete]\n" % os.path.basename(sys.argv[0]))
         sys.exit(-1)
 
     diskMountPoint = args[0]

@@ -34,7 +34,6 @@ import urllib
 
 import Globals
 import Protocol
-from Common import *
 
 RUN_COMMAND_ERROR = -1024
 LOG_SYSLOG = 1
@@ -703,7 +702,7 @@ def removeFile(fileName, root=False):
         os.remove(fileName)
         return True
     except OSError, e:
-        Utils.log("Failed to remove file %s: %s" % (fileName, e))
+        log("Failed to remove file %s: %s" % (fileName, e))
     return False
 
 
@@ -1030,3 +1029,36 @@ def configureDnsmasq(serverIpAddress, dhcpIpAddress):
 
 def configureDhcpServer(serverIpAddress, dhcpIpAddress):
     return configureDnsmasq(serverIpAddress, dhcpIpAddress)
+
+def log(priority, message=None):
+    if type(priority) == type(""):
+        logPriority = syslog.LOG_INFO
+        logMessage = priority
+    else:
+        logPriority = priority
+        logMessage = message
+    if not logMessage:
+        return
+    #if Globals.DEBUG:
+    #    sys.stderr.write(logMessage)
+    else:
+        syslog.syslog(logPriority, logMessage)
+    return
+
+
+def stripEmptyLines(content):
+    ret = ""
+    for line in content.split("\n"):
+        if line.strip() != "":
+            ret += line
+    return ret
+
+
+def getDeviceFormatStatusFile(device):
+    return "/var/tmp/format_%s.status" % device.replace('/', '_')
+
+def getDeviceFormatLockFile(device):
+    return "/var/lock/format_%s.lock" % device.replace('/', '_')
+
+def getDeviceFormatOutputFile(device):
+    return "/var/tmp/format_%s.out" % device.replace('/', '_')

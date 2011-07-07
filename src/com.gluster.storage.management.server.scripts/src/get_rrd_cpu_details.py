@@ -17,10 +17,8 @@
 #  <http://www.gnu.org/licenses/>.
 import os
 import sys
-import syslog
 from XmlHandler import ResponseXml
 import Utils
-import Common
 
 def getCpuData(period):
     cpuRrdFile = "/var/lib/rrd/cpu.rrd"
@@ -33,12 +31,12 @@ def getCpuData(period):
                "XPORT:cpusystem:'system'",
                "XPORT:cpuidle:'idle'"]
 
-    rv = Utils.runCommandFG(command, stdout=True, root=True)
-    message = Common.stripEmptyLines(rv["Stdout"])
+    rv = Utils.runCommand(command, output=True, root=True)
+    message = Utils.stripEmptyLines(rv["Stdout"])
     if rv["Stderr"]:
-        error = Common.stripEmptyLines(rv["Stderr"])
+        error = Utils.stripEmptyLines(rv["Stderr"])
         message += "Error: [%s]" % (error)
-        Common.log(syslog.LOG_ERR, "failed to create RRD file for cpu usages %s" % file)
+        Utils.log("failed to create RRD file for cpu usages %s" % file)
         rs.appendTagRoute("status.code", rv["Status"])
         rs.appendTagRoute("status.message", message)
         return rs.toxml()
@@ -46,7 +44,7 @@ def getCpuData(period):
 
 def main():
     if len(sys.argv) != 2:
-        print >> sys.stderr, "usage: %s <period>" % sys.argv[0]
+        sys.stderr.write("usage: %s <period>\n" % os.path.basename(sys.argv[0]))
         sys.exit(-1)
 
     period = sys.argv[1]
