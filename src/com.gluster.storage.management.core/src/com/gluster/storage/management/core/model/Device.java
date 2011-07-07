@@ -19,6 +19,7 @@
 package com.gluster.storage.management.core.model;
 
 import java.io.File;
+import java.nio.channels.GatheringByteChannel;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -31,14 +32,15 @@ import com.gluster.storage.management.core.utils.StringUtil;
  */
 public class Device extends Entity {
 	public enum DEVICE_STATUS {
-		INITIALIZED, UNINITIALIZED, INITIALIZING, IO_ERROR
+		//TODO: Status "READY" to be removed after python script is changed accordingly
+		READY, INITIALIZED, UNINITIALIZED, INITIALIZING, IO_ERROR, UNKNOWN
 	};
 	
 	public enum DEVICE_TYPE {
 		DATA, BOOT, SWAP, UNKNOWN
 	};
 
-	private static final String[] DEVICE_STATUS_STR = { "Initialized", "Uninitialized", "Initializing", "I/O Error" };
+	private static final String[] DEVICE_STATUS_STR = { "Ready", "Initialized", "Uninitialized", "Initializing", "I/O Error", "Unknown" };
 	private static final String[] DEVICE_TYPE_STR = { "Data", "Boot", "Swap", "Unknown" };
 
 	// type = data, boot, other
@@ -89,7 +91,8 @@ public class Device extends Entity {
 	
 	public boolean isReady() {
 		// TODO: Check if status is INITIALIZED AND type = DATA
-		return getStatus() == DEVICE_STATUS.INITIALIZED;
+		// return (getStatus() == DEVICE_STATUS.INITIALIZED && getType() == DEVICE_TYPE.DATA);
+		return (getStatus() == DEVICE_STATUS.READY);
 	}
 	
 	public DEVICE_STATUS getStatus() {
@@ -97,6 +100,10 @@ public class Device extends Entity {
 	}
 
 	public String getStatusStr() {
+		if (getStatus() == null) {
+			return DEVICE_STATUS_STR[DEVICE_STATUS.UNKNOWN.ordinal()]; // Return as Unknown
+		}
+
 		if(isReady()) {
 			return "Available";
 		}

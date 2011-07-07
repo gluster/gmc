@@ -47,6 +47,7 @@ public class DiskTableLabelProvider extends TableLabelProviderAdapter {
 			DEVICE_STATUS status = disk.getStatus();
 			switch (status) {
 			case INITIALIZED:
+			case READY:
 				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
 			case IO_ERROR:
 				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);

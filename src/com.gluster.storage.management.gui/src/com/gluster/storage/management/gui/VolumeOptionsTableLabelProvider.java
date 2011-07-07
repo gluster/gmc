@@ -20,6 +20,7 @@ package com.gluster.storage.management.gui;
 
 import java.util.Map.Entry;
 
+import com.gluster.storage.management.core.model.VolumeOption;
 import com.gluster.storage.management.gui.views.pages.VolumeOptionsPage.OPTIONS_TABLE_COLUMN_INDICES;
 
 public class VolumeOptionsTableLabelProvider extends TableLabelProviderAdapter {
@@ -29,11 +30,9 @@ public class VolumeOptionsTableLabelProvider extends TableLabelProviderAdapter {
 			return null;
 		}
 
-		Entry<String, String> entry = (Entry<String, String>) element;
-		String key = entry.getKey();
-		String value = entry.getValue();
-		return (columnIndex == OPTIONS_TABLE_COLUMN_INDICES.OPTION_KEY.ordinal() ? key
-			: columnIndex == OPTIONS_TABLE_COLUMN_INDICES.OPTION_VALUE.ordinal() ? value
+		VolumeOption option = (VolumeOption)element;
+		return (columnIndex == OPTIONS_TABLE_COLUMN_INDICES.OPTION_KEY.ordinal() ? option.getKey()
+			: columnIndex == OPTIONS_TABLE_COLUMN_INDICES.OPTION_VALUE.ordinal() ? option.getValue()
 			: "Invalid");
 	}
 }

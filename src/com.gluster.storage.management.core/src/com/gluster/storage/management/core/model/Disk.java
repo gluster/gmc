@@ -26,7 +26,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.StringUtil;
 
-@XmlRootElement(name="Disk")
+@XmlRootElement(name="disk")
 public class Disk extends Device {
 	private String description;
 	
@@ -96,19 +96,23 @@ public class Disk extends Device {
 			return false;
 		}
 		
-		for(Disk raidDisk : raidDisks) {
-			// check if the disk contains same raid disks
-			if (!(raidDisk.equals(GlusterCoreUtil.getEntity(disk.getRaidDisks(), raidDisk.getName(), false)))) {
-				return false;
+		if (raidDisks != null) {
+			for (Disk raidDisk : raidDisks) {
+				// check if the disk contains same raid disks
+				if (!(raidDisk.equals(GlusterCoreUtil.getEntity(disk.getRaidDisks(), raidDisk.getName(), false)))) {
+					return false;
+				}
 			}
 		}
 		
-		// check if the disk contains same partitions
-		for (Partition partition : partitions) {
-			if (!(partition.equals(GlusterCoreUtil.getEntity(disk.getPartitions(), partition.getName(), false)))) {
-				return false;
-			}
-		}
+//		// check if the disk contains same partitions
+//		if (partitions != null) {
+//			for (Partition partition : partitions) {
+//				if (!(partition.equals(GlusterCoreUtil.getEntity(disk.getPartitions(), partition.getName(), false)))) {
+//					return false;
+//				}
+//			}
+//		}
 
 		return false;
 	}

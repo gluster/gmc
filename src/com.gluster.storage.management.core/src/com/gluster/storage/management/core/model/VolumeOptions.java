@@ -27,64 +27,54 @@ import java.util.Set;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
  */
-@XmlRootElement
+@XmlRootElement(name="options")
 public class VolumeOptions {
-	private Map<String, String> optionsMap = new HashMap<String, String>();
+	private List<VolumeOption> options = new ArrayList<VolumeOption>();
 
 	public VolumeOptions() {
 	}
 	
 	public String get(String key) {
-		return optionsMap.get(key);
+		for(VolumeOption option : options) {
+			if(option.getKey().equals(key)) {
+				return option.getValue();
+			}
+		}
+		return null;
 	}
 	
-	public String put(String key, String value) {
-		return optionsMap.put(key, value);
+	public void put(String key, String value) {
+		options.add(new VolumeOption(key, value));
 	}
 
 	@XmlElement(name="option", type=VolumeOption.class)
 	public List<VolumeOption> getOptions() {
-		List<VolumeOption> options = new ArrayList<VolumeOption>();
-		for(Entry<String, String> entry : optionsMap.entrySet()) {
-			options.add(new VolumeOption(entry.getKey(), entry.getValue()));
-		}
 		return options;
 	}
 	
-	public Set<Entry<String, String>> getOptionsMap() {
-		return optionsMap.entrySet();
-	}
-	
-	public void setOptionsMap(Map<String, String> optionsMap) {
-		this.optionsMap = optionsMap;
+	public void setOptions(List<VolumeOption> options) {
+		this.options = options;
 	}
 	
 	public void clear() {
-		optionsMap.clear();
+		options.clear();
 	}
 
-	public Set<Entry<String, String>> entrySet() {
-		return optionsMap.entrySet();
-	}
-
-	public Set<String> keySet() {
-		return optionsMap.keySet();
-	}
-
-	public String remove(String key) {
-		return optionsMap.remove(key);
+	public boolean remove(String key) {
+		return options.remove(get(key));
 	}
 
 	public int size() {
-		return optionsMap.size();
+		return options.size();
 	}
 
 	public boolean containsKey(String key) {
-		return optionsMap.containsKey(key);
+		return get(key) != null;
 	}
 	
 	@Override
@@ -108,8 +98,7 @@ public class VolumeOptions {
 	}
 
 	public void copyFrom(VolumeOptions options) {
-		for(Entry<String, String> entry : options.entrySet()) {
-			optionsMap.put(entry.getKey(), entry.getValue());
-		}
+		this.options.clear();
+		this.options.addAll(options.getOptions());
 	}
 }

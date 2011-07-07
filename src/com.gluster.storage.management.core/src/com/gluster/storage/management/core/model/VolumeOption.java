@@ -23,7 +23,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 /**
  *
  */
-@XmlRootElement
+@XmlRootElement(name="option")
 public class VolumeOption {
 	private String key;
 	private String value;

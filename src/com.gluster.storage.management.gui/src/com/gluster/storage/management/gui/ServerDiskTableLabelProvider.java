@@ -42,6 +42,11 @@ public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 		Disk disk = (Disk) element;
 		if (columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
 			DEVICE_STATUS status = disk.getStatus();
+			
+			if (status == null) {
+				return  null;
+			}
+			
 			switch (status) {
 			case INITIALIZED:
 				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
