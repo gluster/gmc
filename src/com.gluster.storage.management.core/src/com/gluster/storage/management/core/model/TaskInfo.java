@@ -110,4 +110,31 @@ public class TaskInfo extends Entity {
 	public boolean filter(String filterString, boolean caseSensitive) {
 		return StringUtil.filterString(getDescription() + getStatus().getMessage(), filterString, caseSensitive);
 	}
+
+	public void copyFrom(TaskInfo newTask) {
+		setName(newTask.getName());
+		setDescription(newTask.getDescription());
+		setReference(newTask.getReference());
+		setStatus(newTask.getStatus());
+		setType(newTask.getType());
+		setPauseSupported(newTask.getPauseSupported());
+		setStopSupported(newTask.getStopSupported());
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(!(obj instanceof TaskInfo)) {
+			return false;
+		}
+		
+		TaskInfo newTask = (TaskInfo)obj;
+		if (newTask.getName().equals(getName()) && newTask.getDescription().equals(getDescription())
+				&& newTask.getReference().equals(getReference()) && newTask.getStatus().equals(getStatus())
+				&& newTask.getType() == getType() && newTask.getPauseSupported() == getPauseSupported()
+				&& newTask.getStopSupported() == getStopSupported()) {
+			return true;
+		}
+		
+		return false;
+	}
 }
