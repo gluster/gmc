@@ -49,7 +49,12 @@ public class VolumeOptions {
 	}
 	
 	public void put(String key, String value) {
-		options.add(new VolumeOption(key, value));
+		VolumeOption option = getOption(key);
+		if(option != null) {
+			option.setValue(value);
+		} else {
+			options.add(new VolumeOption(key, value));
+		}
 	}
 
 	@XmlElement(name="option", type=VolumeOption.class)
@@ -66,7 +71,16 @@ public class VolumeOptions {
 	}
 
 	public boolean remove(String key) {
-		return options.remove(get(key));
+		return options.remove(getOption(key));
+	}
+	
+	public VolumeOption getOption(String key) {
+		for(VolumeOption option : options) {
+			if(option.getKey().equals(key)) {
+				return option;
+			}
+		}
+		return null;
 	}
 
 	public int size() {

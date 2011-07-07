@@ -114,6 +114,7 @@ public class Application implements IApplication {
 		final long JOB_INTERVAL = preferenceStore.getLong(PreferenceConstants.P_DATA_SYNC_INTERVAL) * 1000;
 		
 		syncJob = new DataSyncJob("Syncing cluster data in background");
+		syncJob.setPriority(Job.DECORATE);
 		syncJob.schedule(JOB_INTERVAL);
 		syncJob.addJobChangeListener(new JobChangeAdapter() {
 			@Override

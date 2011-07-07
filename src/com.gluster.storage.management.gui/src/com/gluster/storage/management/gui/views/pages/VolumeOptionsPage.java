@@ -19,11 +19,9 @@
 package com.gluster.storage.management.gui.views.pages;
 
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.apache.commons.lang.WordUtils;
 import org.eclipse.jface.layout.TableColumnLayout;
-import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnLayoutData;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
@@ -60,6 +58,7 @@ import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.VolumeOption;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
+import com.gluster.storage.management.gui.VolumeOptionsContentProvider;
 import com.gluster.storage.management.gui.VolumeOptionsTableLabelProvider;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
@@ -159,7 +158,6 @@ public class VolumeOptionsPage extends Composite {
 		});
 
 		clusterListener = new DefaultClusterListener() {
-			@SuppressWarnings("unchecked")
 			@Override
 			public void volumeChanged(Volume volume, Event event) {
 				super.volumeChanged(volume, event);
@@ -171,8 +169,8 @@ public class VolumeOptionsPage extends Composite {
 				}
 
 				if (event.getEventType() == EVENT_TYPE.VOLUME_OPTION_SET) {
-					Entry<String, String> eventEntry = (Entry<String, String>) event.getEventData();
-					if (isNewOption(volume, eventEntry.getKey())) {
+					String key = (String)event.getEventData();
+					if (isNewOption(volume, key)) {
 						// option has been set successfully by the user. re-enable the add button and search filter
 						// textbox
 						setAddButtonsEnabled(true);
@@ -188,7 +186,7 @@ public class VolumeOptionsPage extends Composite {
 						tableViewer.refresh();
 					} else {
 						// existing volume option value changed. update that element.
-						tableViewer.update(eventEntry, null);
+						tableViewer.update(volume.getOptions().get(key), null);
 					}
 				}
 			}
@@ -201,7 +199,7 @@ public class VolumeOptionsPage extends Composite {
 				}
 
 				// if this is the last option in the volume options, it must be the new option
-				return optionKey.equals(volume.getOptions().getOptions().get(volume.getOptions().size() - 1));
+				return optionKey.equals(volume.getOptions().getOptions().get(volume.getOptions().size() - 1).getKey());
 			}
 		};
 		
@@ -285,10 +283,9 @@ public class VolumeOptionsPage extends Composite {
 		valueColumn.getColumn()
 				.setText(OPTIONS_TABLE_COLUMN_NAMES[OPTIONS_TABLE_COLUMN_INDICES.OPTION_VALUE.ordinal()]);
 		valueColumn.setLabelProvider(new ColumnLabelProvider() {
-			@SuppressWarnings("unchecked")
 			@Override
 			public String getText(Object element) {
-				return ((Entry<String, String>) element).getValue();
+				return ((VolumeOption) element).getValue();
 			}
 		});
 
@@ -302,16 +299,14 @@ public class VolumeOptionsPage extends Composite {
 		keyColumn = new TableViewerColumn(tableViewer, SWT.NONE);
 		keyColumn.getColumn().setText(OPTIONS_TABLE_COLUMN_NAMES[OPTIONS_TABLE_COLUMN_INDICES.OPTION_KEY.ordinal()]);
 		keyColumn.setLabelProvider(new ColumnLabelProvider() {
-			@SuppressWarnings("unchecked")
 			@Override
 			public String getText(Object element) {
-				return ((Entry<String, String>) element).getKey();
+				return ((VolumeOption) element).getKey();
 			}
 
-			@SuppressWarnings("unchecked")
 			@Override
 			public String getToolTipText(Object element) {
-				String key = ((Entry<String, String>) element).getKey();
+				String key = ((VolumeOption) element).getKey();
 				if (key.isEmpty()) {
 					return "Click to select a volume option key";
 				}
@@ -333,7 +328,7 @@ public class VolumeOptionsPage extends Composite {
 	private void createOptionsTableViewer(Composite parent) {
 		tableViewer = new TableViewer(parent, SWT.FLAT | SWT.FULL_SELECTION | SWT.SINGLE);
 		tableViewer.setLabelProvider(new VolumeOptionsTableLabelProvider());
-		tableViewer.setContentProvider(new ArrayContentProvider());
+		tableViewer.setContentProvider(new VolumeOptionsContentProvider());
 		tableViewer.getTable().setLinesVisible(true);
 
 		setupOptionsTable(parent);

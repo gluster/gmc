@@ -128,7 +128,6 @@ public abstract class AbstractClient {
 	 *            Expected class of the response
 	 * @return Object of responseClass received as a result of the GET request
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private <T> T fetchResource(WebResource res, MultivaluedMap<String, String> queryParams, Class<T> responseClass) {
 		try {
 			return res.queryParams(queryParams)

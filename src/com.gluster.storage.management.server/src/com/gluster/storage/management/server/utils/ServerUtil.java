@@ -21,16 +21,12 @@
 package com.gluster.storage.management.server.utils;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.ServletContext;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +37,6 @@ import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.model.VolumeOption;
-import com.gluster.storage.management.core.model.VolumeOptions;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.ProcessUtil;
@@ -221,16 +215,5 @@ public class ServerUtil {
 	 */
 	public Status getDiskForDir(String serverName, String brickDir) {
 		return (Status) executeOnServer(true, serverName, REMOTE_SCRIPT_GET_DISK_FOR_DIR + " " + brickDir, Status.class);
-	}
-
-	public static void main(String args[]) throws Exception {
-		//String diskStr = "<server><name>devserver1</name><domainname/><dns1>10.1.10.1</dns1><dns2>8.8.4.4</dns2><networkInterfaces><networkInterface><name>eth0</name><hwAddr>00:50:56:82:00:1d</hwAddr><speed>1000</speed><model>ETHERNET</model><onboot>yes</onboot><bootProto>none</bootProto><ipAddress>10.1.12.41</ipAddress><netMask>255.255.255.0</netMask><defaultGateway>10.1.12.1</defaultGateway></networkInterface></networkInterfaces><numOfCPUs>2</numOfCPUs><cpuUsage>0.0</cpuUsage><totalMemory>2010.5234375</totalMemory><memoryInUse>1267.6015625</memoryInUse><status>ONLINE</status><uuid/><disks><disk><name>sdd</name><description>VMware Virtual disk</description><uuid/><status>UNINITIALIZED</status><init>false</init><type>false</type><interface>pci</interface><fsType/><fsVersion/><mountPoint/><size>10240</size><spaceInUse/><partitions><partition><name>sdd1</name><uuid/><status>UNINITIALIZED</status><init>false</init><type>false</type><interface/><fsType/><mountPoint/><size>10236</size><spaceInUse/></partition></partitions></disk><disk><name>sda</name><description>VMware Virtual disk</description><uuid/><status>UNINITIALIZED</status><init>false</init><type>false</type><interface>pci</interface><fsType/><fsVersion/><mountPoint/><size>10240</size><spaceInUse>2019</spaceInUse><partitions><partition><name>sda1</name><uuid>345d880e-822a-4e46-a518-75cc48b1869f</uuid><status>INITIALIZED</status><init>true</init><type>false</type><interface/><fsType>ext3</fsType><mountPoint>/boot</mountPoint><size>125</size><spaceInUse>11</spaceInUse></partition><partition><name>sda2</name><uuid/><status>UNINITIALIZED</status><init>false</init><type>false</type><interface/><fsType>swap</fsType><mountPoint/><size>125</size><spaceInUse/></partition><partition><name>sda3</name><uuid>f94a0b2a-5ebc-4c13-a618-0328af97a31e</uuid><status>INITIALIZED</status><init>true</init><type>false</type><interface/><fsType>ext3</fsType><mountPoint>/</mountPoint><size>9985</size><spaceInUse>2008</spaceInUse></partition></partitions></disk><disk><name>sdb</name><description>VMware Virtual disk</description><uuid>97ee7ea3-d235-424c-bdda-f5b697f204a2</uuid><status>READY</status><init>true</init><type>true</type><interface>pci</interface><fsType>ext3</fsType><fsVersion>1.0</fsVersion><mountPoint>/export/sdb</mountPoint><size>1024</size><spaceInUse>427</spaceInUse><partitions/></disk><disk><name>sdc</name><description>VMware Virtual disk</description><uuid>87679044-6395-42fb-a80d-41c3b648f248</uuid><status>READY</status><init>true</init><type>true</type><interface>pci</interface><fsType>ext3</fsType><fsVersion>1.0</fsVersion><mountPoint>/export/sdc</mountPoint><size>8192</size><spaceInUse>602</spaceInUse><partitions/></disk></disks></server>";
-		String diskStr = "<options><option><key>auth.allow</key><value>*</value></option><option><key>cluster.stripe-block-size</key><value>*:128KB</value></option></options>";
-		//diskStr = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><options><option><key>auth.allow</key><value>*</value></option><option><key>cluster.stripe-block-size</key><value>*:128KB</value></option></options>";
-		VolumeOptions disk = (VolumeOptions)new ServerUtil().unmarshal(VolumeOptions.class, diskStr, false);
-		System.out.println(disk.size());
-		for(VolumeOption option : disk.getOptions()) {
-			System.out.println(option.toString());
-		}
 	}
 }

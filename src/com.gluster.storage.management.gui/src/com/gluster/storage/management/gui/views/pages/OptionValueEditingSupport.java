@@ -4,7 +4,6 @@
 package com.gluster.storage.management.gui.views.pages;
 
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.CellEditor;
@@ -37,7 +36,6 @@ public class OptionValueEditingSupport extends EditingSupport {
 		this.cellEditor = new TextCellEditor((Composite) viewer.getControl());
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	protected void setValue(final Object element, final Object value) {
 		final VolumeOption entry = (VolumeOption)element;
@@ -69,7 +67,6 @@ public class OptionValueEditingSupport extends EditingSupport {
 				VolumesClient client = new VolumesClient();
 				try {
 					client.setVolumeOption(volume.getName(), optionKey, optionValue);
-					entry.setValue((String)value);
 					GlusterDataModelManager.getInstance().setVolumeOption(volume, optionKey, optionValue);
 				} catch(Exception e) {
 					MessageDialog.openError(Display.getDefault().getActiveShell(), "Set Volume Option", e.getMessage());
@@ -95,10 +92,9 @@ public class OptionValueEditingSupport extends EditingSupport {
 		return "";
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	protected Object getValue(Object element) {
-		Entry<String, String> entry = (Entry<String, String>) element;
+		VolumeOption entry = (VolumeOption) element;
 		return entry.getValue().isEmpty() ? getDefaultValue(entry.getKey()) : entry.getValue();
 	}
 

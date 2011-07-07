@@ -16,51 +16,32 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.core.model;
+package com.gluster.storage.management.gui;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.Viewer;
 
-import com.gluster.storage.management.core.utils.StringUtil;
+import com.gluster.storage.management.core.model.VolumeOptions;
 
 /**
+ * @author root
  *
  */
-@XmlRootElement(name="option")
-public class VolumeOption implements Filterable {
-	private String key;
-	private String value;
+public class VolumeOptionsContentProvider implements IStructuredContentProvider {
 
-	public VolumeOption() {
-	}
-	
-	public VolumeOption(String key, String value) {
-		this.key = key;
-		this.value = value;
-	}
-
-	public String getKey() {
-		return key;
-	}
-
-	public void setKey(String key) {
-		this.key = key;
-	}
-
-	public String getValue() {
-		return value;
-	}
-
-	public void setValue(String value) {
-		this.value = value;
-	}
-	
 	@Override
-	public String toString() {
-		return key + "=" + value;
+	public void dispose() {
 	}
 
 	@Override
-	public boolean filter(String filterString, boolean caseSensitive) {
-		return StringUtil.filterString(getKey() + getValue(), filterString, caseSensitive);
+	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+	}
+
+	@Override
+	public Object[] getElements(Object inputElement) {
+		if (inputElement instanceof VolumeOptions) {
+			return ((VolumeOptions) inputElement).getOptions().toArray();
+		}
+		return null;
 	}
 }

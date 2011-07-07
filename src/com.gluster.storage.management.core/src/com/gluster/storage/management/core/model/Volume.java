@@ -196,6 +196,10 @@ public class Volume extends Entity {
 		options.put(key, value);
 	}
 
+	public void setOptions(VolumeOptions options) {
+		this.options = options;
+	}
+	
 	public void setOptions(LinkedHashMap<String, String> options) {
 		List<VolumeOption> volumeOptions = new ArrayList<VolumeOption>();
 		for(Entry<String, String> entry : options.entrySet()) {

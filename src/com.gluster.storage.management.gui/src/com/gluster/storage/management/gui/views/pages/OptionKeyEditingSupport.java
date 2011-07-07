@@ -5,7 +5,6 @@ package com.gluster.storage.management.gui.views.pages;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnViewer;
@@ -53,14 +52,13 @@ public class OptionKeyEditingSupport extends EditingSupport {
 		return keys.toArray(new String[0]);
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	protected void setValue(final Object element, final Object value) {
-		Entry<String, String> oldEntry = (Entry<String, String>)element;
+		VolumeOption oldEntry = (VolumeOption)element;
 		Integer newValue = (Integer)value;
 		String newKey = allowedKeys[newValue];
 		
-		if (((Entry<String, String>)element).getKey().equals(newKey)) {
+		if (((VolumeOption)element).getKey().equals(newKey)) {
 			// selected value is same as old one.
 			return;
 		}
@@ -114,10 +112,9 @@ public class OptionKeyEditingSupport extends EditingSupport {
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	protected boolean canEdit(Object element) {
-		Entry<String, String> entry = (Entry<String, String>)element;
+		VolumeOption entry = (VolumeOption)element;
 		return (entry.getKey().isEmpty() || entry.getValue().isEmpty()); 
 	}
 }
