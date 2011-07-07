@@ -19,6 +19,7 @@ public class ClearTaskAction extends AbstractActionDelegate {
 		try {
 			new TasksClient().deleteTask(taskInfo.getName()); // taskId
 			modelManager.removeTask(taskInfo);
+			action.setEnabled(false); // TODO disable other task buttons
 		} catch (Exception e) {
 			showErrorDialog(actionDesc,
 					"Task [" + taskInfo.getName() + "] could not be cleared! Error: [" + e.getMessage() + "]");
@@ -42,5 +43,4 @@ public class ClearTaskAction extends AbstractActionDelegate {
 	public void dispose() {
 
 	}
-
 }

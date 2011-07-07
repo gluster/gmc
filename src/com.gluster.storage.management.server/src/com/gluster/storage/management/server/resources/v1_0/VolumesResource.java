@@ -964,7 +964,7 @@ public class VolumesResource extends AbstractResource {
 		return migrateDiskTask.getTaskInfo().getName(); // Return Task ID
 	}
 	
-	private String rebalanceStart(String clusterName, String volumeName, Boolean isFixLayout, Boolean isMigrateData,
+	private String getLayout(Boolean isFixLayout, Boolean isMigrateData,
 			Boolean isForcedDataMigrate) {
 		String layout = "";
 		if (isForcedDataMigrate) {
@@ -974,13 +974,13 @@ public class VolumesResource extends AbstractResource {
 		} else if (isFixLayout) {
 			layout = "fix-layout";
 		}
-		
-		return rebalanceStart(clusterName, volumeName, layout);
+		return layout;
 	}
 	
-	private String rebalanceStart(String clusterName, String volumeName, String layout) {
-		RebalanceVolumeTask rebalanceTask = new RebalanceVolumeTask(clusterService, clusterName, volumeName);
-		rebalanceTask.setLayout(layout);
+	private String rebalanceStart(String clusterName, String volumeName, Boolean isFixLayout, Boolean isMigrateData,
+			Boolean isForcedDataMigrate) {
+		RebalanceVolumeTask rebalanceTask = new RebalanceVolumeTask(clusterService, clusterName, volumeName, getLayout(
+				isFixLayout, isMigrateData, isForcedDataMigrate));
 		rebalanceTask.start();
 		taskResource.addTask(rebalanceTask);
 		return rebalanceTask.getId();

@@ -616,7 +616,7 @@ public class GlusterDataModelManager {
 	public void removeTask(TaskInfo taskInfo) {
 		model.getCluster().removeTaskInfo(taskInfo);
 		for (ClusterListener listener : listeners) {
-			listener.taskAdded(taskInfo);
+			listener.taskRemoved(taskInfo);
 		}
 	}
 	
