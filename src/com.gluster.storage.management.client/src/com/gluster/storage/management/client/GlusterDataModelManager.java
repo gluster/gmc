@@ -19,6 +19,7 @@
 package com.gluster.storage.management.client;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -119,14 +120,43 @@ public class GlusterDataModelManager {
 		}
 		
 		logger.info("Starting data sync");
-		updateModel(fetchData(clusterName));
-		syncInProgress = false;
+		try {
+			updateModel(fetchData(clusterName));
+		} catch(Exception e) {
+			logger.error("Error in data sync!", e);
+		} finally {
+			syncInProgress = false;
+		}
 	}
 	
+
 	private void updateModel(GlusterDataModel model) {
 		updateVolumes(model);
 		updateGlusterServers(model);
 		updateDiscoveredServers(model);
+		updateTasks(model);
+	}
+	
+	private void updateTasks(GlusterDataModel newModel) {
+		List<TaskInfo> oldTasks = model.getCluster().getTaskInfoList();
+		List<TaskInfo> newTasks = newModel.getCluster().getTaskInfoList();
+		
+		Set<TaskInfo> addedTasks = GlusterCoreUtil.getAddedEntities(oldTasks, newTasks, true);
+		for(TaskInfo task : addedTasks) {
+			addTask(task);
+		}
+		
+		Set<TaskInfo> removedTasks = GlusterCoreUtil.getAddedEntities(newTasks, oldTasks, true);
+		for(TaskInfo task : removedTasks) {
+			removeTask(task);
+		}
+		
+		Map<TaskInfo, TaskInfo> modifiedTasks = GlusterCoreUtil.getModifiedEntities(oldTasks, newTasks);
+		for(Entry<TaskInfo, TaskInfo> entry : modifiedTasks.entrySet()) {
+			TaskInfo modifiedTask = entry.getKey();
+			modifiedTask.copyFrom(entry.getValue());
+			updateTask(modifiedTask);
+		}
 	}
 
 	private void updateDiscoveredServers(GlusterDataModel newModel) {
