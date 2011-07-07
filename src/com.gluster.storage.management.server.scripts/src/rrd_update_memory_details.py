@@ -17,10 +17,8 @@
 #  <http://www.gnu.org/licenses/>.
 import os
 import sys
-import syslog
 from XmlHandler import ResponseXml
 import Utils
-import Common
 
 def createMemData(file, step):
     rs = ResponseXml()
@@ -35,12 +33,12 @@ def createMemData(file, step):
                "RRA:AVERAGE:0.5:24:732",
                "RRA:AVERAGE:0.5:144:1460"]
 
-    rv = Utils.runCommandFG(command, stdout=True, root=True)
-    message = Common.stripEmptyLines(rv["Stdout"])
+    rv = Utils.runCommand(command, output=True, root=True)
+    message = Utils.stripEmptyLines(rv["Stdout"])
     if rv["Stderr"]:
-        error = Common.stripEmptyLines(rv["Stderr"])
+        error = Utils.stripEmptyLines(rv["Stderr"])
         message += "Error: [%s]" % (error)
-        Common.log(syslog.LOG_ERR, "failed to create RRD file for memory usages %s" % file)
+        Utils.log("failed to create RRD file for memory usages %s" % file)
         rs.appendTagRoute("status.code", rv["Status"])
         rs.appendTagRoute("status.message", message)
         return rs.toxml()
@@ -49,11 +47,11 @@ def createMemData(file, step):
 def updateMemData(file):
     rs = ResponseXml()
     command = ["free", "-b", "-o"]
-    rv = Utils.runCommandFG(command, stdout=True, root=True)
+    rv = Utils.runCommand(command, output=True, root=True)
     if rv["Stderr"]:
-        error = Common.stripEmptyLines(rv["Stderr"])
+        error = Utils.stripEmptyLines(rv["Stderr"])
         message += "Error: [%s]" % (error)
-        Common.log(syslog.LOG_ERR, "failed to retrieve memory details")
+        Utils.log("failed to retrieve memory details")
         rs.appendTagRoute("status.code", rv["Status"])
         rs.appendTagRoute("status.message", message)
         return rs.toxml()
@@ -61,12 +59,11 @@ def updateMemData(file):
     message = rv["Stdout"].split()
     command = ["rrdtool", "update", file, "-t", "memused:memfree:memcache:swapused:swapfree",
                "N:%s:%s:%s:%s:%s" % (message[8], message[9], message[12], message[14], message[15])]
-    rv = Utils.runCommandFG(command, stdout=True, root=True)
+    rv = Utils.runCommand(command, output=True, root=True)
     if rv["Stderr"]:
-        error = Common.stripEmptyLines(rv["Stderr"])
-        print error, command
+        error = Utils.stripEmptyLines(rv["Stderr"])
         message += "Error: [%s]" % (error)
-        Common.log(syslog.LOG_ERR, "failed to update memory usage into rrd file %s" % file)
+        Utils.log(syslog.LOG_ERR, "failed to update memory usage into rrd file %s" % file)
         rs.appendTagRoute("status.code", rv["Status"])
         rs.appendTagRoute("status.message", message)
         return rs.toxml()

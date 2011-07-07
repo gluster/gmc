@@ -18,26 +18,3 @@
 import sys
 import syslog
 
-def log(priority, message=None):
-    if type(priority) == type(""):
-        logPriority = syslog.LOG_INFO
-        logMessage = priority
-    else:
-        logPriority = priority
-        logMessage = message
-    if not logMessage:
-        return
-    #if Globals.DEBUG:
-    #    sys.stderr.write(logMessage)
-    else:
-        syslog.syslog(logPriority, logMessage)
-    return
-
-
-def stripEmptyLines(content):
-    ret = ""
-    for line in content.split("\n"):
-        if line.strip() != "":
-            ret += line
-    return ret
-

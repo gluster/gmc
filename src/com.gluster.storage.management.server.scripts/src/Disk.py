@@ -17,7 +17,6 @@
 
 import os
 import dbus
-from Common import *
 
 class Disk:
     def __init__(self):

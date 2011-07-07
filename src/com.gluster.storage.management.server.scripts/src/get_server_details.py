@@ -17,10 +17,8 @@
 #  <http://www.gnu.org/licenses/>.
 
 import sys
-import syslog
 import socket
 import re
-import Common
 import DiskUtils
 from NetworkUtils import *
 from Disk import *
@@ -88,7 +86,7 @@ def getServerDetails(listall):
     diskDom = DiskUtils.getDiskDom()
     if not diskDom:
         sys.stderr.write("No disk found!")
-        Common.log("Failed to get disk details")
+        Utils.log("Failed to get disk details")
         sys.exit(1)
 
     serverTag.appendChild(responseDom.createTag("cpuUsage", str(cpu)))

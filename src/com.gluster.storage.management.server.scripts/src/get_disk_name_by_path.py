@@ -17,15 +17,14 @@
 #  <http://www.gnu.org/licenses/>.
 
 import os
-import syslog
-import Common
+import Utils
 from DiskUtils import *
 from XmlHandler import ResponseXml
 
 
 def getmountpoint(path):
     if not path:
-        Common.log(syslog.LOG_ERR, "Not a valid path:%s" % path)
+        Utils.log("Not a valid path:%s" % path)
         rs.appendTagRoute("status.code", "-1")
         rs.appendTagRoute("status.message", "Error: given path name is empty")
         return rs.toprettyxml()
@@ -43,7 +42,7 @@ def getmountpoint(path):
                 fsTabEntry = line
 
     if "/" == mountPoint or not mountPoint:
-        Common.log(syslog.LOG_ERR, "failed to find mount point of the given path:%s" % path)
+        Utils.log("failed to find mount point of the given path:%s" % path)
         rs.appendTagRoute("status.code", "-1")
         rs.appendTagRoute("status.message", "Error: Unable to find disk mount point")
         return rs.toprettyxml()
@@ -57,7 +56,7 @@ def getmountpoint(path):
 
 def main():
     if len(sys.argv) != 2:
-        print >> sys.stderr, "usage: %s <path>" % sys.argv[0]
+        sys.stderr.write("usage: %s <path>\n" % os.path.basename(sys.argv[0]))
         sys.exit(-1)
 
     path = sys.argv[1]
