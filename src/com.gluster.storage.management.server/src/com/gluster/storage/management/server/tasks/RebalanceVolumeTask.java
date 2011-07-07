@@ -20,10 +20,12 @@
  */
 package com.gluster.storage.management.server.tasks;
 
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.ContextLoader;
+
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Status;
-import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.utils.ProcessResult;
@@ -36,16 +38,21 @@ public class RebalanceVolumeTask extends Task {
 
 	private String layout;
 	private String serverName;
-	private SshUtil sshUtil = new SshUtil();
-	private GlusterUtil glusterUtil = new GlusterUtil();
+	private SshUtil sshUtil;
+	private GlusterUtil glusterUtil;
 
-	public RebalanceVolumeTask(ClusterService clusterService, String clusterName, TaskInfo taskInfo) {
-		super(clusterService, clusterName, taskInfo);
-	}
-
-	public RebalanceVolumeTask(ClusterService clusterService, String clusterName, String volumeName) {
+	public RebalanceVolumeTask(ClusterService clusterService, String clusterName, String volumeName, String layout) {
 		super(clusterService, clusterName, TASK_TYPE.VOLUME_REBALANCE, volumeName, "Volume " + volumeName
 				+ " Rebalance", false, true, false);
+		setLayout(layout);
+		taskInfo.setName(getId());
+		init();
+	}
+	
+	private void init() {
+		ApplicationContext ctx = ContextLoader.getCurrentWebApplicationContext();
+		sshUtil = ctx.getBean(SshUtil.class);
+		glusterUtil = ctx.getBean(GlusterUtil.class);
 	}
 
 	@Override

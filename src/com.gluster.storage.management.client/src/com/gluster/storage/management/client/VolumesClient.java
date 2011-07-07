@@ -232,13 +232,13 @@ public class VolumesClient extends AbstractClient {
 		return  putRequestURI(volumeName + "/" + RESTConstants.RESOURCE_BRICKS, form);
 	}
 	
-	public void rebalanceStart(String volumeName, Boolean fixLayout, Boolean migrateData, Boolean forcedDataMigrate) {
+	public URI rebalanceStart(String volumeName, Boolean fixLayout, Boolean migrateData, Boolean forcedDataMigrate) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_REBALANCE_START);
 		form.add(RESTConstants.FORM_PARAM_FIX_LAYOUT, fixLayout);
 		form.add(RESTConstants.FORM_PARAM_MIGRATE_DATA, migrateData);
 		form.add(RESTConstants.FORM_PARAM_FORCED_DATA_MIGRATE, forcedDataMigrate);
-		putRequest(volumeName, form);
+		return  putRequestURI(volumeName, form);
 	}
 	
 	public void rebalanceStop(String volumeName) {
