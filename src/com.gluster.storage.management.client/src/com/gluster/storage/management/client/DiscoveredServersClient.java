@@ -25,10 +25,12 @@ import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
 
+import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.response.GenericResponse;
 import com.gluster.storage.management.core.response.ServerListResponse;
 import com.gluster.storage.management.core.response.ServerNameListResponse;
+import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class DiscoveredServersClient extends AbstractClient {
@@ -59,7 +61,13 @@ public class DiscoveredServersClient extends AbstractClient {
 	}
 
 	public List<Server> getDiscoveredServerDetails() {
-		return ((ServerListResponse) getDiscoveredServers(Boolean.TRUE, ServerListResponse.class)).getServers();
+		List<Server> servers = ((ServerListResponse) getDiscoveredServers(Boolean.TRUE, ServerListResponse.class))
+				.getServers();
+
+		for (Server server : servers) {
+			GlusterCoreUtil.updateServerNameOnDevices(server);
+		}
+		return servers;
 	}
 
 	public Server getServer(String serverName) {

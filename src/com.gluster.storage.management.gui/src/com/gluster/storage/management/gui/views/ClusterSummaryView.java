@@ -40,8 +40,8 @@ import org.eclipse.ui.part.ViewPart;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Cluster;
+import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
-import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
@@ -138,7 +138,7 @@ public class ClusterSummaryView extends ViewPart {
 		createDiskSpaceChart(toolkit, section, values);
 	}
 
-	private int getDiskCountByStatus(Cluster cluster, DISK_STATUS status) {
+	private int getDiskCountByStatus(Cluster cluster, DEVICE_STATUS status) {
 		int diskCount = 0;
 		for(GlusterServer server : cluster.getServers()) {
 			for(Disk disk : server.getDisks()) {

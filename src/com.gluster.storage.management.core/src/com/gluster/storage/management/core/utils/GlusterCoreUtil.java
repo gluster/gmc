@@ -21,6 +21,7 @@
 package com.gluster.storage.management.core.utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -30,6 +31,8 @@ import java.util.Set;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Entity;
+import com.gluster.storage.management.core.model.Partition;
+import com.gluster.storage.management.core.model.Server;
 
 
 public class GlusterCoreUtil {
@@ -95,7 +98,7 @@ public class GlusterCoreUtil {
 		return getEntity(entityList, searchEntity.getName(), caseInsensitive) != null;
 	}
 
-	public static <T extends Entity> T getEntity(List<T> entityList, String searchEntityName, boolean caseInsensitive) {
+	public static <T extends Entity> T getEntity(Collection<T> entityList, String searchEntityName, boolean caseInsensitive) {
 		if (caseInsensitive) {
 			searchEntityName = searchEntityName.toUpperCase();
 		}
@@ -111,5 +114,25 @@ public class GlusterCoreUtil {
 		}
 
 		return null;
+	}
+	
+	public static void updateServerNameOnDevices(Server server) {
+		String serverName = server.getName();
+		for(Disk disk : server.getDisks()) {
+			disk.setServerName(serverName);
+			
+			if (disk.getRaidDisks() != null) {
+				for (Disk raidDisk : disk.getRaidDisks()) {
+					raidDisk.setServerName(serverName);
+				}
+			}
+			
+			if (disk.getPartitions() != null) {
+				for (Partition partition : disk.getPartitions()) {
+					partition.setServerName(serverName);
+				}
+			}
+		}
+		// TODO: do the same for raid disks and/or partitions whenever we start supporting them
 	}
 }

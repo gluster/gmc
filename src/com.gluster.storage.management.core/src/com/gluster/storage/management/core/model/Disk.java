@@ -18,90 +18,27 @@
  *******************************************************************************/
 package com.gluster.storage.management.core.model;
 
-import java.io.File;
+import java.util.Collection;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.StringUtil;
 
 @XmlRootElement(name="Disk")
-public class Disk extends Entity {
-	public enum DISK_STATUS {
-		AVAILABLE, UNINITIALIZED, INITIALIZING, IO_ERROR
-	};
-
-	private String[] DISK_STATUS_STR = { "Available", "Uninitialized", "Initializing", "I/O Error" };
-
-	private String serverName;
-	private String mountPoint;
+public class Disk extends Device {
 	private String description;
-	private Double space;
-	private Double spaceInUse;
-	private DISK_STATUS status;
+	
+	// interface = pci, raid0, raid3, etc
+	private String diskInterface;
+	
+	private Collection<Partition> partitions;
+	
+	// In case of a software raid, the disk will contain an array of other disks
+	private Collection<Disk> raidDisks;
 
 	public Disk() {
-		
-	}
-	
-	public Double getSpace() {
-		return space;
-	}
-	
-	public Double getFreeSpace() {
-		return getSpace() - getSpaceInUse();
-	}
-
-	public void setSpace(Double space) {
-		this.space = space;
-	}
-	
-	public boolean isUninitialized() {
-		return true;
-//		return getStatus() == DISK_STATUS.UNINITIALIZED;
-	}
-	
-	public boolean hasErrors() {
-		return getStatus() == DISK_STATUS.IO_ERROR;
-	}
-	
-	public boolean isReady() {
-		return getStatus() == DISK_STATUS.AVAILABLE;
-	}
-	
-	public DISK_STATUS getStatus() {
-		return status;
-	}
-
-	public String getStatusStr() {
-		return DISK_STATUS_STR[getStatus().ordinal()];
-	}
-
-	public void setStatus(DISK_STATUS status) {
-		this.status = status;
-	}
-
-	public Double getSpaceInUse() {
-		return spaceInUse;
-	}
-
-	public void setSpaceInUse(Double spaceInUse) {
-		this.spaceInUse = spaceInUse;
-	}
-
-	public String getServerName() {
-		return serverName;
-	}
-
-	public void setServerName(String serverName) {
-		this.serverName = serverName;
-	}
-
-	public void setMountPoint(String mountPoint) {
-		this.mountPoint = mountPoint;
-	}
-
-	public String getMountPoint() {
-		return mountPoint;
 	}
 
 	public void setDescription(String description) {
@@ -112,26 +49,39 @@ public class Disk extends Entity {
 		return description;
 	}
 
-	public Disk(Server server, String name, String mountPoint, Double space, Double spaceInUse, DISK_STATUS status) {
-		super(name, server);
-		setServerName(server != null ? server.getName() : "");
-		setMountPoint(mountPoint);
-		setSpace(space);
-		setSpaceInUse(spaceInUse);
-		setStatus(status);
+	@XmlElement(name="interface")
+	public String getDiskInterface() {
+		return diskInterface;
+	}
+
+	public void setDiskInterface(String diskInterface) {
+		this.diskInterface = diskInterface;
+	}
+
+	public Collection<Disk> getRaidDisks() {
+		return raidDisks;
+	}
+
+	public void setRaidDisks(Collection<Disk> raidDisks) {
+		this.raidDisks = raidDisks;
+	}
+
+	public void setPartitions(Collection<Partition> partitions) {
+		this.partitions = partitions;
+	}
+
+	public Collection<Partition> getPartitions() {
+		return partitions;
+	}
+
+	public Disk(Server server, String name, String mountPoint, Double space, Double spaceInUse, DEVICE_STATUS status) {
+		super(server, name, mountPoint, space, spaceInUse, status);
 	}
 
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
-		return StringUtil.filterString(getServerName() + getName() + getStatusStr(), filterString, caseSensitive);
-	}
-	
-	public String getQualifiedName() {
-		return getServerName() + ":" + getName();
-	}
-	
-	public String getQualifiedBrickName(String volumeName) {
-		return getServerName() + ":" + getMountPoint() + File.separator + volumeName;
+		return StringUtil.filterString(getServerName() + getName() + getStatusStr() + getSpace() + getFreeSpace()
+				+ getType() + getDescription(), filterString, caseSensitive);
 	}
 	
 	@Override
@@ -141,13 +91,25 @@ public class Disk extends Entity {
 		}
 		Disk disk = (Disk)obj;
 		
-		if (getName().equals(disk.getName()) && getServerName().equals(disk.getServerName())
-				&& getMountPoint().equals(disk.getMountPoint()) && getDescription().equals(disk.getDescription())
-				&& getStatus() == disk.getStatus() && getSpace() == disk.getSpace()
-				&& getSpaceInUse() == disk.getSpaceInUse()) {
-			return true;
+		if (!(super.equals(obj) && getDescription().equals(disk.getDescription()) && getDiskInterface().equals(
+				disk.getDiskInterface()))) {
+			return false;
 		}
 		
+		for(Disk raidDisk : raidDisks) {
+			// check if the disk contains same raid disks
+			if (!(raidDisk.equals(GlusterCoreUtil.getEntity(disk.getRaidDisks(), raidDisk.getName(), false)))) {
+				return false;
+			}
+		}
+		
+		// check if the disk contains same partitions
+		for (Partition partition : partitions) {
+			if (!(partition.equals(GlusterCoreUtil.getEntity(disk.getPartitions(), partition.getName(), false)))) {
+				return false;
+			}
+		}
+
 		return false;
 	}
 

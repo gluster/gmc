@@ -19,7 +19,6 @@
 package com.gluster.storage.management.client;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -31,8 +30,8 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.ClusterListener;
+import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
-import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.GlusterDataModel;
@@ -707,7 +706,7 @@ public class GlusterDataModelManager {
 	}
 
 	public String getDiskStatus(Disk disk) {
-		if (disk.getStatus() == DISK_STATUS.AVAILABLE) {
+		if (disk.getStatus() == DEVICE_STATUS.INITIALIZED) {
 			for (Volume volume : model.getCluster().getVolumes()) {
 				if (isDiskUsed(volume, disk)) {
 					return "In use";

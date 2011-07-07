@@ -46,8 +46,8 @@ import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.client.TasksClient;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
+import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
-import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.gui.Application;
@@ -193,7 +193,7 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 			this.myLink = link;
 		}
 
-		private void updateStatus(final DISK_STATUS status, final boolean disposeEditor) {
+		private void updateStatus(final DEVICE_STATUS status, final boolean disposeEditor) {
 			if (disposeEditor) {
 				myLink.dispose();
 				myEditor.dispose();
@@ -221,7 +221,7 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 				if (taskInfo != null && taskInfo instanceof TaskInfo) {
 					GlusterDataModelManager.getInstance().getModel().getCluster().addTaskInfo(taskInfo);
 				}
-				updateStatus(DISK_STATUS.INITIALIZING, true);
+				updateStatus(DEVICE_STATUS.INITIALIZING, true);
 			} catch (Exception e1) {
 				MessageDialog.openError(getShell(), "Error: Initialize disk", e1.getMessage());
 			}

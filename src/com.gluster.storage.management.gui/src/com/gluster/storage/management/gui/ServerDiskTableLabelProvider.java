@@ -23,8 +23,8 @@ import org.eclipse.swt.graphics.Image;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
+import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
-import com.gluster.storage.management.core.model.Disk.DISK_STATUS;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.views.pages.ServerDisksPage.SERVER_DISK_TABLE_COLUMN_INDICES;
@@ -41,9 +41,9 @@ public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 
 		Disk disk = (Disk) element;
 		if (columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
-			DISK_STATUS status = disk.getStatus();
+			DEVICE_STATUS status = disk.getStatus();
 			switch (status) {
-			case AVAILABLE:
+			case INITIALIZED:
 				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
 			case IO_ERROR:
 				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
