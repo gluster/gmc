@@ -556,7 +556,7 @@ public class GlusterUtil {
 		if (processResult.isSuccess()) {
 			if (processResult.getOutput().trim().matches("^rebalance completed.*")) {
 				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
-			} else if(processResult.getOutput().trim().matches(".*in progress:.*")) {
+			} else if(processResult.getOutput().trim().matches(".*in progress.*")) {
 				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
 			} else {
 				taskStatus.setCode(Status.STATUS_CODE_FAILURE);

@@ -18,10 +18,15 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.actions;
 
+import java.net.URI;
+
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.client.TasksClient;
 import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 
 public class RebalanceVolumeAction extends AbstractActionDelegate {
@@ -31,13 +36,18 @@ public class RebalanceVolumeAction extends AbstractActionDelegate {
 	protected void performAction(final IAction action) {
 		final String actionDesc = action.getDescription();
 		try {
-			new VolumesClient().rebalanceStart(volume.getName(), false, false, false);
+			URI uri = new VolumesClient().rebalanceStart(volume.getName(), false, false, false);
+			// Add the task to model
+			TasksClient taskClient = new TasksClient();
+			TaskInfo taskInfo = taskClient.getTaskInfo(uri);
+			if (taskInfo != null && taskInfo instanceof TaskInfo) {
+				GlusterDataModelManager.getInstance().getModel().getCluster().addTaskInfo(taskInfo);
+			}
 			showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] rebalance started successfully!");
 		} catch (Exception e) {
 			showErrorDialog(actionDesc, "Volume rebalance could not be started on [" + volume.getName() + "]! Error: ["
 					+ e.getMessage() + "]");
 		}
-
 	}
 
 	@Override

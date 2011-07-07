@@ -37,7 +37,7 @@ public class MigrateBrickTask extends Task {
 	private String fromBrick;
 	private String toBrick;
 	private Boolean autoCommit;
-	private GlusterUtil glusterUtil = new GlusterUtil();
+	private GlusterUtil glusterUtil;
 
 	public String getFromBrick() {
 		return fromBrick;
@@ -70,6 +70,12 @@ public class MigrateBrickTask extends Task {
 		setFromBrick(fromBrick);
 		setToBrick(toBrick);
 		taskInfo.setName(getId());
+		init();
+	}
+	
+	private void init() {
+		ApplicationContext ctx = ContextLoader.getCurrentWebApplicationContext();
+		glusterUtil = ctx.getBean(GlusterUtil.class);
 	}
 
 	@Override
@@ -89,8 +95,7 @@ public class MigrateBrickTask extends Task {
 	}
 
 	private void startMigration(String onlineServerName) {
-		ApplicationContext ctx = ContextLoader.getCurrentWebApplicationContext();
-		glusterUtil = ctx.getBean(GlusterUtil.class);
+		
 		ProcessResult processResult = glusterUtil.executeBrickMigration(onlineServerName, getTaskInfo().getReference(),
 				getFromBrick(), getToBrick(), "start");
 		if (processResult.getOutput().trim().matches(".*started successfully$")) {

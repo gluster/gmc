@@ -96,7 +96,6 @@ public class TasksResource extends AbstractResource {
 		return tasks;
 	}
 	
-	
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
 	public Response getTasks() {
@@ -138,7 +137,8 @@ public class TasksResource extends AbstractResource {
 			} else if (taskOperation.equals(RESTConstants.TASK_PAUSE)) {
 				task.pause();
 			} else if (taskOperation.equals(RESTConstants.TASK_STOP)) {
-				task.stop();
+				// task.stop();
+				clearTask(taskId, taskOperation); // Stop and remove from the task list
 			} else if (taskOperation.equals(RESTConstants.TASK_COMMIT)) {
 				task.commit();
 			}
