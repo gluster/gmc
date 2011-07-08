@@ -49,14 +49,14 @@ def main():
             Utils.removeFile(deviceFormatStatusFile)
 
             responseDom = ResponseXml()
-            responseDom.appendTagRoute("response.device", sys.argv[1])
-            responseDom.appendTagRoute("response.completedBlocks", "0")
-            responseDom.appendTagRoute("response.totalBlocks", "0")
-            responseDom.appendTagRoute("response.message", line)
+            responseDom.appendTagRoute("device", sys.argv[1])
+            responseDom.appendTagRoute("completedBlocks", "0")
+            responseDom.appendTagRoute("totalBlocks", "0")
+            responseDom.appendTagRoute("message", line)
             if line.upper() == "COMPLETED":
-                responseDom.appendTagRoute("response.formatStatus", "COMPLETED")
+                responseDom.appendTagRoute("formatStatus", "COMPLETED")
             else:
-                responseDom.appendTagRoute("response.formatStatus", "NOT_RUNNING")
+                responseDom.appendTagRoute("formatStatus", "NOT_RUNNING")
             print responseDom.toxml()
             sys.exit(0)
         except IOError, e:
@@ -66,11 +66,11 @@ def main():
 
     if not os.path.exists(deviceFormatOutputFile):
         responseDom = ResponseXml()
-        responseDom.appendTagRoute("response.device", sys.argv[1])
-        responseDom.appendTagRoute("response.completedBlocks", "0")
-        responseDom.appendTagRoute("response.totalBlocks", "0")
-        responseDom.appendTagRoute("response.message", None)
-        responseDom.appendTagRoute("response.formatStatus", "IN_PROGRESS")
+        responseDom.appendTagRoute("device", sys.argv[1])
+        responseDom.appendTagRoute("completedBlocks", "0")
+        responseDom.appendTagRoute("totalBlocks", "0")
+        responseDom.appendTagRoute("message", None)
+        responseDom.appendTagRoute("formatStatus", "IN_PROGRESS")
         print responseDom.toxml()
         sys.exit(0)
 
@@ -81,11 +81,11 @@ def main():
     except IOError, e:
         Utils.log("failed to read format output file %s: %s" % (deviceFormatOutputFile, str(e)))
         responseDom = ResponseXml()
-        responseDom.appendTagRoute("response.device", sys.argv[1])
-        responseDom.appendTagRoute("response.completedBlocks", "0")
-        responseDom.appendTagRoute("response.totalBlocks", "0")
-        responseDom.appendTagRoute("response.message", None)
-        responseDom.appendTagRoute("response.formatStatus", "IN_PROGRESS")
+        responseDom.appendTagRoute("device", sys.argv[1])
+        responseDom.appendTagRoute("completedBlocks", "0")
+        responseDom.appendTagRoute("totalBlocks", "0")
+        responseDom.appendTagRoute("message", None)
+        responseDom.appendTagRoute("formatStatus", "IN_PROGRESS")
         print responseDom.toxml()
         sys.exit(0)
 
@@ -93,11 +93,14 @@ def main():
              if "Writing inode tables" in line]
     if not lines:
         responseDom = ResponseXml()
-        responseDom.appendTagRoute("response.device", sys.argv[1])
-        responseDom.appendTagRoute("response.completedBlocks", "0")
-        responseDom.appendTagRoute("response.totalBlocks", "0")
-        responseDom.appendTagRoute("response.message", content[-1])
-        responseDom.appendTagRoute("response.formatStatus", "IN_PROGRESS")
+        responseDom.appendTagRoute("device", sys.argv[1])
+        responseDom.appendTagRoute("completedBlocks", "0")
+        responseDom.appendTagRoute("totalBlocks", "0")
+        if content:
+            responseDom.appendTagRoute("message", content[-1])
+        else:
+            responseDom.appendTagRoute("message")
+        responseDom.appendTagRoute("formatStatus", "IN_PROGRESS")
         print responseDom.toxml()
         sys.exit(0)
 
@@ -107,11 +110,11 @@ def main():
     else:
         values = tokens[-1].split(':')[-1].strip().split('/')
 
-    responseDom.appendTagRoute("response.device", sys.argv[1])
-    responseDom.appendTagRoute("response.completedBlocks", values[0])
-    responseDom.appendTagRoute("response.totalBlocks", values[1])
-    responseDom.appendTagRoute("response.message", lines[-1])
-    responseDom.appendTagRoute("response.formatStatus", "IN_PROGRESS")
+    responseDom.appendTagRoute("device", sys.argv[1])
+    responseDom.appendTagRoute("completedBlocks", values[0])
+    responseDom.appendTagRoute("totalBlocks", values[1])
+    responseDom.appendTagRoute("message", lines[-1])
+    responseDom.appendTagRoute("formatStatus", "IN_PROGRESS")
     print responseDom.toxml()
     sys.exit(0)
 

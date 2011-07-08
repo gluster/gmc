@@ -143,11 +143,41 @@ def getRaidDisk():
     for array in arrayList:
         raid = {}
         tokens = array[0].split()
-        raid['status'] = tokens[2]
-        raid['type'] = tokens[3]
+        raid['Interface'] = tokens[3]
+        device = getDevice(tokens[0])
+        raid['MountPoint'] = getDeviceMountPoint(device)
+        if raid['MountPoint']:
+            if "/export/" in raid['MountPoint']:
+                raid['Type'] = "DATA"
+            else:
+                raid['Type'] = "BOOT"
+        else:
+            raid['Type'] = "UNKNOWN"
+        rv = Utils.runCommand("blkid -c /dev/null %s" % (device), output=True, root=True)
+        raid['Uuid'] = None
+        raid['FsType'] = None
+        raid['Status'] = "UNINITIALIZED"
+        if isDiskInFormatting(device):
+            raid['Status'] = "INITIALIZING"
+        if not rv["Stderr"]:
+            words = rv["Stdout"].strip().split()
+            if words:
+                raid['Type'] = "INITIALIZED"
+            if len(words) > 2:
+                raid['Uuid']  = words[1].split("UUID=")[-1].split('"')[1]
+                raid['FsType'] = words[2].split("TYPE=")[-1].split('"')[1]
 
-        raid['disks'] = [x.split('[')[0] for x in tokens[4:]]
-        raid['size'] = float(array[1].split()[0]) / 1024.0
+        rv = Utils.runCommand("df %s" % (device), output=True, root=True)
+        if rv["Status"] == 0:
+            try:
+                used = long(rv["Stdout"].split("\n")[1].split()[2]) / 1024
+            except IndexError:
+                pass
+            except ValueError:
+                pass
+        raid['SpaceInUse'] = used
+        raid['Disks'] = [x.split('[')[0] for x in tokens[4:]]
+        raid['Size'] = float(array[1].split()[0]) / 1024.0
         raidList[tokens[0]] = raid
     return raidList
 
@@ -190,10 +220,10 @@ def getDiskInfo(diskDeviceList=None):
         disk["DriveType"] = str(halDevice.GetProperty('storage.drive_type'))
         disk["Status"] = "UNINITIALIZED"
         if isDiskInFormatting(disk["Device"]):
-            disk["Status"] = "FORMATTING IN PROGRESS"
+            disk["Status"] = "INITIALIZING"
         disk["Uuid"] = None
         disk["Init"] = False
-        disk["Type"] = False
+        disk["Type"] = "UNKNOWN"
         disk["FsType"] = None
         disk["FsVersion"] = None
         disk["MountPoint"] = None
@@ -228,9 +258,11 @@ def getDiskInfo(diskDeviceList=None):
                 disk["Init"] = True # TODO: use isDataDiskPartitionFormatted function to cross verify this
                 disk["Status"] = "INITIALIZED"
                 mountPoint = str(partitionHalDevice.GetProperty('volume.mount_point'))
-                if "/export/" in mountPoint:
-                    disk["Type"] = True
-                    disk["Status"] = "READY"
+                if mountPoint:
+                    if "/export/" in mountPoint:
+                        disk["Type"] = "DATA"
+                    else:
+                        disk["Type"] = "BOOT"
                 disk["FsType"] = str(partitionHalDevice.GetProperty('volume.fstype'))
                 disk["FsVersion"] = str(partitionHalDevice.GetProperty('volume.fsversion'))
                 disk["MountPoint"] = str(partitionHalDevice.GetProperty('volume.mount_point'))
@@ -242,11 +274,10 @@ def getDiskInfo(diskDeviceList=None):
             
             partition = {}
             partition["Init"] = False
-            partition["Type"] = False
+            partition["Type"] = "UNKNOWN"
             partition["Status"] = "UNINITIALIZED"
             if isDiskInFormatting(partitionDevice):
-                partition["Status"] = "FORMATTING IN PROGRESS"
-            partition["Interface"] = None # Partition will not have bus details, info.interfaces can be used here!
+                partition["Status"] = "INITIALIZING"
             partition["Device"] = partitionDevice
             partition["Uuid"] = str(partitionHalDevice.GetProperty('volume.uuid'))
             partition["Size"] = long(partitionHalDevice.GetProperty('volume.size')) / 1024**2
@@ -259,9 +290,11 @@ def getDiskInfo(diskDeviceList=None):
             if partition["MountPoint"] or isDataDiskPartitionFormatted(partitionDevice):
                 partition["Init"] = True
                 partition["Status"] = "INITIALIZED"
-            if "/export/" in partition["MountPoint"]:
-                partition["Type"] = True
-                partition["Status"] = "READY"
+            if partition["MountPoint"]:
+                if "/export/" in partition["MountPoint"]:
+                    partition["Type"] = "DATA"
+                else:
+                    partition["Type"] = "BOOT"
             partition["ReadOnlyAccess"] = str(partitionHalDevice.GetProperty('volume.is_mounted_read_only'))
             partitionList.append(partition)
         disk["Partitions"] = partitionList
@@ -435,14 +468,18 @@ def getDiskDom(diskDeviceList=None, bootPartition=None, skipDisk=None):
     if not diskList:
         return None
 
-    raidDiskPartitions = []
+    raidPartitions = {}
     raidDisk = getRaidDisk()
-    for partition in raidDisk.values():
-        raidDiskPartitions += partition['disks']
+    
+    for k, v in raidDisk.iteritems():
+        for i in v['Disks']:
+            raidPartitions[i] = k
+
+    #for partition in raidDisk.values():
+    #    raidDiskPartitions += partition['disks']
 
     diskDom = Protocol.XDOM()
     disksTag = diskDom.createTag("disks", None)
-    raidPartitions = {}
     raidDisks = {}
     if not bootPartition:
         bootPartition = getRootPartition()
@@ -455,8 +492,8 @@ def getDiskDom(diskDeviceList=None, bootPartition=None, skipDisk=None):
         diskTag.appendChild(diskDom.createTag("description", disk["Description"]))
         diskTag.appendChild(diskDom.createTag("uuid", disk["Uuid"]))
         diskTag.appendChild(diskDom.createTag("status", disk["Status"]))
-        diskTag.appendChild(diskDom.createTag("init", str(disk["Init"]).lower()))
-        diskTag.appendChild(diskDom.createTag("type", str(disk["Type"]).lower()))
+        #diskTag.appendChild(diskDom.createTag("init", str(disk["Init"]).lower()))
+        diskTag.appendChild(diskDom.createTag("type", disk["Type"]))
         diskTag.appendChild(diskDom.createTag("interface", disk["Interface"]))
         diskTag.appendChild(diskDom.createTag("fsType", disk["FsType"]))
         diskTag.appendChild(diskDom.createTag("fsVersion", disk["FsVersion"]))
@@ -464,6 +501,11 @@ def getDiskDom(diskDeviceList=None, bootPartition=None, skipDisk=None):
         diskTag.appendChild(diskDom.createTag("size", disk["Size"]))
         diskTag.appendChild(diskDom.createTag("spaceInUse", disk["SpaceInUse"]))
         partitionsTag = diskDom.createTag("partitions", None)
+        if raidPartitions.has_key(diskDevice):
+            rdList = {}
+            rdList[diskDevice] = [deepcopy(diskTag)]
+            raidDisks[raidPartitions[diskDevice]] = rdList
+            continue
         for partition in disk["Partitions"]:
             partitionTag = diskDom.createTag("partition", None)
             device =  getDeviceName(partition["Device"])
@@ -473,42 +515,48 @@ def getDiskDom(diskDeviceList=None, bootPartition=None, skipDisk=None):
             else:
                 partitionTag.appendChild(diskDom.createTag("uuid", getUuidByDiskPartition("/dev/" + device)))
             partitionTag.appendChild(diskDom.createTag("status", partition["Status"]))
-            partitionTag.appendChild(diskDom.createTag("init", str(partition["Init"]).lower()))
-            partitionTag.appendChild(diskDom.createTag("type", str(partition["Type"]).lower()))
-            partitionTag.appendChild(diskDom.createTag("interface", partition["Interface"]))
+            #partitionTag.appendChild(diskDom.createTag("init", str(partition["Init"]).lower()))
+            partitionTag.appendChild(diskDom.createTag("type", str(partition["Type"])))
             partitionTag.appendChild(diskDom.createTag("fsType", partition["FsType"]))
             partitionTag.appendChild(diskDom.createTag("mountPoint", partition['MountPoint']))
             partitionTag.appendChild(diskDom.createTag("size", partition["Size"]))
             partitionTag.appendChild(diskDom.createTag("spaceInUse", partition["SpaceInUse"]))
-            if device in raidDiskPartitions:
-                raidPartitions[device] = partitionTag
+            if raidPartitions.has_key(device):
+                tempPartitionTag = diskDom.createTag("partitions", None)
+                if raidDisks.has_key(raidPartitions[device]):
+                    rdList = raidDisks[raidPartitions[device]]
+                    if not rdList.has_key(diskDevice):
+                        rdList[diskDevice] = [deepcopy(diskTag), tempPartitionTag]
+                        rdList[diskDevice][0].appendChild(tempPartitionTag)
+                    rdList[diskDevice][-1].appendChild(partitionTag)
+                    continue
+                rdList = {}
+                rdList[diskDevice] = [deepcopy(diskTag), tempPartitionTag]
+                tempPartitionTag.appendChild(partitionTag)
+                rdList[diskDevice][0].appendChild(tempPartitionTag)
+                raidDisks[raidPartitions[device]] = rdList
                 continue
             partitionsTag.appendChild(partitionTag)
         diskTag.appendChild(partitionsTag)
-
-        if diskDevice in raidDiskPartitions:
-            raidDisks[diskDevice] = diskTag
-        else:
-            disksTag.appendChild(diskTag)
-
+        disksTag.appendChild(diskTag)
 
     for rdisk in raidDisk.keys():
         raidDiskTag = diskDom.createTag("disk", None)
         raidDiskTag.appendChild(diskDom.createTag("name", rdisk))
-        if 'active' == raidDisk[rdisk]['status']:
-            raidDiskTag.appendChild(diskDom.createTag("status", "true"))
-        else:
-            raidDiskTag.appendChild(diskDom.createTag("status", "false"))
-        raidDiskTag.appendChild(diskDom.createTag("interface", raidDisk[rdisk]['type']))
-        raidDiskTag.appendChild(diskDom.createTag("size", raidDisk[rdisk]['size']))
+        raidDiskTag.appendChild(diskDom.createTag("description"))
+        raidDiskTag.appendChild(diskDom.createTag("uuid", raidDisk[rdisk]['Uuid']))
+        raidDiskTag.appendChild(diskDom.createTag("type", raidDisk[rdisk]['Type']))
+        raidDiskTag.appendChild(diskDom.createTag("mountPoint", raidDisk[rdisk]['MountPoint']))
+        raidDiskTag.appendChild(diskDom.createTag("status", raidDisk[rdisk]['Status']))
+        raidDiskTag.appendChild(diskDom.createTag("interface", raidDisk[rdisk]['Interface']))
+        raidDiskTag.appendChild(diskDom.createTag("fsType", raidDisk[rdisk]['FsType']))
+        raidDiskTag.appendChild(diskDom.createTag("fsVersion"))
+        raidDiskTag.appendChild(diskDom.createTag("size", raidDisk[rdisk]['Size']))
+        raidDiskTag.appendChild(diskDom.createTag("spaceInUse", raidDisk[rdisk]['SpaceInUse']))
         raidDisksTag = diskDom.createTag("raidDisks", None)
-        raidDiskPartitionsTag = diskDom.createTag("partitions", None)
-        for disk in raidDisk[rdisk]['disks']:
-            if raidPartitions.has_key(disk):
-                raidDiskPartitionsTag.appendChild(raidPartitions[disk])
-            if raidDisks.has_key(disk):
-                raidDisksTag.appendChild(raidDisks[disk])
-        raidDisksTag.appendChild(raidDiskPartitionsTag)
+        if raidDisks.has_key(rdisk):
+            for diskTag in raidDisks[rdisk].values():
+                raidDisksTag.appendChild(diskTag[0])
         raidDiskTag.appendChild(raidDisksTag)
         disksTag.appendChild(raidDiskTag)
     diskDom.addTag(disksTag)
@@ -790,4 +838,14 @@ def getServerConfigDiskDom(serverName, diskName=None):
             tagE.removeChild(partitionTag)
     return diskConfigDom
 
+
+def getDeviceMountPoint(device):
+    try:
+        fp = open("/proc/mounts")
+        for token in [line.strip().split() for line in fp.readlines()]:
+            if token and len(token) > 2 and token[0] == device:
+                return token[1]
+        fp.close()
+    except IOError, e:
+        return None
 
