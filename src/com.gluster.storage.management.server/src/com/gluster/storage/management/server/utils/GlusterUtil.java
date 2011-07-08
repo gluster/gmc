@@ -73,7 +73,7 @@ public class GlusterUtil {
 	
 	private static final GlusterCoreUtil glusterCoreUtil = new GlusterCoreUtil();
 	
-	private static final String INITIALIZE_DISK_STATUS_SCRIPT = "format_device_status.py";
+	private static final String INITIALIZE_DISK_STATUS_SCRIPT = "get_format_device_status.py";
 
 	@Autowired
 	private SshUtil sshUtil;

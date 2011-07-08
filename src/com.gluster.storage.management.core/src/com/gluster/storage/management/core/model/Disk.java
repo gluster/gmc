@@ -113,8 +113,7 @@ public class Disk extends Device {
 //				}
 //			}
 //		}
-
-		return false;
+		return true;
 	}
 
 	public void copyFrom(Disk newDisk) {
