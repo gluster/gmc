@@ -18,7 +18,7 @@
 
 import os
 import sys
-#import subprocess
+import subprocess
 import Utils
 import DiskUtils
 from optparse import OptionParser
