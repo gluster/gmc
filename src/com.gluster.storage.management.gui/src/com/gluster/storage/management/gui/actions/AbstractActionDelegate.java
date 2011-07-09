@@ -18,14 +18,18 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.actions;
 
+import org.apache.log4j.Logger;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.UIPlugin;
 
 import com.gluster.storage.management.core.model.Entity;
@@ -38,20 +42,40 @@ import com.gluster.storage.management.core.model.Entity;
 @SuppressWarnings("restriction")
 public abstract class AbstractActionDelegate implements IWorkbenchWindowActionDelegate {
 	protected IWorkbenchWindow window;
+	protected Logger logger = Logger.getLogger(this.getClass());
 	
 	// the latest selected entity
 	protected Entity selectedEntity;
 
 	@Override
 	public void run(final IAction action) {
-		// Real action code must be executed using Display#asyncExec. Otherwise the system can hang when opening new
-		// dialog boxes on linux platform
-		Display.getDefault().asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				performAction(action);
-			}
-		});
+		// Real action code must be executed using Display#asyncExec.
+		// Otherwise the system can hang when opening new dialog boxes on linux platform
+		try {
+			PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
+				public void run(final IProgressMonitor monitor) {
+					Display.getDefault().asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							monitor.beginTask(action.getDescription(), 1);
+							performAction(action);
+							monitor.worked(1);
+							monitor.done();
+						}
+					});
+				}
+			});
+		} catch (final Exception e) {
+			final String actionDesc = action.getDescription();
+			logger.error("Exception while running action [" + actionDesc + "]",  e);
+
+			Display.getDefault().asyncExec(new Runnable() {
+				@Override
+				public void run() {
+					showErrorDialog(actionDesc, e.getMessage());
+				}
+			});
+		}
 	}
 
 	abstract protected void performAction(final IAction action);
@@ -100,7 +124,7 @@ public abstract class AbstractActionDelegate implements IWorkbenchWindowActionDe
 		MessageDialog.openError(getShell(), title, message);
 	}
 
-	protected synchronized boolean showConfirmDialog(final String title, final String message) {
+	protected boolean showConfirmDialog(final String title, final String message) {
 		return MessageDialog.openQuestion(getShell(), title, message);
 	}
 }
