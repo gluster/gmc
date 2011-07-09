@@ -100,7 +100,7 @@ public abstract class AbstractActionDelegate implements IWorkbenchWindowActionDe
 		MessageDialog.openError(getShell(), title, message);
 	}
 
-	protected synchronized boolean showConfirmDialog(final String title, final String message) {
+	protected boolean showConfirmDialog(final String title, final String message) {
 		return MessageDialog.openQuestion(getShell(), title, message);
 	}
 }

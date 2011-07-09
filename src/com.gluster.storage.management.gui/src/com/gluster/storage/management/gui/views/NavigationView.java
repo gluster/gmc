@@ -50,6 +50,7 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 	private GlusterToolbarManager toolbarManager;
 	private Entity entity;
 	private GlusterViewsManager viewsManager;
+	private DefaultClusterListener clusterListener;
 
 	@Override
 	public void createPartControl(Composite parent) {
@@ -80,8 +81,7 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 		// register as selection provider so that other views can listen to any selection events on the tree
 		getSite().setSelectionProvider(treeViewer);
 
-		// Refresh the navigation tree whenever there is a change to the data model
-		GlusterDataModelManager.getInstance().addClusterListener(new DefaultClusterListener() {
+		clusterListener = new DefaultClusterListener() {
 			public void modelChanged() {
 				treeViewer.refresh();
 			}
@@ -91,7 +91,8 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 				super.volumeChanged(volume, event);
 				selectEntity(volume); // this makes sure that the toolbar buttons get updated according to new status
 			}
-		});
+		};
+		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
 	}
 
 	private void setupContextMenu() {
@@ -128,5 +129,11 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 				setFocus();
 			}
 		}
+	}
+	
+	@Override
+	public void dispose() {
+		super.dispose();
+		GlusterDataModelManager.getInstance().removeClusterListener(clusterListener);
 	}
 }

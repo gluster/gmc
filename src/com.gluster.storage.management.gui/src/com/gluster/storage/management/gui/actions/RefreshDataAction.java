@@ -20,20 +20,17 @@ package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
 
-import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.gui.jobs.DataSyncJob;
 
 /**
  *
  */
 public class RefreshDataAction extends AbstractActionDelegate {
-
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.IWorkbenchWindowActionDelegate#dispose()
 	 */
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
-
 	}
 
 	/* (non-Javadoc)
@@ -41,6 +38,6 @@ public class RefreshDataAction extends AbstractActionDelegate {
 	 */
 	@Override
 	protected void performAction(IAction action) {
-		GlusterDataModelManager.getInstance().refreshModel();
+		new DataSyncJob("Cluster Data Sync").schedule();
 	}
 }

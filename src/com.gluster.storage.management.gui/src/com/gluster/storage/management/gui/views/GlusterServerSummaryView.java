@@ -92,8 +92,6 @@ public class GlusterServerSummaryView extends ViewPart {
 	}
 	
 	private void updateServerDetails() {
-		// TODO Auto-generated method stub
-		
 	}
 	
 	@Override
@@ -108,7 +106,7 @@ public class GlusterServerSummaryView extends ViewPart {
 		createServerSummarySection(server, toolkit, form);
 
 		if (server.getStatus() == SERVER_STATUS.ONLINE) {
-			Composite section = createNetworkInterfacesSection(server, toolkit, form);
+			createNetworkInterfacesSection(server, toolkit, form);
 		}
 
 		parent.layout(); // IMP: lays out the form properly
