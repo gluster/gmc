@@ -93,11 +93,6 @@ public class VolumeSummaryView extends ViewPart {
 		GlusterDataModelManager.getInstance().addClusterListener(volumeChangedListener);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.ui.part.WorkbenchPart#dispose()
-	 */
 	@Override
 	public void dispose() {
 		super.dispose();

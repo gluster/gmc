@@ -64,6 +64,7 @@ public abstract class AbstractTableViewerPage<T> extends Composite implements IS
 	protected IWorkbenchSite site;
 	
 	private Hyperlink linkAll, linkNone;
+	private ClusterListener clusterListener;
 
 	public AbstractTableViewerPage(IWorkbenchSite site, final Composite parent, int style, boolean useChechboxes, boolean multiSelection, Object model) {
 		super(parent, style);
@@ -139,19 +140,19 @@ public abstract class AbstractTableViewerPage<T> extends Composite implements IS
 			}
 		});
 		
-		final ClusterListener clusterListener = createClusterListener();
+		clusterListener = createClusterListener();
+		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
 		
-		final GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
-		modelManager.addClusterListener(clusterListener);
-
 		addDisposeListener(new DisposeListener() {
+			
+			@Override
 			public void widgetDisposed(DisposeEvent e) {
 				toolkit.dispose();
-				modelManager.removeClusterListener(clusterListener);
+				GlusterDataModelManager.getInstance().removeClusterListener(clusterListener);
 			}
 		});
 	}
-
+	
 	protected abstract ClusterListener createClusterListener();
 	protected abstract String[] getColumnNames();
 	protected abstract void setColumnProperties(Table table);

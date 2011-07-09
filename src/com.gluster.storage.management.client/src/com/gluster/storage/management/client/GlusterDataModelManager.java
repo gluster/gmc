@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.eclipse.core.runtime.IProgressMonitor;
 
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Brick;
@@ -92,7 +93,7 @@ public class GlusterDataModelManager {
 		model = fetchData(clusterName);
 	}
 
-	public GlusterDataModel fetchData(String clusterName) {
+	private GlusterDataModel fetchData(String clusterName) {
 		GlusterDataModel model = new GlusterDataModel("Gluster Data Model");
 		Cluster cluster = new Cluster(clusterName, model);
 
@@ -100,7 +101,6 @@ public class GlusterDataModelManager {
 		initializeVolumes(cluster);
 
 		initializeAutoDiscoveredServers(cluster);
-		// initializeDisks();
 		initializeTasks(cluster);
 		initializeAlerts(cluster);
 		initializeVolumeOptionsDefaults();
@@ -109,27 +109,50 @@ public class GlusterDataModelManager {
 		return model;
 	}
 	
-	public void refreshModel() {
+	public GlusterDataModel fetchModel(IProgressMonitor monitor) {
 		synchronized (syncInProgress) {
 			if(syncInProgress) {
 				logger.info("Previous data sync is still running. Skipping this one.");
-				return;
+				return null;
 			}
 			syncInProgress = true;
 		}
-		
-		logger.info("Starting data sync");
+
 		try {
-			updateModel(fetchData(clusterName));
-		} catch(Exception e) {
+			logger.info("Starting data sync");
+			GlusterDataModel model = new GlusterDataModel("Gluster Data Model");
+			Cluster cluster = new Cluster(clusterName, model);
+			model.addCluster(cluster);
+
+			monitor.beginTask("Data Sync", 4);
+
+			monitor.setTaskName("Syncing servers...");
+			initializeGlusterServers(cluster);
+			monitor.worked(1);
+
+			monitor.setTaskName("Syncing volumes...");
+			initializeVolumes(cluster);
+			monitor.worked(1);
+
+			monitor.setTaskName("Syncing discovered servers...");
+			initializeAutoDiscoveredServers(cluster);
+			monitor.worked(1);
+
+			monitor.setTaskName("Syncing tasks...");
+			initializeTasks(cluster);
+			monitor.worked(1);
+
+			monitor.done();
+			return model;
+		} catch(RuntimeException e) {
 			logger.error("Error in data sync!", e);
+			return null;
 		} finally {
 			syncInProgress = false;
 		}
 	}
-	
 
-	private void updateModel(GlusterDataModel model) {
+	public void updateModel(GlusterDataModel model) {
 		updateVolumes(model);
 		updateGlusterServers(model);
 		updateDiscoveredServers(model);

@@ -18,6 +18,7 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.jobs;
 
+import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -25,31 +26,43 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
-import com.gluster.storage.management.gui.utils.GUIHelper;
+import com.gluster.storage.management.core.model.GlusterDataModel;
 
 /**
  *
  */
 public class DataSyncJob extends Job {
+	private static final Logger logger = Logger.getLogger(DataSyncJob.class);
+
 	public DataSyncJob(String name) {
-		super(name);		
+		super(name);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.eclipse.core.runtime.jobs.Job#run(org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	@Override
-	protected IStatus run(IProgressMonitor monitor) {
+	protected IStatus run(final IProgressMonitor monitor) {
+		final GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+		
+		// fetch the latest model
+		final GlusterDataModel model = modelManager.fetchModel(monitor);
+		if(model == null) {
+			return Status.CANCEL_STATUS;
+		}
+		
+		monitor.beginTask("Notify views", 1);
 		Display.getDefault().asyncExec(new Runnable() {
-			
 			@Override
 			public void run() {
-				GUIHelper.getInstance().setStatusMessage("Data sync in progress...");
-				GlusterDataModelManager.getInstance().refreshModel();
-				GUIHelper.getInstance().setStatusMessage(null);
+				modelManager.updateModel(model);
 			}
 		});
-		
+		monitor.worked(1);
+		monitor.done();
+
 		return Status.OK_STATUS;
 	}
 }
