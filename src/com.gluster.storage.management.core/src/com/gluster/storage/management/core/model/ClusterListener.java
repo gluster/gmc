@@ -35,10 +35,6 @@ public interface ClusterListener {
 
 	public void serverChanged(GlusterServer server, Event event);
 
-	public void volumeAdded(Volume volume);
-
-	public void volumeRemoved(Volume volume);
-
 	public void volumeChanged(Volume volume, Event event);
 
 	public void volumeCreated(Volume volume);

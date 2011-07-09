@@ -33,6 +33,7 @@ import org.eclipse.ui.IWorkbenchSite;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.EntityGroup;
+import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.gui.EntityGroupContentProvider;
 import com.gluster.storage.management.gui.ServerTableLabelProvider;
@@ -46,14 +47,6 @@ public class ServersPage extends AbstractTableViewerPage<Server> {
 
 	private static final String[] SERVER_TABLE_COLUMN_NAMES = new String[] { "Name", "IP Address(es)", "Number of Disks", "Total Disk Space (GB)" };
 
-	// public enum SERVER_DISK_TABLE_COLUMN_INDICES {
-	// NAME, NUM_OF_CPUS, CPU_USAGE, TOTAL_MEMORY, MEMORY_IN_USE, TOTAL_DISK_SPACE, DISK_SPACE_IN_USE
-	// };
-	//
-	// private static final String[] SERVER_TABLE_COLUMN_NAMES = new String[] { "Name",
-	// "Number\nof CPUs", "CPU\nUsage (%)", "Total\nMemory (GB)", "Memory\nIn Use (GB)",
-	// "Total Disk\n Space (GB)", "Disk Space\nin Use (GB)"};
-
 	public ServersPage(final Composite parent, IWorkbenchSite site, EntityGroup<Server> serversGroup) {
 		super(site, parent, SWT.NONE, true, true, serversGroup);
 		this.servers = serversGroup.getEntities();
@@ -64,16 +57,19 @@ public class ServersPage extends AbstractTableViewerPage<Server> {
 		return new DefaultClusterListener() {
 			@Override
 			public void discoveredServerRemoved(Server server) {
-				refreshViewer();
+				tableViewer.remove(server);
+				parent.update();
 			}
 			
 			@Override
 			public void discoveredServerAdded(Server server) {
-				refreshViewer();
+				tableViewer.add(server);
+				parent.update();
 			}
 			
-			private void refreshViewer() {
-				tableViewer.refresh();
+			@Override
+			public void discoveredServerChanged(Server server, Event event) {
+				tableViewer.update(server, null);
 				parent.update();
 			}
 		};

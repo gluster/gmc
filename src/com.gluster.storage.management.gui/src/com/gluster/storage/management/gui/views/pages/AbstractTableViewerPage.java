@@ -142,15 +142,17 @@ public abstract class AbstractTableViewerPage<T> extends Composite implements IS
 		
 		clusterListener = createClusterListener();
 		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
+		
+		addDisposeListener(new DisposeListener() {
+			
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				toolkit.dispose();
+				GlusterDataModelManager.getInstance().removeClusterListener(clusterListener);
+			}
+		});
 	}
 	
-	@Override
-	public void dispose() {
-		super.dispose();
-		toolkit.dispose();
-		GlusterDataModelManager.getInstance().removeClusterListener(clusterListener);
-	}
-
 	protected abstract ClusterListener createClusterListener();
 	protected abstract String[] getColumnNames();
 	protected abstract void setColumnProperties(Table table);

@@ -59,17 +59,20 @@ public class GlusterServersPage extends AbstractTableViewerPage<GlusterServer> {
 			
 			@Override
 			public void serverAdded(GlusterServer server) {
-				tableViewer.refresh();
+				tableViewer.add(server);
+				parent.update();
 			}
 			
 			@Override
 			public void serverRemoved(GlusterServer server) {
-				tableViewer.refresh();
+				tableViewer.remove(server);
+				parent.update();
 			}
 			
 			@Override
 			public void serverChanged(GlusterServer server, Event event) {
 				tableViewer.update(server, null);
+				parent.update();
 			}
 		};
 	}
