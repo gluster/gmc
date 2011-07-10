@@ -118,20 +118,6 @@ public class VolumeOptionsPage extends Composite {
 		return toolkit.createButton(this, "&Add", SWT.FLAT);
 	}
 	
-	@Override
-	public void dispose() {
-		super.dispose();
-		toolkit.dispose();
-
-		if (!(addTopButton.isEnabled() || addBottomButton.isEnabled())) {
-			// user has selected key, but not added value. Since this is not a valid entry,
-			// remove the last option (without value) from the volume
-			volume.getOptions().remove(keyEditingSupport.getEntryBeingAdded().getKey());
-		}
-
-		GlusterDataModelManager.getInstance().removeClusterListener(clusterListener);
-	}
-
 	private void registerListeners(final Composite parent) {
 		/**
 		 * Ideally not required. However the table viewer is not getting laid out properly on performing
@@ -149,14 +135,16 @@ public class VolumeOptionsPage extends Composite {
 			@Override
 			public void volumeChanged(Volume volume, Event event) {
 				super.volumeChanged(volume, event);
-				if (event.getEventType() == EVENT_TYPE.VOLUME_OPTIONS_RESET) {
+				
+				switch (event.getEventType()) {
+				case VOLUME_OPTIONS_RESET:
 					if (!tableViewer.getControl().isDisposed()) {
 						tableViewer.refresh();
 						setAddButtonsEnabled(true);
 					}
-				}
+					break;
 
-				if (event.getEventType() == EVENT_TYPE.VOLUME_OPTION_SET) {
+				case VOLUME_OPTION_SET:
 					String key = (String)event.getEventData();
 					if (isNewOption(volume, key)) {
 						// option has been set successfully by the user. re-enable the add button and search filter
@@ -176,6 +164,16 @@ public class VolumeOptionsPage extends Composite {
 						// existing volume option value changed. update that element.
 						tableViewer.update(volume.getOptions().get(key), null);
 					}
+					break;
+				case VOLUME_CHANGED:
+					tableViewer.refresh();
+					if(volume.getOptions().size() == defaultVolumeOptions.size()) {
+						setAddButtonsEnabled(false);
+					} else {
+						setAddButtonsEnabled(true);
+					}
+				default:
+					break;
 				}
 			}
 
@@ -235,6 +233,22 @@ public class VolumeOptionsPage extends Composite {
 		});
 		
 		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
+		
+		addDisposeListener(new DisposeListener() {
+			
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				toolkit.dispose();
+
+				if (!(addTopButton.isEnabled() || addBottomButton.isEnabled())) {
+					// user has selected key, but not added value. Since this is not a valid entry,
+					// remove the last option (without value) from the volume
+					volume.getOptions().remove(keyEditingSupport.getEntryBeingAdded().getKey());
+				}
+
+				GlusterDataModelManager.getInstance().removeClusterListener(clusterListener);
+			}
+		});
 	}
 
 	private void setupPageLayout() {

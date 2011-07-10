@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -274,8 +275,8 @@ public class Volume extends Entity {
 
 		if (!(getName().equals(volume.getName()) && getVolumeType() == volume.getVolumeType()
 				&& getTransportType() == volume.getTransportType() && getStatus() == volume.getStatus()
-				&& getReplicaCount() == volume.getReplicaCount() && getStripeCount() == volume.getStripeCount())
-				&& getOptions().equals(volume.getOptions())) {
+				&& getReplicaCount() == volume.getReplicaCount() && getStripeCount() == volume.getStripeCount()
+				&& getOptions().equals(volume.getOptions()))) {
 			return false;
 		}
 
@@ -285,10 +286,15 @@ public class Volume extends Entity {
 			}
 		}
 		
-		for (Brick brick : getBricks()) {
-			if (!(brick.equals(GlusterCoreUtil.getEntity(volume.getBricks(), brick.getName(), false)))) {
-				return false;
-			}
+		List<Brick> oldBricks = getBricks();
+		List<Brick> newBricks = volume.getBricks();
+		if(oldBricks.size() != newBricks.size()) {
+			return false;
+		}
+
+		Map<Brick, Brick> modifiedBricks = GlusterCoreUtil.getModifiedEntities(oldBricks, newBricks);
+		if(modifiedBricks.size() > 0) {
+			return false;
 		}
 		
 		return true;

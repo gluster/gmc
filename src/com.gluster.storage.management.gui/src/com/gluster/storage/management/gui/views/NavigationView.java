@@ -89,8 +89,20 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 			@Override
 			public void volumeChanged(Volume volume, Event event) {
 				super.volumeChanged(volume, event);
-				selectEntity(volume); // this makes sure that the toolbar buttons get updated according to new status
+				if (volume == entity) {
+					// this makes sure that the toolbar buttons get updated according to new status
+					selectEntity(volume);
+				}
 			}
+			
+			public void volumeDeleted(Volume volume) {
+				super.volumeDeleted(volume);
+				if(volume == entity) {
+					// volume deleted was deleted. selected the root element in the tree.
+					treeViewer.setSelection(new StructuredSelection(GlusterDataModelManager.getInstance().getModel()
+							.getCluster()));
+				}
+			};
 		};
 		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
 	}

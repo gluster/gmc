@@ -16,45 +16,24 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.core.model;
+package com.gluster.storage.management.server.resources.v1_0;
 
-public class Event {
-	public enum EVENT_TYPE {
-		BRICKS_ADDED,
-		BRICKS_REMOVED,
-		BRICKS_CHANGED,
-		VOLUME_STATUS_CHANGED,
-		VOLUME_OPTIONS_RESET,
-		VOLUME_OPTION_SET,
-		VOLUME_CHANGED,
-		GLUSTER_SERVER_CHANGED,
-		DISKS_ADDED,
-		DISKS_REMOVED,
-		DISKS_CHANGED,
-		DISCOVERED_SERVER_CHANGED
-	}
-	
-	private EVENT_TYPE eventType;
-	private Object eventData;
-	
-	public Event(EVENT_TYPE eventType, Object eventData) {
-		this.eventType = eventType;
-		this.eventData = eventData;
-	}
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.ext.Provider;
 
-	public EVENT_TYPE getEventType() {
-		return eventType;
-	}
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 
-	public void setEventType(EVENT_TYPE eventType) {
-		this.eventType = eventType;
-	}
+@Provider
+public class GlusterExceptionMapper implements ExceptionMapper<GlusterRuntimeException> {
 
-	public Object getEventData() {
-		return eventData;
-	}
-
-	public void setEventData(Object eventData) {
-		this.eventData = eventData;
+	/* (non-Javadoc)
+	 * @see javax.ws.rs.ext.ExceptionMapper#toResponse(java.lang.Throwable)
+	 */
+	@Override
+	public Response toResponse(GlusterRuntimeException exception) {
+		return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(exception.getMessage())
+				.type(MediaType.TEXT_PLAIN).build();
 	}
 }

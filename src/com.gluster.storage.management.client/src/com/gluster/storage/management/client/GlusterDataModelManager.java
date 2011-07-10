@@ -643,13 +643,6 @@ public class GlusterDataModelManager {
 		}
 	}
 	
-	public void updateVolumeBricks(Volume volume, List<Brick> bricks) {
-		model.getCluster().updateVolume( volume.getName(), bricks );
-		for (ClusterListener listener : listeners) {
-			listener.volumeChanged(volume, new Event(EVENT_TYPE.BRICK_REPLACED , bricks));
-		}
-	}
-
 	public void addTask(TaskInfo taskInfo) {
 		Cluster cluster = model.getCluster();
 		cluster.addTaskInfo(taskInfo);

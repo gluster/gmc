@@ -18,6 +18,7 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.views.pages;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -54,13 +55,26 @@ public class BricksPage extends AbstractTableViewerPage<Brick> {
 	@Override
 	protected ClusterListener createClusterListener() {
 		return new DefaultClusterListener() {
+			@SuppressWarnings("unchecked")
 			@Override
 			public void volumeChanged(Volume volume, Event event) {
-				if (event.getEventType() == EVENT_TYPE.BRICKS_ADDED || event.getEventType() == EVENT_TYPE.BRICKS_REMOVED) {
-					tableViewer.refresh();
+				switch (event.getEventType()) {
+				case BRICKS_ADDED:
+					tableViewer.add(((Collection<Brick>) event.getEventData()).toArray());
 					parent.update();
+					break;
+
+				case BRICKS_REMOVED:
+					tableViewer.remove(((Collection<Brick>) event.getEventData()).toArray());
+					parent.update();
+					break;
+
+				case BRICKS_CHANGED:
+					tableViewer.update(((Collection<Brick>) event.getEventData()).toArray(), null);
+					parent.update();
+				default:
+					break;
 				}
-				
 			}
 		};
 	}

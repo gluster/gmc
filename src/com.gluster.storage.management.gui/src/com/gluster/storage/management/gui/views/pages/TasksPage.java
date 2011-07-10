@@ -67,40 +67,26 @@ public class TasksPage extends AbstractTableViewerPage<TaskInfo> {
 		return new DefaultClusterListener() {
 			@Override
 			public void taskAdded(TaskInfo taskInfo) {
-				refreshViewer();
-			}
-			
-			@Override
-			public void taskRemoved(TaskInfo taskInfo) {
-				refreshViewer();
-				// hide the task related actionset as no task is selected
-				// site.getPage().hideActionSet(IActionConstants.ACTION_SET_TASK);
-				tableViewer.setSelection(new StructuredSelection(taskInfo));
-			}
-			
-			@Override
-			public void taskUpdated(TaskInfo taskInfo) {
-				refreshViewer();
-				// fire selection event so that toolbar gets updated
-				// (the action class listens to selection and enables/disables automatically)
-				tableViewer.setSelection(new StructuredSelection(taskInfo));
-			}
-			
-			private void refreshViewer() {
-				tableViewer.refresh();
+				tableViewer.add(taskInfo);
 				parent.update();
 			}
 			
 			@Override
-			public void volumeChanged(Volume volume, Event event) {
-				super.volumeChanged(volume, event);
-				if (event.getEventType() == EVENT_TYPE.BRICK_REPLACED) {
-					if (!tableViewer.getControl().isDisposed()) {
-						tableViewer.refresh();
-					}
-				}
+			public void taskRemoved(TaskInfo taskInfo) {
+				tableViewer.remove(taskInfo);
+				parent.update();
+				// hide the task related actionset as no task is selected
+				// site.getPage().hideActionSet(IActionConstants.ACTION_SET_TASK);
 			}
 			
+			@Override
+			public void taskUpdated(TaskInfo taskInfo) {
+				tableViewer.update(taskInfo, null);
+				parent.update();
+				// fire selection event so that toolbar gets updated
+				// (the action class listens to selection and enables/disables automatically)
+				tableViewer.setSelection(new StructuredSelection(taskInfo));
+			}
 		};
 	}
 
