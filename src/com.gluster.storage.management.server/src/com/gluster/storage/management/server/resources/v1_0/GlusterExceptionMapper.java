@@ -16,28 +16,24 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.gui.actions;
+package com.gluster.storage.management.server.resources.v1_0;
 
-import org.eclipse.jface.action.IAction;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.ext.Provider;
 
-import com.gluster.storage.management.gui.jobs.DataSyncJob;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 
-/**
- *
- */
-public class RefreshDataAction extends AbstractActionDelegate {
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.IWorkbenchWindowActionDelegate#dispose()
-	 */
-	@Override
-	public void dispose() {
-	}
+@Provider
+public class GlusterExceptionMapper implements ExceptionMapper<GlusterRuntimeException> {
 
 	/* (non-Javadoc)
-	 * @see com.gluster.storage.management.gui.actions.AbstractActionDelegate#performAction(org.eclipse.jface.action.IAction)
+	 * @see javax.ws.rs.ext.ExceptionMapper#toResponse(java.lang.Throwable)
 	 */
 	@Override
-	protected void performAction(IAction action) {
-		new DataSyncJob("Cluster Data Sync").schedule();
+	public Response toResponse(GlusterRuntimeException exception) {
+		return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(exception.getMessage())
+				.type(MediaType.TEXT_PLAIN).build();
 	}
 }

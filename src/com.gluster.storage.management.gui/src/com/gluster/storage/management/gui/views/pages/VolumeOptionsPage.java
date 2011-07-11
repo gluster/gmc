@@ -117,21 +117,8 @@ public class VolumeOptionsPage extends Composite {
 	private Button createAddButton() {
 		return toolkit.createButton(this, "&Add", SWT.FLAT);
 	}
-
+	
 	private void registerListeners(final Composite parent) {
-		addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				if (!(addTopButton.isEnabled() || addBottomButton.isEnabled())) {
-					// user has selected key, but not added value. Since this is not a valid entry,
-					// remove the last option (without value) from the volume
-					volume.getOptions().remove(keyEditingSupport.getEntryBeingAdded().getKey());
-				}
-
-				GlusterDataModelManager.getInstance().removeClusterListener(clusterListener);
-				toolkit.dispose();
-			}
-		});
-
 		/**
 		 * Ideally not required. However the table viewer is not getting laid out properly on performing
 		 * "maximize + restore" So this is a hack to make sure that the table is laid out again on re-size of the window
@@ -144,31 +131,20 @@ public class VolumeOptionsPage extends Composite {
 			}
 		});
 
-		parent.addDisposeListener(new DisposeListener() {
-
-			@Override
-			public void widgetDisposed(DisposeEvent e) {
-				if (!(addTopButton.isEnabled() || addBottomButton.isEnabled())) {
-					// user has selected key, but not added value. Since this is not a valid entry,
-					// remove the last option (without value) from the volume
-					VolumeOption entryBeingAdded = keyEditingSupport.getEntryBeingAdded();
-					volume.getOptions().remove(entryBeingAdded.getKey());
-				}
-			}
-		});
-
 		clusterListener = new DefaultClusterListener() {
 			@Override
 			public void volumeChanged(Volume volume, Event event) {
 				super.volumeChanged(volume, event);
-				if (event.getEventType() == EVENT_TYPE.VOLUME_OPTIONS_RESET) {
+				
+				switch (event.getEventType()) {
+				case VOLUME_OPTIONS_RESET:
 					if (!tableViewer.getControl().isDisposed()) {
 						tableViewer.refresh();
 						setAddButtonsEnabled(true);
 					}
-				}
+					break;
 
-				if (event.getEventType() == EVENT_TYPE.VOLUME_OPTION_SET) {
+				case VOLUME_OPTION_SET:
 					String key = (String)event.getEventData();
 					if (isNewOption(volume, key)) {
 						// option has been set successfully by the user. re-enable the add button and search filter
@@ -188,6 +164,16 @@ public class VolumeOptionsPage extends Composite {
 						// existing volume option value changed. update that element.
 						tableViewer.update(volume.getOptions().get(key), null);
 					}
+					break;
+				case VOLUME_CHANGED:
+					tableViewer.refresh();
+					if(volume.getOptions().size() == defaultVolumeOptions.size()) {
+						setAddButtonsEnabled(false);
+					} else {
+						setAddButtonsEnabled(true);
+					}
+				default:
+					break;
 				}
 			}
 
@@ -247,6 +233,22 @@ public class VolumeOptionsPage extends Composite {
 		});
 		
 		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
+		
+		addDisposeListener(new DisposeListener() {
+			
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				toolkit.dispose();
+
+				if (!(addTopButton.isEnabled() || addBottomButton.isEnabled())) {
+					// user has selected key, but not added value. Since this is not a valid entry,
+					// remove the last option (without value) from the volume
+					volume.getOptions().remove(keyEditingSupport.getEntryBeingAdded().getKey());
+				}
+
+				GlusterDataModelManager.getInstance().removeClusterListener(clusterListener);
+			}
+		});
 	}
 
 	private void setupPageLayout() {

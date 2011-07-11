@@ -33,6 +33,7 @@ import org.eclipse.ui.IWorkbenchSite;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.EntityGroup;
+import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.EntityGroupContentProvider;
 import com.gluster.storage.management.gui.VolumeTableLabelProvider;
@@ -75,8 +76,25 @@ public class VolumesPage extends AbstractTableViewerPage<Volume> {
 	
 	@Override
 	protected ClusterListener createClusterListener() {
-		// TODO: Override methods to handle volume related events
-		return new DefaultClusterListener();
+		return new DefaultClusterListener() {
+			@Override
+			public void volumeCreated(Volume volume) {
+				tableViewer.add(volume);
+				parent.update();
+			}
+			
+			@Override
+			public void volumeDeleted(Volume volume) {
+				tableViewer.remove(volume);
+				parent.update();
+			}
+			
+			@Override
+			public void volumeChanged(Volume volume, Event event) {
+				tableViewer.update(volume, null);
+				parent.update();
+			}
+		};
 	}
 	
 	/**

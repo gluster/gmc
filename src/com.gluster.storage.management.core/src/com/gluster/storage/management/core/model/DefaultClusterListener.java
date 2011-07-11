@@ -40,16 +40,6 @@ public class DefaultClusterListener implements ClusterListener {
 	}
 
 	@Override
-	public void volumeAdded(Volume volume) {
-		modelChanged();
-	}
-
-	@Override
-	public void volumeRemoved(Volume volume) {
-		modelChanged();
-	}
-
-	@Override
 	public void volumeChanged(Volume volume, Event event) {		
 		modelChanged();
 	}
