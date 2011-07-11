@@ -568,7 +568,12 @@ public class GlusterDataModelManager {
 		Cluster cluster = model.getCluster();
 		cluster.removeServer(server);
 		
-		for (ClusterListener listener : listeners) {
+		// can't use an iterator here. The method AbstractList.Itr#next checks for concurrent modification.
+		// Since listeners can end up creating new views, which add themselves as listeners, the listeners
+		// list can be concurrently modified which can result in an exception while using iterator. 
+		// Hence we use List#get instead of the iterator
+		for(int i = 0; i < listeners.size(); i++) {
+			ClusterListener listener = listeners.get(i);
 			listener.serverRemoved(server);
 		}
 		

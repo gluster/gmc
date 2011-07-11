@@ -39,12 +39,12 @@ import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.GlusterDataModel;
+import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
 
 public class NavigationView extends ViewPart implements ISelectionListener {
 	public static final String ID = NavigationView.class.getName();
-	private GlusterDataModel model;
 	private TreeViewer treeViewer;
 	private IAdapterFactory adapterFactory = new ClusterAdapterFactory();
 	private GlusterToolbarManager toolbarManager;
@@ -65,7 +65,7 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 	}
 
 	private void createNavigationTree(Composite parent) {
-		model = GlusterDataModelManager.getInstance().getModel();
+		GlusterDataModel model = GlusterDataModelManager.getInstance().getModel();
 
 		Platform.getAdapterManager().registerAdapters(adapterFactory, Entity.class);
 		treeViewer = new TreeViewer(parent, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
@@ -95,12 +95,21 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 				}
 			}
 			
+			@Override
 			public void volumeDeleted(Volume volume) {
 				super.volumeDeleted(volume);
 				if(volume == entity) {
-					// volume deleted was deleted. selected the root element in the tree.
-					treeViewer.setSelection(new StructuredSelection(GlusterDataModelManager.getInstance().getModel()
-							.getCluster()));
+					// volume selected was deleted. select the root element in the tree.
+					selectEntity(GlusterDataModelManager.getInstance().getModel().getCluster());
+				}
+			}
+
+			@Override
+			public void serverRemoved(GlusterServer server) {
+				super.serverRemoved(server);
+				if(server == entity) {
+					// server selected was removed. select the root element in the tree.
+					selectEntity(GlusterDataModelManager.getInstance().getModel().getCluster());
 				}
 			};
 		};
