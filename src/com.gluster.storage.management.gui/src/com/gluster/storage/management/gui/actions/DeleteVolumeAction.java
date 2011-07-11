@@ -18,6 +18,7 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.actions;
 
+import org.apache.log4j.Logger;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
@@ -32,6 +33,7 @@ import com.gluster.storage.management.gui.utils.GUIHelper;
 public class DeleteVolumeAction extends AbstractActionDelegate {
 	private Volume volume;
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+	private static final Logger logger = Logger.getLogger(DeleteVolumeAction.class);
 
 	@Override
 	protected void performAction(final IAction action) {
@@ -73,16 +75,12 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 			showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] deleted successfully!");
 			modelManager.deleteVolume(volume);
 		} catch (Exception e) {
-			showErrorDialog(actionDesc, e.getMessage());
-
 			// there is a possibility that the error was in post-delete operation, which means
-			// volume was deleted, but some other error happened. check if this is the case,
-			// and if so, update the model manager
+			// volume was deleted, but some other error happened. check if this is the case.
 			if (client.volumeExists(volume.getName())) {
 				showErrorDialog(actionDesc,
 						"Volume [" + volume.getName() + "] could not be deleted! Error: [" + e.getMessage() + "]");
 			} else {
-				modelManager.deleteVolume(volume);
 				showWarningDialog(actionDesc, "Volume deleted, but following error(s) occured: " + e.getMessage());
 			}
 		}
