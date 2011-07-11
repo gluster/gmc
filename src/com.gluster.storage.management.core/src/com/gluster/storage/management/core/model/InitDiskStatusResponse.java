@@ -22,7 +22,7 @@ package com.gluster.storage.management.core.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement
+@XmlRootElement(name="response")
 public class InitDiskStatusResponse {
 
 	public enum FORMAT_STATUS {
@@ -35,7 +35,7 @@ public class InitDiskStatusResponse {
 	private String message;
 	private float totalBlocks;
 	private float completedBlocks;
-	private FORMAT_STATUS status;
+	private FORMAT_STATUS formatStatus;
 
 	public InitDiskStatusResponse() {
 
@@ -74,16 +74,16 @@ public class InitDiskStatusResponse {
 		return completedBlocks;
 	}
 
-	public String getStatusStr() {
-		return FORMAT_STATUS_STR[getStatus().ordinal()];
+	public String getFormatStatusStr() {
+		return FORMAT_STATUS_STR[getFormatStatus().ordinal()];
 	}
 
-	public FORMAT_STATUS getStatus() {
-		return status;
+	public FORMAT_STATUS getFormatStatus() {
+		return formatStatus;
 	}
 
-	public void setStatus(FORMAT_STATUS status) {
-		this.status = status;
+	public void setFormatStatus(FORMAT_STATUS status) {
+		this.formatStatus = status;
 	}
 
 }
