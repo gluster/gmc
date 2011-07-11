@@ -27,6 +27,7 @@ import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.TasksClient;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Brick;
+import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 
@@ -34,6 +35,7 @@ public class MigrateBrickWizard extends Wizard {
 	private Volume volume;
 	private Brick brick;
 	private MigrateBrickPage1 page;
+	private Cluster cluster = GlusterDataModelManager.getInstance().getModel().getCluster();
 
 	public MigrateBrickWizard(Volume volume, Brick brick) {
 		setWindowTitle("Gluster Management Console - Migrate Brick [" + volume.getName() + "]");
@@ -63,7 +65,8 @@ public class MigrateBrickWizard extends Wizard {
 			TasksClient taskClient = new TasksClient();
 			TaskInfo taskInfo = taskClient.getTaskInfo(uri);
 			if (taskInfo != null && taskInfo instanceof TaskInfo) {
-				GlusterDataModelManager.getInstance().getModel().getCluster().addTaskInfo(taskInfo);
+				cluster.addTaskInfo(taskInfo);
+				GlusterDataModelManager.getInstance().refreshVolumeData(cluster.getVolume(taskInfo.getReference()));
 			}
 			MessageDialog.openInformation(getShell(), "Brick migration", "Brick migration started successfully");
 		} catch (Exception e) {

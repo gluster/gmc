@@ -109,6 +109,14 @@ public class GlusterDataModelManager {
 		return model;
 	}
 	
+	public void refreshVolumeData(Volume oldVolume) {
+		VolumesClient volumeClient = new VolumesClient();
+		Volume newVolume = volumeClient.getVolume(oldVolume.getName());
+		if(!oldVolume.equals(newVolume)) {
+			volumeChanged(oldVolume, newVolume);
+		}
+	}
+	
 	public GlusterDataModel fetchModel(IProgressMonitor monitor) {
 		synchronized (syncInProgress) {
 			if(syncInProgress) {
@@ -310,6 +318,8 @@ public class GlusterDataModelManager {
 			volumeChanged(entry.getKey(), entry.getValue());
 		}
 	}
+	
+	
 	
 	private void volumeChanged(Volume oldVolume, Volume newVolume) {
 		oldVolume.copyFrom(newVolume);
