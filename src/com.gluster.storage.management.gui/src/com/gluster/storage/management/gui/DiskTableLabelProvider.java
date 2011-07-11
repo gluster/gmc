@@ -45,9 +45,9 @@ public class DiskTableLabelProvider extends TableLabelProviderAdapter {
 
 		if (columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
 			DEVICE_STATUS status = disk.getStatus();
+			// TODO: Use different images for different statuses
 			switch (status) {
 			case INITIALIZED:
-			case READY:
 				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
 			case IO_ERROR:
 				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
@@ -61,14 +61,6 @@ public class DiskTableLabelProvider extends TableLabelProviderAdapter {
 		}
 
 		return null;
-	}
-
-	private String getDiskSpaceInUse(Disk disk) {
-		if (disk.isReady()) {
-			return NumberUtil.formatNumber(disk.getSpaceInUse());
-		} else {
-			return "NA";
-		}
 	}
 
 	private String getDiskFreeSpace(Disk disk) {
@@ -96,11 +88,8 @@ public class DiskTableLabelProvider extends TableLabelProviderAdapter {
 		Disk disk = (Disk) element;
 		return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? disk.getServerName()
 				: columnIndex == DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? disk.getName()
-						: columnIndex == DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDiskFreeSpace(disk)
-								: columnIndex == DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? getTotalDiskSpace(disk)
-										// : columnIndex == DISK_TABLE_COLUMN_INDICES.SPACE_IN_USE.ordinal() ?
-										// getDiskSpaceInUse(disk)
-										: columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? glusterDataModelManager
-												.getDiskStatus(disk) : "Invalid");
+				: columnIndex == DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDiskFreeSpace(disk)
+				: columnIndex == DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? getTotalDiskSpace(disk)
+				: columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? glusterDataModelManager.getDiskStatus(disk) : "Invalid");
 	}
 }

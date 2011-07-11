@@ -46,10 +46,10 @@ public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 			if (status == null) {
 				return  null;
 			}
-			
+
+			// TODO: Use different images for all four statuses
 			switch (status) {
 			case INITIALIZED:
-			case READY:
 				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
 			case IO_ERROR:
 				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);

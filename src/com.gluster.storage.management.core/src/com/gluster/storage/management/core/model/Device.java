@@ -19,7 +19,6 @@
 package com.gluster.storage.management.core.model;
 
 import java.io.File;
-import java.nio.channels.GatheringByteChannel;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -33,14 +32,14 @@ import com.gluster.storage.management.core.utils.StringUtil;
 public class Device extends Entity {
 	public enum DEVICE_STATUS {
 		//TODO: Status "READY" to be removed after python script is changed accordingly
-		READY, INITIALIZED, UNINITIALIZED, INITIALIZING, IO_ERROR, UNKNOWN
+		INITIALIZED, UNINITIALIZED, INITIALIZING, IO_ERROR, UNKNOWN
 	};
 	
 	public enum DEVICE_TYPE {
 		DATA, BOOT, SWAP, UNKNOWN
 	};
 
-	private static final String[] DEVICE_STATUS_STR = { "Ready", "Initialized", "Uninitialized", "Initializing", "I/O Error", "Unknown" };
+	private static final String[] DEVICE_STATUS_STR = { "Initialized", "Uninitialized", "Initializing", "I/O Error", "Unknown" };
 	private static final String[] DEVICE_TYPE_STR = { "Data", "Boot", "Swap", "Unknown" };
 
 	// type = data, boot, other
@@ -90,9 +89,7 @@ public class Device extends Entity {
 	}
 	
 	public boolean isReady() {
-		// TODO: Check if status is INITIALIZED AND type = DATA
-		// return (getStatus() == DEVICE_STATUS.INITIALIZED && getType() == DEVICE_TYPE.DATA);
-		return (getStatus() == DEVICE_STATUS.READY);
+		return (getStatus() == DEVICE_STATUS.INITIALIZED && getType() == DEVICE_TYPE.DATA);
 	}
 	
 	public DEVICE_STATUS getStatus() {
@@ -101,7 +98,8 @@ public class Device extends Entity {
 
 	public String getStatusStr() {
 		if (getStatus() == null) {
-			return DEVICE_STATUS_STR[DEVICE_STATUS.UNKNOWN.ordinal()]; // Return as Unknown
+			// Return as Unknown
+			return DEVICE_STATUS_STR[DEVICE_STATUS.UNKNOWN.ordinal()]; 
 		}
 
 		if(isReady()) {
@@ -187,12 +185,17 @@ public class Device extends Entity {
 			return false;
 		}
 		
-		Device disk = (Device)obj;
+		Device device = (Device)obj;
 		
-		if (getName().equals(disk.getName()) && getServerName().equals(disk.getServerName())
-				&& getMountPoint().equals(disk.getMountPoint()) && getStatus() == disk.getStatus()
-				&& getSpace() == disk.getSpace() && getSpaceInUse() == disk.getSpaceInUse()
-				&& getFsType().equals(disk.getFsType()) && getFsVersion().equals(disk.getFsVersion())) {
+		String mountPoint = (getMountPoint() == null ? "" : getMountPoint());
+		String fsType = (getFsType() == null ? "" : getFsType());
+		String fsVersion = (getFsVersion() == null ? "" : getFsVersion()); 
+		
+		if (getName().equals(device.getName()) && getServerName().equals(device.getServerName())
+				&& mountPoint.equals(device.getMountPoint()) && getStatus() == device.getStatus()
+				&& getSpace() == device.getSpace() && getSpaceInUse() == device.getSpaceInUse()
+				&& fsType.equals(device.getFsType()) && fsVersion.equals(device.getFsVersion())
+				&& getType() == device.getType()) {
 			return true;
 		}
 		

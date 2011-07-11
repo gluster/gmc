@@ -45,9 +45,9 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 
 		if (columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
 			DEVICE_STATUS status = disk.getStatus();
+			// TODO: Use different images for all four statuses
 			switch (status) {
 			case INITIALIZED:
-			case READY:
 				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
 			case IO_ERROR:
 				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
