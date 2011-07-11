@@ -192,6 +192,9 @@ def getDiskInfo(diskDeviceList=None):
     if Utils.isString(diskDeviceList):
         diskDeviceList = [diskDeviceList]
 
+    if Utils.runCommand("/usr/bin/lshal") != 0:
+        Utils.log("failed running /usr/bin/lshal")
+
     dbusSystemBus = dbus.SystemBus()
     halObj = dbusSystemBus.get_object("org.freedesktop.Hal",
                                       "/org/freedesktop/Hal/Manager")
@@ -218,20 +221,25 @@ def getDiskInfo(diskDeviceList=None):
             disk["Size"] = long(halDevice.GetProperty('storage.size')) / 1024**2
         disk["Interface"] = str(halDevice.GetProperty('storage.bus'))
         disk["DriveType"] = str(halDevice.GetProperty('storage.drive_type'))
-        disk["Status"] = "UNINITIALIZED"
-        if isDiskInFormatting(disk["Device"]):
-            disk["Status"] = "INITIALIZING"
         disk["Uuid"] = None
         disk["Init"] = False
-        disk["Type"] = "UNKNOWN"
+        disk["Type"] = None
         disk["FsType"] = None
         disk["FsVersion"] = None
         disk["MountPoint"] = None
         disk["ReadOnlyAccess"] = None
         disk["SpaceInUse"] = None
-        
+
         partitionList = []
         partitionUdiList = halManager.FindDeviceStringMatch("info.parent", udi)
+        disk["Status"] = "UNINITIALIZED"
+        if isDiskInFormatting(disk["Device"]):
+            disk["Status"] = "INITIALIZING"
+        else:
+            if partitionUdiList:
+                disk["Status"] = "INITIALIZED"
+            else:
+                disk["Status"] = "UNINITIALIZED"
         diskSpaceInUse = 0
         for partitionUdi in partitionUdiList:
             used = 0
@@ -263,7 +271,11 @@ def getDiskInfo(diskDeviceList=None):
                         disk["Type"] = "DATA"
                     else:
                         disk["Type"] = "BOOT"
+                else:
+                    disk["Type"] = "UNKNOWN"
                 disk["FsType"] = str(partitionHalDevice.GetProperty('volume.fstype'))
+                if disk["FsType"] and "UNINITIALIZED" == disk["Status"]:
+                    disk["Status"] = "INITIALIZED"
                 disk["FsVersion"] = str(partitionHalDevice.GetProperty('volume.fsversion'))
                 disk["MountPoint"] = str(partitionHalDevice.GetProperty('volume.mount_point'))
                 disk["ReadOnlyAccess"] = str(partitionHalDevice.GetProperty('volume.is_mounted_read_only'))
@@ -274,10 +286,7 @@ def getDiskInfo(diskDeviceList=None):
             
             partition = {}
             partition["Init"] = False
-            partition["Type"] = "UNKNOWN"
-            partition["Status"] = "UNINITIALIZED"
-            if isDiskInFormatting(partitionDevice):
-                partition["Status"] = "INITIALIZING"
+            partition["Type"] = "UNKNOWN"            
             partition["Device"] = partitionDevice
             partition["Uuid"] = str(partitionHalDevice.GetProperty('volume.uuid'))
             partition["Size"] = long(partitionHalDevice.GetProperty('volume.size')) / 1024**2
@@ -286,10 +295,19 @@ def getDiskInfo(diskDeviceList=None):
             partition["Label"] = str(partitionHalDevice.GetProperty('volume.label'))
             partition["MountPoint"] = str(partitionHalDevice.GetProperty('volume.mount_point'))
             partition["Size"] = long(partitionHalDevice.GetProperty('volume.size')) / 1024**2
+
+            if isDiskInFormatting(partitionDevice):
+                partition["Status"] = "INITIALIZING"
+            else:
+                if partition["FsType"]:
+                    partition["Status"] = "INITIALIZED"
+                else:
+                    partition["Status"] = "UNINITIALIZED"
+
             partition["SpaceInUse"] = used
             if partition["MountPoint"] or isDataDiskPartitionFormatted(partitionDevice):
                 partition["Init"] = True
-                partition["Status"] = "INITIALIZED"
+                #partition["Status"] = "INITIALIZED"
             if partition["MountPoint"]:
                 if "/export/" in partition["MountPoint"]:
                     partition["Type"] = "DATA"
@@ -492,12 +510,15 @@ def getDiskDom(diskDeviceList=None, bootPartition=None, skipDisk=None):
         diskTag.appendChild(diskDom.createTag("description", disk["Description"]))
         diskTag.appendChild(diskDom.createTag("uuid", disk["Uuid"]))
         diskTag.appendChild(diskDom.createTag("status", disk["Status"]))
-        #diskTag.appendChild(diskDom.createTag("init", str(disk["Init"]).lower()))
-        diskTag.appendChild(diskDom.createTag("type", disk["Type"]))
         diskTag.appendChild(diskDom.createTag("interface", disk["Interface"]))
-        diskTag.appendChild(diskDom.createTag("fsType", disk["FsType"]))
-        diskTag.appendChild(diskDom.createTag("fsVersion", disk["FsVersion"]))
-        diskTag.appendChild(diskDom.createTag("mountPoint", disk["MountPoint"]))
+
+        if not disk["Partitions"]:
+            diskTag.appendChild(diskDom.createTag("type", disk["Type"]))
+            #diskTag.appendChild(diskDom.createTag("init", str(disk["Init"]).lower()))
+            diskTag.appendChild(diskDom.createTag("fsType", disk["FsType"]))
+            diskTag.appendChild(diskDom.createTag("fsVersion", disk["FsVersion"]))
+            diskTag.appendChild(diskDom.createTag("mountPoint", disk["MountPoint"]))
+
         diskTag.appendChild(diskDom.createTag("size", disk["Size"]))
         diskTag.appendChild(diskDom.createTag("spaceInUse", disk["SpaceInUse"]))
         partitionsTag = diskDom.createTag("partitions", None)
