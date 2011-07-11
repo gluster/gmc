@@ -78,7 +78,7 @@ public class DiscoveredServersClient extends AbstractClient {
 		UsersClient usersClient = new UsersClient();
 		try {
 			usersClient.authenticate("gluster", "gluster");
-			DiscoveredServersClient serverResource = new DiscoveredServersClient(usersClient.getSecurityToken());
+			DiscoveredServersClient serverResource = new DiscoveredServersClient(usersClient.getSecurityToken(), "new");
 			List<String> discoveredServerNames = serverResource.getDiscoveredServerNames();
 			System.out.println(discoveredServerNames);
 			List<Server> discoveredServers = serverResource.getDiscoveredServerDetails();

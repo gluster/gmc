@@ -354,6 +354,7 @@ public class GlusterServersResource extends AbstractServersResource {
 				return errorResponse(e.getMessage());
 			}
 		}
+		clusterService.unmapServerFromCluster(clusterName, serverName);
 
 		return noContentResponse();
 	}
@@ -380,8 +381,6 @@ public class GlusterServersResource extends AbstractServersResource {
 			// since the cached server has been removed from the cluster, remove it from the cache
 			clusterService.removeOnlineServer(clusterName);
 		}
-
-		clusterService.unmapServerFromCluster(clusterName, serverName);
 
 		// since the server is removed from the cluster, it is now available to be added to other clusters.
 		// Hence add it back to the discovered servers list.
