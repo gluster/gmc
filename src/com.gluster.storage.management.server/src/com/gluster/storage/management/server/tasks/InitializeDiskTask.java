@@ -104,11 +104,7 @@ public class InitializeDiskTask extends Task {
 		return TASK_TYPE.DISK_FORMAT;
 	}
 
-	@Override
-	public TaskInfo getTaskInfo() {
-		return getTaskInfo();
-	}
-
+	
 	@Override
 	public void start() {
 		try {

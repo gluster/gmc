@@ -47,6 +47,7 @@ import org.springframework.stereotype.Component;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.exceptions.GlusterValidationException;
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.response.TaskInfoListResponse;
 import com.gluster.storage.management.server.tasks.Task;
@@ -120,6 +121,11 @@ public class TasksResource extends AbstractResource {
 
 	private Task checkTaskStatus(String taskId) {
 		Task task = getTask(taskId);
+		// No status check required if the task already complete or failure
+		if (task.getTaskInfo().getStatus() == Status.STATUS_FAILURE
+				|| task.getTaskInfo().getStatus() == Status.STATUS_SUCCESS) {
+			return task;
+		}
 		task.getTaskInfo().setStatus(task.checkStatus());
 		return task;
 	}
