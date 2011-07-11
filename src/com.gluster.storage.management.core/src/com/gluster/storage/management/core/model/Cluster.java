@@ -72,15 +72,16 @@ public class Cluster extends Entity {
 		children.add(new EntityGroup<Server>("Discovered Servers", Server.class, this, autoDiscoveredServers));
 	}
 	
-	public EntityGroup<Server> getAutoDiscoveredServersEntityGroup() {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public <T extends Entity> EntityGroup<T> getEntityGroup(Class<T> type) {
 		for(Entity entity : getChildren()) {
-			if(entity instanceof EntityGroup && ((EntityGroup)entity).getEntityType() == Server.class) {
-				return (EntityGroup<Server>)entity;
+			if(entity instanceof EntityGroup && ((EntityGroup)entity).getEntityType() == type) {
+				return (EntityGroup<T>)entity;
 			}
 		}
 		return null;
 	}
-
+	
 	public List<Volume> getVolumes() {
 		return volumes;
 	}

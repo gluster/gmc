@@ -187,14 +187,18 @@ public class Device extends Entity {
 		
 		Device device = (Device)obj;
 		
-		String mountPoint = (getMountPoint() == null ? "" : getMountPoint());
-		String fsType = (getFsType() == null ? "" : getFsType());
-		String fsVersion = (getFsVersion() == null ? "" : getFsVersion()); 
+		String oldMountPoint = (getMountPoint() == null ? "" : getMountPoint());
+		String oldFsType = (getFsType() == null ? "" : getFsType());
+		String oldFsVersion = (getFsVersion() == null ? "" : getFsVersion()); 
 		
+		String newMountPoint = (device.getMountPoint() == null ? "" : getMountPoint());
+		String newFsType = (device.getFsType() == null ? "" : getFsType());
+		String newFsVersion = (device.getFsVersion() == null ? "" : getFsVersion()); 
+
 		if (getName().equals(device.getName()) && getServerName().equals(device.getServerName())
-				&& mountPoint.equals(device.getMountPoint()) && getStatus() == device.getStatus()
+				&& oldMountPoint.equals(newMountPoint) && getStatus() == device.getStatus()
 				&& getSpace() == device.getSpace() && getSpaceInUse() == device.getSpaceInUse()
-				&& fsType.equals(device.getFsType()) && fsVersion.equals(device.getFsVersion())
+				&& oldFsType.equals(newFsType) && oldFsVersion.equals(newFsVersion)
 				&& getType() == device.getType()) {
 			return true;
 		}

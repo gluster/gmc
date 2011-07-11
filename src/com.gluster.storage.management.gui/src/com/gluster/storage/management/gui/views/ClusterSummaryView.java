@@ -231,7 +231,7 @@ public class ClusterSummaryView extends ViewPart {
 			public void linkActivated(HyperlinkEvent e) {
 				// Open the "discovered servers" view by selecting the corresponding entity in the navigation view
 				EntityGroup<Server> autoDiscoveredServersEntityGroup = GlusterDataModelManager.getInstance().getModel()
-						.getCluster().getAutoDiscoveredServersEntityGroup();
+						.getCluster().getEntityGroup(Server.class);
 
 				NavigationView navigationView = (NavigationView) guiHelper.getView(NavigationView.ID);
 				navigationView.selectEntity(autoDiscoveredServersEntityGroup);

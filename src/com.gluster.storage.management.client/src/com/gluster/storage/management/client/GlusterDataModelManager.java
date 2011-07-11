@@ -550,7 +550,7 @@ public class GlusterDataModelManager {
 		for(Server server : cluster.getAutoDiscoveredServers()) {
 			if(server.getName().toUpperCase().equals(serverName.toUpperCase())) {
 				removeDiscoveredServer(server);
-				break;
+				return;
 			}
 		}
 	}
