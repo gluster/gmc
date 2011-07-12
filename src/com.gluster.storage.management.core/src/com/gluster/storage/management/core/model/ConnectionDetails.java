@@ -18,8 +18,11 @@
  *******************************************************************************/
 package com.gluster.storage.management.core.model;
 
+/**
+ * Class used for binding UI fields on login / password-change dialog boxes
+ */
 public class ConnectionDetails {
-	private String userId, password;
+	private String userId, password, newPassword, confirmNewPassword;
 
 	public ConnectionDetails() {
 		
@@ -28,6 +31,7 @@ public class ConnectionDetails {
 	public ConnectionDetails(String userId, String password) {
 		this.userId = userId;
 		this.password = password;
+		this.confirmNewPassword = "";
 	}
 
 	public String getUserId() {
@@ -40,5 +44,21 @@ public class ConnectionDetails {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public void setNewPassword(String newPassword) {
+		this.newPassword = newPassword;
+	}
+
+	public String getNewPassword() {
+		return newPassword;
+	}
+
+	public void setConfirmNewPassword(String confirmNewPassword) {
+		this.confirmNewPassword = confirmNewPassword;
+	}
+
+	public String getConfirmNewPassword() {
+		return confirmNewPassword;
 	}
 }

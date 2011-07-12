@@ -250,7 +250,7 @@ public class LoginDialog extends Dialog {
 
 		try {
 			createOrRegisterCluster(clustersClient, clusterName, serverName, mode);
-			GlusterDataModelManager.getInstance().initializeModel(usersClient.getSecurityToken(), clusterName);
+			GlusterDataModelManager.getInstance().initializeModel(clusterName);
 			super.okPressed();
 		} catch (Exception e) {
 			setReturnCode(RETURN_CODE_ERROR);

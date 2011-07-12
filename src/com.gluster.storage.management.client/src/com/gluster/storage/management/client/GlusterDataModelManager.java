@@ -86,8 +86,7 @@ public class GlusterDataModelManager {
 		return instance;
 	}
 
-	public void initializeModel(String securityToken, String clusterName) {
-		setSecurityToken(securityToken);
+	public void initializeModel(String clusterName) {
 		setClusterName(clusterName);
 
 		model = fetchData(clusterName);
