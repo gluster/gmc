@@ -18,6 +18,7 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.utils;
 
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,23 +29,43 @@ import org.eclipse.birt.chart.exception.ChartException;
 import org.eclipse.birt.chart.factory.GeneratedChartState;
 import org.eclipse.birt.chart.factory.Generator;
 import org.eclipse.birt.chart.model.Chart;
+import org.eclipse.birt.chart.model.ChartWithAxes;
 import org.eclipse.birt.chart.model.ChartWithoutAxes;
+import org.eclipse.birt.chart.model.attribute.Anchor;
+import org.eclipse.birt.chart.model.attribute.AxisType;
 import org.eclipse.birt.chart.model.attribute.Bounds;
 import org.eclipse.birt.chart.model.attribute.ChartDimension;
+import org.eclipse.birt.chart.model.attribute.FontDefinition;
+import org.eclipse.birt.chart.model.attribute.LineAttributes;
+import org.eclipse.birt.chart.model.attribute.LineStyle;
+import org.eclipse.birt.chart.model.attribute.Marker;
+import org.eclipse.birt.chart.model.attribute.TickStyle;
 import org.eclipse.birt.chart.model.attribute.impl.BoundsImpl;
 import org.eclipse.birt.chart.model.attribute.impl.ColorDefinitionImpl;
+import org.eclipse.birt.chart.model.attribute.impl.FontDefinitionImpl;
+import org.eclipse.birt.chart.model.attribute.impl.JavaDateFormatSpecifierImpl;
+import org.eclipse.birt.chart.model.attribute.impl.LineAttributesImpl;
+import org.eclipse.birt.chart.model.attribute.impl.TextAlignmentImpl;
+import org.eclipse.birt.chart.model.component.Axis;
 import org.eclipse.birt.chart.model.component.Series;
 import org.eclipse.birt.chart.model.component.impl.SeriesImpl;
+import org.eclipse.birt.chart.model.data.DateTimeDataSet;
 import org.eclipse.birt.chart.model.data.NumberDataSet;
 import org.eclipse.birt.chart.model.data.SeriesDefinition;
 import org.eclipse.birt.chart.model.data.TextDataSet;
+import org.eclipse.birt.chart.model.data.impl.DateTimeDataSetImpl;
 import org.eclipse.birt.chart.model.data.impl.NumberDataSetImpl;
 import org.eclipse.birt.chart.model.data.impl.SeriesDefinitionImpl;
 import org.eclipse.birt.chart.model.data.impl.TextDataSetImpl;
+import org.eclipse.birt.chart.model.impl.ChartWithAxesImpl;
 import org.eclipse.birt.chart.model.impl.ChartWithoutAxesImpl;
 import org.eclipse.birt.chart.model.layout.Legend;
 import org.eclipse.birt.chart.model.layout.Plot;
+import org.eclipse.birt.chart.model.type.AreaSeries;
+import org.eclipse.birt.chart.model.type.LineSeries;
 import org.eclipse.birt.chart.model.type.PieSeries;
+import org.eclipse.birt.chart.model.type.impl.AreaSeriesImpl;
+import org.eclipse.birt.chart.model.type.impl.LineSeriesImpl;
 import org.eclipse.birt.chart.model.type.impl.PieSeriesImpl;
 import org.eclipse.birt.core.framework.PlatformConfig;
 import org.eclipse.core.runtime.Platform;
@@ -57,20 +78,23 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 
+import com.ibm.icu.util.Calendar;
 
 /**
  * 
  */
-public final class PieChartViewerComposite extends Composite implements
-		PaintListener, IUpdateNotifier {
+public final class ChartViewerComposite extends Composite implements PaintListener, IUpdateNotifier {
+
+	public enum CHART_TYPE {
+		PIE, LINE
+	};
 
 	private IDeviceRenderer deviceReader = null;
 	private Chart chart = null;
 	private GeneratedChartState generatedChartState = null;
 	private boolean needsGeneration = true;
 
-	private static Logger logger = Logger
-			.getLogger(PieChartViewerComposite.class.getName());
+	private static Logger logger = Logger.getLogger(ChartViewerComposite.class.getName());
 
 	/**
 	 * @param parent
@@ -83,17 +107,41 @@ public final class PieChartViewerComposite extends Composite implements
 	 *            Values of each category in the pie chart Constructs a pie
 	 *            chart viewer composite for given categories and values
 	 */
-	public PieChartViewerComposite(Composite parent, int style, String[] categories,
-			Double[] values) {
+	public ChartViewerComposite(Composite parent, int style, String[] categories, Double[] values) {
 		super(parent, style);
+		init();
+
+		chart = createPieChart(categories, values);
+		addPaintListener(this);
+	}
+
+	/**
+	 * @param parent
+	 *            Parent composite of this pie chart viewer composite
+	 * @param style
+	 *            SWT style to be used
+	 * @param categories
+	 *            Categories of the pie chart
+	 * @param values
+	 *            Values of each category in the pie chart Constructs a pie
+	 *            chart viewer composite for given categories and values
+	 */
+	public ChartViewerComposite(Composite parent, int style, Calendar[] categories, Double[] values) {
+		super(parent, style);
+		init();
+
+		chart = createLineChart(categories, values);
+		addPaintListener(this);
+	}
+
+	public void init() {
 		try {
 			PlatformConfig config = new PlatformConfig();
 			config.setBIRTHome(Platform.getInstallLocation().getURL().getPath());
 			// Get the connection with SWT device to render the graphics.
 			deviceReader = ChartEngine.instance(config).getRenderer("dv.SWT");//$NON-NLS-1$
 		} catch (ChartException ex) {
-			logger.log(Level.SEVERE, "Could not create Chart Renderer for SWT",
-					ex);
+			logger.log(Level.SEVERE, "Could not create Chart Renderer for SWT", ex);
 		}
 
 		addControlListener(new ControlListener() {
@@ -106,9 +154,97 @@ public final class PieChartViewerComposite extends Composite implements
 				needsGeneration = true;
 			}
 		});
+	}
 
-		chart = createPieChart(categories, values);
-		addPaintListener(this);
+	private Chart createLineChart(Calendar[] timestamps, Double[] values) {
+		return createAreaChart(timestamps, new Double[][] {values});
+	}
+
+	/**
+	 * Creates a line chart model as a reference implementation
+	 * 
+	 * @return An instance of the simulated runtime chart model (containing
+	 *         filled datasets)
+	 */
+	public static final Chart createAreaChart(Calendar[] timestamps, Double[][] values) {
+		ChartWithAxes cwaLine = ChartWithAxesImpl.create();
+
+		// Plot
+		cwaLine.getBlock().setBackground(ColorDefinitionImpl.TRANSPARENT());
+		Plot p = cwaLine.getPlot();
+		p.getClientArea().setBackground(ColorDefinitionImpl.TRANSPARENT());
+		//p.getClientArea().setBackground(ColorDefinitionImpl.TRANSPARENT());
+		
+
+		// Title
+		//cwaLine.getTitle().getLabel().getCaption().setValue("Line Chart");//$NON-NLS-1$
+		cwaLine.getTitle().setVisible(false);
+
+		// Legend
+		cwaLine.getLegend().setVisible(false);
+		Legend lg = cwaLine.getLegend();
+		LineAttributes lia = lg.getOutline( );
+		lg.getText( ).getFont( ).setSize( 16 );
+		lia.setStyle( LineStyle.SOLID_LITERAL );
+		lg.getInsets( ).set( 10, 5, 0, 0 );
+		lg.getOutline( ).setVisible( false );
+		lg.setAnchor( Anchor.NORTH_LITERAL );
+
+		// X-Axis
+		Axis xAxisPrimary = cwaLine.getPrimaryBaseAxes()[0];
+		xAxisPrimary.setType(AxisType.TEXT_LITERAL);
+		xAxisPrimary.getMajorGrid().setTickStyle(TickStyle.BELOW_LITERAL);
+		xAxisPrimary.getMajorGrid().setLineAttributes(LineAttributesImpl.create(ColorDefinitionImpl.GREY(), LineStyle.DOTTED_LITERAL, 1));
+		xAxisPrimary.getTitle().setVisible(false);
+		xAxisPrimary.setInterval(4);
+		xAxisPrimary.getLabel().getCaption().setFont(createChartFont());
+		xAxisPrimary.setFormatSpecifier( JavaDateFormatSpecifierImpl.create( "HH:mm" ) );
+
+		// Y-Axis
+		Axis yAxisPrimary = cwaLine.getPrimaryOrthogonalAxis(xAxisPrimary);
+		yAxisPrimary.getMajorGrid().setTickStyle(TickStyle.LEFT_LITERAL);
+		yAxisPrimary.getMajorGrid().setLineAttributes(LineAttributesImpl.create(ColorDefinitionImpl.GREY(), LineStyle.SOLID_LITERAL, 1));
+		yAxisPrimary.setInterval(2);
+		yAxisPrimary.getLabel().setVisible(true);
+		yAxisPrimary.getLabel().getCaption().setFont(createChartFont());
+		
+		// Data Set
+		DateTimeDataSet categoryValues = DateTimeDataSetImpl.create(timestamps);
+
+		// X-Series
+		Series seCategory = SeriesImpl.create();
+		seCategory.setDataSet(categoryValues);
+		SeriesDefinition sdX = SeriesDefinitionImpl.create();
+
+		xAxisPrimary.getSeriesDefinitions().add(sdX);
+		sdX.getSeries().add(seCategory);
+
+		SeriesDefinition sdY = SeriesDefinitionImpl.create();
+		sdY.getSeriesPalette().shift(-3);
+		yAxisPrimary.getSeriesDefinitions().add(sdY);
+
+		for (int i = 0; i < values.length; i++) {
+			// Y-Sereis
+			AreaSeries ls = (AreaSeries) AreaSeriesImpl.create();
+			// LineSeries ls = (LineSeries) LineSeriesImpl.create();
+			
+			NumberDataSet orthoValues = NumberDataSetImpl.create(values[i]);
+			ls.setDataSet(orthoValues);
+			ls.getLineAttributes().setColor(ColorDefinitionImpl.create(50, 50, 255));
+			for (int j = 0; j < ls.getMarkers().size(); j++) {
+				// ( (Marker) ls.getMarkers( ).get( j ) ).setType( MarkerType.CIRCLE_LITERAL);
+				((Marker) ls.getMarkers().get(j)).setVisible(false);
+			}
+			ls.setTranslucent(true);
+			// don't show values on each point on the line chart
+			ls.getLabel().setVisible(false);
+			sdY.getSeries().add(ls);
+		}
+		return cwaLine;
+	}
+
+	public static FontDefinition createChartFont() {
+		return FontDefinitionImpl.create("Serif", 8, false, false, false, false, false, 0d, TextAlignmentImpl.create());
 	}
 
 	/**
@@ -118,8 +254,7 @@ public final class PieChartViewerComposite extends Composite implements
 	 *            Values of each category in the pie chart
 	 * @return The chart object created for given categories and values
 	 */
-	public static final Chart createPieChart(String[] categories,
-			Double[] values) {
+	public static final Chart createPieChart(String[] categories, Double[] values) {
 		ChartWithoutAxes pieChart = ChartWithoutAxesImpl.create();
 
 		// Plot
@@ -127,7 +262,7 @@ public final class PieChartViewerComposite extends Composite implements
 		pieChart.setDimension(ChartDimension.TWO_DIMENSIONAL_WITH_DEPTH_LITERAL);
 		pieChart.getBlock().setBackground(ColorDefinitionImpl.WHITE());
 		Plot p = pieChart.getPlot();
-		
+
 		p.getClientArea().setBackground(null);
 		p.getClientArea().getOutline().setVisible(false);
 		p.getOutline().setVisible(false);
@@ -196,8 +331,7 @@ public final class PieChartViewerComposite extends Composite implements
 		if (needsGeneration) {
 			needsGeneration = false;
 			try {
-				generatedChartState = gr.build(deviceReader.getDisplayServer(),
-						chart, bo, null, null, null);
+				generatedChartState = gr.build(deviceReader.getDisplayServer(), chart, bo, null, null, null);
 			} catch (ChartException ce) {
 				ce.printStackTrace();
 			}
@@ -208,8 +342,7 @@ public final class PieChartViewerComposite extends Composite implements
 			GC gc = e.gc;
 			gc.drawImage(imgChart, d.x, d.y);
 		} catch (ChartException gex) {
-			logger.log(Level.SEVERE, "Exception while rendering pie chart ["
-					+ gex.getMessage() + "]", gex);
+			logger.log(Level.SEVERE, "Exception while rendering pie chart [" + gex.getMessage() + "]", gex);
 		}
 	}
 

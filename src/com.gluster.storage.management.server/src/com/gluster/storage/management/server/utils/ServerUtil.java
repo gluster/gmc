@@ -22,6 +22,8 @@ package com.gluster.storage.management.server.utils;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.ServletContext;
@@ -29,12 +31,15 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
+import com.gluster.storage.management.core.model.ServerStatsRow;
+import com.gluster.storage.management.core.model.ServerStats;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.response.GenericResponse;
@@ -48,6 +53,8 @@ public class ServerUtil {
 
 	@Autowired
 	private SshUtil sshUtil;
+	
+	private static final Logger logger = Logger.getLogger(ServerUtil.class);
 
 	private static final String SCRIPT_DIR = "scripts";
 	private static final String SCRIPT_COMMAND = "python";
@@ -215,5 +222,104 @@ public class ServerUtil {
 	 */
 	public Status getDiskForDir(String serverName, String brickDir) {
 		return (Status) executeOnServer(true, serverName, REMOTE_SCRIPT_GET_DISK_FOR_DIR + " " + brickDir, Status.class);
+	}
+
+	public ServerStats fetchCPUUsageData(String serverName) {
+		String cpuUsageData = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?> <xport> <meta> <start>1310468100</start> <step>300</step> <end>1310471700</end> <rows>13</rows> <columns>3</columns> <legend> <entry>user</entry> <entry>system</entry> <entry>total</entry> </legend> </meta> <data> <row><t>1310468100</t><v>NaN</v><v>4.3747778209e-01</v><v>6.6128073384e-01</v></row> <row><t>1310468400</t><v>2.3387347338e-01</v><v>4.4642717442e-01</v><v>6.8030064780e-01</v></row> <row><t>1310468700</t><v>5.5043873220e+00</v><v>6.2462376636e+00</v><v>1.1750624986e+01</v></row> <row><t>1310469000</t><v>2.4350593653e+01</v><v>2.6214585217e+01</v><v>5.0565178869e+01</v></row> <row><t>1310469300</t><v>4.0786489953e+01</v><v>4.6784713828e+01</v><v>8.7571203781e+01</v></row> <row><t>1310469600</t><v>4.1459955508e+01</v><v>5.2546309044e+01</v><v>9.4006264551e+01</v></row> <row><t>1310469900</t><v>4.2312286165e+01</v><v>5.2390588332e+01</v><v>9.4702874497e+01</v></row> <row><t>1310470200</t><v>4.2603794982e+01</v><v>5.1598861493e+01</v><v>9.4202656475e+01</v></row> <row><t>1310470500</t><v>3.8238751290e+01</v><v>4.5312089966e+01</v><v>8.3550841256e+01</v></row> <row><t>1310470800</t><v>1.7949961224e+01</v><v>2.1282058418e+01</v><v>3.9232019642e+01</v></row> <row><t>1310471100</t><v>1.2330371421e-01</v><v>4.6347832868e-01</v><v>5.8678204289e-01</v></row> <row><t>1310471400</t><v>1.6313260492e-01</v><v>5.4088119561e-01</v><v>7.0401380052e-01</v></row> <row><t>1310471700</t><v>NaN</v><v>NaN</v><v>NaN</v></row> </data> </xport>";
+		Object output = unmarshal(ServerStats.class, cpuUsageData, false);
+		if(output instanceof Status) {
+			throw new GlusterRuntimeException(((Status)output).toString());
+		}
+		return (ServerStats) output;
+	}
+	
+	private ServerStats getFirstOnlineServerCPUStats(List<String> serverNames, boolean removeServerOnError, boolean removeOnlineServer) {
+		for(String serverName : serverNames) {
+			try {
+				ServerStats stats = fetchCPUUsageData(serverName);
+				if(removeOnlineServer) {
+					serverNames.remove(serverName);
+				}
+			} catch(Exception e) {
+				// server might be offline - continue with next one
+				logger.warn("Couldn't fetch CPU stats from server [" + serverName + "]!", e);
+				if(removeServerOnError) {
+					serverNames.remove(serverName);
+				}
+				continue;
+			}
+		}
+		throw new GlusterRuntimeException("All servers offline!");
+	}
+
+	public Object fetchAggregatedCPUStats(List<String> serverNames) {
+		if(serverNames == null || serverNames.size() == 0) {
+			throw new GlusterRuntimeException("No server names passed to fetchAggregaredCPUUsageData!");
+		}
+		
+		ServerStats firstServerStats = getFirstOnlineServerCPUStats(serverNames, true, true);
+
+		ServerStats aggregatedStats = new ServerStats(firstServerStats);
+		aggregateCPUStats(serverNames, aggregatedStats);
+		return aggregatedStats;
+	}
+
+	private void aggregateCPUStats(List<String> serverNames, ServerStats aggregatedStats) {
+		int[][] dataCount = new int[aggregatedStats.getMetadata().getRowCount()][aggregatedStats.getMetadata()
+				.getLegend().size()];
+		
+		for (String serverName : serverNames) {
+			ServerStats serverStats;
+			try {
+				serverStats = fetchCPUUsageData(serverName);
+			} catch(Exception e) {
+				// server might be offline - continue with next one
+				logger.warn("Couldn't fetch CPU stats from server [" + serverName + "]!", e);
+				continue;
+			}
+			List<ServerStatsRow> serverStatsRows = addServerStats(serverStats, aggregatedStats, dataCount);
+		}
+		
+		List<ServerStatsRow> rows = aggregatedStats.getRows();
+		for(int rowNum = 0; rowNum < rows.size(); rowNum++) {
+			List<Double> data = rows.get(rowNum).getUsageData();
+			for(int columnNum = 0; columnNum < data.size(); columnNum++) {
+				data.set(columnNum, data.get(columnNum) / dataCount[rowNum][columnNum]);
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * @param statsToBeAdded
+	 * @param targetStats
+	 * @param dataCount Each element of this matrix will be incremented for every valid element added
+	 * @return
+	 */
+	private List<ServerStatsRow> addServerStats(ServerStats statsToBeAdded, ServerStats targetStats, int[][] dataCount) {
+		List<ServerStatsRow> serverStatsRows = statsToBeAdded.getRows();
+		for (int rowNum = 0; rowNum < serverStatsRows.size()
+				&& rowNum < targetStats.getMetadata().getRowCount(); rowNum++) {
+			ServerStatsRow row = serverStatsRows.get(rowNum);
+			List<Double> rowData = row.getUsageData();
+			
+			List<Double> aggregatedStatsRowData = targetStats.getRows().get(rowNum).getUsageData();
+			for(int i = 1; i < targetStats.getMetadata().getLegend().size(); i++) {
+				// Add the data
+				Double data = rowData.get(i);
+				if(!data.isNaN()) {
+					// data is available. add it.
+					aggregatedStatsRowData.set(i, aggregatedStatsRowData.get(i) + data);
+					// increment record count. this will be used for calculating average of aggregated data.
+					dataCount[rowNum][i]++;
+				}
+			}
+		}
+		return serverStatsRows;
+	}
+	
+	public static void main(String[] args) {
+		ServerStats stats = new ServerUtil().fetchCPUUsageData("s1");
+		System.out.println(stats.getMetadata().getLegend());
 	}
 }

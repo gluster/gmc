@@ -18,15 +18,21 @@
  *******************************************************************************/
 package com.gluster.storage.management.server.resources.v1_0;
 
-import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SERVER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_FSTYPE;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SERVER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_DISK_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_SERVER_NAME;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DETAILS;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_TYPE;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_DISKS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_SERVERS;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_STATISTICS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_TASKS;
+import static com.gluster.storage.management.core.constants.RESTConstants.STATISTICS_TYPE_CPU;
+import static com.gluster.storage.management.core.constants.RESTConstants.STATISTICS_TYPE_NETWORK;
+import static com.gluster.storage.management.core.constants.RESTConstants.STATISTICS_TYPE_MEMORY;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +45,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -49,14 +56,15 @@ import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
+import com.gluster.storage.management.core.model.ServerStats;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
+import com.gluster.storage.management.core.response.ServerNameListResponse;
 import com.gluster.storage.management.server.data.ClusterInfo;
 import com.gluster.storage.management.server.data.ServerInfo;
 import com.gluster.storage.management.server.services.ClusterService;
 import com.gluster.storage.management.server.tasks.InitializeDiskTask;
-import com.gluster.storage.management.server.utils.GlusterUtil;
 import com.gluster.storage.management.server.utils.SshUtil;
 import com.sun.jersey.api.core.InjectParam;
 import com.sun.jersey.spi.resource.Singleton;
@@ -92,17 +100,44 @@ public class GlusterServersResource extends AbstractServersResource {
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getGlusterServersJSON(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
-		return getGlusterServers(clusterName, MediaType.APPLICATION_JSON);
+	public Response getGlusterServersJSON(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@QueryParam(QUERY_PARAM_DETAILS) Boolean details) {
+		return getGlusterServers(clusterName, MediaType.APPLICATION_JSON, details);
 	}
 
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-	public Response getGlusterServersXML(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
-		return getGlusterServers(clusterName, MediaType.APPLICATION_XML);
+	public Response getGlusterServersXML(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@QueryParam(QUERY_PARAM_DETAILS) Boolean details) {
+		return getGlusterServers(clusterName, MediaType.APPLICATION_XML, details);
+	}
+	
+	private List<GlusterServer> getGlusterServers(String clusterName, boolean fetchDetails) {
+		List<GlusterServer> glusterServers;
+		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
+		if (onlineServer == null) {
+			throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
+		}
+
+		try {
+			glusterServers = getGlusterServers(clusterName, onlineServer, fetchDetails);
+		} catch (ConnectionException e) {
+			// online server has gone offline! try with a different one.
+			onlineServer = clusterService.getNewOnlineServer(clusterName);
+			if (onlineServer == null) {
+				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
+			}
+			glusterServers = getGlusterServers(clusterName, onlineServer, fetchDetails);
+		}
+		return glusterServers;
 	}
 
-	public Response getGlusterServers(String clusterName, String mediaType) {
+	private Response getGlusterServers(String clusterName, String mediaType, Boolean fetchDetails) {
+		if(fetchDetails == null) {
+			// by default, fetch the server details
+			fetchDetails = true;
+		}
+		
 		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();
 
 		if (clusterName == null || clusterName.isEmpty()) {
@@ -118,37 +153,30 @@ public class GlusterServersResource extends AbstractServersResource {
 			return okResponse(new GlusterServerListResponse(glusterServers), mediaType);
 		}
 
-		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
-		if (onlineServer == null) {
-			return errorResponse("No online servers found in cluster [" + clusterName + "]");
-		}
-
 		try {
-			glusterServers = getGlusterServers(clusterName, onlineServer);
-		} catch (ConnectionException e) {
-			// online server has gone offline! try with a different one.
-			onlineServer = clusterService.getNewOnlineServer(clusterName);
-			if (onlineServer == null) {
-				return errorResponse("No online servers found in cluster [" + clusterName + "]");
-			}
-			try {
-				glusterServers = getGlusterServers(clusterName, onlineServer);
-			} catch (Exception e1) {
-				return errorResponse(e1.getMessage());
-			}
+			glusterServers = getGlusterServers(clusterName, fetchDetails);
 		} catch (Exception e) {
 			return errorResponse(e.getMessage());
 		}
-
-		String errMsg = fetchDetailsOfServers(glusterServers, onlineServer);
-		if (!errMsg.isEmpty()) {
-			return errorResponse("Couldn't fetch details for server(s): " + errMsg);
+		
+		if(fetchDetails) {
+			return okResponse(new GlusterServerListResponse(glusterServers), mediaType);
+		} else {
+			// no details to be fetched. Return list of server names.
+			return okResponse(new ServerNameListResponse(getServerNames(glusterServers)), mediaType);
 		}
-
-		return okResponse(new GlusterServerListResponse(glusterServers), mediaType);
 	}
 
-	public String fetchDetailsOfServers(List<GlusterServer> glusterServers, GlusterServer onlineServer) {
+
+	private List<String> getServerNames(List<GlusterServer> glusterServers) {
+		List<String> serverNames = new ArrayList<String>();
+		for(GlusterServer server : glusterServers) {
+			serverNames.add(server.getName());
+		}
+		return serverNames;
+	}
+
+	private String fetchDetailsOfServers(List<GlusterServer> glusterServers, GlusterServer onlineServer) {
 		String errMsg = "";
 
 		for (GlusterServer server : glusterServers) {
@@ -161,7 +189,7 @@ public class GlusterServersResource extends AbstractServersResource {
 		return errMsg;
 	}
 
-	public List<GlusterServer> getGlusterServers(String clusterName, GlusterServer onlineServer) {
+	private List<GlusterServer> getGlusterServers(String clusterName, GlusterServer onlineServer, boolean fetchDetails) {
 		List<GlusterServer> glusterServers;
 		try {
 			glusterServers = glusterUtil.getGlusterServers(onlineServer);
@@ -174,11 +202,18 @@ public class GlusterServersResource extends AbstractServersResource {
 
 			glusterServers = glusterUtil.getGlusterServers(onlineServer);
 		}
+		
+		if (fetchDetails) {
+			String errMsg = fetchDetailsOfServers(glusterServers, onlineServer);
+			if (!errMsg.isEmpty()) {
+				throw new GlusterRuntimeException("Couldn't fetch details for server(s): " + errMsg);
+			}
+		}
 		return glusterServers;
 	}
 
 	@GET
-	@Path("{serverName}")
+	@Path("{" + PATH_PARAM_SERVER_NAME + "}")
 	@Produces(MediaType.APPLICATION_XML)
 	public Response getGlusterServerXML(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_SERVER_NAME) String serverName) {
@@ -186,7 +221,7 @@ public class GlusterServersResource extends AbstractServersResource {
 	}
 
 	@GET
-	@Path("{serverName}")
+	@Path("{" + PATH_PARAM_SERVER_NAME + "}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getGlusterServerJSON(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_SERVER_NAME) String serverName) {
@@ -428,20 +463,57 @@ public class GlusterServersResource extends AbstractServersResource {
 			return errorResponse(e.getMessage());
 		}
 	}
-
-	private void setGlusterUtil(GlusterUtil glusterUtil) {
-		this.glusterUtil = glusterUtil;
+	
+	@GET
+	@Produces(MediaType.APPLICATION_XML)
+	@Path(RESOURCE_STATISTICS)
+	public Response getAggregatedPerformanceDataXML(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@QueryParam(QUERY_PARAM_TYPE) String type) {
+		return getAggregaredPerformanceData(clusterName, type, MediaType.APPLICATION_XML);
 	}
 
-	public static void main(String[] args) {
-		GlusterServersResource glusterServersResource = new GlusterServersResource();
-		GlusterUtil glusterUtil = new GlusterUtil();
-		glusterUtil.setSshUtil(new SshUtil());
-		glusterServersResource.setGlusterUtil(glusterUtil);
-		// System.out.println(glusterServersResource.getServerDetails("127.0.0.1").size());
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path(RESOURCE_STATISTICS)
+	public Response getAggregaredPerformanceDataJSON(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@QueryParam(QUERY_PARAM_TYPE) String type) {
+		return getAggregaredPerformanceData(clusterName, type, MediaType.APPLICATION_JSON);
+	}
 
-		// To add a server
-		// GlusterServerResponse response = glusterServersResource.addServer("my-server");
-		// System.out.println(response.getData().getName());
+	@GET
+	@Produces(MediaType.APPLICATION_XML)
+	@Path("{" + PATH_PARAM_SERVER_NAME + "}/" + RESOURCE_STATISTICS)
+	public Response getPerformanceDataXML(@PathParam(PATH_PARAM_SERVER_NAME) String serverName, @QueryParam(QUERY_PARAM_TYPE) String type) {
+		return getPerformanceData(serverName, type, MediaType.APPLICATION_XML);
+	}
+
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("{" + PATH_PARAM_SERVER_NAME + "}/" + RESOURCE_STATISTICS)
+	public Response getPerformanceDataJSON(@PathParam(PATH_PARAM_SERVER_NAME) String serverName, @QueryParam(QUERY_PARAM_TYPE) String type) {
+		return getPerformanceData(serverName, type, MediaType.APPLICATION_JSON);
+	}
+
+	private Response getAggregaredPerformanceData(String clusterName, String type, String mediaType) {
+		List<String> serverNames = getServerNames(getGlusterServers(clusterName, false));
+		if(type.equals(STATISTICS_TYPE_CPU)) {
+			return okResponse(serverUtil.fetchAggregatedCPUStats(serverNames), mediaType);
+		} else {
+			return badRequestResponse("Server Statistics for [" + type + "] not supported! Valid values are ["
+					+ STATISTICS_TYPE_CPU + ", " + STATISTICS_TYPE_NETWORK + ", " + STATISTICS_TYPE_MEMORY + "]");
+		}
+	}
+
+	private Response getPerformanceData(String serverName, String type, String mediaType) {
+		if(type.equals(STATISTICS_TYPE_CPU)) {
+			return okResponse(serverUtil.fetchCPUUsageData(serverName), mediaType);
+		} else if(type.equals(STATISTICS_TYPE_NETWORK)) {
+			return okResponse(serverUtil.fetchCPUUsageData(serverName), mediaType);
+		} else if(type.equals(STATISTICS_TYPE_MEMORY)) {
+			return okResponse(serverUtil.fetchCPUUsageData(serverName), mediaType);
+		} else {
+			return badRequestResponse("Server Statistics for [" + type + "] not supported! Valid values are ["
+					+ STATISTICS_TYPE_CPU + ", " + STATISTICS_TYPE_NETWORK + ", " + STATISTICS_TYPE_MEMORY + "]");
+		}
 	}
 }

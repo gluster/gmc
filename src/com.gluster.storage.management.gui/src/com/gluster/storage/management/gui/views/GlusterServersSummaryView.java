@@ -33,8 +33,9 @@ import org.eclipse.ui.part.ViewPart;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
+import com.gluster.storage.management.gui.utils.ChartViewerComposite.CHART_TYPE;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.utils.PieChartViewerComposite;
+import com.gluster.storage.management.gui.utils.ChartViewerComposite;
 
 /**
  *
@@ -95,14 +96,13 @@ public class GlusterServersSummaryView extends ViewPart {
 
 	private void createStatusChart(Composite section, Double[] values) {
 		String[] categories = new String[] { "Online", "Offline" };
-		PieChartViewerComposite chartViewerComposite = new PieChartViewerComposite(section, SWT.NONE, categories, values);
+		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, categories, values);
 
 		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
 		data.widthHint = 300;
 		data.heightHint = 150;
 		chartViewerComposite.setLayoutData(data);	
 	}
-
 
 	private void createAlertsSection() {
 		Composite section = guiHelper.createSection(form, toolkit, "Alerts", null, 2, false);

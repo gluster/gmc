@@ -40,8 +40,9 @@ import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.gui.IImageKeys;
+import com.gluster.storage.management.gui.utils.ChartViewerComposite.CHART_TYPE;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.utils.PieChartViewerComposite;
+import com.gluster.storage.management.gui.utils.ChartViewerComposite;
 
 /**
  * 
@@ -157,8 +158,7 @@ public class VolumesSummaryView extends ViewPart {
 
 	private void createStatusChart(FormToolkit toolkit, Composite section, Double[] values) {
 		String[] categories = new String[] { "Online", "Offline" };
-		PieChartViewerComposite chartViewerComposite = new PieChartViewerComposite(section, SWT.NONE, categories,
-				values);
+		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, categories, values);
 
 		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
 		data.widthHint = 300;

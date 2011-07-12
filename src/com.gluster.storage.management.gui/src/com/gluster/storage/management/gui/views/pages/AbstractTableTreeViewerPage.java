@@ -38,7 +38,6 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.forms.widgets.FormToolkit;
-import org.eclipse.ui.forms.widgets.Hyperlink;
 
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.Disk;
@@ -46,7 +45,6 @@ import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public abstract class AbstractTableTreeViewerPage<T> extends Composite implements ISelectionListener {
 
-	
 	protected final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	protected TreeViewer treeViewer;
 	protected GUIHelper guiHelper = GUIHelper.getInstance();

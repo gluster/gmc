@@ -20,8 +20,10 @@
  */
 package com.gluster.storage.management.gui.views;
 
+import java.util.Date;
 import java.util.List;
 
+import org.eclipse.birt.chart.util.CDateTime;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.graphics.Image;
@@ -40,21 +42,18 @@ import org.eclipse.ui.part.ViewPart;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Cluster;
-import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
-import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.TaskInfo;
-import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.actions.IActionConstants;
+import com.gluster.storage.management.gui.utils.ChartViewerComposite;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.utils.PieChartViewerComposite;
+import com.ibm.icu.util.Calendar;
 
 /**
  * @author root
@@ -82,16 +81,6 @@ public class ClusterSummaryView extends ViewPart {
 		createSections(parent);
 	}
 
-	private int getVolumeCountByStatus(Cluster cluster, VOLUME_STATUS status) {
-		int count = 0;
-		for (Volume volume : cluster.getVolumes()) {
-			if (volume.getStatus() == status) {
-				count++;
-			}
-		}
-		return count;
-	}
-
 	private int getServerCountByStatus(Cluster cluster, SERVER_STATUS status) {
 		int count = 0;
 		for (GlusterServer server : cluster.getServers()) {
@@ -100,14 +89,6 @@ public class ClusterSummaryView extends ViewPart {
 			}
 		}
 		return count;
-	}
-
-	private void createVolumesSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Volumes", null, 1, false);
-
-		Double[] values = new Double[] { Double.valueOf(getVolumeCountByStatus(cluster, VOLUME_STATUS.ONLINE)),
-				Double.valueOf(getVolumeCountByStatus(cluster, VOLUME_STATUS.OFFLINE)) };
-		createDiskSpaceChart(toolkit, section, values);
 	}
 
 	private void createServersSection() {
@@ -135,38 +116,26 @@ public class ClusterSummaryView extends ViewPart {
 		double totalDiskSpace = cluster.getTotalDiskSpace();
 		double diskSpaceInUse = cluster.getDiskSpaceInUse();
 		Double[] values = new Double[] { diskSpaceInUse, totalDiskSpace - diskSpaceInUse };
-		createDiskSpaceChart(toolkit, section, values);
+		createDiskSpaceChart(section, values);
 	}
 
-	private int getDiskCountByStatus(Cluster cluster, DEVICE_STATUS status) {
-		int diskCount = 0;
-		for(GlusterServer server : cluster.getServers()) {
-			for(Disk disk : server.getDisks()) {
-				if(disk.getStatus() == status) {
-					diskCount++;
-				}
-			}
-		}
-		return diskCount;
-	}
-
-	private int getDiskCount(Cluster cluster) {
-		int diskCount = 0;
-		for(GlusterServer server : cluster.getServers()) {
-			diskCount += server.getDisks().size();
-		}
-		return diskCount;
-	}
-
-	private void createDiskSpaceChart(FormToolkit toolkit, Composite section, Double[] values) {
+	private void createDiskSpaceChart(Composite section, Double[] values) {
 		String[] categories = new String[] { "Used Space: " + NumberUtil.formatNumber((values[0] / 1024)) + " GB",
-				"Free Space: " + NumberUtil.formatNumber((values[1] / 1024)) + " GB"};
-		PieChartViewerComposite chartViewerComposite = new PieChartViewerComposite(section, SWT.NONE, categories,
-				values);
+				"Free Space: " + NumberUtil.formatNumber((values[1] / 1024)) + " GB" };
+		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, categories, values);
 
 		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
 		data.widthHint = 400;
 		data.heightHint = 150;
+		data.verticalAlignment = SWT.CENTER;
+		chartViewerComposite.setLayoutData(data);
+	}
+	
+	private void createLineChart(Composite section, Calendar timestamps[], Double values[]) {
+		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, timestamps, values);
+		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
+		data.widthHint = 400;
+		data.heightHint = 300;
 		data.verticalAlignment = SWT.CENTER;
 		chartViewerComposite.setLayoutData(data);
 	}
@@ -254,23 +223,51 @@ public class ClusterSummaryView extends ViewPart {
 		parent.layout(); // IMP: lays out the form properly
 	}
 
-	private void createMemoryUsageSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Memory Usage (aggregated)", null, 1, false);
-		toolkit.createLabel(section, "Historical Memory Usage graph aggregated across all servers will be displayed here.");
-	}
-
 	private void createCPUUsageSection() {
 		Composite section = guiHelper.createSection(form, toolkit, "CPU Usage (aggregated)", null, 1, false);
 		if (cluster.getServers().size() == 0) {
 			toolkit.createLabel(section, "This section will be populated after at least\none server is added to the storage cloud.");
 			return;
 		}
-		toolkit.createLabel(section, "Historical CPU Usage graph aggregated across\nall servers will be displayed here.");
+		//toolkit.createLabel(section, "Historical CPU Usage graph aggregated across\nall servers will be displayed here.");
+
+//		Date[] timestamps = new Date[] { new Date(1310468100), new Date(1310468400), new Date(1310468700),
+//				new Date(1310469000), new Date(1310469300), new Date(1310469600), new Date(1310469900),
+//				new Date(1310470200), new Date(1310470500), new Date(1310470800), new Date(1310471100),
+//				new Date(1310471400), new Date(1310471700), new Date(1310472000), new Date(1310472300),
+//				new Date(1310472600), new Date(1310472900), new Date(1310473200), new Date(1310473500),
+//				new Date(1310473800) };
+		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
+				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
+				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
+				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
+				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
+				new CDateTime(1000l*1310473800) };
+		
+		//String[] timestampsarr = new String[] {"t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9", "t10", "t11", "t12", "t13", "t14", "t15", "t16", "t17", "t18", "t19", "t20"};
+		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 89.31d, 57.39d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 21.43d, 16.45d, 14.86d, 15.27d };
+		createLineChart(section, timestamps, values);
 	}
 
 	private void createNetworkUsageSection() {
 		Composite section = guiHelper.createSection(form, toolkit, "Network Usage", null, 1, false);
-		toolkit.createLabel(section, "Historical Network Usage graph will be displayed here.");
+		//toolkit.createLabel(section, "Historical Network Usage graph will be displayed here.");
+		
+		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
+				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
+				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
+				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
+				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
+				new CDateTime(1000l*1310473800) };
+//		Date[] timestamps = new Date[] { new Date(1310468100), new Date(1310468400), new Date(1310468700),
+//				new Date(1310469000), new Date(1310469300), new Date(1310469600), new Date(1310469900),
+//				new Date(1310470200), new Date(1310470500), new Date(1310470800), new Date(1310471100),
+//				new Date(1310471400), new Date(1310471700), new Date(1310472000), new Date(1310472300),
+//				new Date(1310472600), new Date(1310472900), new Date(1310473200), new Date(1310473500),
+//				new Date(1310473800) };
+		String[] timestampsarr = new String[] {"t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9", "t10", "t11", "t12", "t13", "t14", "t15", "t16", "t17", "t18", "t19", "t20"};
+		Double[] values = new Double[] { 32d, 31.23d, 27.92d, 48.69d, 58.62d, 49.11d, 72.43d, 69.31d, 87.39d, 78.46d, 60.44d, 56.28d, 33.51d, 27.53d, 12.21, 10d, 21.43d, 36.45d, 34.86d, 35.27d };
+		createLineChart(section, timestamps, values);
 	}
 
 	private void createRunningTasksSection() {
