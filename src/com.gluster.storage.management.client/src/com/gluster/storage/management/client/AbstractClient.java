@@ -9,6 +9,7 @@ import static com.gluster.storage.management.client.constants.ClientConstants.TR
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.URI;
 import java.security.KeyStore;
 
@@ -19,6 +20,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManagerFactory;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 
 import com.gluster.storage.management.client.utils.ClientUtil;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
@@ -130,10 +132,35 @@ public abstract class AbstractClient {
 	 */
 	private <T> T fetchResource(WebResource res, MultivaluedMap<String, String> queryParams, Class<T> responseClass) {
 		try {
-			return res.queryParams(queryParams)
-					.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML).get(responseClass);
-		} catch(UniformInterfaceException e) {
-			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class), e);
+			return res.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML)
+					.get(responseClass);
+		} catch (Exception e1) {
+			throw createGlusterException(e1);
+		}
+	}
+
+	private GlusterRuntimeException createGlusterException(Exception e) {
+		if(e instanceof GlusterRuntimeException) {
+			return (GlusterRuntimeException)e;
+		}
+		
+		if (e instanceof UniformInterfaceException) {
+			UniformInterfaceException uie = (UniformInterfaceException) e;
+			if ((uie.getResponse().getStatus() == Response.Status.UNAUTHORIZED.getStatusCode())) {
+				// authentication failed. clear security token.
+				setSecurityToken(null);
+				return new GlusterRuntimeException("Invalid credentials!");
+			} else {
+				return new GlusterRuntimeException("[" + uie.getResponse().getStatus() + "]["
+						+ uie.getResponse().getEntity(String.class) + "]");
+			}
+		} else {
+			Throwable cause = e.getCause();
+			if (cause != null && cause instanceof ConnectException) {
+				return new GlusterRuntimeException("Couldn't connect to Gluster Management Gateway!");
+			}
+
+			return new GlusterRuntimeException("Exception in REST communication!", e);
 		}
 	}
 
@@ -273,12 +300,17 @@ public abstract class AbstractClient {
 	private ClientResponse putRequest(WebResource resource, Form form) {
 		try {
 			ClientResponse response = prepareFormRequestBuilder(resource).put(ClientResponse.class, form);
+			if ((response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode())) {
+				// authentication failed. clear security token.
+				setSecurityToken(null);
+				throw new GlusterRuntimeException("Invalid credentials!");
+			}
 			if(response.getStatus() >= 300) {
 				throw new GlusterRuntimeException(response.getEntity(String.class));
 			}
 			return response;
-		} catch (UniformInterfaceException e) {
-			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
+		} catch (Exception e) {
+			throw createGlusterException(e);
 		}
 	}
 

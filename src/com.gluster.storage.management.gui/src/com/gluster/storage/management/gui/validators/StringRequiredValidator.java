@@ -52,7 +52,9 @@ public class StringRequiredValidator implements IValidator {
 				return ValidationStatus.error(errorText);
 			}
 		}
-		linkedControl.setEnabled(true);
+		if(linkedControl != null) {
+			linkedControl.setEnabled(true);
+		}
 		controlDecoration.hide();
 		return Status.OK_STATUS;
 	}

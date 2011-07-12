@@ -46,33 +46,9 @@ public class UsersClient extends AbstractClient {
 
 	public void authenticate(String user, String password) {
 		setSecurityToken(generateSecurityToken(user, password));
-		try {
-			fetchSubResource(user, Status.class);
-		} catch (RuntimeException e) {
-			Throwable cause = e.getCause();
-			if(cause == null) {
-				throw e;
-			}
-			
-			if (cause instanceof UniformInterfaceException) {
-				UniformInterfaceException e1 = (UniformInterfaceException) cause;
-				if ((e1.getResponse().getStatus() == Response.Status.UNAUTHORIZED.getStatusCode())) {
-					// authentication failed. clear security token.
-					setSecurityToken(null);
-					throw new GlusterRuntimeException("Invalid user id or password!");
-				} else {
-					String errMsg = "Exception during authentication: [" + e1.getResponse().getStatus() + "]";
-					logger.error(errMsg);
-					throw new GlusterRuntimeException(errMsg);
-				}
-			} else if(cause instanceof ConnectException) {
-				throw new GlusterRuntimeException("Couldn't connect to Gluster Management Gateway!");
-			} else {
-				String errMsg = "Exception during authentication: [" + e.getMessage() + "]";
-				logger.error(errMsg);
-				throw new GlusterRuntimeException(errMsg);
-			}
-		}
+		fetchSubResource(user, Status.class);
+		// authentication successful. update security token in the data model manager
+		GlusterDataModelManager.getInstance().setSecurityToken(getSecurityToken());
 	}
 
 	public void changePassword(String user, String oldPassword, String newPassword) {
@@ -82,6 +58,10 @@ public class UsersClient extends AbstractClient {
 		form.add(FORM_PARAM_OLD_PASSWORD, oldPassword);
 		form.add(FORM_PARAM_NEW_PASSWORD, newPassword);
 		putRequest(user, form);
+		
+		// password changed. set the new security token
+		setSecurityToken(generateSecurityToken(user, newPassword));
+		GlusterDataModelManager.getInstance().setSecurityToken(getSecurityToken());
 	}
 
 	public static void main(String[] args) {

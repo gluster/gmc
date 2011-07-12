@@ -279,6 +279,12 @@
             id="com.gluster.storage.management.gui.commands.Delete"
             name="Delete">
       </command>
+      <command
+            categoryId="com.gluster.storage.management.gui.category"
+            description="Change Password"
+            id="com.gluster.storage.management.gui.commands.ChangePassword"
+            name="Change Password">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.bindings">
@@ -981,7 +987,7 @@
                class="com.gluster.storage.management.gui.actions.RefreshDataAction"
                definitionId="org.eclipse.ui.window.preferences"
                icon="icons/tango/32x32/view-refresh.png"
-               id="com.gluster.storage.management.gui.actions.AddServerAction"
+               id="com.gluster.storage.management.gui.actions.RefreshDataAction"
                label="&amp;Refresh"
                menubarPath="com.gluster.storage.management.gui.menu.edit/edit"
                mode="FORCE_TEXT"
@@ -997,7 +1003,7 @@
                class="com.gluster.storage.management.gui.actions.PreferencesAction"
                definitionId="org.eclipse.ui.window.preferences"
                icon="icons/tango/32x32/settings.png"
-               id="com.gluster.storage.management.gui.actions.AddServerAction"
+               id="com.gluster.storage.management.gui.actions.PreferencesAction"
                label="&amp;Settings"
                menubarPath="com.gluster.storage.management.gui.menu.edit/edit"
                mode="FORCE_TEXT"
@@ -1007,6 +1013,21 @@
                style="push"
                toolbarPath="Normal"
                tooltip="Settings">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.ChangePasswordAction"
+               definitionId="com.gluster.storage.management.gui.commands.ChangePassword"
+               icon="icons/tango/32x32/change-password.png"
+               id="com.gluster.storage.management.gui.actions.AddServerAction"
+               label="&amp;Change Password"
+               menubarPath="com.gluster.storage.management.gui.menu.edit/edit"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               tooltip="Change password">
          </action>
          <menu
                id="com.gluster.storage.management.gui.menu.edit"
