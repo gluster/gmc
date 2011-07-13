@@ -26,9 +26,9 @@ import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.swt.widgets.Control;
 
 public class StringRequiredValidator implements IValidator {
-	private final String errorText;
-	private final ControlDecoration controlDecoration;
-	private final Control linkedControl;
+	protected final String errorText;
+	protected final ControlDecoration controlDecoration;
+	protected final Control linkedControl;
 
 	public StringRequiredValidator(String errorText, ControlDecoration controlDecoration, Control linkedControl) {
 		super();

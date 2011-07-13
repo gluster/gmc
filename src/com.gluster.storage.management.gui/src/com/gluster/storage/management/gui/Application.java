@@ -23,15 +23,10 @@ import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.databinding.observable.Realm;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.jobs.IJobChangeEvent;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.databinding.swt.SWTObservables;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -40,8 +35,6 @@ import org.eclipse.ui.PlatformUI;
 
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.gui.dialogs.LoginDialog;
-import com.gluster.storage.management.gui.jobs.DataSyncJob;
-import com.gluster.storage.management.gui.preferences.PreferenceConstants;
 
 /**
  * This class controls all aspects of the application's execution
