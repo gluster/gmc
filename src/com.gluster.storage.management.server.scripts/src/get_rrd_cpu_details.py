@@ -23,13 +23,13 @@ import Utils
 def getCpuData(period):
     cpuRrdFile = "/var/lib/rrd/cpu.rrd"
     rs = ResponseXml()
-    command = ["rrdtool", "xport", "--start", "-1%s" % period,
-               "DEF:cpuuser=%s:user:AVERAGE" % cpuRrdFile,
-               "DEF:cpusystem=%s:system:AVERAGE" % cpuRrdFile,
-               "DEF:cpuidle=%s:idle:AVERAGE" % cpuRrdFile,
-               "XPORT:cpuuser:'user'",
-               "XPORT:cpusystem:'system'",
-               "XPORT:cpuidle:'idle'"]
+    command = "rrdtool xport --start -%s \
+               DEF:cpuuser=%s:user:AVERAGE \
+               DEF:cpusystem=%s:system:AVERAGE \
+               CDEF:total=cpuuser,cpusystem,+ \
+               XPORT:cpuuser:user \
+               XPORT:cpusystem:system \
+               XPORT:total:total" % (period, cpuRrdFile, cpuRrdFile)
 
     rv = Utils.runCommand(command, output=True, root=True)
     message = Utils.stripEmptyLines(rv["Stdout"])
