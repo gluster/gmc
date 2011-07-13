@@ -1,7 +1,5 @@
 package com.gluster.storage.management.gui.actions;
 
-import java.awt.Window;
-
 import org.eclipse.jface.action.IAction;
 
 import com.gluster.storage.management.gui.dialogs.ChangePasswordDialog;

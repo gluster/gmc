@@ -48,6 +48,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.UsersClient;
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.ConnectionDetails;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.GUIHelper;
@@ -203,8 +204,20 @@ public class ChangePasswordDialog extends Dialog {
 
 			IStatus status = super.validate(value);
 			if (status.isOK()) {
+				String errMsg = null;
 				if (!value.equals(newPassword.getText())) {
-					return ValidationStatus.error("Passwords do not match");
+					errMsg = "Passwords mismatched";
+				}
+
+				if (errMsg == null && value.equals(CoreConstants.DEFAULT_GATEWAY_PASSWORD)) {
+					errMsg = "New password should not be a default password";
+				}
+
+				if(errMsg != null) {
+					controlDecoration.setDescriptionText(errMsg);
+					controlDecoration.show();
+					linkedControl.setEnabled(false);
+					return ValidationStatus.error(errMsg);
 				}
 			}
 			return status;
