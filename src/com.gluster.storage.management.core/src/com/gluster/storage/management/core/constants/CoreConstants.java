@@ -32,4 +32,5 @@ public class CoreConstants {
 	public static final String PURE_DATE_FORMAT = "MM/dd/yyyy";
 	public static final String PURE_TIME_FORMAT = "HH:mm:ss.SSS";
 	public static final String NA = "NA";
+	public static final String DEFAULT_PASSWORD = "gluster";
 }
