@@ -1261,24 +1261,6 @@
             id="com.gluster.storage.management.gui.preferences.GlusterPreferencePage"
             name="Gluster">
       </page>
-      <page
-            category="com.gluster.storage.management.gui.preferences.GlusterPreferencePage"
-            class="com.gluster.storage.management.gui.preferences.ClusterPreferencePage"
-            id="com.gluster.storage.management.gui.preferences.ClusterPreferencePage"
-            name="Cluster">
-      </page>
-      <page
-            category="com.gluster.storage.management.gui.preferences.GlusterPreferencePage"
-            class="com.gluster.storage.management.gui.preferences.ConsolePreferencePage"
-            id="com.gluster.storage.management.gui.preferences.ConsolePreferencePage"
-            name="Console">
-      </page>
-      <page
-            category="com.gluster.storage.management.gui.preferences.GlusterPreferencePage"
-            class="org.eclipse.ui.ExtensionFactory:newKeysPreferencePage"
-            id="org.eclipse.ui.NewKeysPreferencePage"
-            name="Keys">
-      </page>
    </extension>
    <extension
          point="org.eclipse.core.runtime.preferences">

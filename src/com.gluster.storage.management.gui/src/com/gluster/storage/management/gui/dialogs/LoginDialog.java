@@ -21,8 +21,6 @@ package com.gluster.storage.management.gui.dialogs;
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.UpdateValueStrategy;
 import org.eclipse.core.databinding.beans.PojoProperties;
-import org.eclipse.core.runtime.preferences.ConfigurationScope;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.databinding.swt.WidgetProperties;
 import org.eclipse.jface.dialogs.Dialog;
@@ -46,10 +44,9 @@ import org.eclipse.swt.widgets.Text;
 import com.gluster.storage.management.client.ClustersClient;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.UsersClient;
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.ConnectionDetails;
-import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.gui.Activator;
-import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.dialogs.ClusterSelectionDialog.CLUSTER_MODE;
 import com.gluster.storage.management.gui.preferences.PreferenceConstants;
@@ -211,7 +208,12 @@ public class LoginDialog extends Dialog {
 		
 		// authentication successful. close the login dialog and open the next one.
 		close();
-
+		// If the password is default, Let user to change the password
+		if (password.equalsIgnoreCase( CoreConstants.DEFAULT_GATEWAY_PASSWORD )) {
+			ChangePasswordDialog dialog = new ChangePasswordDialog(getShell());
+			dialog.open();
+		}
+		
 		ClustersClient clustersClient = new ClustersClient(usersClient.getSecurityToken());
 
 		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
