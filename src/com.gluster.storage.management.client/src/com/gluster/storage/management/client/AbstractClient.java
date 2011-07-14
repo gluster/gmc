@@ -32,6 +32,7 @@ import com.sun.jersey.api.client.WebResource.Builder;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.client.urlconnection.HTTPSProperties;
+import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 
@@ -135,6 +136,7 @@ public abstract class AbstractClient {
 			return res.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML)
 					.get(responseClass);
 		} catch (Exception e1) {
+			e1.printStackTrace();
 			throw createGlusterException(e1);
 		}
 	}
@@ -160,7 +162,7 @@ public abstract class AbstractClient {
 				return new GlusterRuntimeException("Couldn't connect to Gluster Management Gateway!");
 			}
 
-			return new GlusterRuntimeException("Exception in REST communication!", e);
+			return new GlusterRuntimeException("Exception in REST communication! [" + e.getMessage() + "]", e);
 		}
 	}
 
@@ -185,6 +187,13 @@ public abstract class AbstractClient {
 			throw new GlusterRuntimeException("Error while downloading resource [" + res.getURI().getPath() + "]", e);
 		}
 	}
+	
+	
+/*	public void uploadResource(WebResource res, FormDataMultiPart form) {
+		ClientResponse response = res.header(HTTP_HEADER_AUTH, authHeader).type(MediaType.MULTIPART_FORM_DATA)
+				.accept(MediaType.TEXT_PLAIN).header(name, value)post(form);
+	}
+*/	
 
 	/**
 	 * Fetches the default resource (the one returned by {@link AbstractClient#getResourcePath()}) by dispatching a GET

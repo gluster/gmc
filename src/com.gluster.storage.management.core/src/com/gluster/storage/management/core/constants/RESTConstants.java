@@ -28,6 +28,7 @@ public class RESTConstants {
 	public static final String RESOURCE_PATH_USERS = "/users";
 	public static final String RESOURCE_PATH_CLUSTERS = "/clusters";
 	public static final String RESOURCE_PATH_DISCOVERED_SERVERS = "/discoveredservers";
+	public static final String RESOURCE_PATH_KEYS = "/keys";
 	
 	// REST Resource names
 	public static final String RESOURCE_VOLUMES = "volumes";
