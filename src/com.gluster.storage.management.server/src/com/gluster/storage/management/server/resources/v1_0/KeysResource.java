@@ -86,13 +86,4 @@ public class KeysResource extends AbstractResource {
 
 		return zipFile;
 	}
-	
-	
-	
-
-	public static void main(String[] args) {
-		KeysResource key = new KeysResource();
-		// key.exportSshkeys();
-		System.out.println(System.getProperty("java.io.tmpdir"));
-	}
 }
