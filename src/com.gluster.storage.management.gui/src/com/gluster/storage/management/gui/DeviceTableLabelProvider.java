@@ -18,34 +18,56 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui;
 
+import org.eclipse.jface.resource.FontRegistry;
+import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
 
-import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
+import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
-import com.gluster.storage.management.core.utils.NumberUtil;
+import com.gluster.storage.management.core.model.Partition;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.views.pages.DisksPage.DISK_TABLE_COLUMN_INDICES;
 
-public class DiskTableLabelProvider extends TableLabelProviderAdapter {
+public class DeviceTableLabelProvider extends LabelProvider implements ITableLabelProvider {
+
 	private GUIHelper guiHelper = GUIHelper.getInstance();
-	private GlusterDataModelManager glusterDataModelManager = GlusterDataModelManager.getInstance();
+	public enum DEVICE_COLUMN_INDICES {
+		DISK, PARTITION, FREE_SPACE, SPACE_IN_USE, STATUS
+	};
+
+	FontRegistry registry = new FontRegistry();
+
+	public DeviceTableLabelProvider() {
+		// TODO Auto-generated constructor stub
+	}
 
 	@Override
 	public Image getColumnImage(Object element, int columnIndex) {
-
 		if (!(element instanceof Disk)) {
 			return null;
 		}
 
-		// Brick brick = (Brick) element;
-		// Disk disk = GlusterDataModelManager.getInstance().getDisk(brick.getDiskName());
 		Disk disk = (Disk) element;
-
 		if (columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
 			DEVICE_STATUS status = disk.getStatus();
-			// TODO: Use different images for different statuses
+			
+			if (status == null) {
+				if (element instanceof Partition) {
+					if (columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
+						status = disk.getStatus();
+					}
+				}
+			}
+
+			if (status == null) {
+				return null;
+			}
+
+
+			// TODO: Use different images for all four statuses
 			switch (status) {
 			case INITIALIZED:
 				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
@@ -63,33 +85,38 @@ public class DiskTableLabelProvider extends TableLabelProviderAdapter {
 		return null;
 	}
 
-	private String getDiskFreeSpace(Disk disk) {
-		if (disk.hasErrors() || disk.isUninitialized()) {
-			return "NA";
-		} else {
-			return NumberUtil.formatNumber((disk.getFreeSpace() / 1024));
-		}
-	}
-
-	private String getTotalDiskSpace(Disk disk) {
-		if (disk.hasErrors() || disk.isUninitialized()) {
-			return "NA";
-		} else {
-			return NumberUtil.formatNumber((disk.getSpace() / 1024));
-		}
-	}
-
 	@Override
-	public String getColumnText(Object element, int columnIndex) {
-		if (!(element instanceof Disk)) {
-			return null;
-		}
+	public String getText(Object element) {
+		return super.getText(element);
+	}
 
-		Disk disk = (Disk) element;
-		return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? disk.getServerName()
-				: columnIndex == DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? disk.getName()
-				: columnIndex == DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDiskFreeSpace(disk)
-				: columnIndex == DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? getTotalDiskSpace(disk)
-				: columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? glusterDataModelManager.getDiskStatus(disk) : "Invalid");
+	public String getColumnText(Object element, int columnIndex) {
+		
+		if (element == null) {
+			return "";
+		}
+		
+		Device device = (Device) element;
+		if (columnIndex == DISK_TABLE_COLUMN_INDICES.DISK.ordinal()) {
+			if (device instanceof Disk) {
+				return device.getQualifiedName();
+			} else {
+				return "";
+			}
+		} else if (columnIndex == DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal()) {
+			return "" + device.getFreeSpace();
+		} else if (columnIndex == DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal()) {
+			return "" + device.getSpace();
+		} else if (columnIndex == DISK_TABLE_COLUMN_INDICES.PARTITION.ordinal()) {
+			if (device instanceof Partition) {
+				return device.getQualifiedName();
+			} else {
+				return "";
+			}
+		} else if (columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
+			return device.getStatusStr();
+		} else {
+			return "";
+		}
 	}
 }

@@ -45,6 +45,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Brick;
+import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.utils.NumberUtil;
@@ -209,15 +210,15 @@ public class MigrateBrickPage1 extends WizardPage {
 		ITableLabelProvider diskLabelProvider = getDiskLabelProvider(volume.getName());
 
 		GlusterDataModelManager glusterDataModelManager = GlusterDataModelManager.getInstance();
-		List<Disk> fromBricks = glusterDataModelManager.getReadyDisksOfVolume(volume);
-		List<Disk> toDisks = glusterDataModelManager.getReadyDisksOfAllServersExcluding( fromBricks );
+		List<Device> fromBricks = glusterDataModelManager.getReadyDisksOfVolume(volume);
+		List<Device> toDevices = glusterDataModelManager.getReadyDevicesOfAllServersExcluding( fromBricks );
 		
 		tableViewerFrom = createTableViewer(container, diskLabelProvider, fromBricks, txtFilterFrom);
 		
 		if(fromBrick != null) {
 			setFromDisk(tableViewerFrom, fromBrick);
 		}
-		tableViewerTo = createTableViewer(container, diskLabelProvider, toDisks, txtFilterTo);
+		tableViewerTo = createTableViewer(container, diskLabelProvider, toDevices, txtFilterTo);
 		
 		// Auto commit selection field
 		Composite autoCommitContainer = new Composite(container, SWT.NONE);
@@ -251,7 +252,7 @@ public class MigrateBrickPage1 extends WizardPage {
 	}
 
 	private TableViewer createTableViewer(Composite container, ITableLabelProvider diskLabelProvider,
-			List<Disk> bricks, Text txtFilterText) {
+			List<Device> bricks, Text txtFilterText) {
 		Composite tableViewerComposite = createTableViewerComposite(container);
 
 		TableViewer tableViewer = new TableViewer(tableViewerComposite, SWT.SINGLE);

@@ -51,8 +51,8 @@ public class Device extends Entity {
 	private String serverName;
 	private String mountPoint;
 	
-	private Double space;
-	private Double spaceInUse;
+	private Double space = 0.0;
+	private Double spaceInUse = 0.0;
 	private DEVICE_STATUS status;
 
 	public Device() {
@@ -73,7 +73,7 @@ public class Device extends Entity {
 	}
 	
 	public Double getFreeSpace() {
-		return getSpace() - getSpaceInUse();
+		return (getSpace() - getSpaceInUse());
 	}
 
 	public void setSpace(Double space) {

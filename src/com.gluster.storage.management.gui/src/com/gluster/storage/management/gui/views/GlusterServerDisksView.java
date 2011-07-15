@@ -44,7 +44,7 @@ public class GlusterServerDisksView extends ViewPart {
 		}
 		page = new ServerDisksPage(parent, SWT.NONE, getSite(), server.getDisks());
 
-		parent.layout(); // IMP: lays out the form properly
+//		parent.layout(); // IMP: lays out the form properly
 	}
 
 	/* (non-Javadoc)

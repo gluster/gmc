@@ -26,7 +26,7 @@ public class DisksView extends ViewPart {
 		}
 		
 		page = new DisksPage(parent, SWT.NONE, getSite(), getAllDisks(servers));
-		page.layout(); // IMP: lays out the form properly
+		//page.layout(); // IMP: lays out the form properly
 	}
 
 	private List<Disk> getAllDisks(EntityGroup<GlusterServer> servers) {

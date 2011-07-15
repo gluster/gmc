@@ -24,9 +24,13 @@ import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
+import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Disk;
+import com.gluster.storage.management.core.model.Partition;
 import com.gluster.storage.management.core.utils.NumberUtil;
+import com.gluster.storage.management.gui.DeviceTableLabelProvider.DEVICE_COLUMN_INDICES;
 import com.gluster.storage.management.gui.utils.GUIHelper;
+//import com.gluster.storage.management.gui.views.pages.ServerDisksPage.SERVER_DISK_TABLE_COLUMN_INDICES;
 import com.gluster.storage.management.gui.views.pages.ServerDisksPage.SERVER_DISK_TABLE_COLUMN_INDICES;
 
 public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
@@ -81,19 +85,29 @@ public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 		}
 	}
 
-	@Override
 	public String getColumnText(Object element, int columnIndex) {
-		if (!(element instanceof Disk)) {
-			return null;
+		Device device = (Device) element;
+		if (columnIndex == DEVICE_COLUMN_INDICES.DISK.ordinal()) {
+			if (device instanceof Disk) {
+				return device.getName();
+			} else {
+				return "";
+			}
+		} else if (columnIndex == DEVICE_COLUMN_INDICES.FREE_SPACE.ordinal()) {
+			return "" + device.getFreeSpace();
+		} else if (columnIndex == DEVICE_COLUMN_INDICES.SPACE_IN_USE.ordinal()) {
+			return "" + device.getSpace();
+		} else if (columnIndex == DEVICE_COLUMN_INDICES.PARTITION.ordinal()) {
+			if (device instanceof Partition) {
+				return device.getName();
+			} else {
+				return "";
+			}
+		} else if (columnIndex == DEVICE_COLUMN_INDICES.STATUS.ordinal()) {
+			return device.getStatusStr();
+		} else {
+			return "";
 		}
-
-		Disk disk = (Disk) element;
-		String columnText = (columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.DISK.ordinal() ? disk.getName()
-				: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDiskFreeSpace(disk)
-						: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? getTotalDiskSpace(disk)
-								: columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? glusterDataModelManager
-										.getDiskStatus(disk) // disk.getStatusStr()
-										: "Invalid");
-		return ((columnText == null || columnText.trim().equals("")) ? CoreConstants.NA : columnText);
-	}
+	}	
+	
 }

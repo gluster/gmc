@@ -33,13 +33,14 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
 import com.gluster.storage.management.core.model.Brick;
+import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Disk;
 
 public class SelectDisksDialog extends Dialog {
 
 	private BricksSelectionPage disksPage;
-	private List<Disk> allDisks;
-	private List<Disk> selectedDisks;
+	private List<Device> allDevice;
+	private List<Device> selectedDevice;
 	private String volumeName;
 
 	/**
@@ -47,11 +48,11 @@ public class SelectDisksDialog extends Dialog {
 	 * 
 	 * @param parentShell
 	 */
-	public SelectDisksDialog(Shell parentShell, List<Disk> allDisks, List<Disk> selectedDisks, String volumeName) {
+	public SelectDisksDialog(Shell parentShell, List<Device> allDisks, List<Device> selectedDevice, String volumeName) {
 		super(parentShell);
 		setShellStyle(getShellStyle() | SWT.RESIZE);
-		this.allDisks = allDisks;
-		this.selectedDisks = selectedDisks;
+		this.allDevice = allDisks;
+		this.selectedDevice = selectedDevice;
 		this.volumeName = volumeName;
 	}
 
@@ -70,7 +71,7 @@ public class SelectDisksDialog extends Dialog {
 
 		getShell().setText("Create Volume - Select Bricks");
 
-		disksPage = new BricksSelectionPage(container, SWT.NONE, allDisks, selectedDisks, volumeName);
+		disksPage = new BricksSelectionPage(container, SWT.NONE, allDevice, selectedDevice, volumeName);
 
 		return container;
 	}
@@ -108,8 +109,8 @@ public class SelectDisksDialog extends Dialog {
 		}
 	}
 
-	public List<Disk> getSelectedDisks() {
-		return disksPage.getChosenDisks();
+	public List<Device> getSelectedDisks() {
+		return disksPage.getChosenDevice();
 	}
 
 	public Set<Brick> getSelectedBricks(String volumeName) {

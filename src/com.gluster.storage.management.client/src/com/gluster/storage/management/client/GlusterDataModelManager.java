@@ -31,12 +31,14 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.ClusterListener;
+import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.core.model.Partition;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
@@ -422,10 +424,10 @@ public class GlusterDataModelManager {
 	 *            Qualified name of the disk to be returned (serverName:diskName)
 	 * @return The disk object for given qualified name
 	 */
-	public Disk getDisk(String serverPartition) {
-		List<Disk> allDisks = getReadyDisksOfAllServers();
+	public Device getDisk(String serverPartition) {
+		List<Device> allDevices = getReadyDevicesOfAllServers();
 		String diskInfo[] = serverPartition.split(":");
-		for (Disk disk : allDisks) {
+		for (Device disk : allDevices) {
 			if (disk.getServerName().equals(diskInfo[0]) && disk.getName().equals(diskInfo[1])) {
 				return disk;
 			}
@@ -436,27 +438,27 @@ public class GlusterDataModelManager {
 	/*
 	 * @param diskName (sda)
 	 * 
-	 * @return The disk object for given disk name
+	 * @return The device object for given device name
 	 */
-	public Disk getDiskDetails(String diskName) {
-		List<Disk> allDisks = getReadyDisksOfAllServers();
-		for (Disk disk : allDisks) {
-			if (disk.getName().equals(diskName)) {
-				return disk;
+	public Device getDeviceDetails(String deviceName) {
+		List<Device> allDisks = getReadyDevicesOfAllServers();
+		for (Device device : allDisks) {
+			if (device.getName().equals(deviceName)) {
+				return device;
 			}
 		}
 		return null;
 	}
 
-	public List<Disk> getReadyDisksOfVolume(Volume volume) {
+	public List<Device> getReadyDisksOfVolume(Volume volume) {
 		/*
 		 * TODO: review the logic
 		 * 
 		 * List<Disk> disks = new ArrayList<Disk>(); for (Disk disk : volume.getDisks()) { if (disk.isReady()) {
 		 * disks.add(disk); } }
 		 */
-		Disk disk = null;
-		List<Disk> volumeDisks = new ArrayList<Disk>();
+		Device disk = null;
+		List<Device> volumeDisks = new ArrayList<Device>();
 		for (Brick brick : volume.getBricks()) {
 			disk = getDisk(brick.getServerName() + ":" + brick.getDiskName());
 			// disk = new Disk();
@@ -476,45 +478,51 @@ public class GlusterDataModelManager {
 	public List<Brick> getOnlineBricks(Volume volume) {
 		List<Brick> onlineBricks = new ArrayList<Brick>();
 		for (Brick brick : volume.getBricks()) {
-			if (isOnlineDisk(brick.getDiskName())) {
+			if (isOnlineDevice(brick.getDiskName())) {
 				onlineBricks.add(brick);
 			}
 		}
 		return onlineBricks;
 	}
 
-	public boolean isOnlineDisk(String diskName) {
-		for (Disk disk : getReadyDisksOfAllServers()) {
-			if (disk.getName().equals(diskName) && disk.isReady()) {
+	public boolean isOnlineDevice(String deviceName) {
+		for (Device device : getReadyDevicesOfAllServers()) {
+			if (device.getName().equals(deviceName) && device.isReady()) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public List<Disk> getReadyDisksOfAllVolumes() {
-		List<Disk> disks = new ArrayList<Disk>();
+	public List<Device> getReadyDevicesOfAllVolumes() {
+		List<Device> device = new ArrayList<Device>();
 		for (Volume volume : model.getCluster().getVolumes()) {
-			disks.addAll(getReadyDisksOfVolume(volume));
+			device.addAll(getReadyDisksOfVolume(volume));
 		}
-		return disks;
+		return device;
 	}
 
-	public List<Disk> getReadyDisksOfAllServers() {
-		return getReadyDisksOfAllServersExcluding(new ArrayList<Disk>());
+	public List<Device> getReadyDevicesOfAllServers() {
+		return getReadyDevicesOfAllServersExcluding(new ArrayList<Device>());
 	}
 
-	public List<Disk> getReadyDisksOfAllServersExcluding(List<Disk> excludeDisks) {
-		List<Disk> disks = new ArrayList<Disk>();
+	public List<Device> getReadyDevicesOfAllServersExcluding(List<Device> excludeDevices) {
+		List<Device> devices = new ArrayList<Device>();
 
 		for (Server server : model.getCluster().getServers()) {
 			for (Disk disk : server.getDisks()) {
-				if (disk.isReady() && !excludeDisks.contains(disk)) {
-					disks.add(disk);
+				if(disk.hasPartitions()) {
+					for(Partition partition : disk.getPartitions()) {
+						if(partition.isReady() && !excludeDevices.contains(partition)) {
+							devices.add(partition);
+						}
+					}
+				} else if (disk.isReady() && !excludeDevices.contains(disk)) {
+					devices.add(disk);
 				}
 			}
 		}
-		return disks;
+		return devices;
 	}
 
 	public void addClusterListener(ClusterListener listener) {

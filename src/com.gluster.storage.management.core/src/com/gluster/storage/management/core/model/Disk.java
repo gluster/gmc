@@ -18,9 +18,11 @@
  *******************************************************************************/
 package com.gluster.storage.management.core.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
@@ -33,7 +35,7 @@ public class Disk extends Device {
 	// interface = pci, raid0, raid3, etc
 	private String diskInterface;
 	
-	private Collection<Partition> partitions;
+	private Collection<Partition> partitions = new ArrayList<Partition>();
 	
 	// In case of a software raid, the disk will contain an array of other disks
 	private Collection<Disk> raidDisks;
@@ -58,6 +60,8 @@ public class Disk extends Device {
 		this.diskInterface = diskInterface;
 	}
 
+	@XmlElementWrapper(name="raidDisks")
+	@XmlElement(name="disk", type=Disk.class)
 	public Collection<Disk> getRaidDisks() {
 		return raidDisks;
 	}
@@ -70,8 +74,14 @@ public class Disk extends Device {
 		this.partitions = partitions;
 	}
 
+	@XmlElementWrapper(name="partitions")
+	@XmlElement(name="partition", type=Partition.class)
 	public Collection<Partition> getPartitions() {
 		return partitions;
+	}
+	
+	public boolean hasPartitions() {
+		return (partitions != null && partitions.size() > 0);
 	}
 
 	public Disk(Server server, String name, String mountPoint, Double space, Double spaceInUse, DEVICE_STATUS status) {
@@ -80,8 +90,19 @@ public class Disk extends Device {
 
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
-		return StringUtil.filterString(getServerName() + getName() + getStatusStr() + getSpace() + getFreeSpace()
-				+ getType() + getDescription(), filterString, caseSensitive);
+		if (StringUtil.filterString(getServerName() + getName() + getStatusStr() + getSpace() + getFreeSpace()
+				+ getType() + getDescription(), filterString, caseSensitive)) {
+			return true;
+		}
+		
+		// disk doesn't match. check if any of the partitions of this disk match the filter
+		for(Partition partition : getPartitions()) {
+			if(partition.filter(filterString, caseSensitive)) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	@Override

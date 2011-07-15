@@ -18,9 +18,18 @@
  *******************************************************************************/
 package com.gluster.storage.management.core.model;
 
-/**
- *
- */
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement(name="partition")
 public class Partition extends Device {
 
+	public Partition() {
+		super();
+	}
+
+	public Partition(Server server, String name, String mountPoint, Double space, Double spaceInUse,
+			DEVICE_STATUS status) {
+		super(server, name, mountPoint, space, spaceInUse, status);
+	}
+	
 }
