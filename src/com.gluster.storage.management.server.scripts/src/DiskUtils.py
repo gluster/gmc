@@ -313,6 +313,9 @@ def getDiskInfo(diskDeviceList=None):
                     partition["Type"] = "DATA"
                 else:
                     partition["Type"] = "BOOT"
+            else:
+                if "SWAP" == partition["FsType"].strip().upper():
+                    partition["Type"] = "SWAP"
             partition["ReadOnlyAccess"] = str(partitionHalDevice.GetProperty('volume.is_mounted_read_only'))
             partitionList.append(partition)
         disk["Partitions"] = partitionList
