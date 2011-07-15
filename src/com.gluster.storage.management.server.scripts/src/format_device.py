@@ -64,14 +64,18 @@ def main():
         sys.exit(2)
 
     if options.fstype:
-        process = Utils.runCommandBG("gluster_provision_block_wrapper.py -t %s %s" % (options.fstype, device), root=True)
+        command = ["gluster_provision_block_wrapper.py", "-t", "%s" % (options.fstype), "%s" % (device)]
     else:
-        process = Utils.runCommandBG("gluster_provision_block_wrapper.py %s" % device, root=True)
-    if process:
-        sys.exit(0)
+        command = ["gluster_provision_block_wrapper.py", "%s" % (device)]
 
-    sys.stderr.write("Device format failed\n")
-    sys.exit(3)
+    try:
+        pid = os.fork()
+    except OSError, e:
+        Utils.log("failed to fork a child process: %s" % str(e))
+        sys.exit(1)
+    if pid == 0:
+        os.execv("/usr/sbin/gluster_provision_block_wrapper.py", command)
+    sys.exit(0)
 
 
 if __name__ == "__main__":
