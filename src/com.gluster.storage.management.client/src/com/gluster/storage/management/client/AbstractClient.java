@@ -22,6 +22,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import org.apache.log4j.Logger;
+
 import com.gluster.storage.management.client.utils.ClientUtil;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.sun.jersey.api.client.Client;
@@ -32,14 +34,13 @@ import com.sun.jersey.api.client.WebResource.Builder;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.client.urlconnection.HTTPSProperties;
-import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 
 public abstract class AbstractClient {
 	private static final String HTTP_HEADER_AUTH = "Authorization";
 	protected static final MultivaluedMap<String, String> NO_PARAMS = new MultivaluedMapImpl();
-
+	private static final Logger logger = Logger.getLogger(AbstractClient.class);
 	protected String clusterName;
 	protected WebResource resource;
 	private String securityToken;
@@ -136,7 +137,7 @@ public abstract class AbstractClient {
 			return res.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML)
 					.get(responseClass);
 		} catch (Exception e1) {
-			e1.printStackTrace();
+			logger.error("Error in fetching response", e1);
 			throw createGlusterException(e1);
 		}
 	}

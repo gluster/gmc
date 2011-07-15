@@ -22,9 +22,9 @@ package com.gluster.storage.management.client;
 
 import java.io.File;
 
+import com.gluster.storage.management.core.constants.RESTConstants;
+
 public class KeysClient extends AbstractClient {
-	// Resource path: /glustermg/1.0/keys
-	private static final String RESOURCE_NAME = "keys";
 
 	public KeysClient() {
 		super();
@@ -36,7 +36,7 @@ public class KeysClient extends AbstractClient {
 
 	@Override
 	public String getResourcePath() {
-		return RESOURCE_NAME;
+		return RESTConstants.RESOURCE_KEYS;
 	}
 
 	public void exportSshKeys(String filePath) {

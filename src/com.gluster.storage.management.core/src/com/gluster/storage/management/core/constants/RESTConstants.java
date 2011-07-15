@@ -41,6 +41,7 @@ public class RESTConstants {
 	public static final String RESOURCE_ALERTS = "alerts";
 	public static final String RESOURCE_SERVERS = "servers";
 	public static final String RESOURCE_TASKS = "tasks";
+	public static final String RESOURCE_KEYS = "keys";
 	
 	public static final String TASK_START = "start";
 	public static final String TASK_PAUSE = "pause";
