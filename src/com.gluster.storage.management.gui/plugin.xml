@@ -988,7 +988,7 @@
                class="com.gluster.storage.management.gui.actions.ChangePasswordAction"
                definitionId="com.gluster.storage.management.gui.commands.ChangePassword"
                icon="icons/tango/32x32/change-password.png"
-               id="com.gluster.storage.management.gui.actions.AddServerAction"
+               id="com.gluster.storage.management.gui.actions.ChangePasswordAction"
                label="&amp;Change Password"
                menubarPath="com.gluster.storage.management.gui.menu.edit/edit"
                mode="FORCE_TEXT"
@@ -997,6 +997,36 @@
                state="false"
                style="push"
                tooltip="Change password">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.ExportSshKeysAction"
+               definitionId="com.gluster.storage.management.gui.commands.ExportSshKeys"
+               icon="icons/tango/32x32/export-keys.png"
+               id="com.gluster.storage.management.gui.actions.ExportSshKeysAction"
+               label="&amp;Export Keys"
+               menubarPath="com.gluster.storage.management.gui.menu.edit/edit"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               tooltip="Export SSH keys">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.ImportSshKeysAction"
+               definitionId="com.gluster.storage.management.gui.commands.ImportSshKeys"
+               icon="icons/tango/32x32/import-keys.png"
+               id="com.gluster.storage.management.gui.actions.ImportSshKeysAction"
+               label="&amp;Import Keys"
+               menubarPath="com.gluster.storage.management.gui.menu.edit/edit"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               tooltip="Import SSH keys">
          </action>
          <menu
                id="com.gluster.storage.management.gui.menu.edit"
