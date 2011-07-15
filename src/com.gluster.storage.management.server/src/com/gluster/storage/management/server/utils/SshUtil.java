@@ -53,8 +53,8 @@ public class SshUtil {
 	private static final String SSH_AUTHORIZED_KEYS_FILE = "authorized_keys";
 	private static final String SSH_AUTHORIZED_KEYS_PATH = SSH_AUTHORIZED_KEYS_DIR + SSH_AUTHORIZED_KEYS_FILE;
 	private LRUCache<String, Connection> sshConnCache = new LRUCache<String, Connection>(10);
-	private static final File PEM_FILE = new File(CoreConstants.USER_HOME + File.separator + ".ssh/id_rsa");
-	private static final File PUBLIC_KEY_FILE = new File(CoreConstants.USER_HOME + File.separator + ".ssh/id_rsa.pub");
+	public static final File PEM_FILE = new File(CoreConstants.USER_HOME + File.separator + ".ssh/id_rsa");
+	public static final File PUBLIC_KEY_FILE = new File(CoreConstants.USER_HOME + File.separator + ".ssh/id_rsa.pub");
 	private static final String SCRIPT_DISABLE_SSH_PASSWORD_AUTH = "disable-ssh-password-auth.sh";
 
 	// TODO: Make user name configurable

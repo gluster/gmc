@@ -28,6 +28,7 @@ public class RESTConstants {
 	public static final String RESOURCE_PATH_USERS = "/users";
 	public static final String RESOURCE_PATH_CLUSTERS = "/clusters";
 	public static final String RESOURCE_PATH_DISCOVERED_SERVERS = "/discoveredservers";
+	public static final String RESOURCE_PATH_KEYS = "/keys";
 	
 	// REST Resource names
 	public static final String RESOURCE_VOLUMES = "volumes";
@@ -40,6 +41,7 @@ public class RESTConstants {
 	public static final String RESOURCE_ALERTS = "alerts";
 	public static final String RESOURCE_SERVERS = "servers";
 	public static final String RESOURCE_TASKS = "tasks";
+	public static final String RESOURCE_KEYS = "keys";
 	
 	public static final String TASK_START = "start";
 	public static final String TASK_PAUSE = "pause";
