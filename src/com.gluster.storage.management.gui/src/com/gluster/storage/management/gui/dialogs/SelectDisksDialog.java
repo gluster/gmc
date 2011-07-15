@@ -33,13 +33,13 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
 import com.gluster.storage.management.core.model.Brick;
-import com.gluster.storage.management.core.model.Disk;
+import com.gluster.storage.management.core.model.Device;
 
 public class SelectDisksDialog extends Dialog {
 
 	private BricksSelectionPage disksPage;
-	private List<Disk> allDisks;
-	private List<Disk> selectedDisks;
+	private List<Device> allDevices;
+	private List<Device> selectedDevices;
 	private String volumeName;
 
 	/**
@@ -47,11 +47,11 @@ public class SelectDisksDialog extends Dialog {
 	 * 
 	 * @param parentShell
 	 */
-	public SelectDisksDialog(Shell parentShell, List<Disk> allDisks, List<Disk> selectedDisks, String volumeName) {
+	public SelectDisksDialog(Shell parentShell, List<Device> allDevices, List<Device> selectedDevices, String volumeName) {
 		super(parentShell);
 		setShellStyle(getShellStyle() | SWT.RESIZE);
-		this.allDisks = allDisks;
-		this.selectedDisks = selectedDisks;
+		this.allDevices = allDevices;
+		this.selectedDevices = selectedDevices;
 		this.volumeName = volumeName;
 	}
 
@@ -70,7 +70,7 @@ public class SelectDisksDialog extends Dialog {
 
 		getShell().setText("Create Volume - Select Bricks");
 
-		disksPage = new BricksSelectionPage(container, SWT.NONE, allDisks, selectedDisks, volumeName);
+		disksPage = new BricksSelectionPage(container, SWT.NONE, allDevices, selectedDevices, volumeName);
 
 		return container;
 	}
@@ -101,15 +101,15 @@ public class SelectDisksDialog extends Dialog {
 
 	@Override
 	protected void okPressed() {
-		if (this.getSelectedDisks().size() == 0) {
+		if (this.getSelectedDevices().size() == 0) {
 			MessageDialog.openError(getShell(), "Select Brick(s)", "Please select atlease one brick");
 		} else {
 			super.okPressed();
 		}
 	}
 
-	public List<Disk> getSelectedDisks() {
-		return disksPage.getChosenDisks();
+	public List<Device> getSelectedDevices() {
+		return disksPage.getChosenDevices();
 	}
 
 	public Set<Brick> getSelectedBricks(String volumeName) {

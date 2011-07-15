@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Brick;
+import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
@@ -42,8 +43,8 @@ import com.richclientgui.toolbox.duallists.IRemovableContentProvider;
  * 
  */
 public class AddBrickPage extends WizardPage {
-	private List<Disk> availableDisks = new ArrayList<Disk>();
-	private List<Disk> selectedDisks = new ArrayList<Disk>();
+	private List<Device> availableDevices = new ArrayList<Device>();
+	private List<Device> selectedDevices = new ArrayList<Device>();
 	private Volume volume = null;
 	private BricksSelectionPage page = null;
 
@@ -66,34 +67,34 @@ public class AddBrickPage extends WizardPage {
 		}
 		setDescription(description);
 
-		availableDisks = getAvailableDisks(volume);
+		availableDevices = getAvailableDevices(volume);
 		
 		setPageComplete(false);
 		setErrorMessage("Please select bricks to be added to the volume [" + volume.getName()  +"]");
 	}
 
 	
-	private boolean  isDiskUsed(Volume volume, Disk disk){
-		for (Brick volumeBrick : volume.getBricks()) { // expected form of volumeBrick is "server:/export/diskName/volumeName"
-			if ( disk.getQualifiedBrickName(volume.getName()).equals(volumeBrick.getQualifiedName())) {
+	private boolean  isDeviceUsed(Volume volume, Device device){
+		for (Brick volumeBrick : volume.getBricks()) {
+			if ( device.getQualifiedBrickName(volume.getName()).equals(volumeBrick.getQualifiedName())) {
 				return true;
 			}
 		}
 		return false;
 	}
 	
-	protected List<Disk> getAvailableDisks(Volume volume) {
-		List<Disk> availableDisks = new ArrayList<Disk>();
-		for (Disk disk : GlusterDataModelManager.getInstance().getReadyDisksOfAllServers()) {
-			if ( ! isDiskUsed(volume, disk) ) {
-				availableDisks.add(disk);
+	protected List<Device> getAvailableDevices(Volume volume) {
+		List<Device> availableDevices = new ArrayList<Device>();
+		for (Device device : GlusterDataModelManager.getInstance().getReadyDevicesOfAllServers()) {
+			if ( ! isDeviceUsed(volume, device) ) {
+				availableDevices.add(device);
 			}
 		}
-		return availableDisks;
+		return availableDevices;
 	}
 
-	public Set<Disk> getChosenDisks() {
-		return new HashSet<Disk>(page.getChosenDisks());
+	public Set<Device> getChosenDevices() {
+		return new HashSet<Device>(page.getChosenDevices());
 	}
 	
 	public Set<Brick> getChosenBricks( String volumeName ) {
@@ -122,16 +123,16 @@ public class AddBrickPage extends WizardPage {
 	@Override
 	public void createControl(Composite parent) {
 		getShell().setText("Add Brick");
-		List<Disk> chosenDisks = new ArrayList<Disk>(); // or volume.getDisks();
+		List<Device> chosenDevices = new ArrayList<Device>(); // or volume.getDisks();
 		
-		page = new BricksSelectionPage(parent, SWT.NONE, availableDisks, chosenDisks, volume.getName());
-		page.addDiskSelectionListener(new ListContentChangedListener<Disk>() {
+		page = new BricksSelectionPage(parent, SWT.NONE, availableDevices, chosenDevices, volume.getName());
+		page.addDiskSelectionListener(new ListContentChangedListener<Device>() {
 			@Override
-			public void listContentChanged(IRemovableContentProvider<Disk> contentProvider) {
-				List<Disk> newChosenDisks = page.getChosenDisks();
+			public void listContentChanged(IRemovableContentProvider<Device> contentProvider) {
+				List<Device> newChosenDevices = page.getChosenDevices();
 				
 				// validate chosen disks
-				if(isValidDiskSelection(newChosenDisks.size())) {
+				if(isValidDiskSelection(newChosenDevices.size())) {
 					clearError();
 				} else {
 					setError();

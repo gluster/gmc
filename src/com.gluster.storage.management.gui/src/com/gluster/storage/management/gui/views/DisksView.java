@@ -19,6 +19,7 @@ public class DisksView extends ViewPart {
 	private EntityGroup<GlusterServer> servers;
 	private DisksPage page;
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void createPartControl(Composite parent) {
 		if (servers == null) {

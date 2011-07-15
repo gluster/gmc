@@ -22,20 +22,18 @@ import java.net.URI;
 import java.util.List;
 
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.IContentProvider;
-import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.TableEditor;
+import org.eclipse.swt.custom.TreeEditor;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
@@ -44,8 +42,7 @@ import org.eclipse.ui.forms.widgets.ImageHyperlink;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.client.TasksClient;
-import com.gluster.storage.management.core.model.ClusterListener;
-import com.gluster.storage.management.core.model.DefaultClusterListener;
+import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Entity;
@@ -54,8 +51,8 @@ import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IEntityListener;
 import com.gluster.storage.management.gui.dialogs.InitializeDiskTypeSelection;
 
-public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> implements IEntityListener {
-	private List<Disk> disks;
+public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk> implements IEntityListener {
+	protected List<Disk> disks;
 	
 	/**
 	 * @return Index of the "status" column in the table. Return -1 if status column is not displayed
@@ -63,7 +60,7 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 	protected abstract int getStatusColumnIndex();
 
 	public AbstractDisksPage(final Composite parent, int style, IWorkbenchSite site, List<Disk> disks) {
-		super(site, parent, style, true, true, disks);
+		super(site, parent, style, false, true, disks);
 		this.disks = disks;
 		
 		// creates hyperlinks for "unitialized" disks
@@ -72,45 +69,30 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 		Application.getApplication().addEntityListener(this);
 	}
 	
-	@Override
-	protected IContentProvider getContentProvider() {
-		return new ArrayContentProvider();
-	}
-	
-	@Override
-	protected List<Disk> getAllEntities() {
-		return disks;
-	}
-	
-	@Override
-	protected ClusterListener createClusterListener() {
-		return new DefaultClusterListener();
-	}
-
-	private void createInitializeLink(final TableItem item, final int rowNum, final Disk disk) {
-		final Table table = tableViewer.getTable();
-		final TableEditor editor = new TableEditor(table);
+	private void createInitializeLink(final TreeItem item, final int rowNum, final Device device) {
+		final Tree tree = treeViewer.getTree(); // .getTableTree();
+		final TreeEditor editor = new TreeEditor(tree);
 		editor.grabHorizontal = true;
 		editor.horizontalAlignment = SWT.RIGHT;
 
-		table.addPaintListener(new PaintListener() {
-			private TableItem myItem = item;
+		tree.addPaintListener(new PaintListener() {
+			private TreeItem myItem = item;
 			private int myRowNum = rowNum;
 			private ImageHyperlink myLink = null;
-			private TableEditor myEditor = null;
+			private TreeEditor myEditor = null;
 
-			private void createLinkFor(Disk disk1, TableItem item1, int rowNum1) {
+			private void createLinkFor(Device device, TreeItem item1, int rowNum1) {
 				myItem = item1;
 				myRowNum = rowNum1;
 
-				myEditor = new TableEditor(table);
+				myEditor = new TreeEditor(tree);
 				myEditor.grabHorizontal = true;
 				myEditor.horizontalAlignment = SWT.RIGHT;
 
-				myLink = toolkit.createImageHyperlink(table, SWT.NONE);
+				myLink = toolkit.createImageHyperlink(tree, SWT.NONE);
 				// link.setImage(guiHelper.getImage(IImageKeys.DISK_UNINITIALIZED));
 				myLink.setText("Initialize");
-				myLink.addHyperlinkListener(new StatusLinkListener(myLink, myEditor, myItem, tableViewer, disk1));
+				myLink.addHyperlinkListener(new StatusLinkListener(myLink, myEditor, treeViewer, device));
 
 				myEditor.setEditor(myLink, item1, getStatusColumnIndex());
 
@@ -125,16 +107,16 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 
 			@Override
 			public void paintControl(PaintEvent e) {
-				int itemCount = table.getItemCount();
+				int itemCount = tree.getItemCount();
 
 				// Find the table item corresponding to our disk
-				Disk disk1 = null;
+				Device device1 = null;
 				int rowNum1 = -1;
-				TableItem item1 = null;
+				TreeItem item1 = null;
 				for (int i = 0; i < itemCount; i++) {
-					item1 = table.getItem(i);
-					disk1 = (Disk) item1.getData();
-					if (disk1 != null && disk1 == disk) {
+					item1 = tree.getItem(i);
+					device1 = (Device) item1.getData();
+					if (device1 != null && device1 == device) {
 						rowNum1 = i;
 						break;
 					}
@@ -149,14 +131,14 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 					// item visible, and
 					// either editor never created, OR
 					// old item disposed. create the link for it
-					createLinkFor(disk1, item1, rowNum1);
+					createLinkFor(device1, item1, rowNum1);
 				}
 
 				if (rowNum1 != myRowNum) {
 					// disk visible, but at a different row num. re-create the link
 					myLink.dispose();
 					myEditor.dispose();
-					createLinkFor(disk1, item1, rowNum1);
+					createLinkFor(device1, item1, rowNum1);
 				}
 
 				myEditor.layout(); // IMPORTANT. Without this, the link location goes for a toss on maximize + restore
@@ -165,29 +147,28 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 	}
 
 	private void setupStatusCellEditor() {
-		final TableViewer viewer = tableViewer;
-		final Table table = viewer.getTable();
-		for (int i = 0; i < table.getItemCount(); i++) {
-			final TableItem item = table.getItem(i);
+		final TreeViewer viewer = treeViewer;
+		final Tree tree = viewer.getTree();
+		for (int i = 0; i < tree.getItemCount(); i++) {
+			final TreeItem item = tree.getItem(i);
 			if (item.isDisposed() || item.getData() == null) {
 				continue;
 			}
-			final Disk disk = (Disk) item.getData();
-			if (disk.isUninitialized()) {
-				createInitializeLink(item, i, disk);
+			final Device device = (Device) item.getData();
+			if (device.isUninitialized()) {
+				createInitializeLink(item, i, device);
 			}
 		}
 	}
 
 	private final class StatusLinkListener extends HyperlinkAdapter {
-		private final Disk disk;
-		private final TableEditor myEditor;
+		private final Device device;
+		private final TreeEditor myEditor;
 		private final ImageHyperlink myLink;
-		private final TableViewer viewer;
+		private final TreeViewer viewer;
 
-		private StatusLinkListener(ImageHyperlink link, TableEditor editor, TableItem item, TableViewer viewer,
-				Disk disk) {
-			this.disk = disk;
+		private StatusLinkListener(ImageHyperlink link, TreeEditor editor, TreeViewer viewer, Device device) {
+			this.device = device;
 			this.viewer = viewer;
 			this.myEditor = editor;
 			this.myLink = link;
@@ -198,9 +179,9 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 				myLink.dispose();
 				myEditor.dispose();
 			}
-			disk.setStatus(status);
-			viewer.update(disk, new String[] { "status" });
-			Application.getApplication().entityChanged(disk, new String[] { "status" });
+			device.setStatus(status);
+			viewer.update(device, new String[] { "status" });
+			Application.getApplication().entityChanged(device, new String[] { "status" });
 		}
 
 		@Override
@@ -214,7 +195,7 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 
 			GlusterServersClient serversClient = new GlusterServersClient();
 			try {
-				URI uri = serversClient.initializeDisk(disk.getServerName(), disk.getName(), formatDialog.getFSType());
+				URI uri = serversClient.initializeDisk(device.getServerName(), device.getName(), formatDialog.getFSType());
 
 				TasksClient taskClient = new TasksClient();
 				TaskInfo taskInfo = taskClient.getTaskInfo(uri);
@@ -230,22 +211,22 @@ public abstract class AbstractDisksPage extends AbstractTableViewerPage<Disk> im
 
 	@Override
 	public void entityChanged(final Entity entity, final String[] paremeters) {
-		if (!(entity instanceof Disk)) {
+		if (!(entity instanceof Device)) {
 			return;
 		}
-		final Disk disk = (Disk) entity;
+		final Device device = (Device) entity;
 
 		Display.getDefault().syncExec(new Runnable() {
 			public void run() {
-				tableViewer.update(disk, paremeters);
+				treeViewer.update(device, paremeters);
 
-				if (disk.isUninitialized()) {
-					Table table = tableViewer.getTable();
-
-					for (int rowNum = 0; rowNum < table.getItemCount(); rowNum++) {
-						TableItem item = table.getItem(rowNum);
-						if (item.getData() == disk) {
-							createInitializeLink(item, rowNum, disk);
+				if (device.isUninitialized()) {
+					Tree tree = treeViewer.getTree();
+					
+					for (int rowNum = 0; rowNum < tree.getItemCount(); rowNum++) {
+						TreeItem item = tree.getItem(rowNum);
+						if (item.getData() == device) {
+							createInitializeLink(item, rowNum, device);
 						}
 					}
 				}

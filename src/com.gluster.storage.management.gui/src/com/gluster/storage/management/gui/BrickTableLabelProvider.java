@@ -23,8 +23,8 @@ import org.eclipse.swt.graphics.Image;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Brick;
+import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
-import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.views.pages.BricksPage.BRICK_TABLE_COLUMN_INDICES;
@@ -41,10 +41,10 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 		}
 
 		Brick brick = (Brick) element;
-		Disk disk = GlusterDataModelManager.getInstance().getDiskDetails(brick.getDiskName());
+		Device device = GlusterDataModelManager.getInstance().getDeviceDetails(brick.getDeviceName());
 
 		if (columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
-			DEVICE_STATUS status = disk.getStatus();
+			DEVICE_STATUS status = device.getStatus();
 			// TODO: Use different images for all four statuses
 			switch (status) {
 			case INITIALIZED:
@@ -63,17 +63,17 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 		return null;
 	}
 
-	private String getDiskFreeSpace(Disk disk) {
-		if (disk != null && disk.isReady() && disk.getFreeSpace() != null) {
-			return NumberUtil.formatNumber((disk.getFreeSpace() / 1024));
+	private String getDeviceFreeSpace(Device device) {
+		if (device != null && device.isReady() && device.getFreeSpace() != null) {
+			return NumberUtil.formatNumber((device.getFreeSpace() / 1024));
 		} else {
 			return "NA";
 		}
 	}
 
-	private String getDiskSpace(Disk disk) {
-		if (disk.isReady() && disk.getSpace() != null && disk.getSpace() != 0.0) {
-			return NumberUtil.formatNumber((disk.getSpace() / 1024));
+	private String getDeviceCapacity(Device device) {
+		if (device.isReady() && device.getSpace() != null && device.getSpace() != 0.0) {
+			return NumberUtil.formatNumber((device.getSpace() / 1024));
 		} else {
 			return "NA";
 		}
@@ -86,11 +86,11 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 		}
 
 		Brick brick = (Brick) element;
-		Disk disk = GlusterDataModelManager.getInstance().getDiskDetails(brick.getDiskName());
+		Device device = GlusterDataModelManager.getInstance().getDeviceDetails(brick.getDeviceName());
 		return (columnIndex == BRICK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? brick.getServerName()
 				: columnIndex == BRICK_TABLE_COLUMN_INDICES.BRICK.ordinal() ? brick.getBrickDirectory()
-						: columnIndex == BRICK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDiskFreeSpace(disk)
-								: columnIndex == BRICK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? getDiskSpace(disk)
+						: columnIndex == BRICK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDeviceFreeSpace(device)
+								: columnIndex == BRICK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? getDeviceCapacity(device)
 										: columnIndex == BRICK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? brick
 												.getStatusStr() : "Invalid");
 	}

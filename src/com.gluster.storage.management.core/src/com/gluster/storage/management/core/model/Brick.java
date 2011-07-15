@@ -29,7 +29,7 @@ public class Brick extends Entity {
 	private String[] BRICK_STATUS_STR = {"Online", "Offline"};
 
 	private String serverName;
-	private String diskName;
+	private String deviceName;
 	private String brickDirectory;
 	private BRICK_STATUS status;
 
@@ -54,10 +54,10 @@ public class Brick extends Entity {
 		this.status = status;
 	}
 
-	public Brick(String serverName, BRICK_STATUS brickStatus, String diskName, String brickDirectory) {
+	public Brick(String serverName, BRICK_STATUS brickStatus, String deviceName, String brickDirectory) {
 		setServerName(serverName);
 		setStatus(brickStatus);
-		setDiskName(diskName);
+		setDeviceName(deviceName);
 		setBrickDirectory(brickDirectory);
 	}
 
@@ -77,12 +77,12 @@ public class Brick extends Entity {
 		return brickDirectory;
 	}
 
-	public void setDiskName(String diskName) {
-		this.diskName = diskName;
+	public void setDeviceName(String deviceName) {
+		this.deviceName = deviceName;
 	}
 
-	public String getDiskName() {
-		return diskName;
+	public String getDeviceName() {
+		return deviceName;
 	}
 
 	public String getQualifiedName() {
@@ -90,7 +90,7 @@ public class Brick extends Entity {
 	}
 
 	public boolean filter(String filterString, boolean caseSensitive) {
-		return StringUtil.filterString(getServerName() + getBrickDirectory() + getDiskName() + getStatusStr(), filterString,
+		return StringUtil.filterString(getServerName() + getBrickDirectory() + getDeviceName() + getStatusStr(), filterString,
 				caseSensitive);
 	}
 	
@@ -116,7 +116,7 @@ public class Brick extends Entity {
 	public void copyFrom(Brick newBrick) {
 		setServerName(newBrick.getServerName());
 		setBrickDirectory(newBrick.getBrickDirectory());
-		setDiskName(newBrick.getDiskName());
+		setDeviceName(newBrick.getDeviceName());
 		setStatus(newBrick.getStatus());
 	}
 }

@@ -152,12 +152,10 @@ public class GlusterServersResource extends AbstractServersResource {
 		String errMsg = "";
 
 		for (GlusterServer server : glusterServers) {
-			if (server.getStatus() == SERVER_STATUS.ONLINE && !server.getName().equals(onlineServer.getName())) {
-				try {
-					fetchServerDetails(server);
-				} catch (Exception e) {
-					errMsg += CoreConstants.NEWLINE + server.getName() + " : [" + e.getMessage() + "]";
-				}
+			try {
+				fetchServerDetails(server);
+			} catch (Exception e) {
+				errMsg += CoreConstants.NEWLINE + server.getName() + " : [" + e.getMessage() + "]";
 			}
 		}
 		return errMsg;

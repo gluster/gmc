@@ -419,7 +419,7 @@ public class VolumeSummaryView extends ViewPart {
 	private double getTotalDiskSpace() {
 		double diskSize = 0;
 		for (Brick brick : volume.getBricks()) {
-			diskSize += getDiskSize(brick.getServerName(), brick.getDiskName());
+			diskSize += getDiskSize(brick.getServerName(), brick.getDeviceName());
 		}
 		return diskSize;
 

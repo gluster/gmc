@@ -46,6 +46,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -249,6 +250,9 @@ public class GUIHelper {
 
 				// Refresh viewer with newly filtered content
 				viewer.refresh(true);
+				if(viewer instanceof TreeViewer) {
+					((TreeViewer)viewer).expandAll();
+				}
 			}
 		});
 
