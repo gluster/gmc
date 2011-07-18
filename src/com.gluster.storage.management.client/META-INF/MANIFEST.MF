@@ -12,4 +12,5 @@ Export-Package: com.gluster.storage.management.client,
 Bundle-ClassPath: .,
  lib/jersey-1.5/jersey-client-1.5.jar,
  lib/jersey-1.5/jersey-core-1.5.jar,
+ lib/jersey-1.5/jersey-multipart-1.5.jar,
  keystore/
