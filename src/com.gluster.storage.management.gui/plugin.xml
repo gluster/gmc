@@ -462,6 +462,20 @@
                toolbarPath="Normal"
                tooltip="Create a new Volume">
          </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.ServerAdditionAction"
+               definitionId="com.gluster.storage.management.gui.commands.ServerAddition"
+               id="com.gluster.storage.management.gui.actions.ServerAdditionAction"
+               label="Add Server"
+               menubarPath="com.gluster.storage.management.gui.actionsets.volumes/volumes"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               tooltip="Manual Server Addition">
+         </action>
          <menu
                id="com.gluster.storage.management.gui.actionsets.volumes"
                label="&amp;Gluster"
@@ -631,6 +645,20 @@
                toolbarPath="Normal"
                tooltip="Create a new Volume">
          </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.ServerAdditionAction"
+               definitionId="com.gluster.storage.management.gui.commands.ServerAddition"
+               id="com.gluster.storage.management.gui.actions.ServerAdditionAction"
+               label="Add Server"
+               menubarPath="com.gluster.storage.management.gui.menu.volume/volume"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               tooltip="Manual Server Addition">
+         </action>
          <menu
                id="com.gluster.storage.management.gui.menu.volume"
                label="&amp;Gluster"
@@ -674,6 +702,20 @@
                style="push"
                toolbarPath="Normal"
                tooltip="Create a new Volume">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.ServerAdditionAction"
+               definitionId="com.gluster.storage.management.gui.commands.ServerAddition"
+               id="com.gluster.storage.management.gui.actions.ServerAdditionAction"
+               label="Add Server"
+               menubarPath="com.gluster.storage.management.gui.menu.servers/servers"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               tooltip="Manual Server Addition">
          </action>
          <menu
                id="com.gluster.storage.management.gui.menu.servers"
@@ -719,6 +761,20 @@
                toolbarPath="Normal"
                tooltip="Create a new Volume">
          </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.ServerAdditionAction"
+               definitionId="com.gluster.storage.management.gui.commands.ServerAddition"
+               id="com.gluster.storage.management.gui.actions.ServerAdditionAction"
+               label="Add Server"
+               menubarPath="com.gluster.storage.management.gui.menu.glusterserver/glusterserver"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               tooltip="Manual Server Addition">
+         </action>
          <menu
                id="com.gluster.storage.management.gui.menu.glusterserver"
                label="&amp;Gluster"
@@ -763,6 +819,20 @@
                toolbarPath="Normal"
                tooltip="Create a new Volume">
          </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.ServerAdditionAction"
+               definitionId="com.gluster.storage.management.gui.commands.ServerAddition"
+               id="com.gluster.storage.management.gui.actions.ServerAdditionAction"
+               label="Add Server"
+               menubarPath="com.gluster.storage.management.gui.menu.discoveredservers/discoveredservers"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               tooltip="Manual Server Addition">
+         </action>
          <menu
                id="com.gluster.storage.management.gui.menu.discoveredservers"
                label="&amp;Gluster"
@@ -806,6 +876,20 @@
                style="push"
                toolbarPath="Normal"
                tooltip="Create a new Volume">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.ServerAdditionAction"
+               definitionId="com.gluster.storage.management.gui.commands.ServerAddition"
+               id="com.gluster.storage.management.gui.actions.ServerAdditionAction"
+               label="Add Server"
+               menubarPath="com.gluster.storage.management.gui.menu.discoveredserver/discoveredserver"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               tooltip="Manual Server Addition">
          </action>
          <menu
                id="com.gluster.storage.management.gui.menu.discoveredserver"
@@ -938,6 +1022,20 @@
                style="push"
                toolbarPath="Normal"
                tooltip="Create a new Volume">
+         </action>
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.gui.actions.ServerAdditionAction"
+               definitionId="com.gluster.storage.management.gui.commands.ServerAddition"
+               id="com.gluster.storage.management.gui.actions.ServerAdditionAction"
+               label="Add Server"
+               menubarPath="com.gluster.storage.management.gui.menu.gluster/gluster"
+               mode="FORCE_TEXT"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               tooltip="Manual Server Addition">
          </action>
          <menu
                id="com.gluster.storage.management.gui.menu.gluster"

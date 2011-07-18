@@ -69,9 +69,9 @@ public class GlusterServersClient extends AbstractClient {
 		return server;
 	}
 
-	public void addServer(Server discoveredServer) {
+	public void addServer(String serverName) {
 		Form form = new Form();
-		form.add(RESTConstants.FORM_PARAM_SERVER_NAME, discoveredServer.getName());
+		form.add(RESTConstants.FORM_PARAM_SERVER_NAME, serverName);
 		postRequest(form);
 	}
 	
