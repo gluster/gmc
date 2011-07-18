@@ -18,15 +18,9 @@
  *******************************************************************************/
 package com.gluster.storage.management.client;
 
-import java.net.ConnectException;
-
-import javax.ws.rs.core.Response;
-
 import org.apache.log4j.Logger;
 
-import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Status;
-import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.core.util.Base64;
 
@@ -60,8 +54,7 @@ public class UsersClient extends AbstractClient {
 		putRequest(user, form);
 		
 		// password changed. set the new security token
-		setSecurityToken(generateSecurityToken(user, newPassword));
-		GlusterDataModelManager.getInstance().setSecurityToken(getSecurityToken());
+		authenticate(user, newPassword);
 	}
 
 	public static void main(String[] args) {

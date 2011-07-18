@@ -46,11 +46,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.UsersClient;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.ConnectionDetails;
-import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.validators.StringRequiredValidator;
 
@@ -128,7 +126,7 @@ public class ChangePasswordDialog extends Dialog {
 
 	@Override
 	protected Control createDialogArea(Composite parent) {
-		parent.setBackgroundImage(guiHelper.getImage(IImageKeys.DIALOG_SPLASH_IMAGE));
+		// parent.setBackgroundImage(guiHelper.getImage(IImageKeys.DIALOG_SPLASH_IMAGE));
 		parent.setBackgroundMode(SWT.INHERIT_FORCE);
 
 		composite = (Composite) super.createDialogArea(parent);
@@ -178,11 +176,17 @@ public class ChangePasswordDialog extends Dialog {
 			okButton.setEnabled(false);
 			return;
 		}
-		
+
+		if (confirmPwd.equals(CoreConstants.DEFAULT_PASSWORD)) {
+			okButton.setEnabled(false);
+			return;
+		}
+
 		if (newPwd.length() < 4 ) { // Minimum  password length is 4
 			okButton.setEnabled(false);
 			return;
 		}
+
 		okButton.setEnabled(true);
 	}
 
