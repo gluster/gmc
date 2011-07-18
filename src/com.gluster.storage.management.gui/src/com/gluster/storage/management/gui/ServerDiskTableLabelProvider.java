@@ -69,19 +69,19 @@ public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 		return null;
 	}
 
-	private String getDiskFreeSpace(Disk disk) {
-		if (disk.hasErrors() || disk.isUninitialized()) {
+	private String getDeviceFreeSpace(Device device) {
+		if (device.hasErrors() || device.isUninitialized()) {
 			return "NA";
 		} else {
-			return NumberUtil.formatNumber((disk.getFreeSpace() / 1024));
+			return NumberUtil.formatNumber((device.getFreeSpace() / 1024));
 		}
 	}
 
-	private String getTotalDiskSpace(Disk disk) {
-		if (disk.hasErrors() || disk.isUninitialized()) {
+	private String getTotalDeviceSpace(Device device) {
+		if (device.hasErrors() || device.isUninitialized()) {
 			return "NA";
 		} else {
-			return NumberUtil.formatNumber((disk.getSpace() / 1024));
+			return NumberUtil.formatNumber((device.getSpace() / 1024));
 		}
 	}
 
@@ -94,9 +94,9 @@ public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 				return "";
 			}
 		} else if (columnIndex == DEVICE_COLUMN_INDICES.FREE_SPACE.ordinal()) {
-			return "" + device.getFreeSpace();
+			return "" + getDeviceFreeSpace(device);
 		} else if (columnIndex == DEVICE_COLUMN_INDICES.SPACE_IN_USE.ordinal()) {
-			return "" + device.getSpace();
+			return "" + getTotalDeviceSpace(device);
 		} else if (columnIndex == DEVICE_COLUMN_INDICES.PARTITION.ordinal()) {
 			if (device instanceof Partition) {
 				return device.getName();
@@ -104,7 +104,7 @@ public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 				return "";
 			}
 		} else if (columnIndex == DEVICE_COLUMN_INDICES.STATUS.ordinal()) {
-			return device.getStatusStr();
+			return glusterDataModelManager.getDeviceStatus(device);
 		} else {
 			return "";
 		}

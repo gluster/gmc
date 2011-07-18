@@ -46,6 +46,7 @@ import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Entity;
+import com.gluster.storage.management.core.model.Partition;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IEntityListener;
@@ -70,7 +71,7 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 	}
 	
 	private void createInitializeLink(final TreeItem item, final int rowNum, final Device device) {
-		final Tree tree = treeViewer.getTree(); // .getTableTree();
+		final Tree tree = treeViewer.getTree();
 		final TreeEditor editor = new TreeEditor(tree);
 		editor.grabHorizontal = true;
 		editor.horizontalAlignment = SWT.RIGHT;
@@ -110,15 +111,30 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 				int itemCount = tree.getItemCount();
 
 				// Find the table item corresponding to our disk
-				Device device1 = null;
+				Disk disk = null;
 				int rowNum1 = -1;
 				TreeItem item1 = null;
 				for (int i = 0; i < itemCount; i++) {
 					item1 = tree.getItem(i);
-					device1 = (Device) item1.getData();
-					if (device1 != null && device1 == device) {
+					
+					disk = (Disk) item1.getData();
+					if (disk != null && disk == device) {
+						// this is an uninitialized "disk"
 						rowNum1 = i;
 						break;
+					}
+					
+					int partitionCount = item1.getItemCount();
+					for(int j = 0; j < partitionCount; j++) {
+						TreeItem partitionItem = item1.getItem(j);
+						// check each partition
+						Device partition = (Device)partitionItem.getData();
+						if(partition != null && partition == device) {
+							// this is an uninitialized "partition"
+							rowNum1 = i + j;
+							item1 = partitionItem;
+							break;
+						}
 					}
 				}
 
@@ -131,14 +147,14 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 					// item visible, and
 					// either editor never created, OR
 					// old item disposed. create the link for it
-					createLinkFor(device1, item1, rowNum1);
+					createLinkFor(disk, item1, rowNum1);
 				}
 
 				if (rowNum1 != myRowNum) {
 					// disk visible, but at a different row num. re-create the link
 					myLink.dispose();
 					myEditor.dispose();
-					createLinkFor(device1, item1, rowNum1);
+					createLinkFor(disk, item1, rowNum1);
 				}
 
 				myEditor.layout(); // IMPORTANT. Without this, the link location goes for a toss on maximize + restore
@@ -154,9 +170,17 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 			if (item.isDisposed() || item.getData() == null) {
 				continue;
 			}
-			final Device device = (Device) item.getData();
-			if (device.isUninitialized()) {
-				createInitializeLink(item, i, device);
+			final Disk disk = (Disk) item.getData();
+			if (disk.isUninitialized()) {
+				createInitializeLink(item, i, disk);
+			}
+			
+			if (disk.hasPartitions()) {
+				for (Partition partition : disk.getPartitions()) {
+					if(partition.isUninitialized()) {
+						createInitializeLink(item, i, partition);
+					}
+				}
 			}
 		}
 	}
