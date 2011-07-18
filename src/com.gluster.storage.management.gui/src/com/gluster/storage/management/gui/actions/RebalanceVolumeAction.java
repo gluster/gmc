@@ -28,9 +28,11 @@ import com.gluster.storage.management.client.TasksClient;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public class RebalanceVolumeAction extends AbstractActionDelegate {
 	private Volume volume;
+	private GUIHelper guiHelper = GUIHelper.getInstance();
 
 	@Override
 	protected void performAction(final IAction action) {
@@ -54,10 +56,12 @@ public class RebalanceVolumeAction extends AbstractActionDelegate {
 	public void selectionChanged(IAction action, ISelection selection) {
 		super.selectionChanged(action, selection);
 
-		action.setEnabled(false);
-		if (selectedEntity instanceof Volume) {
-			volume = (Volume) selectedEntity;
+		Volume selectedVolume = guiHelper.getSelectedEntity(getWindow(), Volume.class);
+		if (selectedVolume != null) {
+			volume = (Volume) selectedVolume;
 			action.setEnabled(true);
+		} else {
+			action.setEnabled(false);
 		}
 	}
 
