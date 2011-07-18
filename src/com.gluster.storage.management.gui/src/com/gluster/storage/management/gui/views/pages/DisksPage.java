@@ -41,10 +41,9 @@ public class DisksPage extends AbstractDisksPage {
 		super(parent, style, site, disks);
 	}
 
-	private String getDiskTableColumeStr(DISK_TABLE_COLUMN_INDICES idx) {
+	private String getDiskTableColumnDesc(DISK_TABLE_COLUMN_INDICES idx) {
 		return DISK_TABLE_COLUMN_NAMES[idx.ordinal()];
 	}
-	
 	
 	@Override
 	protected DeviceTableLabelProvider getLabelProvider() {

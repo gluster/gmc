@@ -47,11 +47,12 @@ import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
-import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.NetworkInterfaceTableLabelProvider;
 import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
+import com.gluster.storage.management.gui.utils.ChartViewerComposite;
+import com.gluster.storage.management.gui.utils.ChartViewerComposite.CHART_TYPE;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.richclientgui.toolbox.gauges.CoolGauge;
 
@@ -100,12 +101,37 @@ public class GlusterServerSummaryView extends ViewPart {
 		GlusterDataModelManager.getInstance().removeClusterListener(serverChangedListener);
 	}
 
+	private void createLineChart(Composite section, String timestamps[], Double values[]) {
+		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, timestamps, values);
+		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
+		data.widthHint = 450;
+		data.heightHint = 300;
+		data.verticalAlignment = SWT.CENTER;
+		chartViewerComposite.setLayoutData(data);
+	}
+
+	private void createMemoryUsageSection() {
+		Composite section = guiHelper.createSection(form, toolkit, "Memory Usage (aggregated)", null, 1, false);
+		toolkit.createLabel(section, "Historical Memory Usage graph aggregated across all servers will be displayed here.");
+	}
+	
+	private void createCPUUsageSection() {
+		Composite section = guiHelper.createSection(form, toolkit, "CPU Usage (aggregated)", null, 1, false);
+		//toolkit.createLabel(section, "Historical CPU Usage graph aggregated across\nall servers will be displayed here.");
+
+		String[] timestamps = new String[] {"t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9", "t10", "t11", "t12", "t13", "t14", "t15", "t16", "t17", "t18", "t19", "t20"};
+		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 20.31d, 19.63d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 40d, 10d, 90d, 40d };
+		createLineChart(section, timestamps, values);
+	}
+
 	private void createSections(Composite parent) {
 		String serverName = server.getName();
 		form = guiHelper.setupForm(parent, toolkit, "Server Summary [" + serverName + "]");
 		createServerSummarySection(server, toolkit, form);
 
 		if (server.getStatus() == SERVER_STATUS.ONLINE) {
+			createMemoryUsageSection();
+			createCPUUsageSection();
 			createNetworkInterfacesSection(server, toolkit, form);
 		}
 

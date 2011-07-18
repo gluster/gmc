@@ -419,17 +419,11 @@ public class GlusterDataModelManager {
 		return volume;
 	}
 
-	/**
-	 * @param serverPartition
-	 *            Qualified name of the disk to be returned (serverName:diskName)
-	 * @return The disk object for given qualified name
-	 */
-	public Device getDisk(String serverPartition) {
+	private Device getDevice(String serverName, String deviceName) {
 		List<Device> allDevices = getReadyDevicesOfAllServers();
-		String diskInfo[] = serverPartition.split(":");
-		for (Device disk : allDevices) {
-			if (disk.getServerName().equals(diskInfo[0]) && disk.getName().equals(diskInfo[1])) {
-				return disk;
+		for (Device device : allDevices) {
+			if (device.getServerName().equals(serverName) && device.getName().equals(deviceName)) {
+				return device;
 			}
 		}
 		return null;
@@ -441,8 +435,8 @@ public class GlusterDataModelManager {
 	 * @return The device object for given device name
 	 */
 	public Device getDeviceDetails(String deviceName) {
-		List<Device> allDisks = getReadyDevicesOfAllServers();
-		for (Device device : allDisks) {
+		List<Device> allDevices = getReadyDevicesOfAllServers();
+		for (Device device : allDevices) {
 			if (device.getName().equals(deviceName)) {
 				return device;
 			}
@@ -450,56 +444,17 @@ public class GlusterDataModelManager {
 		return null;
 	}
 
-	public List<Device> getReadyDisksOfVolume(Volume volume) {
-		/*
-		 * TODO: review the logic
-		 * 
-		 * List<Disk> disks = new ArrayList<Disk>(); for (Disk disk : volume.getDisks()) { if (disk.isReady()) {
-		 * disks.add(disk); } }
-		 */
-		Device disk = null;
-		List<Device> volumeDisks = new ArrayList<Device>();
+
+	public List<Device> getReadyDevicesOfVolume(Volume volume) {
+		Device device = null;
+		List<Device> volumeDevices = new ArrayList<Device>();
 		for (Brick brick : volume.getBricks()) {
-			disk = getDisk(brick.getServerName() + ":" + brick.getDiskName());
-			// disk = new Disk();
-			// disk.setServerName(brick.getServerName());
-			// disk.setName(brick.getDiskName());
-			// disk.setStatus(DISK_STATUS.READY);
-			// disk.setMountPoint("/export/" + disk.getName());
-			// disk.setSpace(250d);
-			// disk.setSpaceInUse(186.39);
-			if (disk != null && disk.isReady()) {
-				volumeDisks.add(disk);
+			device = getDevice(brick.getServerName(), brick.getDeviceName());
+			if (device != null && device.isReady()) {
+				volumeDevices.add(device);
 			}
 		}
-		return volumeDisks;
-	}
-
-	public List<Brick> getOnlineBricks(Volume volume) {
-		List<Brick> onlineBricks = new ArrayList<Brick>();
-		for (Brick brick : volume.getBricks()) {
-			if (isOnlineDevice(brick.getDiskName())) {
-				onlineBricks.add(brick);
-			}
-		}
-		return onlineBricks;
-	}
-
-	public boolean isOnlineDevice(String deviceName) {
-		for (Device device : getReadyDevicesOfAllServers()) {
-			if (device.getName().equals(deviceName) && device.isReady()) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public List<Device> getReadyDevicesOfAllVolumes() {
-		List<Device> device = new ArrayList<Device>();
-		for (Volume volume : model.getCluster().getVolumes()) {
-			device.addAll(getReadyDisksOfVolume(volume));
-		}
-		return device;
+		return volumeDevices;
 	}
 
 	public List<Device> getReadyDevicesOfAllServers() {
@@ -729,7 +684,7 @@ public class GlusterDataModelManager {
 
 	private Boolean isDiskUsed(Volume volume, Disk disk) {
 		for (Brick brick : volume.getBricks()) {
-			if (disk.getName().equals(brick.getDiskName()) && disk.getServerName().equals(brick.getServerName())) {
+			if (disk.getName().equals(brick.getDeviceName()) && disk.getServerName().equals(brick.getServerName())) {
 				return true;
 			}
 		}

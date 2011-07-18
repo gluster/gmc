@@ -67,15 +67,15 @@ public class AddBrickPage extends WizardPage {
 		}
 		setDescription(description);
 
-		availableDevices = getAvailableDisks(volume);
+		availableDevices = getAvailableDevices(volume);
 		
 		setPageComplete(false);
 		setErrorMessage("Please select bricks to be added to the volume [" + volume.getName()  +"]");
 	}
 
 	
-	private boolean  isDiskUsed(Volume volume, Device device){
-		for (Brick volumeBrick : volume.getBricks()) { // expected form of volumeBrick is "server:/export/diskName/volumeName"
+	private boolean  isDeviceUsed(Volume volume, Device device){
+		for (Brick volumeBrick : volume.getBricks()) {
 			if ( device.getQualifiedBrickName(volume.getName()).equals(volumeBrick.getQualifiedName())) {
 				return true;
 			}
@@ -83,18 +83,18 @@ public class AddBrickPage extends WizardPage {
 		return false;
 	}
 	
-	protected List<Device> getAvailableDisks(Volume volume) {
-		List<Device> availableDisks = new ArrayList<Device>();
+	protected List<Device> getAvailableDevices(Volume volume) {
+		List<Device> availableDevices = new ArrayList<Device>();
 		for (Device device : GlusterDataModelManager.getInstance().getReadyDevicesOfAllServers()) {
-			if ( ! isDiskUsed(volume, device) ) {
-				availableDisks.add(device);
+			if ( ! isDeviceUsed(volume, device) ) {
+				availableDevices.add(device);
 			}
 		}
-		return availableDisks;
+		return availableDevices;
 	}
 
-	public Set<Device> getChosenDisks() {
-		return new HashSet<Device>(page.getChosenDevice());
+	public Set<Device> getChosenDevices() {
+		return new HashSet<Device>(page.getChosenDevices());
 	}
 	
 	public Set<Brick> getChosenBricks( String volumeName ) {
@@ -123,16 +123,16 @@ public class AddBrickPage extends WizardPage {
 	@Override
 	public void createControl(Composite parent) {
 		getShell().setText("Add Brick");
-		List<Device> chosenDisks = new ArrayList<Device>(); // or volume.getDisks();
+		List<Device> chosenDevices = new ArrayList<Device>(); // or volume.getDisks();
 		
-		page = new BricksSelectionPage(parent, SWT.NONE, availableDevices, chosenDisks, volume.getName());
+		page = new BricksSelectionPage(parent, SWT.NONE, availableDevices, chosenDevices, volume.getName());
 		page.addDiskSelectionListener(new ListContentChangedListener<Device>() {
 			@Override
 			public void listContentChanged(IRemovableContentProvider<Device> contentProvider) {
-				List<Device> newChosenDisks = page.getChosenDevice();
+				List<Device> newChosenDevices = page.getChosenDevices();
 				
 				// validate chosen disks
-				if(isValidDiskSelection(newChosenDisks.size())) {
+				if(isValidDiskSelection(newChosenDevices.size())) {
 					clearError();
 				} else {
 					setError();

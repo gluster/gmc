@@ -18,6 +18,7 @@
 
 import os
 import sys
+import time
 import Utils
 import DiskUtils
 from XmlHandler import ResponseXml
@@ -33,6 +34,7 @@ def main():
     deviceFormatStatusFile = Utils.getDeviceFormatStatusFile(device)
     deviceFormatOutputFile = Utils.getDeviceFormatOutputFile(device)
 
+    time.sleep(1)
     if not os.path.exists(deviceFormatLockFile):
         if not os.path.exists(deviceFormatStatusFile):
             sys.stderr.write("Device format not initiated\n")

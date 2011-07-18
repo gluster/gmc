@@ -69,12 +69,6 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 		Application.getApplication().addEntityListener(this);
 	}
 	
-
-//	@Override
-//	protected ClusterListener createClusterListener() {
-//		return new DefaultClusterListener();
-//	}
-
 	private void createInitializeLink(final TreeItem item, final int rowNum, final Device device) {
 		final Tree tree = treeViewer.getTree(); // .getTableTree();
 		final TreeEditor editor = new TreeEditor(tree);
@@ -116,13 +110,13 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 				int itemCount = tree.getItemCount();
 
 				// Find the table item corresponding to our disk
-				Device disk1 = null;
+				Device device1 = null;
 				int rowNum1 = -1;
 				TreeItem item1 = null;
 				for (int i = 0; i < itemCount; i++) {
 					item1 = tree.getItem(i);
-					disk1 = (Device) item1.getData();
-					if (disk1 != null && disk1 == device) {
+					device1 = (Device) item1.getData();
+					if (device1 != null && device1 == device) {
 						rowNum1 = i;
 						break;
 					}
@@ -137,14 +131,14 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 					// item visible, and
 					// either editor never created, OR
 					// old item disposed. create the link for it
-					createLinkFor(disk1, item1, rowNum1);
+					createLinkFor(device1, item1, rowNum1);
 				}
 
 				if (rowNum1 != myRowNum) {
 					// disk visible, but at a different row num. re-create the link
 					myLink.dispose();
 					myEditor.dispose();
-					createLinkFor(disk1, item1, rowNum1);
+					createLinkFor(device1, item1, rowNum1);
 				}
 
 				myEditor.layout(); // IMPORTANT. Without this, the link location goes for a toss on maximize + restore

@@ -29,7 +29,6 @@ import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Partition;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-import com.gluster.storage.management.gui.views.pages.DisksPage.DISK_TABLE_COLUMN_INDICES;
 
 public class DeviceTableLabelProvider extends LabelProvider implements ITableLabelProvider {
 
@@ -41,23 +40,22 @@ public class DeviceTableLabelProvider extends LabelProvider implements ITableLab
 	FontRegistry registry = new FontRegistry();
 
 	public DeviceTableLabelProvider() {
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public Image getColumnImage(Object element, int columnIndex) {
-		if (!(element instanceof Disk)) {
+		if (!(element instanceof Device)) {
 			return null;
 		}
 
-		Disk disk = (Disk) element;
-		if (columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
-			DEVICE_STATUS status = disk.getStatus();
+		Device device = (Device) element;
+		if (columnIndex == DEVICE_COLUMN_INDICES.STATUS.ordinal()) {
+			DEVICE_STATUS status = device.getStatus();
 			
 			if (status == null) {
 				if (element instanceof Partition) {
-					if (columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
-						status = disk.getStatus();
+					if (columnIndex == DEVICE_COLUMN_INDICES.STATUS.ordinal()) {
+						status = device.getStatus();
 					}
 				}
 			}
@@ -65,7 +63,6 @@ public class DeviceTableLabelProvider extends LabelProvider implements ITableLab
 			if (status == null) {
 				return null;
 			}
-
 
 			// TODO: Use different images for all four statuses
 			switch (status) {
@@ -97,23 +94,23 @@ public class DeviceTableLabelProvider extends LabelProvider implements ITableLab
 		}
 		
 		Device device = (Device) element;
-		if (columnIndex == DISK_TABLE_COLUMN_INDICES.DISK.ordinal()) {
+		if (columnIndex == DEVICE_COLUMN_INDICES.DISK.ordinal()) {
 			if (device instanceof Disk) {
 				return device.getQualifiedName();
 			} else {
 				return "";
 			}
-		} else if (columnIndex == DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal()) {
+		} else if (columnIndex == DEVICE_COLUMN_INDICES.FREE_SPACE.ordinal()) {
 			return "" + device.getFreeSpace();
-		} else if (columnIndex == DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal()) {
-			return "" + device.getSpace();
-		} else if (columnIndex == DISK_TABLE_COLUMN_INDICES.PARTITION.ordinal()) {
+		} else if (columnIndex == DEVICE_COLUMN_INDICES.SPACE_IN_USE.ordinal()) {
+			return "" + device.getSpaceInUse();
+		} else if (columnIndex == DEVICE_COLUMN_INDICES.PARTITION.ordinal()) {
 			if (device instanceof Partition) {
 				return device.getQualifiedName();
 			} else {
 				return "";
 			}
-		} else if (columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
+		} else if (columnIndex == DEVICE_COLUMN_INDICES.STATUS.ordinal()) {
 			return device.getStatusStr();
 		} else {
 			return "";

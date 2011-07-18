@@ -6,6 +6,11 @@
 		<homepage href="$$codebase" />
 		<description>Gluster Management Console</description>
 		<icon kind="splash" href="splash.jpg"/>
+
+		<shortcut  online="true">
+    		<desktop/>
+    		<menu submenu="Gluster"/>
+		</shortcut> 
 	</information>
 	<security>
 		<all-permissions/>

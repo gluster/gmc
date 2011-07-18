@@ -42,6 +42,7 @@ public class RESTConstants {
 	public static final String RESOURCE_SERVERS = "servers";
 	public static final String RESOURCE_TASKS = "tasks";
 	public static final String RESOURCE_KEYS = "keys";
+	public static final String RESOURCE_STATISTICS = "statistics";
 	
 	public static final String TASK_START = "start";
 	public static final String TASK_PAUSE = "pause";
@@ -98,6 +99,11 @@ public class RESTConstants {
 	public static final String QUERY_PARAM_DOWNLOAD = "download";
 	public static final String QUERY_PARAM_SERVER_NAME = "serverName";
 	public static final String QUERY_PARAM_DETAILS = "details";
+	public static final String QUERY_PARAM_TYPE = "type";
+	
+	public static final String STATISTICS_TYPE_CPU = "cpu";
+	public static final String STATISTICS_TYPE_NETWORK = "network";
+	public static final String STATISTICS_TYPE_MEMORY = "memory";
 	
 	public static final String FORMAT_XML = "xml";
 	public static final String FORMAT_JSON = "json";

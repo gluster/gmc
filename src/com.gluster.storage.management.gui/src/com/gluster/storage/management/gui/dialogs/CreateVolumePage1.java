@@ -64,11 +64,11 @@ public class CreateVolumePage1 extends WizardPage {
 	private ComboViewer typeComboViewer;
 	private Text txtAccessControl;
 	private Volume volume = new Volume();
-	private List<Device> allDevice;
 	private Button btnNfs;
 	private Button btnStartVolume;
 	private Link linkCustomize;
-	private List<Device> selectedDevice;
+	private List<Device> allDevices;
+	private List<Device> selectedDevices;
 
 	/**
 	 * Create the wizard.
@@ -79,8 +79,8 @@ public class CreateVolumePage1 extends WizardPage {
 		setDescription("Create a new Volume by choosing bricks from the cluster servers and configuring the volume properties.");
 		
 		// by default, we create volume with all available disks
-		allDevice = GlusterDataModelManager.getInstance().getReadyDevicesOfAllServers();
-		selectedDevice = allDevice; // volume.setDisks(allDisks);
+		allDevices = GlusterDataModelManager.getInstance().getReadyDevicesOfAllServers();
+		selectedDevices = allDevices; // volume.setDisks(allDisks);
 	}
 	
 	private List<String> getBricks(List<Disk> allDisks) {
@@ -196,13 +196,13 @@ public class CreateVolumePage1 extends WizardPage {
 					
 					@Override
 					public void run() {
-						SelectDisksDialog dialog = new SelectDisksDialog(getShell(), allDevice, selectedDevice, txtName.getText().trim());
+						SelectDisksDialog dialog = new SelectDisksDialog(getShell(), allDevices, selectedDevices, txtName.getText().trim());
 
 						dialog.create();
 				        if(dialog.open() == Window.OK) {
 				        	// user has customized disks. get them from the dialog box.
-				        	selectedDevice = dialog.getSelectedDisks();
-				        	linkCustomize.setText("" + selectedDevice.size() + " Brick(s) (<a>customize</a>)");
+				        	selectedDevices = dialog.getSelectedDevices();
+				        	linkCustomize.setText("" + selectedDevices.size() + " Brick(s) (<a>customize</a>)");
 				        	validateForm();
 				        }
 					}
@@ -307,8 +307,8 @@ public class CreateVolumePage1 extends WizardPage {
 		
 		volume.setAccessControlList(txtAccessControl.getText());
 		
-		for(Device disk : selectedDevice) {
-			Brick brick = new Brick(disk.getServerName(), BRICK_STATUS.ONLINE, disk.getName(), disk.getMountPoint() + File.separator + volume.getName());
+		for(Device device : selectedDevices) {
+			Brick brick = new Brick(device.getServerName(), BRICK_STATUS.ONLINE, device.getName(), device.getMountPoint() + File.separator + volume.getName());
 			volume.addBrick(brick);
 		}
 		
@@ -338,7 +338,7 @@ public class CreateVolumePage1 extends WizardPage {
 	}
 
 	private void validateDisks() {
-		int diskCount = selectedDevice.size();
+		int diskCount = selectedDevices.size();
 		
 		if(diskCount  < 1) {
 			setError("At least one brick must be selected!");

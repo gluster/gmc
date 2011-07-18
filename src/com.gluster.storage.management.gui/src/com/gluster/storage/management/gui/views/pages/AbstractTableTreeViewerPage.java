@@ -38,7 +38,6 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.forms.widgets.FormToolkit;
-import org.eclipse.ui.forms.widgets.Hyperlink;
 
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.Disk;
@@ -46,15 +45,12 @@ import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public abstract class AbstractTableTreeViewerPage<T> extends Composite implements ISelectionListener {
 
-	
 	protected final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	protected TreeViewer treeViewer;
 	protected GUIHelper guiHelper = GUIHelper.getInstance();
 	protected Composite parent;
 	protected IWorkbenchSite site;
 	
-	private Hyperlink linkAll, linkNone;
-	private ClusterListener clusterListener;
 	private Text filterText;
 
 	private void setupPageLayout() {
@@ -64,7 +60,7 @@ public abstract class AbstractTableTreeViewerPage<T> extends Composite implement
 		setLayout(layout);
 	}
 	
-	private Composite createTableViewerComposite() {
+	private Composite createTreeViewerComposite() {
 		Composite tableViewerComposite = new Composite(this, SWT.NO);
 		tableViewerComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
 		tableViewerComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -99,7 +95,7 @@ public abstract class AbstractTableTreeViewerPage<T> extends Composite implement
 		
 		filterText = guiHelper.createFilterText(toolkit, this);
 		
-		Composite tableViewerComposite = createTableViewerComposite();
+		Composite tableViewerComposite = createTreeViewerComposite();
 		createTreeViewer(allDisks, tableViewerComposite);
 		parent.layout();
 	}
@@ -132,7 +128,7 @@ public abstract class AbstractTableTreeViewerPage<T> extends Composite implement
 		
 		column = new TreeColumn(treeViewer.getTree(),SWT.NONE);
 		column.setWidth(100);
-		column.setText("Totla Space (GB)");
+		column.setText("Total Space (GB)");
 		ad.setColumnData(column,new ColumnWeightData(50, 100));
 		
 		column = new TreeColumn(treeViewer.getTree(),SWT.NONE);

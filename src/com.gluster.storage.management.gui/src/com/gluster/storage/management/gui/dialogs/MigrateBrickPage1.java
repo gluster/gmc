@@ -210,7 +210,7 @@ public class MigrateBrickPage1 extends WizardPage {
 		ITableLabelProvider diskLabelProvider = getDiskLabelProvider(volume.getName());
 
 		GlusterDataModelManager glusterDataModelManager = GlusterDataModelManager.getInstance();
-		List<Device> fromBricks = glusterDataModelManager.getReadyDisksOfVolume(volume);
+		List<Device> fromBricks = glusterDataModelManager.getReadyDevicesOfVolume(volume);
 		List<Device> toDevices = glusterDataModelManager.getReadyDevicesOfAllServersExcluding( fromBricks );
 		
 		tableViewerFrom = createTableViewer(container, diskLabelProvider, fromBricks, txtFilterFrom);

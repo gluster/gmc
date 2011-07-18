@@ -64,7 +64,7 @@ public class BricksSelectionPage extends Composite {
 	private CustomTableDualListComposite<Device> dualTableViewer;
 	private Text filterText;
 	// This list keeps track of the order of the disks as user changes the same by clicking on up/down arrow buttons
-	private List<Device> chosenDevice = new ArrayList<Device>();
+	private List<Device> chosenDevices = new ArrayList<Device>();
 
 	private IRemovableContentProvider<Device> chosenBricksContentProvider;
 
@@ -139,17 +139,17 @@ public class BricksSelectionPage extends Composite {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				chosenDevice = getChosenDevice();
-				List<Device> selectedDisks = getSelectedChosenDevices();
+				chosenDevices = getChosenDevices();
+				List<Device> selectedDevices = getSelectedChosenDevices();
 
-				chosenBricksContentProvider.removeElements(chosenDevice);
-				for (Device disk : selectedDisks) {
-					int index = chosenDevice.indexOf(disk);
-					Device diskAbove = chosenDevice.get(index - 1);
-					chosenDevice.set(index - 1, disk);
-					chosenDevice.set(index, diskAbove);
+				chosenBricksContentProvider.removeElements(chosenDevices);
+				for (Device device : selectedDevices) {
+					int index = chosenDevices.indexOf(device);
+					Device deviceAbove = chosenDevices.get(index - 1);
+					chosenDevices.set(index - 1, device);
+					chosenDevices.set(index, deviceAbove);
 				}
-				chosenBricksContentProvider.addElements(chosenDevice);
+				chosenBricksContentProvider.addElements(chosenDevices);
 				dualTableViewer.refreshChosenViewer();
 				updateButtons();
 			}
@@ -163,17 +163,17 @@ public class BricksSelectionPage extends Composite {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 
-				chosenDevice = getChosenDevice();
-				List<Device> selectedDevice = getSelectedChosenDevices();
+				chosenDevices = getChosenDevices();
+				List<Device> selectedDevices = getSelectedChosenDevices();
 
-				chosenBricksContentProvider.removeElements(chosenDevice);
-				for (Device disk : selectedDevice) {
-					int index = chosenDevice.indexOf(disk);
-					Device diskBelow = chosenDevice.get(index + 1);
-					chosenDevice.set(index + 1, disk);
-					chosenDevice.set(index, diskBelow);
+				chosenBricksContentProvider.removeElements(chosenDevices);
+				for (Device disk : selectedDevices) {
+					int index = chosenDevices.indexOf(disk);
+					Device deviceBelow = chosenDevices.get(index + 1);
+					chosenDevices.set(index + 1, disk);
+					chosenDevices.set(index, deviceBelow);
 				}
-				chosenBricksContentProvider.addElements(chosenDevice);
+				chosenBricksContentProvider.addElements(chosenDevices);
 				dualTableViewer.refreshChosenViewer();
 				updateButtons();
 
@@ -183,11 +183,11 @@ public class BricksSelectionPage extends Composite {
 
 	private List<Device> getSelectedChosenDevices() {
 		TableItem[] selectedItems = dualTableViewer.getChosenTable().getSelection();
-		List<Device> selectedDevice = new ArrayList<Device>();
+		List<Device> selectedDevices = new ArrayList<Device>();
 		for (TableItem item : selectedItems) {
-			selectedDevice.add((Device) item.getData());
+			selectedDevices.add((Device) item.getData());
 		}
-		return selectedDevice;
+		return selectedDevices;
 	}
 
 	private void createFilter(final Text filterText, boolean caseSensitive) {
@@ -220,7 +220,7 @@ public class BricksSelectionPage extends Composite {
 		dualTableViewer.setChosenViewerFilter(filter);
 	}
 
-	private void createDualTableViewer(List<Device> allDevice, List<Device> selectedDevice, String volumeName) {
+	private void createDualTableViewer(List<Device> allDevices, List<Device> selectedDevices, String volumeName) {
 		TableColumnData[] columnData = createColumnData();
 		ITableLabelProvider diskLabelProvider = getDiskLabelProvider(volumeName);
 
@@ -230,14 +230,14 @@ public class BricksSelectionPage extends Composite {
 
 		dualTableViewer.setAvailableTableLinesVisible(false);
 		dualTableViewer.setAvailableTableHeaderVisible(true);
-		dualTableViewer.setAvailableContentProvider(new RemovableContentProvider<Device>(getAvailableDevice(allDevice,
-				selectedDevice)));
+		dualTableViewer.setAvailableContentProvider(new RemovableContentProvider<Device>(getAvailableDevice(allDevices,
+				selectedDevices)));
 		dualTableViewer.setAvailableLabelProvider(diskLabelProvider);
 
 		dualTableViewer.setChosenTableLinesVisible(true);
 		dualTableViewer.setChosenTableHeaderVisible(true);
 
-		chosenBricksContentProvider = new RemovableContentProvider<Device>(selectedDevice);
+		chosenBricksContentProvider = new RemovableContentProvider<Device>(selectedDevices);
 		dualTableViewer.setChosenContentProvider(chosenBricksContentProvider);
 		dualTableViewer.setChosenLabelProvider(diskLabelProvider);
 
@@ -257,32 +257,32 @@ public class BricksSelectionPage extends Composite {
 	private void updateButtons() {
 		btnUp.setEnabled(true);
 		btnDown.setEnabled(true);
-		List<Device> selectedChosenDevice = getSelectedChosenDevices();
-		List<Device> chosenDisks = getChosenDevice();
-		for (Device disk : selectedChosenDevice) {
-			int index = chosenDisks.indexOf(disk);
+		List<Device> selectedChosenDevices = getSelectedChosenDevices();
+		List<Device> chosenDevices = getChosenDevices();
+		for (Device device : selectedChosenDevices) {
+			int index = chosenDevices.indexOf(device);
 			if (index == 0) {
 				btnUp.setEnabled(false);
 			}
-			if (index == chosenDisks.size() - 1) {
+			if (index == chosenDevices.size() - 1) {
 				btnDown.setEnabled(false);
 			}
 		}
 	}
 
 	/**
-	 * @param allDevice
-	 * @param selectedDevice
+	 * @param allDevices
+	 * @param selectedDevices
 	 * @return
 	 */
-	private List<Device> getAvailableDevice(List<Device> allDevice, List<Device> selectedDevice) {
-		List<Device> availableDisks = new ArrayList<Device>();
-		for (Device device : allDevice) {
-			if (!selectedDevice.contains(device)) {
-				availableDisks.add(device);
+	private List<Device> getAvailableDevice(List<Device> allDevices, List<Device> selectedDevices) {
+		List<Device> availableDevices = new ArrayList<Device>();
+		for (Device device : allDevices) {
+			if (!selectedDevices.contains(device)) {
+				availableDevices.add(device);
 			}
 		}
-		return availableDisks;
+		return availableDevices;
 	}
 
 	private TableColumnData[] createColumnData() {
@@ -305,14 +305,14 @@ public class BricksSelectionPage extends Composite {
 		setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 	}
 
-	public List<Device> getChosenDevice() {
-		Object[] disksArr = (Object[]) chosenBricksContentProvider.getElements(dualTableViewer);
-		if (disksArr != null) {
-			List<Device> device = new ArrayList<Device>();
-			for (Object disk : disksArr) {
-				device.add((Device) disk);
+	public List<Device> getChosenDevices() {
+		Object[] devicesArr = (Object[]) chosenBricksContentProvider.getElements(dualTableViewer);
+		if (devicesArr != null) {
+			List<Device> devices = new ArrayList<Device>();
+			for (Object device : devicesArr) {
+				devices.add((Device) device);
 			}
-			return device;
+			return devices;
 		}
 		return null;
 	}
