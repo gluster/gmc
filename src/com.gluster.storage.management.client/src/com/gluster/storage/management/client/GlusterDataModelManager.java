@@ -682,24 +682,24 @@ public class GlusterDataModelManager {
 		return null;
 	}
 
-	private Boolean isDiskUsed(Volume volume, Disk disk) {
+	private Boolean isDeviceUsed(Volume volume, Device device) {
 		for (Brick brick : volume.getBricks()) {
-			if (disk.getName().equals(brick.getDeviceName()) && disk.getServerName().equals(brick.getServerName())) {
+			if (device.getName().equals(brick.getDeviceName()) && device.getServerName().equals(brick.getServerName())) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public String getDiskStatus(Disk disk) {
-		if (disk.getStatus() == DEVICE_STATUS.INITIALIZED) {
+	public String getDeviceStatus(Device device) {
+		if (device.getStatus() == DEVICE_STATUS.INITIALIZED) {
 			for (Volume volume : model.getCluster().getVolumes()) {
-				if (isDiskUsed(volume, disk)) {
+				if (isDeviceUsed(volume, device)) {
 					return "In use";
 				}
 			}
 		}
-		return disk.getStatusStr();
+		return device.getStatusStr();
 	}
 	
 	public List<String> getVolumesOfServer(String serverName) {

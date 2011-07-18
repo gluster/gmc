@@ -23,16 +23,19 @@ import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Partition;
+import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public class DeviceTableLabelProvider extends LabelProvider implements ITableLabelProvider {
 
 	private GUIHelper guiHelper = GUIHelper.getInstance();
+	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 	public enum DEVICE_COLUMN_INDICES {
 		DISK, PARTITION, FREE_SPACE, SPACE_IN_USE, STATUS
 	};
@@ -86,6 +89,22 @@ public class DeviceTableLabelProvider extends LabelProvider implements ITableLab
 	public String getText(Object element) {
 		return super.getText(element);
 	}
+	
+	private String getDeviceFreeSpace(Device device) {
+		if (device.hasErrors() || device.isUninitialized()) {
+			return "NA";
+		} else {
+			return NumberUtil.formatNumber((device.getFreeSpace() / 1024));
+		}
+	}
+
+	private String getTotalDeviceSpace(Device device) {
+		if (device.hasErrors() || device.isUninitialized()) {
+			return "NA";
+		} else {
+			return NumberUtil.formatNumber((device.getSpace() / 1024));
+		}
+	}
 
 	public String getColumnText(Object element, int columnIndex) {
 		
@@ -101,9 +120,9 @@ public class DeviceTableLabelProvider extends LabelProvider implements ITableLab
 				return "";
 			}
 		} else if (columnIndex == DEVICE_COLUMN_INDICES.FREE_SPACE.ordinal()) {
-			return "" + device.getFreeSpace();
+			return "" + getDeviceFreeSpace(device);
 		} else if (columnIndex == DEVICE_COLUMN_INDICES.SPACE_IN_USE.ordinal()) {
-			return "" + device.getSpaceInUse();
+			return "" + getTotalDeviceSpace(device);
 		} else if (columnIndex == DEVICE_COLUMN_INDICES.PARTITION.ordinal()) {
 			if (device instanceof Partition) {
 				return device.getQualifiedName();
@@ -111,7 +130,7 @@ public class DeviceTableLabelProvider extends LabelProvider implements ITableLab
 				return "";
 			}
 		} else if (columnIndex == DEVICE_COLUMN_INDICES.STATUS.ordinal()) {
-			return device.getStatusStr();
+			return modelManager.getDeviceStatus(device);
 		} else {
 			return "";
 		}
