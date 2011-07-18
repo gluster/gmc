@@ -49,7 +49,7 @@ import com.gluster.storage.management.core.utils.ProcessResult;
 @Component
 public class SshUtil {
 	private static final String TEMP_DIR = "/tmp/";
-	private static final String SSH_AUTHORIZED_KEYS_DIR = "/root/.ssh/";
+	public static final String SSH_AUTHORIZED_KEYS_DIR = "/root/.ssh/";
 	private static final String SSH_AUTHORIZED_KEYS_FILE = "authorized_keys";
 	private static final String SSH_AUTHORIZED_KEYS_PATH = SSH_AUTHORIZED_KEYS_DIR + SSH_AUTHORIZED_KEYS_FILE;
 	private LRUCache<String, Connection> sshConnCache = new LRUCache<String, Connection>(10);

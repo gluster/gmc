@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="lib/jersey-1.5/jersey-multipart-1.5.jar"/>
 	<classpathentry exported="true" kind="lib" path="keystore/"/>
 	<classpathentry exported="true" kind="lib" path="lib/jersey-1.5/jersey-client-1.5.jar" sourcepath="/home/selvam/sources/jersey/jersey-client-1.5-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jersey-1.5/jersey-core-1.5.jar" sourcepath="/home/selvam/sources/jersey/jersey-core-1.5-sources.jar"/>

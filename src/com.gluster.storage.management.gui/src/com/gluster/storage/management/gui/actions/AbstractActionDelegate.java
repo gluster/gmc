@@ -52,17 +52,10 @@ public abstract class AbstractActionDelegate implements IWorkbenchWindowActionDe
 		// Real action code must be executed using Display#asyncExec.
 		// Otherwise the system can hang when opening new dialog boxes on linux platform
 		try {
-			PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
-				public void run(final IProgressMonitor monitor) {
-					Display.getDefault().asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							monitor.beginTask(action.getDescription(), 1);
-							performAction(action);
-							monitor.worked(1);
-							monitor.done();
-						}
-					});
+			Display.getDefault().asyncExec(new Runnable() {
+				@Override
+				public void run() {
+					performAction(action);
 				}
 			});
 		} catch (final Exception e) {
@@ -102,10 +95,7 @@ public abstract class AbstractActionDelegate implements IWorkbenchWindowActionDe
 	}
 	
 	protected Shell getShell() {
-		if(window == null) {
-			return Display.getDefault().getActiveShell();
-		}
-		return window.getShell();
+		return getWindow().getShell();
 	}
 	
 	protected IWorkbenchWindow getWindow() {
