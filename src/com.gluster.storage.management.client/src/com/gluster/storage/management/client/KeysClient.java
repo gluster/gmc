@@ -20,18 +20,18 @@
  */
 package com.gluster.storage.management.client;
 
-import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+
+import javax.ws.rs.core.MediaType;
 
 import com.gluster.storage.management.core.constants.RESTConstants;
+import com.sun.jersey.multipart.FormDataMultiPart;
 
 public class KeysClient extends AbstractClient {
 
 	public KeysClient() {
 		super();
-	}
-
-	public KeysClient(String clusterName) {
-		super(clusterName);
 	}
 
 	@Override
@@ -43,7 +43,13 @@ public class KeysClient extends AbstractClient {
 		downloadResource(resource, filePath);
 	}
 
-	public void importSshKeys(File keysFile) {
-		
+	public void importSshKeys(String keysFile) {
+		FormDataMultiPart form = new FormDataMultiPart();
+		try {
+			form.field("file", new FileInputStream(keysFile), MediaType.TEXT_PLAIN_TYPE);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		uploadResource(resource, form);
 	}
 }

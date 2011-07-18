@@ -35,7 +35,7 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
-
+import com.sun.jersey.multipart.FormDataMultiPart;
 
 public abstract class AbstractClient {
 	private static final String HTTP_HEADER_AUTH = "Authorization";
@@ -66,7 +66,7 @@ public abstract class AbstractClient {
 		this.clusterName = clusterName;
 		setSecurityToken(securityToken);
 
-		createClient(); 
+		createClient();
 
 		// this must be after setting clusterName as sub-classes may refer to cluster name in the getResourcePath method
 		resource = client.resource(ClientUtil.getServerBaseURI()).path(getResourcePath());
@@ -143,10 +143,10 @@ public abstract class AbstractClient {
 	}
 
 	private GlusterRuntimeException createGlusterException(Exception e) {
-		if(e instanceof GlusterRuntimeException) {
-			return (GlusterRuntimeException)e;
+		if (e instanceof GlusterRuntimeException) {
+			return (GlusterRuntimeException) e;
 		}
-		
+
 		if (e instanceof UniformInterfaceException) {
 			UniformInterfaceException uie = (UniformInterfaceException) e;
 			if ((uie.getResponse().getStatus() == Response.Status.UNAUTHORIZED.getStatusCode())) {
@@ -177,9 +177,9 @@ public abstract class AbstractClient {
 
 			InputStream inputStream = response.getEntityInputStream();
 			FileOutputStream outputStream = new FileOutputStream(filePath);
-			
+
 			int c;
-			while((c = inputStream.read()) != -1) {
+			while ((c = inputStream.read()) != -1) {
 				outputStream.write(c);
 			}
 			inputStream.close();
@@ -188,13 +188,14 @@ public abstract class AbstractClient {
 			throw new GlusterRuntimeException("Error while downloading resource [" + res.getURI().getPath() + "]", e);
 		}
 	}
-	
-	
-/*	public void uploadResource(WebResource res, FormDataMultiPart form) {
-		ClientResponse response = res.header(HTTP_HEADER_AUTH, authHeader).type(MediaType.MULTIPART_FORM_DATA)
-				.accept(MediaType.TEXT_PLAIN).header(name, value)post(form);
+
+	public void uploadResource(WebResource res, FormDataMultiPart form) {
+		try {
+			res.header(HTTP_HEADER_AUTH, authHeader).type(MediaType.MULTIPART_FORM_DATA_TYPE).post(String.class, form);
+		} catch (Exception e) {
+			throw new GlusterRuntimeException("Error while importing resource [" + e.getMessage() + "]", e);
+		}
 	}
-*/	
 
 	/**
 	 * Fetches the default resource (the one returned by {@link AbstractClient#getResourcePath()}) by dispatching a GET
@@ -306,7 +307,7 @@ public abstract class AbstractClient {
 	protected void postRequest(String subResourceName, Form form) {
 		postRequest(resource.path(subResourceName), form);
 	}
-	
+
 	private ClientResponse putRequest(WebResource resource, Form form) {
 		try {
 			ClientResponse response = prepareFormRequestBuilder(resource).put(ClientResponse.class, form);
@@ -315,7 +316,7 @@ public abstract class AbstractClient {
 				setSecurityToken(null);
 				throw new GlusterRuntimeException("Invalid credentials!");
 			}
-			if(response.getStatus() >= 300) {
+			if (response.getStatus() >= 300) {
 				throw new GlusterRuntimeException(response.getEntity(String.class));
 			}
 			return response;
@@ -325,10 +326,10 @@ public abstract class AbstractClient {
 	}
 
 	public Builder prepareFormRequestBuilder(WebResource resource) {
-		return resource.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-				.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML);
+		return resource.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).header(HTTP_HEADER_AUTH, authHeader)
+				.accept(MediaType.APPLICATION_XML);
 	}
-	
+
 	/**
 	 * Submits given Form using PUT method to the given sub-resource and returns the object received as response
 	 * 
@@ -340,8 +341,7 @@ public abstract class AbstractClient {
 	protected void putRequest(String subResourceName, Form form) {
 		putRequest(resource.path(subResourceName), form);
 	}
-	
-	
+
 	protected URI putRequestURI(String subResourceName, Form form) {
 		ClientResponse response = putRequest(resource.path(subResourceName), form);
 		return response.getLocation();
@@ -373,13 +373,12 @@ public abstract class AbstractClient {
 
 	private void deleteResource(WebResource resource, MultivaluedMap<String, String> queryParams) {
 		try {
-			resource.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader)
-					.delete();
+			resource.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader).delete();
 		} catch (UniformInterfaceException e) {
 			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
 		}
 	}
-	
+
 	protected void deleteResource(MultivaluedMap<String, String> queryParams) {
 		deleteResource(resource, queryParams);
 	}
@@ -415,8 +414,10 @@ public abstract class AbstractClient {
 	}
 
 	/**
-	 * @param uri The URI to be fetched using GET API
-	 * @param responseClass Expected type of response object
+	 * @param uri
+	 *            The URI to be fetched using GET API
+	 * @param responseClass
+	 *            Expected type of response object
 	 * @return Object of the given class
 	 */
 	protected <T> T fetchResource(URI uri, Class<T> responseClass) {
