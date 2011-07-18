@@ -25,14 +25,17 @@ public interface IImageKeys {
 	public static final String VOLUME = "icons/tango/16x16/volume.png";
 	public static final String SERVER = "icons/tango/16x16/server.png";
 	public static final String SERVER_WARNING = "icons/server-warning.png";
-	public static final String MEMORY = "icons/memory.png";
+	public static final String MEMORY_USAGE_ALERT = "icons/tango/16x16/high-memory-usage.svg";
 	public static final String GSN = "icons/gsn.png";
 	public static final String SETTINGS = "icons/settings.png";
 	public static final String ADD = "icons/plus-white.png";
 	public static final String REMOVE = "icons/minus-white.png";
-	public static final String CREATE_VOLUME = "icons/volume-create.png";
-	public static final String CREATE_VOLUME_BIG = "icons/tango/48x48/volume-create.png";
-	public static final String REMOVE_VOLUME = "icons/volume-delete.png";
+	public static final String CREATE_VOLUME = "icons/tango/32x32/create-volume.svg";
+	public static final String START_VOLUME = "icons/tango/32x32/start-volume.svg";
+	public static final String STOP_VOLUME = "icons/tango/32x32/stop-volume.svg";
+	
+	public static final String CREATE_VOLUME_BIG = "icons/tango/48x48/create-volume.svg";
+	public static final String REMOVE_VOLUME = "icons/tango/32x32/remove-volume.svg";
 	public static final String ADD_SERVER = "icons/server-add.png";
 	public static final String ADD_SERVER_BIG = "icons/tango/48x48/server.png";
 	public static final String REMOVE_SERVER = "icons/server-remove.png";
@@ -44,16 +47,21 @@ public interface IImageKeys {
 	public static final String WORK_IN_PROGRESS = "icons/progress-bar.png";
 	public static final String CHECKBOX_UNCHECKED = "icons/ui-check-box-uncheck.png";
 	public static final String CHECKBOX_CHECKED = "icons/ui-check-box.png";
-	public static final String DISK = "icons/tango/16x16/disk.png";
-	public static final String DISKS = "icons/tango/16x16/disk.png";
+	public static final String DISK = "icons/tango/16x16/disk.svg";
+	public static final String DISKS = "icons/tango/16x16/disk.svg";
 	public static final String DISK_UNINITIALIZED = "icons/disk-uninitialized.png";
 	public static final String SEARCH = "icons/search.png";
 	public static final String ARROW_UP = "icons/arrow-up.png";
 	public static final String ARROW_DOWN = "icons/arrow-down.png";
-	public static final String VOLUME_REBALANCE = "icons/volume-rebalance.png";
-	public static final String BRICK_MIGRATE = "icons/disk-migrate.png";
-	public static final String LOW_DISK_SPACE = "icons/disk.png";
+	public static final String VOLUME_REBALANCE = "icons/tango/32x32/volume-rebalance.svg";
+	public static final String BRICK_MIGRATE = "icons/tango/32x32/replace-brick.svg";
+	public static final String DOWNLOAD_LOG = "icons/tango/32x32/download-log.svg";
+	public static final String ADD_BRICK = "icons/tango/32x32/add-brick.svg";
+	public static final String REMOVE_BRICK = "icons/tango/32x32/remove-brick.svg";
+	public static final String LOW_DISK_SPACE = "icons/tango/16x16/low-diskspace.svg";
 	public static final String DISK_OFFLINE = "icons/status-offline.png";
+	
+	public static final String bricks = "icons/tango/16x16/bricks.png";
 
 	public static final String PAUSE_TASK = "icons/pause_task.gif";
 	public static final String RESUME_TASK = "icons/resume_task.gif";

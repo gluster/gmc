@@ -71,7 +71,6 @@ public class SelectDisksDialog extends Dialog {
 		getShell().setText("Create Volume - Select Bricks");
 
 		disksPage = new BricksSelectionPage(container, SWT.NONE, allDevices, selectedDevices, volumeName);
-
 		return container;
 	}
 

@@ -444,6 +444,7 @@ public class GlusterDataModelManager {
 		return null;
 	}
 
+
 	public List<Device> getReadyDevicesOfVolume(Volume volume) {
 		Device device = null;
 		List<Device> volumeDevices = new ArrayList<Device>();

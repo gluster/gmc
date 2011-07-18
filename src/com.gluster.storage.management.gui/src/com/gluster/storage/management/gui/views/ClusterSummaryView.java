@@ -157,13 +157,13 @@ public class ClusterSummaryView extends ViewPart {
 			alertImage = guiHelper.getImage(IImageKeys.DISK_OFFLINE);
 			break;
 		case DISK_USAGE_ALERT:
-			alertImage = guiHelper.getImage(IImageKeys.DISK);
+			alertImage = guiHelper.getImage(IImageKeys.LOW_DISK_SPACE);
 			break;
 		case OFFLINE_SERVERS_ALERT:
 			alertImage = guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
 			break;
 		case MEMORY_USAGE_ALERT:
-			alertImage = guiHelper.getImage(IImageKeys.MEMORY);
+			alertImage = guiHelper.getImage(IImageKeys.MEMORY_USAGE_ALERT);
 			break;
 		case CPU_USAGE_ALERT:
 			alertImage = guiHelper.getImage(IImageKeys.SERVER_WARNING);
