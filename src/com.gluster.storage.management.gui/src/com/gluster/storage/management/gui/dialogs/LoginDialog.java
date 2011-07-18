@@ -208,8 +208,8 @@ public class LoginDialog extends Dialog {
 		
 		// authentication successful. close the login dialog and open the next one.
 		close();
-		// If the password is default, Let user to change the password
 
+		// If the password is default, Let user to change the password
 		if (password.equalsIgnoreCase(CoreConstants.DEFAULT_PASSWORD)) {
 			String oldSecurityTokeString = GlusterDataModelManager.getInstance().getSecurityToken();
 			ChangePasswordDialog dialog = new ChangePasswordDialog(getShell());
@@ -223,7 +223,7 @@ public class LoginDialog extends Dialog {
 			}
 		}
 
-		ClustersClient clustersClient = new ClustersClient(GlusterDataModelManager.getInstance().getSecurityToken());
+		ClustersClient clustersClient = new ClustersClient();
 
 		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
 		boolean showClusterSelectionDialog = preferenceStore.getBoolean(PreferenceConstants.P_SHOW_CLUSTER_SELECTION_DIALOG);
