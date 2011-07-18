@@ -27,6 +27,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.ws.rs.Consumes;
@@ -97,24 +98,22 @@ public class KeysResource extends AbstractResource {
 
 	@POST
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	@SuppressWarnings({"deprecation" })
 	public Response importSshKeys(@FormDataParam("file") InputStream uploadedInputStream) {
 		File uploadedFile = new File(System.getProperty("java.io.tmpdir") + File.separator + "keys.tar");
-		Date today = new Date();
+		String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 		try {
 			writeToFile(uploadedInputStream, uploadedFile.getAbsolutePath());
 
 			// To backup existing SSH pem and public keys
 			if (SshUtil.PEM_FILE.isFile()) {
-				if (!SshUtil.PEM_FILE
-						.renameTo(new File(SshUtil.PEM_FILE.getAbsolutePath() + "-" + today.toString()))) {
+				if (!SshUtil.PEM_FILE.renameTo(new File(SshUtil.PEM_FILE.getAbsolutePath() + "-" + timestamp))) {
 					throw new GlusterRuntimeException("Unable to backup pem key!");
 				}
 			}
 
 			if (SshUtil.PUBLIC_KEY_FILE.isFile()) {
 				if (!SshUtil.PUBLIC_KEY_FILE.renameTo(new File(SshUtil.PUBLIC_KEY_FILE.getAbsolutePath() + "-"
-						+ today.toString()))) {
+						+ timestamp))) {
 					throw new GlusterRuntimeException("Unable to backup public key!");
 				}
 			}
