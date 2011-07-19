@@ -307,7 +307,7 @@ def getDiskInfo(diskDeviceList=None):
             partition["SpaceInUse"] = used
             if partition["MountPoint"] or isDataDiskPartitionFormatted(partitionDevice):
                 partition["Init"] = True
-                #partition["Status"] = "INITIALIZED"
+                partition["Status"] = "INITIALIZED"
             if partition["MountPoint"]:
                 if "/export/" in partition["MountPoint"]:
                     partition["Type"] = "DATA"
