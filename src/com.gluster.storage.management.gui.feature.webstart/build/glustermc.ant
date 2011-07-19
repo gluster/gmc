@@ -12,7 +12,7 @@
 	</target>
 
 	<target name="sign">
-		<signjar alias="gluster" storepass="gluster" keypass="gluster" keystore="build/gluster.keystore">
+		<signjar alias="gluster" storepass="gluster" keypass="gluster" keystore="/var/lib/jenkins/gmc/gluster.keystore">
 			<fileset dir="${export.dir}/plugins">
 				<include name="*.jar" />
 			</fileset>
