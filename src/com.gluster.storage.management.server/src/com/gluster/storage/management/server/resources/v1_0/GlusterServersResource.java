@@ -455,7 +455,6 @@ public class GlusterServersResource extends AbstractServersResource {
 		InitializeDiskTask initializeTask = new InitializeDiskTask(clusterService, clusterName, serverName, diskName, fsType);
 		try {
 			initializeTask.start();
-			Thread.sleep(1000);
 			// Check the initialize disk status
 			TaskStatus taskStatus = initializeTask.checkStatus();
 			initializeTask.getTaskInfo().setStatus(taskStatus);			
