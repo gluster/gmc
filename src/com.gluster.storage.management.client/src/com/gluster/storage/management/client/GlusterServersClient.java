@@ -30,6 +30,7 @@ import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.ServerStats;
+import com.gluster.storage.management.core.model.ServerStatsRow;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.sun.jersey.api.representation.Form;
@@ -84,28 +85,15 @@ public class GlusterServersClient extends AbstractClient {
 		deleteSubResource(serverName);
 	}
 	
+	public ServerStats getCPUStats(String serverName) {
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+		queryParams.add(RESTConstants.QUERY_PARAM_TYPE, RESTConstants.STATISTICS_TYPE_CPU);
+		return fetchSubResource(serverName + "/" + RESTConstants.RESOURCE_STATISTICS, queryParams, ServerStats.class);
+	}
+	
 	public ServerStats getAggregatedCPUStats() {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.add(RESTConstants.QUERY_PARAM_TYPE, RESTConstants.STATISTICS_TYPE_CPU);
 		return fetchSubResource(RESTConstants.RESOURCE_STATISTICS, queryParams, ServerStats.class);
-	}
-
-	public static void main(String[] args) {
-		UsersClient usersClient = new UsersClient();
-		try {
-			usersClient.authenticate("gluster", "gluster");
-			GlusterServersClient glusterServersClient = new GlusterServersClient(usersClient.getSecurityToken(), "cluster1");
-			List<GlusterServer> glusterServers = glusterServersClient.getServers();
-			for (GlusterServer server : glusterServers) {
-				System.out.println(server.getName());
-			}
-
-			// Add server
-			 Server srv = new Server();
-			 srv.setName("server3");
-			 glusterServersClient.addServer(srv);
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
 	}
 }

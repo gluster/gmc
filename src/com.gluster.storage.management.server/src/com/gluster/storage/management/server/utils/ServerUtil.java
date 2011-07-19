@@ -21,6 +21,7 @@
 package com.gluster.storage.management.server.utils;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -29,6 +30,7 @@ import java.util.List;
 import javax.servlet.ServletContext;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.log4j.Logger;
@@ -225,7 +227,7 @@ public class ServerUtil {
 	}
 
 	public ServerStats fetchCPUUsageData(String serverName) {
-		String cpuUsageData = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?> <xport> <meta> <start>1310468100</start> <step>300</step> <end>1310471700</end> <rows>13</rows> <columns>3</columns> <legend> <entry>user</entry> <entry>system</entry> <entry>total</entry> </legend> </meta> <data> <row><t>1310468100</t><v>NaN</v><v>4.3747778209e-01</v><v>6.6128073384e-01</v></row> <row><t>1310468400</t><v>2.3387347338e-01</v><v>4.4642717442e-01</v><v>6.8030064780e-01</v></row> <row><t>1310468700</t><v>5.5043873220e+00</v><v>6.2462376636e+00</v><v>1.1750624986e+01</v></row> <row><t>1310469000</t><v>2.4350593653e+01</v><v>2.6214585217e+01</v><v>5.0565178869e+01</v></row> <row><t>1310469300</t><v>4.0786489953e+01</v><v>4.6784713828e+01</v><v>8.7571203781e+01</v></row> <row><t>1310469600</t><v>4.1459955508e+01</v><v>5.2546309044e+01</v><v>9.4006264551e+01</v></row> <row><t>1310469900</t><v>4.2312286165e+01</v><v>5.2390588332e+01</v><v>9.4702874497e+01</v></row> <row><t>1310470200</t><v>4.2603794982e+01</v><v>5.1598861493e+01</v><v>9.4202656475e+01</v></row> <row><t>1310470500</t><v>3.8238751290e+01</v><v>4.5312089966e+01</v><v>8.3550841256e+01</v></row> <row><t>1310470800</t><v>1.7949961224e+01</v><v>2.1282058418e+01</v><v>3.9232019642e+01</v></row> <row><t>1310471100</t><v>1.2330371421e-01</v><v>4.6347832868e-01</v><v>5.8678204289e-01</v></row> <row><t>1310471400</t><v>1.6313260492e-01</v><v>5.4088119561e-01</v><v>7.0401380052e-01</v></row> <row><t>1310471700</t><v>NaN</v><v>NaN</v><v>NaN</v></row> </data> </xport>";
+		String cpuUsageData = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?> <xport> <meta> <start>1310468100</start> <step>300</step> <end>1310471700</end> <rows>13</rows> <columns>3</columns> <legend> <entry>user</entry> <entry>system</entry> <entry>total</entry> </legend> </meta> <data> <row><t>1310468100</t><v>2.23802952e-1</v><v>4.3747778209e-01</v><v>6.6128073384e-01</v></row> <row><t>1310468400</t><v>2.3387347338e-01</v><v>4.4642717442e-01</v><v>6.8030064780e-01</v></row> <row><t>1310468700</t><v>5.5043873220e+00</v><v>6.2462376636e+00</v><v>1.1750624986e+01</v></row> <row><t>1310469000</t><v>2.4350593653e+01</v><v>2.6214585217e+01</v><v>5.0565178869e+01</v></row> <row><t>1310469300</t><v>4.0786489953e+01</v><v>4.6784713828e+01</v><v>8.7571203781e+01</v></row> <row><t>1310469600</t><v>4.1459955508e+01</v><v>5.2546309044e+01</v><v>9.4006264551e+01</v></row> <row><t>1310469900</t><v>4.2312286165e+01</v><v>5.2390588332e+01</v><v>9.4702874497e+01</v></row> <row><t>1310470200</t><v>4.2603794982e+01</v><v>5.1598861493e+01</v><v>9.4202656475e+01</v></row> <row><t>1310470500</t><v>3.8238751290e+01</v><v>4.5312089966e+01</v><v>8.3550841256e+01</v></row> <row><t>1310470800</t><v>1.7949961224e+01</v><v>2.1282058418e+01</v><v>3.9232019642e+01</v></row> <row><t>1310471100</t><v>1.2330371421e-01</v><v>4.6347832868e-01</v><v>5.8678204289e-01</v></row> <row><t>1310471400</t><v>1.6313260492e-01</v><v>5.4088119561e-01</v><v>7.0401380052e-01</v></row> <row><t>1310471700</t><v>NaN</v><v>NaN</v><v>NaN</v></row> </data> </xport>";
 		Object output = unmarshal(ServerStats.class, cpuUsageData, false);
 		if(output instanceof Status) {
 			throw new GlusterRuntimeException(((Status)output).toString());
@@ -240,6 +242,7 @@ public class ServerUtil {
 				if(removeOnlineServer) {
 					serverNames.remove(serverName);
 				}
+				return stats;
 			} catch(Exception e) {
 				// server might be offline - continue with next one
 				logger.warn("Couldn't fetch CPU stats from server [" + serverName + "]!", e);
@@ -265,21 +268,29 @@ public class ServerUtil {
 	}
 
 	private void aggregateCPUStats(List<String> serverNames, ServerStats aggregatedStats) {
-		int[][] dataCount = new int[aggregatedStats.getMetadata().getRowCount()][aggregatedStats.getMetadata()
-				.getLegend().size()];
+		if(serverNames.isEmpty()) {
+			return;
+		}
+		
+		int rowCount = aggregatedStats.getMetadata().getRowCount();
+		int columnCount = aggregatedStats.getMetadata().getLegend().size();
+		int[][] dataCount = initDataCountArray(rowCount, columnCount);
 		
 		for (String serverName : serverNames) {
-			ServerStats serverStats;
 			try {
-				serverStats = fetchCPUUsageData(serverName);
+				// fetch the stats and add to aggregated stats
+				addServerStats(fetchCPUUsageData(serverName), aggregatedStats, dataCount);
 			} catch(Exception e) {
 				// server might be offline - continue with next one
 				logger.warn("Couldn't fetch CPU stats from server [" + serverName + "]!", e);
 				continue;
 			}
-			addServerStats(serverStats, aggregatedStats, dataCount);
 		}
 		
+		averageAggregatedStats(aggregatedStats, dataCount);
+	}
+
+	private void averageAggregatedStats(ServerStats aggregatedStats, int[][] dataCount) {
 		List<ServerStatsRow> rows = aggregatedStats.getRows();
 		for(int rowNum = 0; rowNum < rows.size(); rowNum++) {
 			List<Double> data = rows.get(rowNum).getUsageData();
@@ -287,6 +298,17 @@ public class ServerUtil {
 				data.set(columnNum, data.get(columnNum) / dataCount[rowNum][columnNum]);
 			}
 		}
+	}
+
+	private int[][] initDataCountArray(int rowCount, int columnCount) {
+		int[][] dataCount = new int[rowCount][columnCount];
+		// initialize all data counts to 1
+		for(int rowNum = 0; rowNum < rowCount; rowNum++) {
+			for(int columnNum = 0; columnNum < columnCount; columnNum++) {
+				dataCount[rowNum][columnNum] = 1;
+			}
+		}
+		return dataCount;
 	}
 
 	/**
@@ -320,6 +342,22 @@ public class ServerUtil {
 	
 	public static void main(String[] args) {
 		ServerStats stats = new ServerUtil().fetchCPUUsageData("s1");
-		System.out.println(stats.getMetadata().getLegend());
+		for(ServerStatsRow row : stats.getRows()) {
+			System.out.println(row.getUsageData().get(2));
+		}
+		JAXBContext context;
+		try {
+			context = JAXBContext.newInstance(ServerStats.class);
+			Marshaller m = context.createMarshaller();
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			m.marshal(stats, out);
+			ServerStats stats1 = (ServerStats)new ServerUtil().unmarshal(ServerStats.class, out.toString(), false);
+			for(ServerStatsRow row : stats1.getRows()) {
+				System.out.println(row.getUsageData().get(2));
+			}
+		} catch (JAXBException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
