@@ -24,12 +24,16 @@ import static com.gluster.storage.management.core.constants.RESTConstants.RESOUR
 import java.net.URI;
 import java.util.List;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.model.ServerStats;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.sun.jersey.api.representation.Form;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class GlusterServersClient extends AbstractClient {
 	
@@ -78,6 +82,12 @@ public class GlusterServersClient extends AbstractClient {
 	
 	public void removeServer(String serverName) {
 		deleteSubResource(serverName);
+	}
+	
+	public ServerStats getAggregatedCPUStats() {
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+		queryParams.add(RESTConstants.QUERY_PARAM_TYPE, RESTConstants.STATISTICS_TYPE_CPU);
+		return fetchSubResource(RESTConstants.RESOURCE_STATISTICS, queryParams, ServerStats.class);
 	}
 
 	public static void main(String[] args) {

@@ -31,8 +31,8 @@ import static com.gluster.storage.management.core.constants.RESTConstants.RESOUR
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_STATISTICS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_TASKS;
 import static com.gluster.storage.management.core.constants.RESTConstants.STATISTICS_TYPE_CPU;
-import static com.gluster.storage.management.core.constants.RESTConstants.STATISTICS_TYPE_NETWORK;
 import static com.gluster.storage.management.core.constants.RESTConstants.STATISTICS_TYPE_MEMORY;
+import static com.gluster.storage.management.core.constants.RESTConstants.STATISTICS_TYPE_NETWORK;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +56,6 @@ import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
-import com.gluster.storage.management.core.model.ServerStats;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;

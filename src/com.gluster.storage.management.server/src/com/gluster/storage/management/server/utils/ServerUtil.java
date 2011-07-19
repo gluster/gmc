@@ -252,7 +252,7 @@ public class ServerUtil {
 		throw new GlusterRuntimeException("All servers offline!");
 	}
 
-	public Object fetchAggregatedCPUStats(List<String> serverNames) {
+	public ServerStats fetchAggregatedCPUStats(List<String> serverNames) {
 		if(serverNames == null || serverNames.size() == 0) {
 			throw new GlusterRuntimeException("No server names passed to fetchAggregaredCPUUsageData!");
 		}
@@ -277,7 +277,7 @@ public class ServerUtil {
 				logger.warn("Couldn't fetch CPU stats from server [" + serverName + "]!", e);
 				continue;
 			}
-			List<ServerStatsRow> serverStatsRows = addServerStats(serverStats, aggregatedStats, dataCount);
+			addServerStats(serverStats, aggregatedStats, dataCount);
 		}
 		
 		List<ServerStatsRow> rows = aggregatedStats.getRows();
