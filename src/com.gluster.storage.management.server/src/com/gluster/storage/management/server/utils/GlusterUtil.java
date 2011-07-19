@@ -578,7 +578,7 @@ public class GlusterUtil {
 		}
 	}
 	
-	public TaskStatus checkInitializeDiskStatus(String serverName, String diskName) {
+	public TaskStatus getInitializingDeviceStatus(String serverName, String diskName) {
 		Object response = serverUtil.executeOnServer(true, serverName, INITIALIZE_DISK_STATUS_SCRIPT + " " + diskName,
 				InitDiskStatusResponse.class);
 
@@ -597,8 +597,10 @@ public class GlusterUtil {
 			taskStatus.setCode(Status.STATUS_CODE_RUNNING);
 			taskStatus.setPercentCompleted(Math.round(initDiskStatusResponse.getCompletedBlocks()
 					/ initDiskStatusResponse.getTotalBlocks() * 100));
+		} else if(initDiskStatusResponse.getFormatStatus() == FORMAT_STATUS.NOT_RUNNING) {
+			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
 		}
-
+		
 		taskStatus.setMessage(initDiskStatusResponse.getMessage());
 		return taskStatus;
 	}
