@@ -90,18 +90,18 @@ public class BricksSelectionPage extends Composite {
 
 			@Override
 			public String getColumnText(Object element, int columnIndex) {
-				if (!(element instanceof Disk)) {
+				if (!(element instanceof Device)) {
 					return null;
 				}
 
-				Disk disk = (Disk) element;
-				return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? disk.getServerName()
-						: columnIndex == DISK_TABLE_COLUMN_INDICES.BRICK_DIRECTORY.ordinal() ? disk.getMountPoint()
+				Device device = (Device) element;
+				return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? device.getServerName()
+						: columnIndex == DISK_TABLE_COLUMN_INDICES.BRICK_DIRECTORY.ordinal() ? device.getMountPoint()
 								+ "/" + volumeName
 								: columnIndex == DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? NumberUtil
-										.formatNumber((disk.getFreeSpace() / 1024))
+										.formatNumber((device.getFreeSpace() / 1024))
 										: columnIndex == DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? NumberUtil
-												.formatNumber((disk.getSpace() / 1024)) : "Invalid");
+												.formatNumber((device.getSpace() / 1024)) : "Invalid");
 			}
 		};
 	}
