@@ -58,6 +58,7 @@ import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
+import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
 import com.gluster.storage.management.core.response.ServerNameListResponse;
 import com.gluster.storage.management.server.data.ClusterInfo;
@@ -454,6 +455,10 @@ public class GlusterServersResource extends AbstractServersResource {
 		InitializeDiskTask initializeTask = new InitializeDiskTask(clusterService, clusterName, serverName, diskName, fsType);
 		try {
 			initializeTask.start();
+			Thread.sleep(1000);
+			// Check the initialize disk status
+			TaskStatus taskStatus = initializeTask.checkStatus();
+			initializeTask.getTaskInfo().setStatus(taskStatus);			
 			taskResource.addTask(initializeTask);
 
 			return acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/" + RESOURCE_TASKS + "/"

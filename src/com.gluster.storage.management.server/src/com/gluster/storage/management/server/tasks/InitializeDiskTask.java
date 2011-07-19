@@ -134,7 +134,7 @@ public class InitializeDiskTask extends Task {
 	public TaskStatus checkStatus() {
 		
 		try {
-			return glusterUtil.checkInitializeDiskStatus(serverName, getDiskName());
+			return glusterUtil.getInitializingDeviceStatus(serverName, getDiskName());
 		} catch(ConnectionException e) {
 			// online server might have gone offline. update the failure status
 			return new TaskStatus(new Status(Status.STATUS_CODE_FAILURE, e.getMessage()));

@@ -47,6 +47,7 @@ import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.Partition;
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.gui.Application;
 import com.gluster.storage.management.gui.IEntityListener;
@@ -111,13 +112,13 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 				int itemCount = tree.getItemCount();
 
 				// Find the table item corresponding to our disk
-				Disk disk = null;
+				Device disk = null;
 				int rowNum1 = -1;
 				TreeItem item1 = null;
 				for (int i = 0; i < itemCount; i++) {
 					item1 = tree.getItem(i);
 					
-					disk = (Disk) item1.getData();
+					disk = (Device) item1.getData();
 					if (disk != null && disk == device) {
 						// this is an uninitialized "disk"
 						rowNum1 = i;
@@ -133,6 +134,7 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 							// this is an uninitialized "partition"
 							rowNum1 = i + j;
 							item1 = partitionItem;
+							disk = (Device) partitionItem.getData();
 							break;
 						}
 					}
@@ -219,14 +221,22 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 
 			GlusterServersClient serversClient = new GlusterServersClient();
 			try {
+				
 				URI uri = serversClient.initializeDisk(device.getServerName(), device.getName(), formatDialog.getFSType());
 
 				TasksClient taskClient = new TasksClient();
 				TaskInfo taskInfo = taskClient.getTaskInfo(uri);
+				
 				if (taskInfo != null && taskInfo instanceof TaskInfo) {
 					GlusterDataModelManager.getInstance().getModel().getCluster().addTaskInfo(taskInfo);
 				}
-				updateStatus(DEVICE_STATUS.INITIALIZING, true);
+				
+				if (taskInfo.getStatus().getCode() != Status.STATUS_CODE_RUNNING) {
+					updateStatus(DEVICE_STATUS.INITIALIZING, true);
+				} else if(taskInfo.getStatus().getCode() != Status.STATUS_CODE_SUCCESS) {
+					updateStatus(DEVICE_STATUS.INITIALIZED, true);
+				}
+				
 			} catch (Exception e1) {
 				MessageDialog.openError(getShell(), "Error: Initialize disk", e1.getMessage());
 			}
