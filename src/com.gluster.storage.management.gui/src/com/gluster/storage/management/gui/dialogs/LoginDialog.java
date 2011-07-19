@@ -208,13 +208,22 @@ public class LoginDialog extends Dialog {
 		
 		// authentication successful. close the login dialog and open the next one.
 		close();
+
 		// If the password is default, Let user to change the password
-		if (password.equalsIgnoreCase( CoreConstants.DEFAULT_PASSWORD )) {
+		if (password.equalsIgnoreCase(CoreConstants.DEFAULT_PASSWORD)) {
+			String oldSecurityTokeString = GlusterDataModelManager.getInstance().getSecurityToken();
 			ChangePasswordDialog dialog = new ChangePasswordDialog(getShell());
 			dialog.open();
+
+			if (GlusterDataModelManager.getInstance().getSecurityToken().equals(oldSecurityTokeString)) {
+				MessageDialog.openInformation(getShell(), "Change password Cancelled",
+						"Gateway could not be accessed with default password !" + "\n\n" + "Application will close.");
+				cancelPressed();
+				return;
+			}
 		}
-		
-		ClustersClient clustersClient = new ClustersClient(usersClient.getSecurityToken());
+
+		ClustersClient clustersClient = new ClustersClient();
 
 		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
 		boolean showClusterSelectionDialog = preferenceStore.getBoolean(PreferenceConstants.P_SHOW_CLUSTER_SELECTION_DIALOG);
