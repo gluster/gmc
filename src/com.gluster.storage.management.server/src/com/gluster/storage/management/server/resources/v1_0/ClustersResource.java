@@ -40,7 +40,6 @@ import javax.ws.rs.core.Response;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
-import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.exceptions.GlusterValidationException;
 import com.gluster.storage.management.core.response.ClusterNameListResponse;
 import com.gluster.storage.management.server.data.ClusterInfo;
@@ -73,21 +72,15 @@ public class ClustersResource extends AbstractResource {
 	@POST
 	public Response createCluster(@FormParam(FORM_PARAM_CLUSTER_NAME) String clusterName) {
 		if(clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
+			throw new GlusterValidationException("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
 		}
 		
 		if(clusterService.getCluster(clusterName) != null) {
-			return badRequestResponse("Cluster [" + clusterName + "] already exists!");
+			throw new GlusterValidationException("Cluster [" + clusterName + "] already exists!");
 		}
 		
-		try {
-			clusterService.createCluster(clusterName);
-			return createdResponse(clusterName);
-		} catch (Exception e) {
-			// TODO: Log the exception
-			return errorResponse("Exception while trying to save cluster [" + clusterName + "]: [" + e.getMessage()
-					+ "]");
-		}
+		clusterService.createCluster(clusterName);
+		return createdResponse(clusterName);
 	}
 	
 	@PUT

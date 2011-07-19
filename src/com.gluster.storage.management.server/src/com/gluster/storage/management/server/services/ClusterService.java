@@ -145,7 +145,7 @@ public class ClusterService {
 		return servers.get(0).getCluster();
 	}
 	
-	public void createCluster(@FormParam(FORM_PARAM_CLUSTER_NAME) String clusterName) {
+	public void createCluster(String clusterName) {
 		EntityTransaction txn = clusterDao.startTransaction();
 		ClusterInfo cluster = new ClusterInfo();
 		cluster.setName(clusterName);
@@ -155,12 +155,12 @@ public class ClusterService {
 			txn.commit();
 		} catch (RuntimeException e) {
 			txn.rollback();
+			logger.error("Exception while trying to save cluster [" + clusterName + "] : [" + e.getMessage() + "]", e);
 			throw e;
 		}
 	}
 	
-	public void registerCluster(@FormParam(FORM_PARAM_CLUSTER_NAME) String clusterName,
-			@FormParam(FORM_PARAM_SERVER_NAME) String knownServer) {
+	public void registerCluster(String clusterName, String knownServer) {
 		EntityTransaction txn = clusterDao.startTransaction();
 		ClusterInfo cluster = new ClusterInfo();
 		cluster.setName(clusterName);
@@ -185,6 +185,7 @@ public class ClusterService {
 		} catch(RuntimeException e) {
 			logger.error("Error in registering cluster [" + clusterName + "] : " + e.getMessage(), e);
 			txn.rollback();
+			logger.error("Error in registering cluster [" + clusterName + "] : " + e.getMessage(), e);
 			throw e;
 		}
 	}
