@@ -18,14 +18,19 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.dialogs;
 
+import java.lang.reflect.InvocationTargetException;
+
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.UpdateValueStrategy;
 import org.eclipse.core.databinding.beans.PojoProperties;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.databinding.swt.WidgetProperties;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -40,6 +45,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.PlatformUI;
 
 import com.gluster.storage.management.client.ClustersClient;
 import com.gluster.storage.management.client.UsersClient;
@@ -261,7 +267,15 @@ public class LoginDialog extends Dialog {
 
 		try {
 			createOrRegisterCluster(clustersClient, clusterName, serverName, mode);
-			GlusterDataModelManager.getInstance().initializeModel(clusterName);
+			
+			final String clusterName1 =  clusterName;
+			new ProgressMonitorDialog(getShell()).run(true, false, new IRunnableWithProgress() {
+
+				@Override
+				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					GlusterDataModelManager.getInstance().initializeModel(clusterName1, monitor);
+				}
+			});
 			super.okPressed();
 		} catch (Exception e) {
 			setReturnCode(RETURN_CODE_ERROR);

@@ -94,25 +94,18 @@ public class GlusterDataModelManager {
 		return instance;
 	}
 
-	public void initializeModel(String clusterName) {
+	public void initializeModel(String clusterName, IProgressMonitor monitor) {
 		setClusterName(clusterName);
 
-		model = fetchData(clusterName);
+		model = fetchData(clusterName, monitor);
 	}
 
-	private GlusterDataModel fetchData(String clusterName) {
-		GlusterDataModel model = new GlusterDataModel("Gluster Data Model");
-		Cluster cluster = new Cluster(clusterName, model);
-
-		initializeGlusterServers(cluster);
-		initializeVolumes(cluster);
-
-		initializeAutoDiscoveredServers(cluster);
-		initializeTasks(cluster);
-		initializeAlerts(cluster);
+	private GlusterDataModel fetchData(String clusterName, IProgressMonitor monitor) {
+		GlusterDataModel model = fetchModel(monitor);
+		
+		initializeAlerts(model.getCluster());
 		initializeVolumeOptionsDefaults();
 
-		model.addCluster(cluster);
 		return model;
 	}
 	

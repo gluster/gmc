@@ -59,7 +59,6 @@ import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.ibm.icu.util.Calendar;
 
 /**
- * @author root
  * 
  */
 public class ClusterSummaryView extends ViewPart {
@@ -134,8 +133,8 @@ public class ClusterSummaryView extends ViewPart {
 		chartViewerComposite.setLayoutData(data);
 	}
 	
-	private void createLineChart(Composite section, Calendar timestamps[], Double values[]) {
-		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, timestamps, values);
+	private void createLineChart(Composite section, Calendar timestamps[], Double values[], String unit) {
+		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, timestamps, values, unit);
 		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
 		data.widthHint = 400;
 		data.heightHint = 300;
@@ -233,25 +232,28 @@ public class ClusterSummaryView extends ViewPart {
 			return;
 		}
 		
-		ServerStats stats = new GlusterServersClient().getAggregatedCPUStats();
-		List<Calendar> timestamps = new ArrayList<Calendar>();
-		List<Double> data = new ArrayList<Double>();
-		for(ServerStatsRow row : stats.getRows()) {
-			timestamps.add(new CDateTime(row.getTimestamp() * 1000));
-			// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
-			data.add(row.getUsageData().get(2));
-		}
+//		ServerStats stats = new GlusterServersClient().getAggregatedCPUStats();
+//		List<Calendar> timestamps = new ArrayList<Calendar>();
+//		List<Double> data = new ArrayList<Double>();
+//		for(ServerStatsRow row : stats.getRows()) {
+//			// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
+//			Double cpuUsage = row.getUsageData().get(2);
+//			if(!cpuUsage.isNaN()) {
+//				timestamps.add(new CDateTime(row.getTimestamp() * 1000));
+//				data.add(cpuUsage);
+//			}
+//		}
+//		createLineChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]));
 
-//		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
-//				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
-//				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
-//				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
-//				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
-//				new CDateTime(1000l*1310473800) };
+		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
+				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
+				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
+				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
+				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
+				new CDateTime(1000l*1310473800) };
 		
-		//String[] timestampsarr = new String[] {"t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9", "t10", "t11", "t12", "t13", "t14", "t15", "t16", "t17", "t18", "t19", "t20"};
-		//Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 89.31d, 57.39d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 21.43d, 16.45d, 14.86d, 15.27d };
-		createLineChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]));
+		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 89.31d, 57.39d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 21.43d, 16.45d, 14.86d, 15.27d };
+		createLineChart(section, timestamps, values, "%");
 	}
 
 	private void createNetworkUsageSection() {
@@ -270,9 +272,8 @@ public class ClusterSummaryView extends ViewPart {
 //				new Date(1310471400), new Date(1310471700), new Date(1310472000), new Date(1310472300),
 //				new Date(1310472600), new Date(1310472900), new Date(1310473200), new Date(1310473500),
 //				new Date(1310473800) };
-		String[] timestampsarr = new String[] {"t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9", "t10", "t11", "t12", "t13", "t14", "t15", "t16", "t17", "t18", "t19", "t20"};
 		Double[] values = new Double[] { 32d, 31.23d, 27.92d, 48.69d, 58.62d, 49.11d, 72.43d, 69.31d, 87.39d, 78.46d, 60.44d, 56.28d, 33.51d, 27.53d, 12.21, 10d, 21.43d, 36.45d, 34.86d, 35.27d };
-		createLineChart(section, timestamps, values);
+		createLineChart(section, timestamps, values, "KiB/s");
 	}
 
 	private void createRunningTasksSection() {

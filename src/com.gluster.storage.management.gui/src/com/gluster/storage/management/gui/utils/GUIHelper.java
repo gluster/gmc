@@ -141,9 +141,9 @@ public class GUIHelper {
 		GridLayout layout = new GridLayout();
 		layout.marginWidth = layout.marginHeight = 0;
 		layout.numColumns = numColumns;
-		layout.verticalSpacing = 15;
-		layout.marginBottom = 20;
-		layout.marginTop = 5;
+		layout.verticalSpacing = 10;
+		layout.marginBottom = 15;
+		layout.marginTop = 10;
 		
 		client.setLayout(layout);
 		section.setClient(client);

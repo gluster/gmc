@@ -88,6 +88,10 @@ public class Device extends Entity {
 		return getStatus() == DEVICE_STATUS.IO_ERROR;
 	}
 	
+	public boolean isInitialized() {
+		return getStatus() == DEVICE_STATUS.INITIALIZED;
+	}
+	
 	public boolean isReady() {
 		return (getStatus() == DEVICE_STATUS.INITIALIZED && getType() == DEVICE_TYPE.DATA);
 	}

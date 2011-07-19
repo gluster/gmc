@@ -25,7 +25,7 @@ package com.gluster.storage.management.client.constants;
  */
 public class ClientConstants {
 	public static final String SYS_PROP_SERVER_URL = "gluster.server.url";
-	public static final String DEFAULT_SERVER_URL = "https://10.1.12.186:8443/glustermg/linux.gtk.x86_64";
+	public static final String DEFAULT_SERVER_URL = "https://localhost:8443/glustermg/linux.gtk.x86_64";
 	public static final String CONTEXT_ROOT = "glustermg";
 	public static final String REST_API_VERSION = "1.0";
 	

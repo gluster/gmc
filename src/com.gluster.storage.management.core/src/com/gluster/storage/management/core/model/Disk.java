@@ -166,7 +166,7 @@ public class Disk extends Device {
 		Double space = 0d;
 		if (hasPartitions()) {
 			for (Partition partition : getPartitions()) {
-				if (partition.isReady()) {
+				if (partition.isInitialized()) {
 					space += partition.getSpace();
 				}
 			}
@@ -181,7 +181,7 @@ public class Disk extends Device {
 		Double spaceInUse = 0d;
 		if (hasPartitions()) {
 			for (Partition partition : getPartitions()) {
-				if (partition.isReady()) {
+				if (partition.isInitialized()) {
 					spaceInUse += partition.getSpaceInUse();
 				}
 			}

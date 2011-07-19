@@ -94,7 +94,7 @@ public class GlusterViewsManager implements ViewsManager {
 		page.showView(GlusterServerSummaryView.ID);
 		if (server.getStatus() == GlusterServer.SERVER_STATUS.ONLINE) {
 			page.showView(GlusterServerDisksView.ID, null, IWorkbenchPage.VIEW_CREATE);
-			page.showView(GlusterServerLogsView.ID, null, IWorkbenchPage.VIEW_CREATE);
+			//page.showView(GlusterServerLogsView.ID, null, IWorkbenchPage.VIEW_CREATE);
 		}
 	}
 

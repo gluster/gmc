@@ -29,16 +29,20 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.forms.widgets.FormToolkit;
+import org.eclipse.ui.forms.widgets.Hyperlink;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.ViewPart;
 
@@ -67,6 +71,7 @@ public class GlusterServerSummaryView extends ViewPart {
 	private ScrolledForm form;
 	private GlusterServer server;
 	private ClusterListener serverChangedListener;
+	private static final int CHART_WIDTH = 350;
 
 	public enum NETWORK_INTERFACE_TABLE_COLUMN_INDICES {
 		INTERFACE, MODEL, SPEED, IP_ADDRESS, NETMASK, GATEWAY
@@ -105,36 +110,97 @@ public class GlusterServerSummaryView extends ViewPart {
 		GlusterDataModelManager.getInstance().removeClusterListener(serverChangedListener);
 	}
 
-	private void createLineChart(Composite section, Calendar timestamps[], Double values[]) {
-		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, timestamps, values);
+	private void createLineChart(Composite section, Calendar timestamps[], Double values[], String unit) {
+		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, timestamps, values, unit);
 		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
-		data.widthHint = 450;
-		data.heightHint = 300;
-		data.verticalAlignment = SWT.CENTER;
+//		data.widthHint = CHART_WIDTH;
+		data.heightHint = 250;
+//		data.verticalAlignment = SWT.CENTER;
+//		data.grabExcessVerticalSpace = false;
+//		data.horizontalSpan = 5;
+//		data.verticalIndent = 0;
+//		data.verticalSpan = 1;
 		chartViewerComposite.setLayoutData(data);
 	}
 
 	private void createMemoryUsageSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Memory Usage (aggregated)", null, 1, false);
-		toolkit.createLabel(section, "Historical Memory Usage graph aggregated across all servers will be displayed here.");
+		Composite section = guiHelper.createSection(form, toolkit, "Memory Usage", null, 1, false);
+		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
+				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
+				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
+				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
+				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
+				new CDateTime(1000l*1310473800) };
+		//Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 20.31d, 19.63d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 40d, 10d, 90d, 40d };
+		Double[] values = new Double[] { 35d, 34.23d, 37.92d, 28.69d, 38.62d, 39.11d, 38.46d, 30.44d, 36.28d, 72.43d, 79.31d, 77.39d, 33.51d, 37.53d, 32.21, 30d, 31.43d, 36.45d, 34.86d, 35.27d };
+		createLineChart(section, timestamps, values, "%");
+		Composite graphComposite = createChartLinks(section, 4);
 	}
 	
+	private void createNetworkUsageSection() {
+		Composite section = guiHelper.createSection(form, toolkit, "Network Usage", null, 1, false);
+
+		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
+				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
+				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
+				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
+				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
+				new CDateTime(1000l*1310473800) };
+		Double[] values = new Double[] { 32d, 31.23d, 27.92d, 48.69d, 58.62d, 49.11d, 72.43d, 69.31d, 87.39d, 78.46d, 60.44d, 56.28d, 33.51d, 27.53d, 12.21, 10d, 21.43d, 36.45d, 34.86d, 35.27d };
+
+		createLineChart(section, timestamps, values, "Kib/s");
+
+		Composite graphComposite = createChartLinks(section, 5);
+		CCombo interfaceCombo = new CCombo(graphComposite, SWT.DROP_DOWN | SWT.READ_ONLY | SWT.BORDER | SWT.FLAT);
+		interfaceCombo.setItems(new String[] {"eth0"});
+		interfaceCombo.select(0);	
+	}
+
+	
 	private void createCPUUsageSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "CPU Usage (aggregated)", null, 1, false);
+		Composite section = guiHelper.createSection(form, toolkit, "CPU Usage", null, 1, false);
 		//toolkit.createLabel(section, "Historical CPU Usage graph aggregated across\nall servers will be displayed here.");
 
-//		String[] timestamps = new String[] {"t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9", "t10", "t11", "t12", "t13", "t14", "t15", "t16", "t17", "t18", "t19", "t20"};
-//		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 20.31d, 19.63d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 40d, 10d, 90d, 40d };
-		ServerStats stats = new GlusterServersClient().getAggregatedCPUStats();
-		List<Calendar> timestamps = new ArrayList<Calendar>();
-		List<Double> data = new ArrayList<Double>();
-		for(ServerStatsRow row : stats.getRows()) {
-			timestamps.add(new CDateTime(row.getTimestamp() * 1000));
-			// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
-			data.add(row.getUsageData().get(2));
-		}
+		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
+				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
+				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
+				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
+				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
+				new CDateTime(1000l*1310473800) };
+		//Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 20.31d, 19.63d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 40d, 10d, 90d, 40d };
+		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 89.31d, 57.39d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 21.43d, 16.45d, 14.86d, 15.27d };
+		createLineChart(section, timestamps, values, "%");
 		
-		createLineChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]));
+//		ServerStats stats = new GlusterServersClient().getAggregatedCPUStats();
+//		List<Calendar> timestamps = new ArrayList<Calendar>();
+//		List<Double> data = new ArrayList<Double>();
+//		for(ServerStatsRow row : stats.getRows()) {
+//			timestamps.add(new CDateTime(row.getTimestamp() * 1000));
+//			// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
+//			data.add(row.getUsageData().get(2));
+//		}
+//		
+//		createLineChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]));
+		Composite graphComposite = createChartLinks(section, 4);
+	}
+	
+	private Composite createChartLinks(Composite section, int columnCount) {
+		GridLayout layout = new org.eclipse.swt.layout.GridLayout(columnCount, false);
+		layout.marginBottom = 0;
+		layout.marginTop = 0;
+		layout.marginLeft = (CHART_WIDTH - (50*columnCount)) / 2;
+		Composite graphComposite = toolkit.createComposite(section, SWT.NONE);
+		graphComposite.setLayout(layout);
+		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
+		data.widthHint = CHART_WIDTH;
+		graphComposite.setLayoutData(data);
+		
+		Label label1 = toolkit.createLabel(graphComposite, "1 day");
+		Hyperlink link1 = toolkit.createHyperlink(graphComposite, "1 week", SWT.NONE);
+		Hyperlink link2 = toolkit.createHyperlink(graphComposite, "1 month", SWT.NONE);
+		Hyperlink link3 = toolkit.createHyperlink(graphComposite, "1 year", SWT.NONE);
+		
+		return graphComposite;
 	}
 
 	private void createSections(Composite parent) {
@@ -144,6 +210,7 @@ public class GlusterServerSummaryView extends ViewPart {
 
 		if (server.getStatus() == SERVER_STATUS.ONLINE) {
 			createMemoryUsageSection();
+			createNetworkUsageSection();
 			createCPUUsageSection();
 			createNetworkInterfacesSection(server, toolkit, form);
 		}

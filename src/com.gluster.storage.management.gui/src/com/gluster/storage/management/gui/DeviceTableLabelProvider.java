@@ -65,6 +65,11 @@ public class DeviceTableLabelProvider extends LabelProvider implements ITableLab
 			if (status == null) {
 				return null;
 			}
+			
+			if(element instanceof Disk && ((Disk)element).hasPartitions()) {
+				// disk has partitions. so don't show status image at disk level.
+				return null;
+			}
 
 			// TODO: Use different images for all four statuses
 			switch (status) {
@@ -113,12 +118,20 @@ public class DeviceTableLabelProvider extends LabelProvider implements ITableLab
 		
 		Device device = (Device) element;
 		if (columnIndex == DEVICE_COLUMN_INDICES.DISK.ordinal()) {
+			// show value in "disk" column only if it's a disk
 			if (device instanceof Disk) {
 				return device.getQualifiedName();
 			} else {
 				return "";
 			}
-		} else if (columnIndex == DEVICE_COLUMN_INDICES.FREE_SPACE.ordinal()) {
+		} 
+		
+		if(element instanceof Disk && ((Disk)element).hasPartitions()) {
+			// disk has partitions. so don't show any other details
+			return "";
+		}
+		
+		if (columnIndex == DEVICE_COLUMN_INDICES.FREE_SPACE.ordinal()) {
 			return "" + getDeviceFreeSpace(device);
 		} else if (columnIndex == DEVICE_COLUMN_INDICES.SPACE_IN_USE.ordinal()) {
 			return "" + getTotalDeviceSpace(device);
