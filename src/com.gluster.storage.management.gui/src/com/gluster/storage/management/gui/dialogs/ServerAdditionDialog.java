@@ -20,14 +20,17 @@
  */
 package com.gluster.storage.management.gui.dialogs;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.UpdateValueStrategy;
 import org.eclipse.core.databinding.beans.PojoProperties;
-import org.eclipse.core.databinding.validation.ValidationStatus;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.databinding.swt.WidgetProperties;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.fieldassist.ControlDecoration;
@@ -46,12 +49,11 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.GlusterServersClient;
-import com.gluster.storage.management.client.UsersClient;
-import com.gluster.storage.management.core.constants.CoreConstants;
-import com.gluster.storage.management.core.model.ConnectionDetails;
+import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
-import com.gluster.storage.management.gui.IImageKeys;
+import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.validators.StringRequiredValidator;
 
@@ -61,6 +63,8 @@ public class ServerAdditionDialog extends Dialog {
 	private Button addButton;
 
 	private final GUIHelper guiHelper = GUIHelper.getInstance();
+	private ControlDecoration errDecoration;
+
 	private Composite composite;
 
 	public ServerAdditionDialog(Shell shell) {
@@ -125,14 +129,12 @@ public class ServerAdditionDialog extends Dialog {
 
 	@Override
 	protected Control createDialogArea(Composite parent) {
-//		parent.setBackgroundImage(guiHelper.getImage(IImageKeys.DIALOG_SPLASH_IMAGE));
-		parent.setBackgroundMode(SWT.INHERIT_FORCE);
-
 		composite = (Composite) super.createDialogArea(parent);
 		configureDialogLayout(composite);
 
 		createLabel(composite, "Server Name:");
 		serverName = createServerNameText(composite);
+		errDecoration = guiHelper.createErrorDecoration(serverName);
 
 		createListeners();
 
@@ -141,7 +143,7 @@ public class ServerAdditionDialog extends Dialog {
 
 	private void createListeners() {
 		ModifyListener listener = new ModifyListener() {
-			
+
 			@Override
 			public void modifyText(ModifyEvent e) {
 				updateButtonStatus();
@@ -152,12 +154,20 @@ public class ServerAdditionDialog extends Dialog {
 	}
 
 	private void updateButtonStatus() {
-		if(serverName.getText().isEmpty()) {
+		addButton.setEnabled(true);
+		errDecoration.hide();
+
+		if(!serverExists(serverName.getText())) {
 			addButton.setEnabled(false);
-			return;
+			errDecoration.setDescriptionText("Server name already exists.");
+			errDecoration.show();
 		}
 		
-		addButton.setEnabled(true);
+		if(serverName.getText().isEmpty()) {
+			addButton.setEnabled(false);
+			errDecoration.setDescriptionText("Please enter server name!");
+			errDecoration.show();
+		}
 	}
 
 	@Override
@@ -165,31 +175,30 @@ public class ServerAdditionDialog extends Dialog {
 		addButton = createButton(parent, IDialogConstants.OK_ID, "&Add Server", true);
 		addButton.setEnabled(false);
 		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-
-		setupDataBinding();
 	}
-
-	private void setupDataBinding() {
-		DataBindingContext dataBindingContext = new DataBindingContext(SWTObservables.getRealm(Display.getCurrent()));
-		UpdateValueStrategy serverNameBindingStrategy = new UpdateValueStrategy(UpdateValueStrategy.POLICY_UPDATE);
-
-		// The Validator shows error decoration and disables OK button on
-		// validation failure
-		serverNameBindingStrategy.setBeforeSetValidator(new StringRequiredValidator("Please enter server name!",
-				guiHelper.createErrorDecoration(serverName), null));
-
-		dataBindingContext.bindValue(WidgetProperties.text(SWT.Modify).observe(serverName),
-				PojoProperties.value("serverName").observe(serverName.getText()), serverNameBindingStrategy,
-				serverNameBindingStrategy);
-
+	
+	public Boolean serverExists(String serverName) {
+		List<GlusterServer> servers = GlusterDataModelManager.getInstance().getModel().getCluster().getServers();
+		for (GlusterServer server : servers) {
+			if (server.getName().equals(serverName)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	protected void okPressed() {
 		GlusterServersClient serversClient = new GlusterServersClient();
+		GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+
 		try {
-			 serversClient.addServer(serverName.getText());
-			
-			MessageDialog.openInformation(getShell(), "Add Server", "Server added successfully!");
+			String serverNameText = serverName.getText();
+			serversClient.addServer(serverNameText);
+
+			modelManager.addGlusterServer(serversClient.getGlusterServer(serverNameText));
+
+			MessageDialog
+					.openInformation(getShell(), "Add Server", "Server " + serverNameText + " added successfully!");
 		} catch (Exception e) {
 			MessageDialog.openError(getShell(), "Server addition Failed", e.getMessage());
 			setReturnCode(RETURN_CODE_ERROR);
