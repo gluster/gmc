@@ -122,8 +122,8 @@ public class TasksResource extends AbstractResource {
 	private Task checkTaskStatus(String taskId) {
 		Task task = getTask(taskId);
 		// No status check required if the task already complete or failure
-		if (task.getTaskInfo().getStatus() == Status.STATUS_FAILURE
-				|| task.getTaskInfo().getStatus() == Status.STATUS_SUCCESS) {
+		if (task.getTaskInfo().getStatus().getCode() == Status.STATUS_CODE_FAILURE
+				|| task.getTaskInfo().getStatus().getCode() == Status.STATUS_CODE_SUCCESS) {
 			return task;
 		}
 		task.getTaskInfo().setStatus(task.checkStatus());

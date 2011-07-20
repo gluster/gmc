@@ -42,6 +42,8 @@ import org.eclipse.ui.forms.widgets.ImageHyperlink;
 import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.client.TasksClient;
+import com.gluster.storage.management.core.model.ClusterListener;
+import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
@@ -69,6 +71,10 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 		setupStatusCellEditor(); 
 		// Listen for disk status change events
 		Application.getApplication().addEntityListener(this);
+	}
+	
+	protected ClusterListener createClusterListener() {
+		return new DefaultClusterListener();
 	}
 	
 	private void createInitializeLink(final TreeItem item, final int rowNum, final Device uninitializedDevice) {
@@ -232,9 +238,9 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 					GlusterDataModelManager.getInstance().getModel().getCluster().addTaskInfo(taskInfo);
 				}
 				
-				if (taskInfo.getStatus().getCode() != Status.STATUS_CODE_RUNNING) {
+				if (taskInfo.getStatus().getCode() == Status.STATUS_CODE_RUNNING) {
 					updateStatus(DEVICE_STATUS.INITIALIZING, true);
-				} else if(taskInfo.getStatus().getCode() != Status.STATUS_CODE_SUCCESS) {
+				} else if(taskInfo.getStatus().getCode() == Status.STATUS_CODE_SUCCESS) {
 					updateStatus(DEVICE_STATUS.INITIALIZED, true);
 				}
 				

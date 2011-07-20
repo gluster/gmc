@@ -52,7 +52,7 @@ public class AddServerAction extends AbstractActionDelegate {
 					guiHelper.setStatusMessage("Adding server [" + server.getName() + "]...");
 
 					try {
-						glusterServersClient.addServer(server);
+						glusterServersClient.addServer(server.getName());
 						modelManager.addGlusterServer(glusterServersClient.getGlusterServer(server.getName()));
 						successServers.add(server);
 					} catch (Exception e) {

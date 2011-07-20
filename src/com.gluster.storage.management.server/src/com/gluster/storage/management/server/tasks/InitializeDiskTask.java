@@ -53,6 +53,7 @@ public class InitializeDiskTask extends Task {
 		setServerName(serverName);
 		setDiskName(diskName);
 		setFsType(fsType);
+		taskInfo.setName(getId());
 		init();
 	}
 
