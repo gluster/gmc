@@ -23,6 +23,7 @@ package com.gluster.storage.management.gui.views;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.birt.chart.util.CDateTime;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnWeightData;
@@ -42,18 +43,21 @@ import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.core.model.ServerStatsRow;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
+import com.gluster.storage.management.core.model.ServerStats;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.NetworkInterfaceTableLabelProvider;
 import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
 import com.gluster.storage.management.gui.utils.ChartViewerComposite;
-import com.gluster.storage.management.gui.utils.ChartViewerComposite.CHART_TYPE;
 import com.gluster.storage.management.gui.utils.GUIHelper;
+import com.ibm.icu.util.Calendar;
 import com.richclientgui.toolbox.gauges.CoolGauge;
 
 public class GlusterServerSummaryView extends ViewPart {
@@ -101,7 +105,7 @@ public class GlusterServerSummaryView extends ViewPart {
 		GlusterDataModelManager.getInstance().removeClusterListener(serverChangedListener);
 	}
 
-	private void createLineChart(Composite section, String timestamps[], Double values[]) {
+	private void createLineChart(Composite section, Calendar timestamps[], Double values[]) {
 		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, timestamps, values);
 		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
 		data.widthHint = 450;
@@ -119,9 +123,18 @@ public class GlusterServerSummaryView extends ViewPart {
 		Composite section = guiHelper.createSection(form, toolkit, "CPU Usage (aggregated)", null, 1, false);
 		//toolkit.createLabel(section, "Historical CPU Usage graph aggregated across\nall servers will be displayed here.");
 
-		String[] timestamps = new String[] {"t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9", "t10", "t11", "t12", "t13", "t14", "t15", "t16", "t17", "t18", "t19", "t20"};
-		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 20.31d, 19.63d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 40d, 10d, 90d, 40d };
-		createLineChart(section, timestamps, values);
+//		String[] timestamps = new String[] {"t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9", "t10", "t11", "t12", "t13", "t14", "t15", "t16", "t17", "t18", "t19", "t20"};
+//		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 20.31d, 19.63d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 40d, 10d, 90d, 40d };
+		ServerStats stats = new GlusterServersClient().getAggregatedCPUStats();
+		List<Calendar> timestamps = new ArrayList<Calendar>();
+		List<Double> data = new ArrayList<Double>();
+		for(ServerStatsRow row : stats.getRows()) {
+			timestamps.add(new CDateTime(row.getTimestamp() * 1000));
+			// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
+			data.add(row.getUsageData().get(2));
+		}
+		
+		createLineChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]));
 	}
 
 	private void createSections(Composite parent) {

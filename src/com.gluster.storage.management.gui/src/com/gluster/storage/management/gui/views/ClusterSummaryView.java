@@ -20,6 +20,7 @@
  */
 package com.gluster.storage.management.gui.views;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -40,6 +41,7 @@ import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.client.GlusterDataModelManager;
+import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.EntityGroup;
@@ -47,6 +49,8 @@ import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.model.ServerStats;
+import com.gluster.storage.management.core.model.ServerStatsRow;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.IImageKeys;
@@ -160,7 +164,7 @@ public class ClusterSummaryView extends ViewPart {
 			alertImage = guiHelper.getImage(IImageKeys.LOW_DISK_SPACE);
 			break;
 		case OFFLINE_SERVERS_ALERT:
-			alertImage = guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
+			alertImage = guiHelper.getImage(IImageKeys.SERVER_OFFLINE);
 			break;
 		case MEMORY_USAGE_ALERT:
 			alertImage = guiHelper.getImage(IImageKeys.MEMORY_USAGE_ALERT);
@@ -229,24 +233,26 @@ public class ClusterSummaryView extends ViewPart {
 			toolkit.createLabel(section, "This section will be populated after at least\none server is added to the storage cloud.");
 			return;
 		}
-		//toolkit.createLabel(section, "Historical CPU Usage graph aggregated across\nall servers will be displayed here.");
+		
+		ServerStats stats = new GlusterServersClient().getAggregatedCPUStats();
+		List<Calendar> timestamps = new ArrayList<Calendar>();
+		List<Double> data = new ArrayList<Double>();
+		for(ServerStatsRow row : stats.getRows()) {
+			timestamps.add(new CDateTime(row.getTimestamp() * 1000));
+			// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
+			data.add(row.getUsageData().get(2));
+		}
 
-//		Date[] timestamps = new Date[] { new Date(1310468100), new Date(1310468400), new Date(1310468700),
-//				new Date(1310469000), new Date(1310469300), new Date(1310469600), new Date(1310469900),
-//				new Date(1310470200), new Date(1310470500), new Date(1310470800), new Date(1310471100),
-//				new Date(1310471400), new Date(1310471700), new Date(1310472000), new Date(1310472300),
-//				new Date(1310472600), new Date(1310472900), new Date(1310473200), new Date(1310473500),
-//				new Date(1310473800) };
-		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
-				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
-				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
-				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
-				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
-				new CDateTime(1000l*1310473800) };
+//		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
+//				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
+//				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
+//				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
+//				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
+//				new CDateTime(1000l*1310473800) };
 		
 		//String[] timestampsarr = new String[] {"t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9", "t10", "t11", "t12", "t13", "t14", "t15", "t16", "t17", "t18", "t19", "t20"};
-		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 89.31d, 57.39d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 21.43d, 16.45d, 14.86d, 15.27d };
-		createLineChart(section, timestamps, values);
+		//Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 89.31d, 57.39d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 21.43d, 16.45d, 14.86d, 15.27d };
+		createLineChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]));
 	}
 
 	private void createNetworkUsageSection() {

@@ -207,8 +207,7 @@ public abstract class AbstractClient {
 	 *            Expected class of the response
 	 * @return Object of responseClass received as a result of the GET request
 	 */
-	@SuppressWarnings("rawtypes")
-	protected Object fetchResource(MultivaluedMap<String, String> queryParams, Class responseClass) {
+	protected <T> T fetchResource(MultivaluedMap<String, String> queryParams, Class<T> responseClass) {
 		return fetchResource(resource, queryParams, responseClass);
 	}
 
@@ -220,10 +219,8 @@ public abstract class AbstractClient {
 	 *            Expected class of the response
 	 * @return Object of responseClass received as a result of the GET request
 	 */
-	@SuppressWarnings("rawtypes")
-	protected Object fetchResource(Class responseClass) {
-		Object response = fetchResource(resource, NO_PARAMS, responseClass);
-		return response;
+	protected <T> T fetchResource(Class<T> responseClass) {
+		return fetchResource(resource, NO_PARAMS, responseClass);
 	}
 
 	/**
@@ -236,8 +233,7 @@ public abstract class AbstractClient {
 	 *            Expected class of the response
 	 * @return Object of responseClass received as a result of the GET request on the sub-resource
 	 */
-	@SuppressWarnings("rawtypes")
-	protected Object fetchSubResource(String subResourceName, Class responseClass) {
+	protected <T> T fetchSubResource(String subResourceName, Class<T> responseClass) {
 		return fetchResource(resource.path(subResourceName), NO_PARAMS, responseClass);
 	}
 
@@ -257,9 +253,8 @@ public abstract class AbstractClient {
 	 *            Expected class of the response
 	 * @return Object of responseClass received as a result of the GET request on the sub-resource
 	 */
-	@SuppressWarnings("rawtypes")
-	protected Object fetchSubResource(String subResourceName, MultivaluedMap<String, String> queryParams,
-			Class responseClass) {
+	protected <T> T fetchSubResource(String subResourceName, MultivaluedMap<String, String> queryParams,
+			Class<T> responseClass) {
 		return fetchResource(resource.path(subResourceName), queryParams, responseClass);
 	}
 
@@ -280,8 +275,7 @@ public abstract class AbstractClient {
 	 *            the Object to be submitted
 	 * @return Object of given class received as response
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected Object postObject(Class responseClass, Object requestObject) {
+	protected <T> T postObject(Class<T> responseClass, Object requestObject) {
 		return resource.type(MediaType.APPLICATION_XML).header(HTTP_HEADER_AUTH, authHeader)
 				.accept(MediaType.APPLICATION_XML).post(responseClass, requestObject);
 	}

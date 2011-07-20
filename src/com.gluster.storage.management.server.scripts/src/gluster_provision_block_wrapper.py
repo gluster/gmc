@@ -89,25 +89,14 @@ def main():
         writeStatus(deviceFormatStatusFile, "Device format failed\n")
         sys.exit(5)
 
-    ## try:
-    ##     process = subprocess.Popen(command,
-    ##                                stdout=fptr,
-    ##                                stderr=subprocess.PIPE,
-    ##                                stdin=subprocess.PIPE,
-    ##                                close_fds=True)
-    ##     status = process.wait()
-    ## except OSError:
-    ##     os.unlink(deviceFormatOutputFile)
-    ##     Utils.log(syslog.LOG_ERR, "formatting disk command failed. command: %s" % str(command))
-    ##     writeStatus(deviceFormatStatusFile, "Formatting disk command failed\n")
-    ##     removeLockFile()
-    ##     sys.exit(-5)
-
     if status != 0:
         Utils.removeFile(deviceFormatOutputFile)
         Utils.removeFile(deviceFormatLockFile)
         writeStatus(deviceFormatStatusFile, "Device format failed\n")
         sys.exit(6)
+
+    if Utils.runCommand("/sbin/udevtrigger") != 0:
+        Utils.log("failed running /sbin/udevtrigger")
 
     if Utils.runCommand("/usr/bin/lshal") != 0:
         Utils.log("failed running /usr/bin/lshal")

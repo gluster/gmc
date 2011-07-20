@@ -71,32 +71,4 @@ public class ClustersClient extends AbstractClient {
 	public void deleteCluster(String clusterName) {
 		deleteSubResource(clusterName);
 	}
-	
-	public static void main(String args[]) {
-		UsersClient usersClient = new UsersClient();
-		
-		try {
-			usersClient.authenticate("gluster", "gluster");
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-		
-		ClustersClient client = new ClustersClient();
-		client.setSecurityToken(usersClient.getSecurityToken());
-		System.out.println(client.getClusterNames());
-		try {
-			client.createCluster("test1");
-		} catch (GlusterRuntimeException e) {
-			System.out.println(e.getMessage());
-		}
-
-		System.out.println(client.getClusterNames());
-
-		try {
-			client.deleteCluster("test1");
-		} catch (GlusterRuntimeException e) {
-			System.out.println(e.getMessage());
-		}
-		System.out.println(client.getClusterNames());
-	}
 }

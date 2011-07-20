@@ -24,12 +24,17 @@ import static com.gluster.storage.management.core.constants.RESTConstants.RESOUR
 import java.net.URI;
 import java.util.List;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.model.ServerStats;
+import com.gluster.storage.management.core.model.ServerStatsRow;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.sun.jersey.api.representation.Form;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class GlusterServersClient extends AbstractClient {
 	
@@ -64,9 +69,9 @@ public class GlusterServersClient extends AbstractClient {
 		return server;
 	}
 
-	public void addServer(Server discoveredServer) {
+	public void addServer(String serverName) {
 		Form form = new Form();
-		form.add(RESTConstants.FORM_PARAM_SERVER_NAME, discoveredServer.getName());
+		form.add(RESTConstants.FORM_PARAM_SERVER_NAME, serverName);
 		postRequest(form);
 	}
 	
@@ -79,23 +84,16 @@ public class GlusterServersClient extends AbstractClient {
 	public void removeServer(String serverName) {
 		deleteSubResource(serverName);
 	}
-
-	public static void main(String[] args) {
-		UsersClient usersClient = new UsersClient();
-		try {
-			usersClient.authenticate("gluster", "gluster");
-			GlusterServersClient glusterServersClient = new GlusterServersClient(usersClient.getSecurityToken(), "cluster1");
-			List<GlusterServer> glusterServers = glusterServersClient.getServers();
-			for (GlusterServer server : glusterServers) {
-				System.out.println(server.getName());
-			}
-
-			// Add server
-			 Server srv = new Server();
-			 srv.setName("server3");
-			 glusterServersClient.addServer(srv);
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
+	
+	public ServerStats getCPUStats(String serverName) {
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+		queryParams.add(RESTConstants.QUERY_PARAM_TYPE, RESTConstants.STATISTICS_TYPE_CPU);
+		return fetchSubResource(serverName + "/" + RESTConstants.RESOURCE_STATISTICS, queryParams, ServerStats.class);
+	}
+	
+	public ServerStats getAggregatedCPUStats() {
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+		queryParams.add(RESTConstants.QUERY_PARAM_TYPE, RESTConstants.STATISTICS_TYPE_CPU);
+		return fetchSubResource(RESTConstants.RESOURCE_STATISTICS, queryParams, ServerStats.class);
 	}
 }

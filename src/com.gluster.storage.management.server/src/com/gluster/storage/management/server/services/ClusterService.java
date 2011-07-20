@@ -29,6 +29,7 @@ import javax.persistence.EntityTransaction;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.PathParam;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -66,6 +67,8 @@ public class ClusterService {
 	private ServerUtil serverUtil;
 
 	private LRUCache<String, GlusterServer> onlineServerCache = new LRUCache<String, GlusterServer>(3);
+	
+	private static final Logger logger = Logger.getLogger(ClusterService.class);
 	
 	public void addOnlineServer(String clusterName, GlusterServer server) {
 		onlineServerCache.put(clusterName, server);
@@ -142,7 +145,7 @@ public class ClusterService {
 		return servers.get(0).getCluster();
 	}
 	
-	public void createCluster(@FormParam(FORM_PARAM_CLUSTER_NAME) String clusterName) {
+	public void createCluster(String clusterName) {
 		EntityTransaction txn = clusterDao.startTransaction();
 		ClusterInfo cluster = new ClusterInfo();
 		cluster.setName(clusterName);
@@ -152,12 +155,12 @@ public class ClusterService {
 			txn.commit();
 		} catch (RuntimeException e) {
 			txn.rollback();
+			logger.error("Exception while trying to save cluster [" + clusterName + "] : [" + e.getMessage() + "]", e);
 			throw e;
 		}
 	}
 	
-	public void registerCluster(@FormParam(FORM_PARAM_CLUSTER_NAME) String clusterName,
-			@FormParam(FORM_PARAM_SERVER_NAME) String knownServer) {
+	public void registerCluster(String clusterName, String knownServer) {
 		EntityTransaction txn = clusterDao.startTransaction();
 		ClusterInfo cluster = new ClusterInfo();
 		cluster.setName(clusterName);
@@ -180,7 +183,9 @@ public class ClusterService {
 			clusterDao.save(cluster);
 			txn.commit();
 		} catch(RuntimeException e) {
+			logger.error("Error in registering cluster [" + clusterName + "] : " + e.getMessage(), e);
 			txn.rollback();
+			logger.error("Error in registering cluster [" + clusterName + "] : " + e.getMessage(), e);
 			throw e;
 		}
 	}
@@ -203,7 +208,7 @@ public class ClusterService {
 		sshUtil.installPublicKey(serverName);
 	}
 	
-	public void unregisterCluster(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
+	public void unregisterCluster(String clusterName) {
 		ClusterInfo cluster = getCluster(clusterName);
 		
 		if (cluster == null) {
@@ -216,9 +221,15 @@ public class ClusterService {
 	public void unregisterCluster(ClusterInfo cluster) {
 		EntityTransaction txn = clusterDao.startTransaction();
 		try {
+			for(ServerInfo server : cluster.getServers()) {
+				clusterDao.delete(server);
+			}
+			cluster.getServers().clear();
+			clusterDao.update(cluster);
 			clusterDao.delete(cluster);
 			txn.commit();
 		} catch (RuntimeException e) {
+			logger.error("Error in unregistering cluster [" + cluster.getName() + "] : " + e.getMessage(), e);
 			txn.rollback();
 			throw e;
 		}

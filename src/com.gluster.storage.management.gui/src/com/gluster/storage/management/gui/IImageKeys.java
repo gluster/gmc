@@ -33,6 +33,9 @@ public interface IImageKeys {
 	public static final String CREATE_VOLUME = "icons/tango/32x32/create-volume.svg";
 	public static final String START_VOLUME = "icons/tango/32x32/start-volume.svg";
 	public static final String STOP_VOLUME = "icons/tango/32x32/stop-volume.svg";
+	public static final String RESET_VOLUME_OPTIONS = "icons/tango/32x32/reset-volume-option.svg";
+	public static final String VOLUME_OPTIONS = "icons/tango/16x16/volume-options.png";
+	public static final String SERVER_OFFLINE = "icons/tango/16x16/offline-server.png";
 	
 	public static final String CREATE_VOLUME_BIG = "icons/tango/48x48/create-volume.svg";
 	public static final String REMOVE_VOLUME = "icons/tango/32x32/remove-volume.svg";
@@ -50,7 +53,7 @@ public interface IImageKeys {
 	public static final String DISK = "icons/tango/16x16/disk.svg";
 	public static final String DISKS = "icons/tango/16x16/disk.svg";
 	public static final String DISK_UNINITIALIZED = "icons/disk-uninitialized.png";
-	public static final String SEARCH = "icons/search.png";
+	public static final String SEARCH = "icons/tango/22x22/system-search.png";
 	public static final String ARROW_UP = "icons/arrow-up.png";
 	public static final String ARROW_DOWN = "icons/arrow-down.png";
 	public static final String VOLUME_REBALANCE = "icons/tango/32x32/volume-rebalance.svg";
@@ -63,9 +66,9 @@ public interface IImageKeys {
 	
 	public static final String bricks = "icons/tango/16x16/bricks.png";
 
-	public static final String PAUSE_TASK = "icons/pause_task.gif";
-	public static final String RESUME_TASK = "icons/resume_task.gif";
-	public static final String STOP_TASK = "icons/stop_task.gif";
+	public static final String PAUSE_TASK = "icons/tango/32x32/media-playback-pause.png";
+	public static final String RESUME_TASK = "icons/tango/32x32/media-playback-start.png";
+	public static final String STOP_TASK = "icons/tango/32x32/media-playback-stop.png";
 	public static final String CLEAR_TASK = "icons/close_task.gif";
 	
 	public static final String OVERLAY_OFFLINE = "icons/status-offline-small.png";

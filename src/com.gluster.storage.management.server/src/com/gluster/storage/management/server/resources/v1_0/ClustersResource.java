@@ -37,8 +37,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
+import com.gluster.storage.management.core.exceptions.GlusterValidationException;
 import com.gluster.storage.management.core.response.ClusterNameListResponse;
 import com.gluster.storage.management.server.data.ClusterInfo;
 import com.gluster.storage.management.server.services.ClusterService;
@@ -54,6 +56,7 @@ import com.sun.jersey.spi.resource.Singleton;
 public class ClustersResource extends AbstractResource {
 	@InjectParam
 	private ClusterService clusterService;
+	private static final Logger logger = Logger.getLogger(ClustersResource.class);
 	
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
@@ -69,73 +72,55 @@ public class ClustersResource extends AbstractResource {
 	@POST
 	public Response createCluster(@FormParam(FORM_PARAM_CLUSTER_NAME) String clusterName) {
 		if(clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
+			throw new GlusterValidationException("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
 		}
 		
 		if(clusterService.getCluster(clusterName) != null) {
-			return badRequestResponse("Cluster [" + clusterName + "] already exists!");
+			throw new GlusterValidationException("Cluster [" + clusterName + "] already exists!");
 		}
 		
-		try {
-			clusterService.createCluster(clusterName);
-			return createdResponse(clusterName);
-		} catch (Exception e) {
-			// TODO: Log the exception
-			return errorResponse("Exception while trying to save cluster [" + clusterName + "]: [" + e.getMessage()
-					+ "]");
-		}
+		clusterService.createCluster(clusterName);
+		return createdResponse(clusterName);
 	}
 	
 	@PUT
 	public Response registerCluster(@FormParam(FORM_PARAM_CLUSTER_NAME) String clusterName,
 			@FormParam(FORM_PARAM_SERVER_NAME) String knownServer) {
 		if(clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
+			throw new GlusterValidationException("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
 		}
 		
 		if(knownServer == null || knownServer.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_SERVER_NAME + "] is missing in request!");
+			throw new GlusterValidationException("Parameter [" + FORM_PARAM_SERVER_NAME + "] is missing in request!");
 		}
 		
 		if(clusterService.getCluster(clusterName) != null) {
-			return badRequestResponse("Cluster [" + clusterName + "] already exists!");
+			throw new GlusterValidationException("Cluster [" + clusterName + "] already exists!");
 		}
 		
 		ClusterInfo mappedCluster = clusterService.getClusterForServer(knownServer);
 		if(mappedCluster != null) {
-			return badRequestResponse("Server [" + knownServer + "] is already present in cluster ["
+			throw new GlusterValidationException("Server [" + knownServer + "] is already present in cluster ["
 					+ mappedCluster.getName() + "]!");
 		}
 		
-		try {
-			clusterService.registerCluster(clusterName, knownServer);
-			return noContentResponse(clusterName);
-		} catch(Exception e) {
-			// TODO: Log the exception
-			return errorResponse("Exception while trying to register cluster [" + clusterName + "] using server ["
-					+ knownServer + "]: [" + e.getMessage() + "]");
-		}
+		clusterService.registerCluster(clusterName, knownServer);
+		return noContentResponse(clusterName);
 	}
 
 	@Path("{" + PATH_PARAM_CLUSTER_NAME + "}")
 	@DELETE
 	public Response unregisterCluster(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
 		if(clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
+			throw new GlusterValidationException("Parameter [" + FORM_PARAM_CLUSTER_NAME + "] is missing in request!");
 		}
 		
 		ClusterInfo cluster = clusterService.getCluster(clusterName);
 		if(cluster == null) {
-			return badRequestResponse("Cluster [" + clusterName + "] does not exist!");
+			throw new GlusterValidationException("Cluster [" + clusterName + "] does not exist!");
 		}
 		
-		try {
-			clusterService.unregisterCluster(cluster);
-			return noContentResponse();
-		} catch (Exception e) {
-			// TODO: Log the exception
-			return errorResponse("Exception while trying to unregister cluster [" + clusterName + "]: ["
-					+ e.getMessage() + "]");
-		}
+		clusterService.unregisterCluster(cluster);
+		return noContentResponse();
 	}
 }
