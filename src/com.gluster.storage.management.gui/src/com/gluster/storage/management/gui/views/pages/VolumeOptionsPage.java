@@ -50,7 +50,6 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
-import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Event;
@@ -58,6 +57,7 @@ import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.VolumeOption;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
+import com.gluster.storage.management.gui.GlusterDataModelManager;
 import com.gluster.storage.management.gui.VolumeOptionsContentProvider;
 import com.gluster.storage.management.gui.VolumeOptionsTableLabelProvider;
 import com.gluster.storage.management.gui.utils.GUIHelper;

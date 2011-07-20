@@ -47,7 +47,6 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
-import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Disk;
@@ -57,6 +56,7 @@ import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.utils.ValidationUtil;
+import com.gluster.storage.management.gui.GlusterDataModelManager;
 
 public class CreateVolumePage1 extends WizardPage {
 	public static final String PAGE_NAME = "create.volume.page.1";

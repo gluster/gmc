@@ -16,7 +16,7 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.client;
+package com.gluster.storage.management.gui;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +27,12 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import com.gluster.storage.management.client.DiscoveredServersClient;
+import com.gluster.storage.management.client.GlusterServersClient;
+import com.gluster.storage.management.client.TasksClient;
+import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
+import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.ClusterListener;
@@ -356,7 +361,7 @@ public class GlusterDataModelManager {
 	}
 
 	private void initializeGlusterServers(Cluster cluster) {
-		cluster.setServers(new GlusterServersClient().getServers());
+		cluster.setServers(new GlusterServersClient(cluster.getName()).getServers());
 	}
 
 	private void initializeAutoDiscoveredServers(Cluster cluster) {
@@ -364,12 +369,12 @@ public class GlusterDataModelManager {
 	}
 
 	private void initializeVolumes(Cluster cluster) {
-		VolumesClient volumeClient = new VolumesClient();
+		VolumesClient volumeClient = new VolumesClient(cluster.getName());
 		cluster.setVolumes(volumeClient.getAllVolumes());
 	}
 
 	private void initializeVolumeOptionsDefaults() {
-		this.volumeOptionsDefaults = new VolumesClient().getVolumeOptionsDefaults();
+		this.volumeOptionsDefaults = new VolumesClient(clusterName).getVolumeOptionsDefaults();
 	}
 
 	public void initializeTasks(Cluster cluster) {
@@ -403,13 +408,15 @@ public class GlusterDataModelManager {
 		taskInfo.setDescription("Formatting disk server1:sdc.");
 		taskInfoList.add(taskInfo);
 
-		
 		return taskInfoList;
 	}
 
 	public void initializeAlerts(Cluster cluster) {
-		cluster.setAlerts(new AlertsClient(cluster.getName()).getAllAlerts());
+		AlertsManager alertsManager = new AlertsManager(cluster);
+		alertsManager.buildAlerts();
+		cluster.setAlerts( alertsManager.getAlerts() );
 	}
+
 
 	public Volume addVolume(List<Volume> volumes, String name, Cluster cluster, VOLUME_TYPE volumeType,
 			TRANSPORT_TYPE transportType, VOLUME_STATUS status) {

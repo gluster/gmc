@@ -25,8 +25,8 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.wizard.WizardDialog;
 
-import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.gui.GlusterDataModelManager;
 import com.gluster.storage.management.gui.dialogs.AddBrickWizard;
 
 public class AddBrickAction extends AbstractActionDelegate {

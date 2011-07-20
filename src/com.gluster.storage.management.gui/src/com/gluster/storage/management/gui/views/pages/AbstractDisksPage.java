@@ -39,7 +39,6 @@ import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.ImageHyperlink;
 
-import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.client.TasksClient;
 import com.gluster.storage.management.core.model.ClusterListener;
@@ -52,6 +51,7 @@ import com.gluster.storage.management.core.model.Partition;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.gui.Application;
+import com.gluster.storage.management.gui.GlusterDataModelManager;
 import com.gluster.storage.management.gui.IEntityListener;
 import com.gluster.storage.management.gui.dialogs.InitializeDiskTypeSelection;
 

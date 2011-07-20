@@ -41,9 +41,9 @@ public abstract class AbstractClient {
 	private static final String HTTP_HEADER_AUTH = "Authorization";
 	protected static final MultivaluedMap<String, String> NO_PARAMS = new MultivaluedMapImpl();
 	private static final Logger logger = Logger.getLogger(AbstractClient.class);
-	protected String clusterName;
+	protected static String clusterName;
+	protected static String securityToken;
 	protected WebResource resource;
-	private String securityToken;
 	private String authHeader;
 	private Client client;
 
@@ -51,19 +51,18 @@ public abstract class AbstractClient {
 	 * This constructor will work only after the data model manager has been initialized.
 	 */
 	public AbstractClient() {
-		this(GlusterDataModelManager.getInstance().getSecurityToken(), GlusterDataModelManager.getInstance()
-				.getClusterName());
+		this(securityToken, clusterName);
 	}
 
 	/**
 	 * This constructor will work only after the data model manager has been initialized.
 	 */
 	public AbstractClient(String clusterName) {
-		this(GlusterDataModelManager.getInstance().getSecurityToken(), clusterName);
+		this(securityToken, clusterName);
 	}
 
 	public AbstractClient(String securityToken, String clusterName) {
-		this.clusterName = clusterName;
+		AbstractClient.clusterName = clusterName;
 		setSecurityToken(securityToken);
 
 		createClient();
@@ -403,7 +402,7 @@ public abstract class AbstractClient {
 	 *            the securityToken to set
 	 */
 	protected void setSecurityToken(String securityToken) {
-		this.securityToken = securityToken;
+		AbstractClient.securityToken = securityToken;
 		authHeader = "Basic " + securityToken;
 	}
 

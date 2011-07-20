@@ -26,10 +26,15 @@ public class PreferenceConstants {
 	public static final String P_SHOW_CLUSTER_SELECTION_DIALOG = "show.cluster.selection.dialog";
 	public static final String P_DEFAULT_CLUSTER_NAME = "default.cluster.name";
 	public static final String P_DATA_SYNC_INTERVAL = "data.sync.interval";
+	
+	public static final String P_SERVER_CPU_CRITICAL_THRESHOLD = "server.cpu.threshold";
+	public static final String P_SERVER_MEMORY_USAGE_THRESHOLD = "server.memory.threshold";
+	public static final String P_DISK_SPACE_USAGE_THRESHOLD = "disk.space.threshold"; // in percentage
 
 	// TODO: Remove after proper preferences are added
 	public static final String P_PATH = "pathPreference";
 	public static final String P_BOOLEAN = "booleanPreference";
 	public static final String P_CHOICE = "choicePreference";
 	public static final String P_STRING = "stringPreference";
+	// public static final String P_CPU_THRESHOLD = "stringPreference";
 }

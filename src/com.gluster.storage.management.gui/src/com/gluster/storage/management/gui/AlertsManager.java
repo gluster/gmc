@@ -1,0 +1,178 @@
+/**
+ * AlertsManager.java
+ *
+ * Copyright (c) 2011 Gluster, Inc. <http://www.gluster.com>
+ * This file is part of Gluster Management Console.
+ *
+ * Gluster Management Console is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Gluster Management Console is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
+package com.gluster.storage.management.gui;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.jface.preference.IPreferenceStore;
+
+import com.gluster.storage.management.core.model.Alert;
+import com.gluster.storage.management.core.model.Alert.ALERT_TYPES;
+import com.gluster.storage.management.core.model.Brick;
+import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
+import com.gluster.storage.management.core.model.Cluster;
+import com.gluster.storage.management.core.model.Disk;
+import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
+import com.gluster.storage.management.core.model.Partition;
+import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.gui.preferences.PreferenceConstants;
+
+
+public class AlertsManager {
+	private List<Alert> alerts = new ArrayList<Alert>();
+	private Cluster cluster;
+
+	private Double CPU_USAGE_THRESHOLD;
+	private Double MEMORY_USAGE_THRESHOLD;
+	private Double DISK_SPACE_USAGE_THRESHOLD;
+
+	public AlertsManager(Cluster cluster) {
+		this.cluster = cluster;
+		
+		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
+		CPU_USAGE_THRESHOLD = preferenceStore.getDouble(PreferenceConstants.P_SERVER_CPU_CRITICAL_THRESHOLD);
+		MEMORY_USAGE_THRESHOLD = preferenceStore.getDouble(PreferenceConstants.P_SERVER_MEMORY_USAGE_THRESHOLD);
+		DISK_SPACE_USAGE_THRESHOLD = preferenceStore.getDouble(PreferenceConstants.P_DISK_SPACE_USAGE_THRESHOLD);
+	}
+	
+	public List<Alert> getAlerts() {
+		return alerts;
+	}
+
+	public Alert getAlert(String id) {
+		for (Alert alert : getAlerts()) {
+			if (alert.getId().equals(id)) {
+				return alert;
+			}
+		}
+		return null;
+	}
+
+	public void addAlert(Alert alert) {
+		alerts.add(alert);
+	}
+
+	public void addAlerts(List<Alert> alerts) {
+		this.alerts.addAll(alerts);
+	}
+
+	public void setAlerts(List<Alert> alerts) {
+		this.alerts = alerts;
+	}
+
+	public Boolean removeAlert(String id) {
+		for (int i = 0; i < alerts.size(); i++) {
+			if (alerts.get(i).getId().equals(id)) {
+				return (alerts.remove(i) != null);
+			}
+		}
+		return false;
+	}
+
+	public void clearAll() {
+		this.alerts.clear();
+	}
+
+	public void buildAlerts() {
+		clearAll();
+		addAlerts(getServerAlerts());
+		addAlerts(getVolumeAlerts());
+	}
+
+	private List<Alert> getServerAlerts() {
+		List<Alert> serverAlerts = new ArrayList<Alert>();
+		for (GlusterServer server : cluster.getServers()) {
+			// To check off line servers
+			if (server.getStatus() == SERVER_STATUS.OFFLINE) {
+				serverAlerts.add(new Alert(ALERT_TYPES.OFFLINE_SERVERS_ALERT, server.getName(), "Server ["
+						+ server.getName() + "] is Offline"));
+				continue; // If the server is Offline skip other Alert builds
+			}
+
+			// To check High CPU usage
+			if (server.getCpuUsage() >= CPU_USAGE_THRESHOLD) {
+				serverAlerts
+						.add(new Alert(ALERT_TYPES.CPU_USAGE_ALERT, server.getName(),
+								Alert.ALERT_TYPE_STR[ALERT_TYPES.CPU_USAGE_ALERT.ordinal()] + "["
+										+ server.getCpuUsage() + "]"));
+			}
+
+			// To check High Memory usage
+			Double memoryUtilized = server.getMemoryInUse() / server.getTotalMemory() * 100;
+			if (memoryUtilized >= MEMORY_USAGE_THRESHOLD) {
+				serverAlerts.add(new Alert(ALERT_TYPES.MEMORY_USAGE_ALERT, server.getName(),
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.MEMORY_USAGE_ALERT.ordinal()] + "[" + server.getCpuUsage()
+								+ "]"));
+			}
+
+			// To Check low disk space
+			serverAlerts.addAll(getLowDiskAlerts(server));
+		}
+		return serverAlerts;
+	}
+
+	private List<Alert> getLowDiskAlerts(GlusterServer server) {
+		List<Alert> diskAlerts = new ArrayList<Alert>();
+		boolean hasPartition;
+		Double deviceSpaceUsed;
+		for (Disk disk : server.getDisks()) {
+			hasPartition = false;
+			for (Partition partition : disk.getPartitions()) {
+				hasPartition = true;
+				deviceSpaceUsed = partition.getSpaceInUse() / partition.getSpace() * 100;
+				if (deviceSpaceUsed >= DISK_SPACE_USAGE_THRESHOLD) {
+					diskAlerts.add(new Alert(ALERT_TYPES.DISK_USAGE_ALERT, partition.getQualifiedName(),
+							Alert.ALERT_TYPE_STR[ALERT_TYPES.DISK_USAGE_ALERT.ordinal()] + " [" + deviceSpaceUsed
+									+ "% used]"));
+				}
+			}
+			if (hasPartition) {
+				continue; // Do not check disk usage
+			}
+
+			// If it is disk
+			deviceSpaceUsed = disk.getSpaceInUse() / disk.getSpace() * 100;
+			if (deviceSpaceUsed >= DISK_SPACE_USAGE_THRESHOLD) {
+				diskAlerts.add(new Alert(ALERT_TYPES.DISK_USAGE_ALERT, disk.getQualifiedName(),
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.DISK_USAGE_ALERT.ordinal()] + " [" + deviceSpaceUsed
+								+ "% used]"));
+			}
+
+		}
+		return diskAlerts;
+	}
+
+	private List<Alert> getVolumeAlerts() {
+		List<Alert> volumeAlerts = new ArrayList<Alert>();
+		for (Volume volume : cluster.getVolumes()) {
+			// To check off line bricks
+			for (Brick brick : volume.getBricks()) {
+				if (brick.getStatus() == BRICK_STATUS.OFFLINE) {
+					volumeAlerts.add(new Alert(ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT, brick.getQualifiedName(),
+							Alert.ALERT_TYPE_STR[ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT.ordinal()]));
+				}
+			}
+		}
+		return volumeAlerts;
+	}
+}

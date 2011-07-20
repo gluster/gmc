@@ -21,10 +21,10 @@ package com.gluster.storage.management.gui.actions;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 
-import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
+import com.gluster.storage.management.gui.GlusterDataModelManager;
 
 public class StartVolumeAction extends AbstractActionDelegate {
 	private Volume volume;

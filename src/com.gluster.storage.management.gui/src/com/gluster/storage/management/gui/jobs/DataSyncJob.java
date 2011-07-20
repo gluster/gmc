@@ -25,8 +25,8 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.widgets.Display;
 
-import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.GlusterDataModel;
+import com.gluster.storage.management.gui.GlusterDataModelManager;
 
 /**
  *

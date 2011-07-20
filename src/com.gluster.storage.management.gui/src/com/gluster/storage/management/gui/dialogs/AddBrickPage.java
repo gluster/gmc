@@ -29,12 +29,12 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
+import com.gluster.storage.management.gui.GlusterDataModelManager;
 import com.richclientgui.toolbox.duallists.DualListComposite.ListContentChangedListener;
 import com.richclientgui.toolbox.duallists.IRemovableContentProvider;
 
