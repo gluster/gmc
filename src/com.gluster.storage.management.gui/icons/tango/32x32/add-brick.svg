@@ -1870,8 +1870,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="9.2824013"
-     inkscape:cy="16.108807"
+     inkscape:cx="24.116083"
+     inkscape:cy="-2.4900366"
      inkscape:current-layer="g11558"
      showgrid="true"
      inkscape:grid-bbox="true"
@@ -1913,7 +1913,7 @@
              id="g22509"
              transform="matrix(1.0204873,0,0,1.0204873,0.36082365,-0.16713985)">
             <g
-               transform="matrix(2.1020507,1.4790115e-8,-1.4790115e-8,2.1020507,-27.127897,-26.141782)"
+               transform="matrix(2.1020507,1.4790115e-8,-1.4790115e-8,2.1020507,-27.127897,-22.076424)"
                id="g17815">
               <path
                  style="color:#000000;fill:url(#linearGradient22532);fill-opacity:1;fill-rule:nonzero;stroke:url(#linearGradient22534);stroke-width:0.77058458;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:block;overflow:visible"
@@ -1946,7 +1946,7 @@
             </g>
             <g
                id="g9244"
-               transform="matrix(-0.68651744,0.09667386,0.09667386,0.68651744,11.446606,-4.5967804)">
+               transform="matrix(-0.68651744,0.09667386,0.09667386,0.68651744,11.446606,-0.53142226)">
               <path
                  sodipodi:type="arc"
                  style="fill:#49a916;fill-opacity:1;stroke:#2f5f03;stroke-width:1.45800674;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
@@ -1997,7 +1997,7 @@
                  style="fill:#eeeeec;fill-opacity:1;stroke:none" />
             </g>
             <g
-               transform="matrix(-1.0430096,0,0,1.0430096,-150.61257,9.1000985)"
+               transform="matrix(-1.0430096,0,0,1.0430096,-150.61257,7.046974)"
                id="g29170">
               <g
                  transform="matrix(1.1778767,0,0,1.1778767,-54.008084,-10.426102)"
