@@ -2478,8 +2478,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="8.8372997"
-     inkscape:cy="20.553985"
+     inkscape:cx="17.88131"
+     inkscape:cy="7.350446"
      inkscape:current-layer="g11558"
      showgrid="true"
      inkscape:grid-bbox="true"
@@ -2516,10 +2516,10 @@
          id="g11558">
         <g
            id="g40635"
-           transform="matrix(1.0168709,0,0,1.0168709,0.00574705,-0.39576072)">
+           transform="matrix(1.0168709,0,0,1.0168709,0.00574705,-2.3356667)">
           <g
              id="g17815"
-             transform="matrix(2.145116,1.5093124e-8,-1.5093124e-8,2.145116,-26.990644,-26.777223)">
+             transform="matrix(2.145116,1.5093124e-8,-1.5093124e-8,2.145116,-26.990644,-20.941585)">
             <path
                inkscape:connector-curvature="0"
                sodipodi:nodetypes="zsszssz"
@@ -2606,7 +2606,7 @@
             </g>
           </g>
           <g
-             transform="translate(0,16.717963)"
+             transform="translate(0,22.553601)"
              id="g32196">
             <g
                id="g32184"
