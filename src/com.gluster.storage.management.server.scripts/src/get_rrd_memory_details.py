@@ -26,28 +26,19 @@
 #     <step>300</step>
 #     <end>1310459100</end>
 #     <rows>13</rows>
-#     <columns>4</columns>
+#     <columns>5</columns>
 #     <legend>
 #       <entry>memoryUsed</entry>
 #       <entry>memoryFree</entry>
 #       <entry>memoryCache</entry>
+#      <entry>memoryBuffer</entry>
 #       <entry>totalMemory</entry>
 #     </legend>
 #   </meta>
 #   <data>
-#     <row><t>1310455500</t><v>1.9181091707e+06</v><v>1.5819754974e+06</v><v>1.2528146351e+06</v><v>3.5000846681e+06</v></row>
-#     <row><t>1310455800</t><v>1.9037555461e+06</v><v>1.5963191358e+06</v><v>1.2528521002e+06</v><v>3.5000746819e+06</v></row>
-#     <row><t>1310456100</t><v>1.9038003766e+06</v><v>1.5963538435e+06</v><v>1.2529487374e+06</v><v>3.5001542201e+06</v></row>
-#     <row><t>1310456400</t><v>1.9042611443e+06</v><v>1.5959639300e+06</v><v>1.2530286311e+06</v><v>3.5002250743e+06</v></row>
-#     <row><t>1310456700</t><v>1.9044356924e+06</v><v>1.5957328399e+06</v><v>1.2530492795e+06</v><v>3.5001685323e+06</v></row>
-#     <row><t>1310457000</t><v>1.9048233351e+06</v><v>1.5952823779e+06</v><v>1.2530540764e+06</v><v>3.5001057130e+06</v></row>
-#     <row><t>1310457300</t><v>1.9047911068e+06</v><v>1.5952553868e+06</v><v>1.2530601913e+06</v><v>3.5000464936e+06</v></row>
-#     <row><t>1310457600</t><v>1.9048929048e+06</v><v>1.5953391701e+06</v><v>1.2531675638e+06</v><v>3.5002320749e+06</v></row>
-#     <row><t>1310457900</t><v>1.9051587666e+06</v><v>1.5947842070e+06</v><v>1.2531049438e+06</v><v>3.4999429736e+06</v></row>
-#     <row><t>1310458200</t><v>1.9059319764e+06</v><v>1.5942797579e+06</v><v>1.2532148443e+06</v><v>3.5002117344e+06</v></row>
-#     <row><t>1310458500</t><v>1.9058528445e+06</v><v>1.5941925515e+06</v><v>1.2531962561e+06</v><v>3.5000453961e+06</v></row>
-#     <row><t>1310458800</t><v>NaN</v><v>NaN</v><v>NaN</v><v>NaN</v></row>
-#     <row><t>1310459100</t><v>NaN</v><v>NaN</v><v>NaN</v><v>NaN</v></row>
+#     <row><t>1310455500</t><v>1.9181091707e+06</v><v>1.5819754974e+06</v><v>1.2528146351e+06</v><v>1.2528146351e+06</v><v>3.5000846681e+06</v></row>
+#     ---
+#     ---
 #   </data>
 # </xport>
 
@@ -64,11 +55,15 @@ def getMemData(period):
                  DEF:free=%s:memfree:AVERAGE \
                  DEF:used=%s:memused:AVERAGE \
                  DEF:cache=%s:memcache:AVERAGE \
-                 CDEF:total=used,free,+ \
+                 DEF:buffer=%s:membuffer:AVERAGE \
+                 CDEF:total1=used,free,+ \
+                 CDEF:used1=used,buffer,cache,-,- \
+                 CDEF:total=total1,used1,+ \
                  XPORT:used:memoryUsed \
                  XPORT:free:memoryFree \
                  XPORT:cache:memoryCache \
-                 XPORT:total:totalMemory" % (period, memRrdFile, memRrdFile, memRrdFile)
+                 XPORT:buffer:memoryBuffer \
+                 XPORT:total:totalMemory" % (period, memRrdFile, memRrdFile, memRrdFile, memRrdFile)
 
     rv = Utils.runCommand(command, output=True, root=True)
     message = Utils.stripEmptyLines(rv["Stdout"])
