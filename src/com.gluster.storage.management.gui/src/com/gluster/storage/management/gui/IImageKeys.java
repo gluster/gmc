@@ -68,9 +68,9 @@ public interface IImageKeys {
 	
 	public static final String bricks = "icons/tango/16x16/bricks.png";
 
-	public static final String PAUSE_TASK = "icons/tango/32x32/media-playback-pause.png";
-	public static final String RESUME_TASK = "icons/tango/32x32/media-playback-start.png";
-	public static final String STOP_TASK = "icons/tango/32x32/media-playback-stop.png";
+	public static final String PAUSE_TASK = "icons/tango/32x32/pause.svg";
+	public static final String RESUME_TASK = "icons/tango/32x32/start.svg";
+	public static final String STOP_TASK = "icons/tango/32x32/stop.svg";
 	public static final String CLEAR_TASK = "icons/close_task.gif";
 	
 	public static final String OVERLAY_OFFLINE = "icons/status-offline-small.png";
