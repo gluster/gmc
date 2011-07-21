@@ -392,20 +392,40 @@ public class GlusterUtil {
 		return false;
 	}
 
-	private boolean readBrick(Volume volume, String line) {
-		if (line.matches("Brick[0-9]+:.*")) {
+	private boolean readBrick(Volume volume, String brickLine) {
+		BRICK_STATUS brickStatus;
+		if (brickLine.matches("Brick[0-9]+:.*")) {
 			// line: "Brick1: server1:/export/md0/volume-name"
-			String[] brickParts = line.split(":");
+			String brickName = brickLine.split(": ")[1];
+			String[] brickParts = brickLine.split(":");
 			String serverName = brickParts[1].trim();
 			String brickDir = brickParts[2].trim();
-			addBrickToVolume(volume, serverName, brickDir);
+			//To get the brick status
+			brickStatus = getBrickStatus(serverName, volume.getName(), brickName);
+			
+			addBrickToVolume(volume, serverName, brickDir, brickStatus);
 			return true;
 		}
 		return false;
 	}
 
-	private void addBrickToVolume(Volume volume, String serverName, String brickDir) {
-		volume.addBrick(new Brick(serverName, BRICK_STATUS.ONLINE, brickDir.split("/")[2].trim(), brickDir));
+	private void addBrickToVolume(Volume volume, String serverName, String brickDir, BRICK_STATUS status) {
+		volume.addBrick(new Brick(serverName, status, brickDir.split("/")[2].trim(), brickDir));
+	}
+	
+	// Do not throw exception, Gracefully handle as Offline brick. 
+	private BRICK_STATUS getBrickStatus(String serverName, String volumeName, String brick){
+		try {
+			ProcessResult output = getSshUtil().executeRemote(serverName, "get_brick_status.py" + " " + volumeName + " " + brick);
+
+			if (output.isSuccess() && output.getOutput().equals(CoreConstants.ONLINE)) {
+				return BRICK_STATUS.ONLINE;
+			} else {
+				return BRICK_STATUS.OFFLINE;
+			}
+		} catch(Exception e) { // Particularly interested on ConnectionExecption, if the server is offline
+			return BRICK_STATUS.OFFLINE;
+		}
 	}
 
 	private boolean readBrickGroup(String line) {
