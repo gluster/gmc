@@ -35,8 +35,8 @@ import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Partition;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.gui.preferences.PreferenceConstants;
-
 
 public class AlertsManager {
 	private List<Alert> alerts = new ArrayList<Alert>();
@@ -48,13 +48,13 @@ public class AlertsManager {
 
 	public AlertsManager(Cluster cluster) {
 		this.cluster = cluster;
-		
+
 		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
 		CPU_USAGE_THRESHOLD = preferenceStore.getDouble(PreferenceConstants.P_SERVER_CPU_CRITICAL_THRESHOLD);
 		MEMORY_USAGE_THRESHOLD = preferenceStore.getDouble(PreferenceConstants.P_SERVER_MEMORY_USAGE_THRESHOLD);
 		DISK_SPACE_USAGE_THRESHOLD = preferenceStore.getDouble(PreferenceConstants.P_DISK_SPACE_USAGE_THRESHOLD);
 	}
-	
+
 	public List<Alert> getAlerts() {
 		return alerts;
 	}
@@ -101,27 +101,29 @@ public class AlertsManager {
 
 	private List<Alert> getServerAlerts() {
 		List<Alert> serverAlerts = new ArrayList<Alert>();
+		serverAlerts.add(getOfflineServerAlerts()); // Single alert for offline servers
+
 		for (GlusterServer server : cluster.getServers()) {
 			// To check off line servers
-			if (server.getStatus() == SERVER_STATUS.OFFLINE) {
-				serverAlerts.add(new Alert(ALERT_TYPES.OFFLINE_SERVERS_ALERT, server.getName(), "Server ["
-						+ server.getName() + "] is Offline"));
-				continue; // If the server is Offline skip other Alert builds
-			}
+			// if (server.getStatus() == SERVER_STATUS.OFFLINE) {
+			// serverAlerts.add(new Alert(ALERT_TYPES.OFFLINE_SERVERS_ALERT, server.getName(), "Server ["
+			// + server.getName() + "] is Offline"));
+			// continue; // If the server is Offline skip other Alert builds
+			// }
 
 			// To check High CPU usage
 			if (server.getCpuUsage() >= CPU_USAGE_THRESHOLD) {
-				serverAlerts
-						.add(new Alert(ALERT_TYPES.CPU_USAGE_ALERT, server.getName(),
-								Alert.ALERT_TYPE_STR[ALERT_TYPES.CPU_USAGE_ALERT.ordinal()] + "["
-										+ server.getCpuUsage() + "]"));
+				serverAlerts.add(new Alert(ALERT_TYPES.CPU_USAGE_ALERT, server.getName(),
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.CPU_USAGE_ALERT.ordinal()] + "[" + server.getCpuUsage()
+								+ "] in server [" + server.getName() + "]"));
 			}
 
 			// To check High Memory usage
-			Double memoryUtilized = server.getMemoryInUse() / server.getTotalMemory() * 100;
+			Double memoryUtilized = server.getMemoryInUse() / server.getTotalMemory() * 100d;
 			if (memoryUtilized >= MEMORY_USAGE_THRESHOLD) {
 				serverAlerts.add(new Alert(ALERT_TYPES.MEMORY_USAGE_ALERT, server.getName(),
-						Alert.ALERT_TYPE_STR[ALERT_TYPES.MEMORY_USAGE_ALERT.ordinal()] + "[" + server.getCpuUsage()
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.MEMORY_USAGE_ALERT.ordinal()] + "["
+								+ StringUtil.formatNumber(memoryUtilized, 2) + "%] in server [" + server.getName()
 								+ "]"));
 			}
 
@@ -129,6 +131,17 @@ public class AlertsManager {
 			serverAlerts.addAll(getLowDiskAlerts(server));
 		}
 		return serverAlerts;
+	}
+
+	private Alert getOfflineServerAlerts() {
+		List<String> offlineServers = new ArrayList<String>();
+		for (GlusterServer server : cluster.getServers()) {
+			if (server.getStatus() == SERVER_STATUS.OFFLINE) {
+				offlineServers.add(server.getName());
+			}
+		}
+		return new Alert(ALERT_TYPES.OFFLINE_SERVERS_ALERT, "Server",
+				Alert.ALERT_TYPE_STR[ALERT_TYPES.OFFLINE_SERVERS_ALERT.ordinal()] + "(s) " + offlineServers.toString());
 	}
 
 	private List<Alert> getLowDiskAlerts(GlusterServer server) {
@@ -139,11 +152,12 @@ public class AlertsManager {
 			hasPartition = false;
 			for (Partition partition : disk.getPartitions()) {
 				hasPartition = true;
-				deviceSpaceUsed = partition.getSpaceInUse() / partition.getSpace() * 100;
+				deviceSpaceUsed = partition.getSpaceInUse() / partition.getSpace() * 100d;
 				if (deviceSpaceUsed >= DISK_SPACE_USAGE_THRESHOLD) {
 					diskAlerts.add(new Alert(ALERT_TYPES.DISK_USAGE_ALERT, partition.getQualifiedName(),
-							Alert.ALERT_TYPE_STR[ALERT_TYPES.DISK_USAGE_ALERT.ordinal()] + " [" + deviceSpaceUsed
-									+ "% used]"));
+							Alert.ALERT_TYPE_STR[ALERT_TYPES.DISK_USAGE_ALERT.ordinal()] + " ["
+									+ StringUtil.formatNumber(deviceSpaceUsed, 2) + "% used] in disk ["
+									+ partition.getQualifiedName() + "]"));
 				}
 			}
 			if (hasPartition) {
@@ -151,26 +165,34 @@ public class AlertsManager {
 			}
 
 			// If it is disk
-			deviceSpaceUsed = disk.getSpaceInUse() / disk.getSpace() * 100;
+			deviceSpaceUsed = disk.getSpaceInUse() / disk.getSpace() * 100d;
 			if (deviceSpaceUsed >= DISK_SPACE_USAGE_THRESHOLD) {
 				diskAlerts.add(new Alert(ALERT_TYPES.DISK_USAGE_ALERT, disk.getQualifiedName(),
-						Alert.ALERT_TYPE_STR[ALERT_TYPES.DISK_USAGE_ALERT.ordinal()] + " [" + deviceSpaceUsed
-								+ "% used]"));
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.DISK_USAGE_ALERT.ordinal()] + " ["
+								+ StringUtil.formatNumber(deviceSpaceUsed, 2) + "% used] in ["
+								+ disk.getQualifiedName() + "]"));
 			}
-
 		}
 		return diskAlerts;
 	}
 
 	private List<Alert> getVolumeAlerts() {
 		List<Alert> volumeAlerts = new ArrayList<Alert>();
+		List<String> offlineBricks = new ArrayList<String>();
+
 		for (Volume volume : cluster.getVolumes()) {
 			// To check off line bricks
+			offlineBricks = new ArrayList<String>();
 			for (Brick brick : volume.getBricks()) {
 				if (brick.getStatus() == BRICK_STATUS.OFFLINE) {
-					volumeAlerts.add(new Alert(ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT, brick.getQualifiedName(),
-							Alert.ALERT_TYPE_STR[ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT.ordinal()]));
+					offlineBricks.add(brick.getQualifiedName());
 				}
+			}
+			// One offline brick alert per volume
+			if (offlineBricks.size() > 0) {
+				volumeAlerts.add(new Alert(ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT, volume.getName(),
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT.ordinal()]
+								+ offlineBricks.toString() + " in volume " + volume.getName()));
 			}
 		}
 		return volumeAlerts;

@@ -23,6 +23,8 @@ package com.gluster.storage.management.gui.views;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -30,9 +32,15 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.ViewPart;
 
+import com.gluster.storage.management.core.model.Alert;
+import com.gluster.storage.management.core.model.Alert.ALERT_TYPES;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
+import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
+import com.gluster.storage.management.gui.GlusterDataModelManager;
+import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.ChartViewerComposite.CHART_TYPE;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.utils.ChartViewerComposite;
@@ -105,15 +113,71 @@ public class GlusterServersSummaryView extends ViewPart {
 	}
 
 	private void createAlertsSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Alerts", null, 2, false);
+		Composite section = guiHelper.createSection(form, toolkit, "Alerts", null, 1, false);
+		List<Alert> alerts = GlusterDataModelManager.getInstance().getModel().getCluster().getAlerts();
 
-		toolkit.createLabel(section, "Any alerts related to servers\nwill be displayed here.");
+		for (Alert alert : alerts) {
+			if (alert.getType() != ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT) {
+				addAlertLabel(section, alert);
+			}
+		}
 	}
+	
+	private void addAlertLabel(Composite section, Alert alert) {
+		CLabel lblAlert = new CLabel(section, SWT.FLAT);
+		Image alertImage = null;
+		switch (alert.getType()) {
+		case OFFLINE_VOLUME_BRICKS_ALERT:
+			alertImage = guiHelper.getImage(IImageKeys.BRICK_OFFLINE);
+			break;
+		case DISK_USAGE_ALERT:
+			alertImage = guiHelper.getImage(IImageKeys.LOW_DISK_SPACE);
+			break;
+		case OFFLINE_SERVERS_ALERT:
+			alertImage = guiHelper.getImage(IImageKeys.SERVER_OFFLINE);
+			break;
+		case MEMORY_USAGE_ALERT:
+			alertImage = guiHelper.getImage(IImageKeys.MEMORY_USAGE_ALERT);
+			break;
+		case CPU_USAGE_ALERT:
+			alertImage = guiHelper.getImage(IImageKeys.SERVER_WARNING);
+			break;
+		}
+		lblAlert.setImage(alertImage);
+		lblAlert.setText(alert.getMessage());
+		lblAlert.redraw();
+	}
+	
+	
 
 	private void createRunningTasksSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Running Tasks", null, 2, false);
+		Composite section = guiHelper.createSection(form, toolkit, "Running Tasks", null, 1, false);
 
-		toolkit.createLabel(section, "List of running tasks related to\nservers will be displayed here.");
+		for (TaskInfo taskInfo : GlusterDataModelManager.getInstance().getModel().getCluster().getTaskInfoList()) {
+			if (taskInfo.getType() != TASK_TYPE.VOLUME_REBALANCE) { // Exclude volume related tasks
+				addTaskLabel(section, taskInfo);
+			}
+		}
+	}
+	
+	private void addTaskLabel(Composite section, TaskInfo taskInfo) {
+		CLabel lblAlert = new CLabel(section, SWT.NONE);
+		lblAlert.setText(taskInfo.getDescription());
+		
+		Image taskImage = null;
+		switch(taskInfo.getType()) {
+		case DISK_FORMAT:
+			taskImage = guiHelper.getImage(IImageKeys.DISK);
+			break;
+		case BRICK_MIGRATE:
+			taskImage = guiHelper.getImage(IImageKeys.BRICK_MIGRATE);
+			break;
+		case VOLUME_REBALANCE:
+			taskImage = guiHelper.getImage(IImageKeys.VOLUME_REBALANCE);
+			break;
+		}
+		lblAlert.setImage(taskImage);
+		lblAlert.redraw();
 	}
 
 	/* (non-Javadoc)

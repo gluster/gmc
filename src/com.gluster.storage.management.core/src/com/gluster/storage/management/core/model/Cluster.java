@@ -138,6 +138,10 @@ public class Cluster extends Entity {
 		this.alerts.add(alert);
 	}
 	
+	public void removeAlert(Alert alert) {
+		this.alerts.remove(alert);
+	}
+	
 	public double getTotalDiskSpace() {
 		double totalDiskSpace = 0;
 		for(GlusterServer server : getServers()) {

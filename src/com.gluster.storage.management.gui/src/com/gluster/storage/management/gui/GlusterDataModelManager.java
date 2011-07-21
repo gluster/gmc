@@ -37,6 +37,7 @@ import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.Device;
+import com.gluster.storage.management.core.model.Alert.ALERT_TYPES;
 import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Event;
@@ -171,6 +172,29 @@ public class GlusterDataModelManager {
 		updateGlusterServers(model);
 		updateDiscoveredServers(model);
 		updateTasks(model);
+		updateAlerts(model);
+	}
+	
+	private void updateAlerts(GlusterDataModel newModel) {
+		List<Alert> oldAlerts = model.getCluster().getAlerts();
+		List<Alert> newAlerts = newModel.getCluster().getAlerts();
+		
+		Set<Alert> addedAlerts = GlusterCoreUtil.getAddedEntities(oldAlerts, newAlerts, true);
+		for(Alert alert : addedAlerts) {
+			addAlert(alert);
+		}
+		
+		Set<Alert> removedAlerts = GlusterCoreUtil.getAddedEntities(newAlerts, oldAlerts, true);
+		for(Alert alert : removedAlerts) {
+			removeAlert(alert);
+		}
+		
+		Map<Alert, Alert> modifiedAlerts = GlusterCoreUtil.getModifiedEntities(oldAlerts, newAlerts);
+		for(Entry<Alert, Alert> entry : modifiedAlerts.entrySet()) {
+			Alert modifiedAlert = entry.getKey();
+			modifiedAlert.copyFrom(entry.getValue());
+			updateAlert(modifiedAlert);
+		}
 	}
 	
 	private void updateTasks(GlusterDataModel newModel) {
@@ -410,11 +434,33 @@ public class GlusterDataModelManager {
 
 		return taskInfoList;
 	}
+	
+	private List<Alert> getDummyAlerts() {
+		List<Alert> alerts = new ArrayList<Alert>();
+		for (Server server : model.getCluster().getServers()) {
+			if (alerts.size() == 0) {
+				alerts.add(new Alert(ALERT_TYPES.CPU_USAGE_ALERT, server.getName(),
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.CPU_USAGE_ALERT.ordinal()] + "[" + server.getCpuUsage()
+								+ "] in " + server.getName()));
+				continue;
+			}
+
+			if (alerts.size() == 1) {
+				Double memoryUtilized = server.getMemoryInUse() / server.getTotalMemory() * 100d;
+				alerts.add(new Alert(ALERT_TYPES.MEMORY_USAGE_ALERT, server.getName(),
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.MEMORY_USAGE_ALERT.ordinal()] + "[" + memoryUtilized + "%] in "
+						+ server.getName()));
+				continue;
+			}
+		}
+		return alerts;
+	}
 
 	public void initializeAlerts(Cluster cluster) {
 		AlertsManager alertsManager = new AlertsManager(cluster);
 		alertsManager.buildAlerts();
 		cluster.setAlerts( alertsManager.getAlerts() );
+		// cluster.addAlerts( getDummyAlerts() );
 	}
 
 
@@ -651,6 +697,26 @@ public class GlusterDataModelManager {
 		model.getCluster().removeTaskInfo(taskInfo);
 		for (ClusterListener listener : listeners) {
 			listener.taskRemoved(taskInfo);
+		}
+	}
+	
+	public void addAlert(Alert alert) {
+		model.getCluster().addAlert(alert);
+		for (ClusterListener listener : listeners) {
+			listener.alertAdded(alert);
+		}
+	}
+	
+	public void removeAlert(Alert alert) {
+		model.getCluster().removeAlert(alert);
+		for (ClusterListener listener : listeners) {
+			listener.alertRemoved(alert);
+		}
+	}
+	
+	public void updateAlert(Alert alert) {
+		for (ClusterListener listener : listeners) {
+			listener.alertUpdated(alert);
 		}
 	}
 	

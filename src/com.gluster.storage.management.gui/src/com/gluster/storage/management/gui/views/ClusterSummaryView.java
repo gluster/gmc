@@ -145,10 +145,10 @@ public class ClusterSummaryView extends ViewPart {
 
 	private void createAlertsSection() {
 		Composite section = guiHelper.createSection(form, toolkit, "Alerts", null, 1, false);
-		List<Alert> alerts = GlusterDataModelManager.getInstance().getModel().getCluster().getAlerts();
+		List<Alert> alerts = cluster.getAlerts();
 
 		for (Alert alert : alerts) {
-				addAlertLabel(section, alert);
+			addAlertLabel(section, alert);
 		}
 	}
 	
@@ -157,7 +157,7 @@ public class ClusterSummaryView extends ViewPart {
 		Image alertImage = null;
 		switch (alert.getType()) {
 		case OFFLINE_VOLUME_BRICKS_ALERT:
-			alertImage = guiHelper.getImage(IImageKeys.DISK_OFFLINE);
+			alertImage = guiHelper.getImage(IImageKeys.BRICK_OFFLINE);
 			break;
 		case DISK_USAGE_ALERT:
 			alertImage = guiHelper.getImage(IImageKeys.LOW_DISK_SPACE);
