@@ -76,16 +76,14 @@ public class MigrateBrickPage1 extends WizardPage {
 			
 			@Override
 			public String getColumnText(Object element, int columnIndex) {
-				if (!(element instanceof Disk)) {
+				if (!(element instanceof Device)) {
 					return null;
 				}
-				Disk disk = (Disk) element;
-				return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? disk.getServerName()
-						: columnIndex == DISK_TABLE_COLUMN_INDICES.BRICK_DIRECTORY.ordinal() ? disk.getMountPoint() + "/" + volumeName
-								: columnIndex == DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? NumberUtil
-										.formatNumber(disk.getFreeSpace() / 1024 )  /* Coverted to GB */
-										: columnIndex == DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? NumberUtil
-												.formatNumber(disk.getSpace() / 1024) : "Invalid");
+				Device device = (Device) element;
+				return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? device.getServerName()
+						: columnIndex == DISK_TABLE_COLUMN_INDICES.BRICK_DIRECTORY.ordinal() ? device.getMountPoint() + "/" + volumeName
+						: columnIndex == DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? NumberUtil.formatNumber(device.getFreeSpace() / 1024 )  /* Coverted to GB */
+						: columnIndex == DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? NumberUtil.formatNumber(device.getSpace() / 1024) : "Invalid");
 			}
 		};
 	}
@@ -207,18 +205,18 @@ public class MigrateBrickPage1 extends WizardPage {
 		Text txtFilterFrom = guiHelper.createFilterText(container);
 		Text txtFilterTo = guiHelper.createFilterText(container);
 		
-		ITableLabelProvider diskLabelProvider = getDiskLabelProvider(volume.getName());
+		ITableLabelProvider deviceLabelProvider = getDiskLabelProvider(volume.getName());
 
 		GlusterDataModelManager glusterDataModelManager = GlusterDataModelManager.getInstance();
 		List<Device> fromBricks = glusterDataModelManager.getReadyDevicesOfVolume(volume);
 		List<Device> toDevices = glusterDataModelManager.getReadyDevicesOfAllServersExcluding( fromBricks );
 		
-		tableViewerFrom = createTableViewer(container, diskLabelProvider, fromBricks, txtFilterFrom);
+		tableViewerFrom = createTableViewer(container, deviceLabelProvider, fromBricks, txtFilterFrom);
 		
 		if(fromBrick != null) {
 			setFromDisk(tableViewerFrom, fromBrick);
 		}
-		tableViewerTo = createTableViewer(container, diskLabelProvider, toDevices, txtFilterTo);
+		tableViewerTo = createTableViewer(container, deviceLabelProvider, toDevices, txtFilterTo);
 		
 		// Auto commit selection field
 		Composite autoCommitContainer = new Composite(container, SWT.NONE);

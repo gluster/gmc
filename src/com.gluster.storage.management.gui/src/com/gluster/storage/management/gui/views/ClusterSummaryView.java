@@ -20,7 +20,6 @@
  */
 package com.gluster.storage.management.gui.views;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.birt.chart.util.CDateTime;
@@ -28,18 +27,19 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.FormToolkit;
+import org.eclipse.ui.forms.widgets.Hyperlink;
 import org.eclipse.ui.forms.widgets.ImageHyperlink;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 
-import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.EntityGroup;
@@ -47,8 +47,6 @@ import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Server;
-import com.gluster.storage.management.core.model.ServerStats;
-import com.gluster.storage.management.core.model.ServerStatsRow;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.GlusterDataModelManager;
@@ -68,6 +66,7 @@ public class ClusterSummaryView extends ViewPart {
 	private ScrolledForm form;
 	private Cluster cluster;
 	private GlusterDataModel model = GlusterDataModelManager.getInstance().getModel();
+	private static final int CHART_WIDTH = 350;
 
 	/*
 	 * (non-Javadoc)
@@ -133,11 +132,30 @@ public class ClusterSummaryView extends ViewPart {
 		chartViewerComposite.setLayoutData(data);
 	}
 	
+	private Composite createChartLinks(Composite section, int columnCount) {
+		GridLayout layout = new org.eclipse.swt.layout.GridLayout(columnCount, false);
+		layout.marginBottom = 0;
+		layout.marginTop = 0;
+		layout.marginLeft = (CHART_WIDTH - (50*columnCount)) / 2;
+		Composite graphComposite = toolkit.createComposite(section, SWT.NONE);
+		graphComposite.setLayout(layout);
+		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
+		data.widthHint = CHART_WIDTH;
+		graphComposite.setLayoutData(data);
+		
+		Label label1 = toolkit.createLabel(graphComposite, "1 day");
+		Hyperlink link1 = toolkit.createHyperlink(graphComposite, "1 week", SWT.NONE);
+		Hyperlink link2 = toolkit.createHyperlink(graphComposite, "1 month", SWT.NONE);
+		Hyperlink link3 = toolkit.createHyperlink(graphComposite, "1 year", SWT.NONE);
+		
+		return graphComposite;
+	}
+
 	private void createLineChart(Composite section, Calendar timestamps[], Double values[], String unit) {
 		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, timestamps, values, unit);
 		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
-		data.widthHint = 400;
-		data.heightHint = 300;
+		data.widthHint = CHART_WIDTH;
+		data.heightHint = 250;
 		data.verticalAlignment = SWT.CENTER;
 		chartViewerComposite.setLayoutData(data);
 	}
@@ -254,10 +272,11 @@ public class ClusterSummaryView extends ViewPart {
 		
 		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 89.31d, 57.39d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 21.43d, 16.45d, 14.86d, 15.27d };
 		createLineChart(section, timestamps, values, "%");
+		createChartLinks(section, 4);
 	}
 
 	private void createNetworkUsageSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Network Usage", null, 1, false);
+		Composite section = guiHelper.createSection(form, toolkit, "Network Usage (Aggregated)", null, 1, false);
 		//toolkit.createLabel(section, "Historical Network Usage graph will be displayed here.");
 		
 		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
@@ -274,6 +293,7 @@ public class ClusterSummaryView extends ViewPart {
 //				new Date(1310473800) };
 		Double[] values = new Double[] { 32d, 31.23d, 27.92d, 48.69d, 58.62d, 49.11d, 72.43d, 69.31d, 87.39d, 78.46d, 60.44d, 56.28d, 33.51d, 27.53d, 12.21, 10d, 21.43d, 36.45d, 34.86d, 35.27d };
 		createLineChart(section, timestamps, values, "KiB/s");
+		createChartLinks(section, 4);
 	}
 
 	private void createRunningTasksSection() {
@@ -292,13 +312,13 @@ public class ClusterSummaryView extends ViewPart {
 		Image taskImage = null;
 		switch(taskInfo.getType()) {
 		case DISK_FORMAT:
-			taskImage = guiHelper.getImage(IImageKeys.DISK);
+			taskImage = guiHelper.getImage(IImageKeys.DISK_INITIALIZING);
 			break;
 		case BRICK_MIGRATE:
-			taskImage = guiHelper.getImage(IImageKeys.BRICK_MIGRATE);
+			taskImage = guiHelper.getImage(IImageKeys.BRICK_MIGRATE_SMALL);
 			break;
 		case VOLUME_REBALANCE:
-			taskImage = guiHelper.getImage(IImageKeys.VOLUME_REBALANCE);
+			taskImage = guiHelper.getImage(IImageKeys.VOLUME_REBALANCE_SMALL);
 			break;
 		}
 		lblAlert.setImage(taskImage);

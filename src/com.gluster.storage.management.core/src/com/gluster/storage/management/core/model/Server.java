@@ -160,7 +160,9 @@ public class Server extends Entity {
 		String ipAddresses = "";
 		for (NetworkInterface networkInterface : getNetworkInterfaces()) {
 			String ipAddr = networkInterface.getIpAddress();
-			ipAddresses += (ipAddresses.isEmpty() ? ipAddr : ", " + ipAddr);
+			if(!ipAddr.equals("127.0.0.1")) {
+				ipAddresses += (ipAddresses.isEmpty() ? ipAddr : ", " + ipAddr);
+			}
 		}
 		return ipAddresses;
 	}
@@ -190,6 +192,10 @@ public class Server extends Entity {
 	
 	@Override
 	public boolean equals(Object obj) {
+		if(this == obj) {
+			return true;
+		}
+		
 		if(!(obj instanceof Server)) {
 			return false;
 		}

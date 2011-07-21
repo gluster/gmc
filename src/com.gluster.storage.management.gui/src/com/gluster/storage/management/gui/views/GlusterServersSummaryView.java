@@ -154,7 +154,7 @@ public class GlusterServersSummaryView extends ViewPart {
 		Composite section = guiHelper.createSection(form, toolkit, "Running Tasks", null, 1, false);
 
 		for (TaskInfo taskInfo : GlusterDataModelManager.getInstance().getModel().getCluster().getTaskInfoList()) {
-			if (taskInfo.getType() != TASK_TYPE.VOLUME_REBALANCE) { // Exclude volume related tasks
+			if (taskInfo.getType() != TASK_TYPE.VOLUME_REBALANCE && taskInfo.getType() != TASK_TYPE.BRICK_MIGRATE) { // Exclude volume related tasks
 				addTaskLabel(section, taskInfo);
 			}
 		}
@@ -167,13 +167,13 @@ public class GlusterServersSummaryView extends ViewPart {
 		Image taskImage = null;
 		switch(taskInfo.getType()) {
 		case DISK_FORMAT:
-			taskImage = guiHelper.getImage(IImageKeys.DISK);
+			taskImage = guiHelper.getImage(IImageKeys.DISK_INITIALIZING);
 			break;
 		case BRICK_MIGRATE:
-			taskImage = guiHelper.getImage(IImageKeys.BRICK_MIGRATE);
+			taskImage = guiHelper.getImage(IImageKeys.BRICK_MIGRATE_SMALL);
 			break;
 		case VOLUME_REBALANCE:
-			taskImage = guiHelper.getImage(IImageKeys.VOLUME_REBALANCE);
+			taskImage = guiHelper.getImage(IImageKeys.VOLUME_REBALANCE_SMALL);
 			break;
 		}
 		lblAlert.setImage(taskImage);

@@ -83,7 +83,7 @@ public class DeviceTableLabelProvider extends LabelProvider implements ITableLab
 			case UNINITIALIZED:
 				return guiHelper.getImage(IImageKeys.DISK_UNINITIALIZED);
 			case INITIALIZING:
-				return guiHelper.getImage(IImageKeys.DISK_INITIALIZING);
+				return guiHelper.getImage(IImageKeys.DISK_INITIALIZING_SMALL);
 			default:
 				throw new GlusterRuntimeException("Invalid disk status [" + status + "]");
 			}

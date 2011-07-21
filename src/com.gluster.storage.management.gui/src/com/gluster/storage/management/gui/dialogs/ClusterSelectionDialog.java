@@ -159,7 +159,7 @@ public class ClusterSelectionDialog extends Dialog {
 
 	@Override
 	protected Control createDialogArea(Composite parent) {
-		parent.setBackgroundImage(guiHelper.getImage(IImageKeys.DIALOG_SPLASH_IMAGE));
+		//parent.setBackgroundImage(guiHelper.getImage(IImageKeys.DIALOG_SPLASH_IMAGE));
 		// Makes sure that child composites inherit the same background
 		parent.setBackgroundMode(SWT.INHERIT_FORCE); 
 
