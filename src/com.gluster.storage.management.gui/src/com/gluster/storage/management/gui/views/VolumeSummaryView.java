@@ -4,7 +4,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.fieldassist.ControlDecoration;
@@ -39,10 +38,9 @@ import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Event;
-import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
-import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.model.Partition;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
@@ -350,22 +348,23 @@ public class VolumeSummaryView extends ViewPart {
 	}
 
 	private void createNASProtocolField(Composite section) {
-		toolkit.createLabel(section, "NAS Protocols: ", SWT.NONE);
+		toolkit.createLabel(section, "Access Protocols: ", SWT.NONE);
 
 		Composite nasProtocolsComposite = toolkit.createComposite(section);
 		nasProtocolsComposite.setLayout(new FillLayout());
 
-		createCheckbox(nasProtocolsComposite, "Gluster", true);
+		createCheckbox(nasProtocolsComposite, "Gluster", true, false);
 		final Button nfsCheckBox = createCheckbox(nasProtocolsComposite, "NFS",
-				volume.getNASProtocols().contains(NAS_PROTOCOL.NFS));
+				volume.getNASProtocols().contains(NAS_PROTOCOL.NFS), true);
+		createCheckbox(nasProtocolsComposite, "CIFS", false, true);
 
 		toolkit.createLabel(section, "", SWT.NONE); // dummy
 		// createChangeLinkForNASProtocol(section, nfsCheckBox);
 	}
 
-	private Button createCheckbox(Composite parent, String label, boolean selected) {
+	private Button createCheckbox(Composite parent, String label, boolean selected, boolean enabled) {
 		final Button checkBox = toolkit.createButton(parent, label, SWT.CHECK);
-		checkBox.setEnabled(false);
+		checkBox.setEnabled(enabled);
 		checkBox.setSelection(selected);
 		return checkBox;
 	}
@@ -403,13 +402,23 @@ public class VolumeSummaryView extends ViewPart {
 		});
 	}
 
-	private double getDiskSize(String serverName, String diskName) {
+	private double getDiskSize(String serverName, String deviceName) {
 		double diskSize = 0;
 		GlusterServer server = cluster.getServer(serverName);
 		if (server.getStatus() == SERVER_STATUS.ONLINE) {
 			for (Disk disk : server.getDisks()) {
-				if (disk.getName().equals(diskName)) {
+				if (disk.getName().equals(deviceName)) {
 					diskSize = disk.getSpace();
+					break;
+				}
+
+				if (disk.hasPartitions()) {
+					for (Partition partition : disk.getPartitions()) {
+						if (partition.getName().equals(deviceName)) {
+							diskSize = partition.getSpace();
+							break;
+						}
+					}
 				}
 			}
 		}
