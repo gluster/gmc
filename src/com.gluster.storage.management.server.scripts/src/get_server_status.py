@@ -6,7 +6,6 @@
 import os
 import sys
 import Utils
-from XmlHandler import ResponseXml
 
 def main():
     if len(sys.argv) != 1:
@@ -15,9 +14,9 @@ def main():
 
     responseDom = ResponseXml()
     if Utils.runCommand("pidof glusterd") == 0:
-        responseDom.appendTagRoute("serverStatus", "ONLINE")
+        print "ONLINE"
     else:
-        responseDom.appendTagRoute("serverStatus", "OFFLINE")
+        print "OFFLINE"
     print responseDom.toxml()
     sys.exit(0)
 
