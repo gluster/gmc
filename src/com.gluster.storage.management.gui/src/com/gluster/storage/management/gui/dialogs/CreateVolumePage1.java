@@ -65,6 +65,7 @@ public class CreateVolumePage1 extends WizardPage {
 	private Text txtAccessControl;
 	private Volume volume = new Volume();
 	private Button btnNfs;
+	private Button btnCIFS;
 	private Button btnStartVolume;
 	private Link linkCustomize;
 	private List<Device> allDevices;
@@ -116,6 +117,9 @@ public class CreateVolumePage1 extends WizardPage {
 		createNasProtocolLabel(container);
 		createNasProtocolCheckboxes(container);
 		
+		createCifsUserLabel(container);
+		createCifsUserText(container);
+		
 		createAccessControlLabel(container);
 		createAccessControlText(container);
 
@@ -166,6 +170,20 @@ public class CreateVolumePage1 extends WizardPage {
 		lblAccessControl.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblAccessControl.setText("Access Control: ");
 	}
+	
+	private void createCifsUserLabel(Composite container) {
+		Label lblAccessControl = new Label(container, SWT.NONE);
+		lblAccessControl.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblAccessControl.setText("CIFS Users: ");
+	}
+	
+	private void createCifsUserText(Composite container) {
+		txtAccessControl = new Text(container, SWT.BORDER);
+		txtAccessControl.setText("testuser1,testuser2,testuser3");
+		GridData accessControlData = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
+		accessControlData.widthHint = 300;
+		txtAccessControl.setLayoutData(accessControlData);		
+	}
 
 	private void createNasProtocolCheckboxes(Composite container) {
 		Button btnGluster = new Button(container, SWT.CHECK);
@@ -175,15 +193,21 @@ public class CreateVolumePage1 extends WizardPage {
 		createEmptyLabel(container);
 		
 		btnNfs = new Button(container, SWT.CHECK);
-		btnNfs.setEnabled(false);
+		btnNfs.setEnabled(true);
 		btnNfs.setSelection(true);
 		btnNfs.setText("NFS");
+		createEmptyLabel(container);
+		
+		btnCIFS = new Button(container, SWT.CHECK);
+		btnCIFS.setEnabled(true);
+		btnCIFS.setSelection(true);
+		btnCIFS.setText("CIFS");
 	}
 
 	private void createNasProtocolLabel(Composite container) {
 		Label lblNasProtocol = new Label(container, SWT.RIGHT);
 		lblNasProtocol.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblNasProtocol.setText("NAS Protocol: ");
+		lblNasProtocol.setText("Access Protocol: ");
 	}
 
 	private void createDisksCustomizeLink(Composite container) {
