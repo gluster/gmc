@@ -107,9 +107,14 @@ public class Disk extends Device {
 	
 	@Override
 	public boolean equals(Object obj) {
+		if(this == obj) {
+			return true;
+		}
+		
 		if(!(obj instanceof Disk)) {
 			return false;
 		}
+		
 		Disk disk = (Disk)obj;
 		
 		if (!(super.equals(obj) && getDescription().equals(disk.getDescription()) && getDiskInterface().equals(

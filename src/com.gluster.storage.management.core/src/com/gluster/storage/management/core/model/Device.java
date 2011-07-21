@@ -185,6 +185,10 @@ public class Device extends Entity {
 	
 	@Override
 	public boolean equals(Object obj) {
+		if(this == obj) {
+			return true;
+		}
+		
 		if(!(obj instanceof Device)) {
 			return false;
 		}
@@ -201,7 +205,7 @@ public class Device extends Entity {
 
 		if (getName().equals(device.getName()) && getServerName().equals(device.getServerName())
 				&& oldMountPoint.equals(newMountPoint) && getStatus() == device.getStatus()
-				&& getSpace() == device.getSpace() && getSpaceInUse() == device.getSpaceInUse()
+				&& getSpace().equals(device.getSpace()) && getSpaceInUse().equals(device.getSpaceInUse())
 				&& oldFsType.equals(newFsType) && oldFsVersion.equals(newFsVersion)
 				&& getType() == device.getType()) {
 			return true;

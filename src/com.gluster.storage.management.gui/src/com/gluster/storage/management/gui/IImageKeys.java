@@ -38,9 +38,9 @@ public interface IImageKeys {
 	public static final String SERVER_OFFLINE = "icons/tango/16x16/offline-server.png";
 	
 	public static final String CREATE_VOLUME_BIG = "icons/tango/48x48/create-volume.svg";
-	public static final String REMOVE_VOLUME = "icons/tango/32x32/remove-volume.svg";
-	public static final String ADD_SERVER = "icons/server-add.png";
-	public static final String ADD_SERVER_BIG = "icons/tango/48x48/server.png";
+	public static final String REMOVE_VOLUME = "icons/tango/32x32/remove-volume.png";
+	public static final String ADD_SERVER = "icons/tango/32x32/add-server.png";
+	public static final String ADD_SERVER_BIG = "icons/tango/48x48/add-server.svg";
 	public static final String REMOVE_SERVER = "icons/server-remove.png";
 	public static final String HELP = "icons/question.png";
 	public static final String STATUS_OFFLINE = "icons/status-offline.png";

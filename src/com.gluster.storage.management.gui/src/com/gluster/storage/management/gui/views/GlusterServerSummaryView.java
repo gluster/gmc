@@ -113,7 +113,7 @@ public class GlusterServerSummaryView extends ViewPart {
 	private void createLineChart(Composite section, Calendar timestamps[], Double values[], String unit) {
 		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, timestamps, values, unit);
 		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
-//		data.widthHint = CHART_WIDTH;
+		data.widthHint = CHART_WIDTH;
 		data.heightHint = 250;
 //		data.verticalAlignment = SWT.CENTER;
 //		data.grabExcessVerticalSpace = false;
@@ -134,7 +134,7 @@ public class GlusterServerSummaryView extends ViewPart {
 		//Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 20.31d, 19.63d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 40d, 10d, 90d, 40d };
 		Double[] values = new Double[] { 35d, 34.23d, 37.92d, 28.69d, 38.62d, 39.11d, 38.46d, 30.44d, 36.28d, 72.43d, 79.31d, 77.39d, 33.51d, 37.53d, 32.21, 30d, 31.43d, 36.45d, 34.86d, 35.27d };
 		createLineChart(section, timestamps, values, "%");
-		Composite graphComposite = createChartLinks(section, 4);
+		createChartLinks(section, 4);
 	}
 	
 	private void createNetworkUsageSection() {
@@ -151,9 +151,10 @@ public class GlusterServerSummaryView extends ViewPart {
 		createLineChart(section, timestamps, values, "Kib/s");
 
 		Composite graphComposite = createChartLinks(section, 5);
+		
 		CCombo interfaceCombo = new CCombo(graphComposite, SWT.DROP_DOWN | SWT.READ_ONLY | SWT.BORDER | SWT.FLAT);
 		interfaceCombo.setItems(new String[] {"eth0"});
-		interfaceCombo.select(0);	
+		interfaceCombo.select(0);
 	}
 
 	
@@ -181,7 +182,7 @@ public class GlusterServerSummaryView extends ViewPart {
 //		}
 //		
 //		createLineChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]));
-		Composite graphComposite = createChartLinks(section, 4);
+		createChartLinks(section, 4);
 	}
 	
 	private Composite createChartLinks(Composite section, int columnCount) {
