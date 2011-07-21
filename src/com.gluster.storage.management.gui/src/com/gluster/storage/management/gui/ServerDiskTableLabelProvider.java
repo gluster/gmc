@@ -20,7 +20,6 @@ package com.gluster.storage.management.gui;
 
 import org.eclipse.swt.graphics.Image;
 
-import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;

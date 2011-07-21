@@ -21,10 +21,10 @@ package com.gluster.storage.management.gui.dialogs;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.wizard.Wizard;
 
-import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
+import com.gluster.storage.management.gui.GlusterDataModelManager;
 
 public class CreateVolumeWizard extends Wizard {
 	private static final String title = "Gluster Management Console - Create Volume";

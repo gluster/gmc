@@ -1389,6 +1389,11 @@
             id="com.gluster.storage.management.gui.preferences.GlusterPreferencePage"
             name="Gluster">
       </page>
+      <page
+            class="com.gluster.storage.management.gui.preferences.AlertsPreferencePage"
+            id="com.gluster.storage.management.gui.preferences.AlertsPreferencePage"
+            name="Alerts">
+      </page>
    </extension>
    <extension
          point="org.eclipse.core.runtime.preferences">

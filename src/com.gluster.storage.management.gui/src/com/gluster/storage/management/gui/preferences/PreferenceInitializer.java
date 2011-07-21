@@ -40,5 +40,11 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 		
 		// default data sync interval = 5 minutes
 		store.setDefault(PreferenceConstants.P_DATA_SYNC_INTERVAL, 300);
+		
+		// Default CPU utilisation threshold 
+		store.setDefault(PreferenceConstants.P_SERVER_CPU_CRITICAL_THRESHOLD, 95);
+		
+		// Default disk free space threshold 
+		store.setDefault(PreferenceConstants.P_DISK_SPACE_USAGE_THRESHOLD, 90);
 	}
 }

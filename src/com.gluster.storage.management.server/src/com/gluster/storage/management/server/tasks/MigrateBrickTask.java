@@ -89,13 +89,12 @@ public class MigrateBrickTask extends Task {
 		try {
 			startMigration(getOnlineServer().getName());
 		} catch (ConnectionException e) {
-			// online server might have gone offline. try with a new one.
+			// online server might have gone Offline. try with a new one.
 			startMigration(getNewOnlineServer().getName());
 		}
 	}
 
 	private void startMigration(String onlineServerName) {
-		
 		ProcessResult processResult = glusterUtil.executeBrickMigration(onlineServerName, getTaskInfo().getReference(),
 				getFromBrick(), getToBrick(), "start");
 		if (processResult.getOutput().trim().matches(".*started successfully$")) {

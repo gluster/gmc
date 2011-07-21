@@ -42,11 +42,11 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.gluster.storage.management.client.ClustersClient;
-import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.client.UsersClient;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.ConnectionDetails;
 import com.gluster.storage.management.gui.Activator;
+import com.gluster.storage.management.gui.GlusterDataModelManager;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.dialogs.ClusterSelectionDialog.CLUSTER_MODE;
 import com.gluster.storage.management.gui.preferences.PreferenceConstants;

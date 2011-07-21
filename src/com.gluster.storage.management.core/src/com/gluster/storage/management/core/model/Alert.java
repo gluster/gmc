@@ -2,6 +2,9 @@ package com.gluster.storage.management.core.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.eclipse.osgi.internal.signedcontent.Base64;
+
+@SuppressWarnings("restriction")
 @XmlRootElement(name = "alert")
 public class Alert {
 
@@ -17,8 +20,22 @@ public class Alert {
 	protected String reference; // [for server- "Server", for Disk- "Server:disk", for volume- "Volume:Server:disk"]
 	protected String message;
 
-	public String getAlertType(ALERT_TYPES alertType) {
-		return ALERT_TYPE_STR[alertType.ordinal()];
+	public String getAlertType() {
+		return ALERT_TYPE_STR[type.ordinal()];
+	}
+
+	public Alert() {
+	}
+
+	public Alert(ALERT_TYPES type, String reference, String Message) {
+		setType(type);
+		setReference(reference);
+		setMessage(Message);
+		setId(buildAlertId());
+	}
+
+	public String buildAlertId() {
+		return Base64.encode((getAlertType() + "-" + getReference()).getBytes()).toString();
 	}
 
 	public String getId() {

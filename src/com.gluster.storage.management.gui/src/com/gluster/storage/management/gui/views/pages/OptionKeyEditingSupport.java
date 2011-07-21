@@ -13,11 +13,11 @@ import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-import com.gluster.storage.management.client.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.VolumeOption;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
 import com.gluster.storage.management.core.model.VolumeOptions;
+import com.gluster.storage.management.gui.GlusterDataModelManager;
 
 /**
  * Editing support for the "value" column in volume options table viewer.

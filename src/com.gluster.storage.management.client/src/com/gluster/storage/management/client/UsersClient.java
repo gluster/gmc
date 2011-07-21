@@ -42,8 +42,6 @@ public class UsersClient extends AbstractClient {
 	public void authenticate(String user, String password) {
 		setSecurityToken(generateSecurityToken(user, password));
 		fetchSubResource(user, Status.class);
-		// authentication successful. update security token in the data model manager
-		GlusterDataModelManager.getInstance().setSecurityToken(getSecurityToken());
 	}
 
 	public void changePassword(String user, String oldPassword, String newPassword) {
@@ -55,7 +53,8 @@ public class UsersClient extends AbstractClient {
 		putRequest(user, form);
 		
 		// password changed. set the new security token
-		authenticate(user, newPassword);
+		setSecurityToken(generateSecurityToken(user, newPassword));
+		//authenticate(user, newPassword);
 	}
 
 	public static void main(String[] args) {

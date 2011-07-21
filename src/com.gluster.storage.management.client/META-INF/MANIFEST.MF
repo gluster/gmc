@@ -14,3 +14,4 @@ Bundle-ClassPath: .,
  lib/jersey-1.5/jersey-core-1.5.jar,
  lib/jersey-1.5/jersey-multipart-1.5.jar,
  keystore/
+Import-Package: org.eclipse.jface.preference
