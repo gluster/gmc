@@ -102,7 +102,7 @@ public class VolumesSummaryView extends ViewPart {
 		if (alert.getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT) {
 			CLabel lblAlert = new CLabel(section, SWT.NONE);
 			lblAlert.setImage((alert.getType() == Alert.ALERT_TYPES.DISK_USAGE_ALERT) ? guiHelper
-					.getImage(IImageKeys.LOW_DISK_SPACE) : guiHelper.getImage(IImageKeys.DISK_OFFLINE));
+					.getImage(IImageKeys.LOW_DISK_SPACE) : guiHelper.getImage(IImageKeys.BRICK_OFFLINE));
 			lblAlert.setText(alert.getMessage());
 			lblAlert.redraw();
 		}

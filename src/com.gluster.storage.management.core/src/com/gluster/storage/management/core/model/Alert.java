@@ -1,12 +1,8 @@
 package com.gluster.storage.management.core.model;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.eclipse.osgi.internal.signedcontent.Base64;
 
-@SuppressWarnings("restriction")
-@XmlRootElement(name = "alert")
-public class Alert {
+public class Alert extends Entity {
 
 	public enum ALERT_TYPES {
 		CPU_USAGE_ALERT, MEMORY_USAGE_ALERT, DISK_USAGE_ALERT, OFFLINE_VOLUME_BRICKS_ALERT, OFFLINE_SERVERS_ALERT
@@ -15,7 +11,7 @@ public class Alert {
 	public static final String[] ALERT_TYPE_STR = { "High CPU Usage", "High Memory Usage", "Low Disk Space",
 			"Offline Brick", "Offline Server" };
 
-	protected String id;
+	//  protected String id;
 	protected ALERT_TYPES type;
 	protected String reference; // [for server- "Server", for Disk- "Server:disk", for volume- "Volume:Server:disk"]
 	protected String message;
@@ -39,11 +35,11 @@ public class Alert {
 	}
 
 	public String getId() {
-		return id;
+		return getName();
 	}
 
 	public void setId(String id) {
-		this.id = id;
+		setName(id);
 	}
 
 	public ALERT_TYPES getType() {
@@ -68,5 +64,12 @@ public class Alert {
 
 	public void setMessage(String message) {
 		this.message = message;
+	}
+
+	public void copyFrom(Alert alert) {
+		this.setId(alert.getId());
+		this.setReference(alert.getReference());
+		this.setType(alert.getType());
+		this.setMessage(alert.getMessage());
 	}
 }

@@ -46,4 +46,10 @@ public interface ClusterListener {
 	public void taskRemoved(TaskInfo taskInfo);
 	
 	public void taskUpdated(TaskInfo taskInfo);
+	
+	public void alertAdded(Alert alert);
+	
+	public void alertRemoved(Alert alert);
+	
+	public void alertUpdated(Alert alert);
 }

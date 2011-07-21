@@ -121,7 +121,7 @@ public class VolumeSummaryView extends ViewPart {
 
 	private void addAlertLabel(Composite section, Alert alert) {
 		CLabel lblAlert = new CLabel(section, SWT.NONE);
-		lblAlert.setImage(guiHelper.getImage(IImageKeys.DISK_OFFLINE));
+		lblAlert.setImage(guiHelper.getImage(IImageKeys.BRICK_OFFLINE));
 		lblAlert.setText(alert.getMessage());
 		lblAlert.redraw();
 	}

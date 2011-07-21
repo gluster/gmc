@@ -95,4 +95,19 @@ public class DefaultClusterListener implements ClusterListener {
 	public void discoveredServerChanged(Server server, Event event) {
 		modelChanged();
 	}
+
+	@Override
+	public void alertAdded(Alert alert) {
+		modelChanged();
+	}
+
+	@Override
+	public void alertRemoved(Alert alert) {
+		modelChanged();
+	}
+
+	@Override
+	public void alertUpdated(Alert alert) {
+		modelChanged();
+	}
 }

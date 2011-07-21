@@ -63,6 +63,8 @@ public interface IImageKeys {
 	public static final String REMOVE_BRICK = "icons/tango/32x32/remove-brick.svg";
 	public static final String LOW_DISK_SPACE = "icons/tango/16x16/low-diskspace.svg";
 	public static final String DISK_OFFLINE = "icons/status-offline.png";
+	public static final String BRICK_OFFLINE = "icons/status-offline.png";
+	
 	
 	public static final String bricks = "icons/tango/16x16/bricks.png";
 
