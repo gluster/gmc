@@ -4,7 +4,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.fieldassist.ControlDecoration;
@@ -40,10 +39,9 @@ import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Event;
-import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
-import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.model.Partition;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
@@ -404,13 +402,23 @@ public class VolumeSummaryView extends ViewPart {
 		});
 	}
 
-	private double getDiskSize(String serverName, String diskName) {
+	private double getDiskSize(String serverName, String deviceName) {
 		double diskSize = 0;
 		GlusterServer server = cluster.getServer(serverName);
 		if (server.getStatus() == SERVER_STATUS.ONLINE) {
 			for (Disk disk : server.getDisks()) {
-				if (disk.getName().equals(diskName)) {
+				if (disk.getName().equals(deviceName)) {
 					diskSize = disk.getSpace();
+					break;
+				}
+
+				if (disk.hasPartitions()) {
+					for (Partition partition : disk.getPartitions()) {
+						if (partition.getName().equals(deviceName)) {
+							diskSize = partition.getSpace();
+							break;
+						}
+					}
 				}
 			}
 		}
