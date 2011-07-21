@@ -125,6 +125,27 @@ def getRootPartition(fsTabFile=Globals.FSTAB_FILE):
             return getDeviceName(fsTabEntry["Device"])
     return None
 
+def getMounts():
+    mounts = {}
+    for line in readFile("/proc/mounts"):
+        str = line.strip()
+        if str.startswith("/dev/"):
+            tokens = str.split()
+            device = {}
+            mountPoint = tokens[1].strip()
+            device["MountPoint"] = mountPoint
+            device["FsType"] = tokens[2].strip()
+            device["Uuid"] = getDiskPartitionUuid(tokens[0].strip())
+            device["Status"] = "INITIALIZED"
+            if mountPoint:
+                if "/export/" in mountPoint:
+                    device["Type"] = "DATA"
+                else:
+                    device["Type"] = "BOOT"
+            else:
+                device["Type"] = "UNKNOWN"
+            mounts[tokens[0].strip()] = device
+    return mounts
 
 def getRaidDisk():
     array = []
@@ -203,6 +224,7 @@ def getDiskInfo(diskDeviceList=None):
     if Utils.isString(diskDeviceList):
         diskDeviceList = [diskDeviceList]
 
+    mounts = getMounts()
     if Utils.runCommand("/usr/bin/lshal") != 0:
         Utils.log("failed running /usr/bin/lshal")
 
@@ -232,6 +254,7 @@ def getDiskInfo(diskDeviceList=None):
             disk["Size"] = long(halDevice.GetProperty('storage.size')) / 1024**2
         disk["Interface"] = str(halDevice.GetProperty('storage.bus'))
         disk["DriveType"] = str(halDevice.GetProperty('storage.drive_type'))
+        disk["Status"] = None
         disk["Uuid"] = None
         disk["Init"] = False
         disk["Type"] = None
@@ -241,9 +264,7 @@ def getDiskInfo(diskDeviceList=None):
         disk["ReadOnlyAccess"] = None
         disk["SpaceInUse"] = None
 
-        partitionList = []
         partitionUdiList = halManager.FindDeviceStringMatch("info.parent", udi)
-        disk["Status"] = "UNINITIALIZED"
         if isDiskInFormatting(disk["Device"]):
             disk["Status"] = "INITIALIZING"
         else:
@@ -251,6 +272,16 @@ def getDiskInfo(diskDeviceList=None):
                 disk["Status"] = "INITIALIZED"
             else:
                 disk["Status"] = "UNINITIALIZED"
+                disk["Type"] = "UNKNOWN"
+
+        if mounts and mounts.has_key(disk["Device"]):
+            disk["Uuid"] = mounts[disk["Device"]]["Uuid"]
+            disk["Type"] = mounts[disk["Device"]]["Type"]
+            disk["Status"] = mounts[disk["Device"]]["Status"]
+            disk["FsType"] = mounts[disk["Device"]]["FsType"]
+            disk["MountPoint"] = mounts[disk["Device"]]["MountPoint"]
+            
+        partitionList = []
         diskSpaceInUse = 0
         for partitionUdi in partitionUdiList:
             used = 0
