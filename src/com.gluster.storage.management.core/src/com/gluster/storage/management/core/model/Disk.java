@@ -146,4 +146,48 @@ public class Disk extends Device {
 		setSpace(newDisk.getSpace());
 		setSpaceInUse(newDisk.getSpaceInUse());
 	}
+	
+	@Override
+	public boolean isReady() {
+		if (hasPartitions()) {
+			for (Partition partition : getPartitions()) {
+				if (partition.isReady()) {
+					return true;
+				}
+			}
+			return false;
+		} else {
+			return super.isReady();
+		}
+	}
+
+	@Override
+	public Double getSpace() {
+		Double space = 0d;
+		if (hasPartitions()) {
+			for (Partition partition : getPartitions()) {
+				if (partition.isReady()) {
+					space += partition.getSpace();
+				}
+			}
+			return space;
+		} else {
+			return super.getSpace();
+		}
+	}
+
+	@Override
+	public Double getSpaceInUse() {
+		Double spaceInUse = 0d;
+		if (hasPartitions()) {
+			for (Partition partition : getPartitions()) {
+				if (partition.isReady()) {
+					spaceInUse += partition.getSpaceInUse();
+				}
+			}
+			return spaceInUse;
+		} else {
+			return super.getSpaceInUse();
+		}
+	}
 }
