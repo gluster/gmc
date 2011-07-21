@@ -475,15 +475,19 @@ public class VolumesResource extends AbstractResource {
 	}
 
 	public void removeBricks(String clusterName, String volumeName, List<String> brickList, GlusterServer onlineServer) {
+		Status status;
 		try {
-			glusterUtil.removeBricks(volumeName, brickList, onlineServer.getName());
+			status = glusterUtil.removeBricks(volumeName, brickList, onlineServer.getName());
 		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
 			onlineServer = clusterService.getNewOnlineServer(clusterName);
 			if (onlineServer == null) {
 				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 			}
-			glusterUtil.removeBricks(volumeName, brickList, onlineServer.getName());
+			status = glusterUtil.removeBricks(volumeName, brickList, onlineServer.getName());
+		}
+		if (!status.isSuccess()) {
+			throw new GlusterRuntimeException(status.toString());
 		}
 	}
 
