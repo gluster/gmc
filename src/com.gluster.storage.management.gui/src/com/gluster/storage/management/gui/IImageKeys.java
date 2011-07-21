@@ -52,7 +52,12 @@ public interface IImageKeys {
 	public static final String CHECKBOX_CHECKED = "icons/ui-check-box.png";
 	public static final String DISK = "icons/tango/16x16/disk.svg";
 	public static final String DISKS = "icons/tango/16x16/disk.svg";
-	public static final String DISK_UNINITIALIZED = "icons/disk-uninitialized.png";
+	public static final String DISK_UNINITIALIZED = "icons/tango/16x16/disk-uninitialized.png";
+	public static final String IO_ERROR = "icons/tango/16x16/disk-error.png";
+	public static final String DISK_AVAILABLE = "icons/tango/16x16/disk-available.png";
+	public static final String DISK_INITIALIZING = "icons/tango/16x16/disk-initialisation.png";
+	public static final String DISK_IN_USE = "icons/tango/16x16/disk-inuse.png";
+	
 	public static final String SEARCH = "icons/tango/22x22/system-search.png";
 	public static final String ARROW_UP = "icons/arrow-up.png";
 	public static final String ARROW_DOWN = "icons/arrow-down.png";
@@ -65,12 +70,15 @@ public interface IImageKeys {
 	public static final String DISK_OFFLINE = "icons/status-offline.png";
 	public static final String BRICK_OFFLINE = "icons/status-offline.png";
 	
-	
 	public static final String bricks = "icons/tango/16x16/bricks.png";
 
 	public static final String PAUSE_TASK = "icons/tango/32x32/pause.svg";
 	public static final String RESUME_TASK = "icons/tango/32x32/start.svg";
 	public static final String STOP_TASK = "icons/tango/32x32/stop.svg";
+	public static final String PAUSE_TASK_SMALL = "icons/tango/16x16/pause.png";
+	public static final String RESUME_TASK_SMALL = "icons/tango/16x16/start.png";
+	public static final String STOP_TASK_SMALL = "icons/tango/16x16/stop.png";
+	
 	public static final String CLEAR_TASK = "icons/close_task.gif";
 	
 	public static final String OVERLAY_OFFLINE = "icons/status-offline-small.png";

@@ -22,14 +22,42 @@ package com.gluster.storage.management.gui;
 
 import org.eclipse.swt.graphics.Image;
 
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
+import com.gluster.storage.management.core.model.TaskStatus;
+import com.gluster.storage.management.gui.DeviceTableLabelProvider.DEVICE_COLUMN_INDICES;
+import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.views.pages.TasksPage.TASK_TABLE_COLUMN_INDICES;
 
 
 public class TasksTableLabelProvider extends TableLabelProviderAdapter {
+	private GUIHelper guiHelper = GUIHelper.getInstance();
 	
 	@Override
 	public Image getColumnImage(Object element, int columnIndex) {
+
+		if (!(element instanceof TaskInfo)) {
+			return null;
+		}
+	
+		TaskInfo taskInfo = (TaskInfo) element;
+		if (columnIndex == TASK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
+			int statusCode = taskInfo.getStatus().getCode();
+			
+			switch (statusCode) {
+			case Status.STATUS_CODE_SUCCESS:
+				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
+			case Status.STATUS_CODE_PAUSE:
+				return guiHelper.getImage(IImageKeys.PAUSE_TASK_SMALL);
+			case Status.STATUS_CODE_RUNNING:
+				return guiHelper.getImage(IImageKeys.RESUME_TASK_SMALL);
+			case Status.STATUS_CODE_FAILURE:
+				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);				
+			default:
+				break;
+			}
+		}
+		
 		return null;
 	}
 	

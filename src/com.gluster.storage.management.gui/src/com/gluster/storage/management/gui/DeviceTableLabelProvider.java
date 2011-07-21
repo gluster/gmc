@@ -71,16 +71,19 @@ public class DeviceTableLabelProvider extends LabelProvider implements ITableLab
 				return null;
 			}
 
-			// TODO: Use different images for all four statuses
 			switch (status) {
 			case INITIALIZED:
-				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
+				if(modelManager.isDeviceUsed(device)) {
+					return guiHelper.getImage(IImageKeys.DISK_IN_USE);
+				} else {
+					return guiHelper.getImage(IImageKeys.DISK_AVAILABLE);
+				}
 			case IO_ERROR:
-				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
+				return guiHelper.getImage(IImageKeys.IO_ERROR);
 			case UNINITIALIZED:
 				return guiHelper.getImage(IImageKeys.DISK_UNINITIALIZED);
 			case INITIALIZING:
-				return guiHelper.getImage(IImageKeys.WORK_IN_PROGRESS);
+				return guiHelper.getImage(IImageKeys.DISK_INITIALIZING);
 			default:
 				throw new GlusterRuntimeException("Invalid disk status [" + status + "]");
 			}
@@ -142,7 +145,14 @@ public class DeviceTableLabelProvider extends LabelProvider implements ITableLab
 				return "";
 			}
 		} else if (columnIndex == DEVICE_COLUMN_INDICES.STATUS.ordinal()) {
-			return modelManager.getDeviceStatus(device);
+			if(device.isUninitialized()) {
+				return "";
+			}
+			if(modelManager.isDeviceUsed(device)) {
+				return "In Use";
+			} else {
+				return device.getStatusStr();
+			}
 		} else {
 			return "";
 		}
