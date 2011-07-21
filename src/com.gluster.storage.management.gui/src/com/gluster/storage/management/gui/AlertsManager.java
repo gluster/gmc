@@ -101,7 +101,10 @@ public class AlertsManager {
 
 	private List<Alert> getServerAlerts() {
 		List<Alert> serverAlerts = new ArrayList<Alert>();
-		serverAlerts.add(getOfflineServerAlerts()); // Single alert for offline servers
+		Alert offlineServerAlert = getOfflineServerAlerts();
+		if (offlineServerAlert != null) {
+			serverAlerts.add(offlineServerAlert); // Single alert for offline servers
+		}
 
 		for (GlusterServer server : cluster.getServers()) {
 			// To check off line servers
@@ -140,8 +143,12 @@ public class AlertsManager {
 				offlineServers.add(server.getName());
 			}
 		}
-		return new Alert(ALERT_TYPES.OFFLINE_SERVERS_ALERT, "Server",
-				Alert.ALERT_TYPE_STR[ALERT_TYPES.OFFLINE_SERVERS_ALERT.ordinal()] + "(s) " + offlineServers.toString());
+		if (offlineServers.size() > 0) {
+			return new Alert(ALERT_TYPES.OFFLINE_SERVERS_ALERT, "Server",
+					Alert.ALERT_TYPE_STR[ALERT_TYPES.OFFLINE_SERVERS_ALERT.ordinal()] + "(s) "
+							+ offlineServers.toString());
+		}
+		return null;
 	}
 
 	private List<Alert> getLowDiskAlerts(GlusterServer server) {
