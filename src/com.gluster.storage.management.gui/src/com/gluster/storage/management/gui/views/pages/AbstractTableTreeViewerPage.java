@@ -27,6 +27,10 @@ import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -41,6 +45,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.Disk;
+import com.gluster.storage.management.gui.GlusterDataModelManager;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public abstract class AbstractTableTreeViewerPage<T> extends Composite implements ISelectionListener {
@@ -50,6 +55,7 @@ public abstract class AbstractTableTreeViewerPage<T> extends Composite implement
 	protected GUIHelper guiHelper = GUIHelper.getInstance();
 	protected Composite parent;
 	protected IWorkbenchSite site;
+	private ClusterListener clusterListener;
 	
 	private Text filterText;
 
@@ -97,9 +103,38 @@ public abstract class AbstractTableTreeViewerPage<T> extends Composite implement
 		
 		Composite tableViewerComposite = createTreeViewerComposite();
 		createTreeViewer(allDisks, tableViewerComposite);
-		parent.layout();
+		parent.layout(); // Important - this actually paints the table
+		
+		createListeners(parent); 
+	}
+	
+	private void createListeners(final Composite parent) {
+		/**
+		 * Ideally not required. However the table viewer is not getting laid out properly on performing
+		 * "maximize + restore" So this is a hack to make sure that the table is laid out again on re-size of the window
+		 */
+		addPaintListener(new PaintListener() {
+
+			@Override
+			public void paintControl(PaintEvent e) {
+				parent.layout();
+			}
+		});
+		
+		clusterListener = createClusterListener();
+		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
+		
+		addDisposeListener(new DisposeListener() {
+			
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				toolkit.dispose();
+				GlusterDataModelManager.getInstance().removeClusterListener(clusterListener);
+			}
+		});
 	}
 
+	protected abstract ClusterListener createClusterListener();
 	protected abstract IBaseLabelProvider getLabelProvider();
 	protected abstract IContentProvider getContentProvider();
 	
@@ -152,10 +187,5 @@ public abstract class AbstractTableTreeViewerPage<T> extends Composite implement
 	 */
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-	}
-
-	protected ClusterListener createClusterListener() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }
