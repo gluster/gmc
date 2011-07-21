@@ -61,6 +61,7 @@ sub updatememdata {
                         "DS:memused:ABSOLUTE:600:0:U",
                         "DS:memfree:ABSOLUTE:600:0:U",
                         "DS:memcache:ABSOLUTE:600:0:U",
+		        "DS:membuffer:ABSOLUTE:600:0:U",
                         "DS:swapused:ABSOLUTE:600:0:U",
                         "DS:swapfree:ABSOLUTE:600:0:U",
                         "RRA:AVERAGE:0.5:1:576",
@@ -91,8 +92,8 @@ sub updatememdata {
 
 
   RRDs::update ("$rrdlog/mem.rrd",
-                "-t", "memused:memfree:memcache:swapused:swapfree",
-                "N:$memused:$memfree:$memcache:$swapused:$swapfree");
+                "-t", "memused:memfree:memcache:membuffer:swapused:swapfree",
+                "N:$memused:$memfree:$memcache:$membuffers:$swapused:$swapfree");
 
    $ERROR = RRDs::error;
     print "Error in RRD::update for mem: $ERROR\n" if $ERROR;
