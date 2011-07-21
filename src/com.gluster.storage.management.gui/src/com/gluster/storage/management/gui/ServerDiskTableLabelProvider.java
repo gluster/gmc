@@ -20,16 +20,14 @@ package com.gluster.storage.management.gui;
 
 import org.eclipse.swt.graphics.Image;
 
-import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
-import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Device;
+import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Partition;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.DeviceTableLabelProvider.DEVICE_COLUMN_INDICES;
 import com.gluster.storage.management.gui.utils.GUIHelper;
-//import com.gluster.storage.management.gui.views.pages.ServerDisksPage.SERVER_DISK_TABLE_COLUMN_INDICES;
 import com.gluster.storage.management.gui.views.pages.ServerDisksPage.SERVER_DISK_TABLE_COLUMN_INDICES;
 
 public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
@@ -38,13 +36,13 @@ public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 
 	@Override
 	public Image getColumnImage(Object element, int columnIndex) {
-		if (!(element instanceof Disk)) {
+		if (!(element instanceof Device)) {
 			return null;
 		}
 
-		Disk disk = (Disk) element;
+		Device device = (Device) element;
 		if (columnIndex == SERVER_DISK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
-			DEVICE_STATUS status = disk.getStatus();
+			DEVICE_STATUS status = device.getStatus();
 			
 			if (status == null) {
 				return  null;
@@ -55,16 +53,19 @@ public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 				return null;
 			}
 
-			// TODO: Use different images for all four statuses
 			switch (status) {
 			case INITIALIZED:
-				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
+				if(glusterDataModelManager.isDeviceUsed(device)) {
+					return guiHelper.getImage(IImageKeys.DISK_IN_USE);
+				} else {
+					return guiHelper.getImage(IImageKeys.DISK_AVAILABLE);
+				}
 			case IO_ERROR:
-				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
+				return guiHelper.getImage(IImageKeys.IO_ERROR);
 			case UNINITIALIZED:
 				return guiHelper.getImage(IImageKeys.DISK_UNINITIALIZED);
 			case INITIALIZING:
-				return guiHelper.getImage(IImageKeys.WORK_IN_PROGRESS);
+				return guiHelper.getImage(IImageKeys.DISK_INITIALIZING);
 			default:
 				throw new GlusterRuntimeException("Invalid disk status [" + status + "]");
 			}
@@ -116,7 +117,14 @@ public class ServerDiskTableLabelProvider extends TableLabelProviderAdapter {
 				return "";
 			}
 		} else if (columnIndex == DEVICE_COLUMN_INDICES.STATUS.ordinal()) {
-			return glusterDataModelManager.getDeviceStatus(device);
+			if(device.isUninitialized()) {
+				return "";
+			}
+			if(glusterDataModelManager.isDeviceUsed(device)) {
+				return "In Use";
+			} else {
+				return device.getStatusStr();
+			}
 		} else {
 			return "";
 		}

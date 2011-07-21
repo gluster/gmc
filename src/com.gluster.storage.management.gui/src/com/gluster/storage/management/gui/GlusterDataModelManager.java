@@ -757,15 +757,15 @@ public class GlusterDataModelManager {
 		return false;
 	}
 
-	public String getDeviceStatus(Device device) {
+	public boolean isDeviceUsed(Device device) {
 		if (device.getStatus() == DEVICE_STATUS.INITIALIZED) {
 			for (Volume volume : model.getCluster().getVolumes()) {
 				if (isDeviceUsed(volume, device)) {
-					return "In use";
+					return true;
 				}
 			}
 		}
-		return device.getStatusStr();
+		return false;
 	}
 	
 	public List<String> getVolumesOfServer(String serverName) {
