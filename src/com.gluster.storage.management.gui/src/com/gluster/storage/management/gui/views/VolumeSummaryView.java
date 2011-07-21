@@ -350,22 +350,23 @@ public class VolumeSummaryView extends ViewPart {
 	}
 
 	private void createNASProtocolField(Composite section) {
-		toolkit.createLabel(section, "NAS Protocols: ", SWT.NONE);
+		toolkit.createLabel(section, "Access Protocols: ", SWT.NONE);
 
 		Composite nasProtocolsComposite = toolkit.createComposite(section);
 		nasProtocolsComposite.setLayout(new FillLayout());
 
-		createCheckbox(nasProtocolsComposite, "Gluster", true);
+		createCheckbox(nasProtocolsComposite, "Gluster", true, false);
 		final Button nfsCheckBox = createCheckbox(nasProtocolsComposite, "NFS",
-				volume.getNASProtocols().contains(NAS_PROTOCOL.NFS));
+				volume.getNASProtocols().contains(NAS_PROTOCOL.NFS), true);
+		createCheckbox(nasProtocolsComposite, "CIFS", false, true);
 
 		toolkit.createLabel(section, "", SWT.NONE); // dummy
 		// createChangeLinkForNASProtocol(section, nfsCheckBox);
 	}
 
-	private Button createCheckbox(Composite parent, String label, boolean selected) {
+	private Button createCheckbox(Composite parent, String label, boolean selected, boolean enabled) {
 		final Button checkBox = toolkit.createButton(parent, label, SWT.CHECK);
-		checkBox.setEnabled(false);
+		checkBox.setEnabled(enabled);
 		checkBox.setSelection(selected);
 		return checkBox;
 	}
