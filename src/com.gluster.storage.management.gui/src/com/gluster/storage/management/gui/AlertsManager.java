@@ -35,6 +35,7 @@ import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Partition;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.gui.preferences.PreferenceConstants;
 
@@ -117,7 +118,7 @@ public class AlertsManager {
 			// To check High CPU usage
 			if (server.getCpuUsage() >= CPU_USAGE_THRESHOLD) {
 				serverAlerts.add(new Alert(ALERT_TYPES.CPU_USAGE_ALERT, server.getName(),
-						Alert.ALERT_TYPE_STR[ALERT_TYPES.CPU_USAGE_ALERT.ordinal()] + "[" + server.getCpuUsage()
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.CPU_USAGE_ALERT.ordinal()] + " [" + server.getCpuUsage()
 								+ "] in server [" + server.getName() + "]"));
 			}
 
@@ -125,7 +126,7 @@ public class AlertsManager {
 			Double memoryUtilized = server.getMemoryInUse() / server.getTotalMemory() * 100d;
 			if (memoryUtilized >= MEMORY_USAGE_THRESHOLD) {
 				serverAlerts.add(new Alert(ALERT_TYPES.MEMORY_USAGE_ALERT, server.getName(),
-						Alert.ALERT_TYPE_STR[ALERT_TYPES.MEMORY_USAGE_ALERT.ordinal()] + "["
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.MEMORY_USAGE_ALERT.ordinal()] + " ["
 								+ StringUtil.formatNumber(memoryUtilized, 2) + "%] in server [" + server.getName()
 								+ "]"));
 			}
@@ -188,6 +189,10 @@ public class AlertsManager {
 		List<String> offlineBricks = new ArrayList<String>();
 
 		for (Volume volume : cluster.getVolumes()) {
+			if (volume.getStatus() == VOLUME_STATUS.OFFLINE) {
+				continue;
+			}
+			
 			// To check off line bricks
 			offlineBricks = new ArrayList<String>();
 			for (Brick brick : volume.getBricks()) {
@@ -198,7 +203,7 @@ public class AlertsManager {
 			// One offline brick alert per volume
 			if (offlineBricks.size() > 0) {
 				volumeAlerts.add(new Alert(ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT, volume.getName(),
-						Alert.ALERT_TYPE_STR[ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT.ordinal()]
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT.ordinal()] + " "
 								+ offlineBricks.toString() + " in volume " + volume.getName()));
 			}
 		}
