@@ -139,13 +139,13 @@ public class MigrateBrickPage1 extends WizardPage {
 		setDescription("Migrate volume data from \"" + source + "\" to \"" + target + "\"");
 	}
 
-	private Disk getSelectedDisk(TableViewer tableViewer) {
+	private Device getSelectedDevice(TableViewer tableViewer) {
 		TableItem[] selectedItems = tableViewer.getTable().getSelection();
-		Disk selectedDisk = null;
+		Device selectedDevice = null;
 		for (TableItem item : selectedItems) {
-			selectedDisk = (Disk) item.getData();
+			selectedDevice = (Device) item.getData();
 		}
-		return selectedDisk;
+		return selectedDevice;
 	}
 
 	private void setupPageLayout(Composite container) {
@@ -166,13 +166,13 @@ public class MigrateBrickPage1 extends WizardPage {
 	}
 
 	public String getSourceBrickDir() {
-		Disk sourceDisk = getSelectedDisk(tableViewerFrom); 
-		return sourceDisk.getQualifiedBrickName(volume.getName());
+		Device sourceDevice = getSelectedDevice(tableViewerFrom); 
+		return sourceDevice.getQualifiedBrickName(volume.getName());
 	}
 
 	public String getTargetBrickDir() {
-		Disk targetDisk = getSelectedDisk(tableViewerTo);
-		return targetDisk.getQualifiedBrickName(volume.getName());
+		Device targetDevice = getSelectedDevice(tableViewerTo);
+		return targetDevice.getQualifiedBrickName(volume.getName());
 	}
 	
 	public Boolean getAutoCommitSelection() {

@@ -50,6 +50,7 @@ public class VolumesPage extends AbstractTableViewerPage<Volume> {
 
 	public VolumesPage(final Composite parent, IWorkbenchSite site, EntityGroup<Volume> volumes) {
 		super(site, parent, SWT.NONE, true, true, volumes);
+		this.volumes = volumes.getEntities();
 	}
 
 	@Override
