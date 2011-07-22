@@ -67,7 +67,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		aboutAction = ActionFactory.ABOUT.create(window);
 		aboutAction.setText("&About");
 		aboutAction.setImageDescriptor(AbstractUIPlugin.imageDescriptorFromPlugin(Application.PLUGIN_ID,
-				IImageKeys.HELP));
+				IImageKeys.HELP_16x16));
 		register(aboutAction);
 		
 		helpContentsAction = ActionFactory.HELP_CONTENTS.create(window);

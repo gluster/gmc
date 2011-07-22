@@ -56,10 +56,10 @@ public class NavigationTreeLabelDecorator implements ILightweightLabelDecorator 
 			Volume volume = (Volume) element;
 			if (volume.getStatus() == Volume.VOLUME_STATUS.OFFLINE) {
 				decoration.addOverlay(AbstractUIPlugin.imageDescriptorFromPlugin(Application.PLUGIN_ID,
-						IImageKeys.OVERLAY_OFFLINE));
+						IImageKeys.OVERLAY_OFFLINE_8x8));
 			} else {
 				decoration.addOverlay(AbstractUIPlugin.imageDescriptorFromPlugin(Application.PLUGIN_ID,
-						IImageKeys.OVERLAY_ONLINE));
+						IImageKeys.OVERLAY_ONLINE_8x8));
 			}
 		}
 
@@ -67,21 +67,21 @@ public class NavigationTreeLabelDecorator implements ILightweightLabelDecorator 
 			GlusterServer server = (GlusterServer) element;
 			if (server.getStatus() == GlusterServer.SERVER_STATUS.OFFLINE) {
 				decoration.addOverlay(AbstractUIPlugin.imageDescriptorFromPlugin(Application.PLUGIN_ID,
-						IImageKeys.OVERLAY_OFFLINE));
+						IImageKeys.OVERLAY_OFFLINE_8x8));
 			} else {
 				decoration.addOverlay(AbstractUIPlugin.imageDescriptorFromPlugin(Application.PLUGIN_ID,
-						IImageKeys.OVERLAY_ONLINE));
+						IImageKeys.OVERLAY_ONLINE_8x8));
 			}
 		}
 
 		if (element instanceof Server) {
 			decoration.addOverlay(AbstractUIPlugin.imageDescriptorFromPlugin(Application.PLUGIN_ID,
-					IImageKeys.OVERLAY_STAR));
+					IImageKeys.OVERLAY_STAR_8x8));
 		}
 		
 		if(element instanceof EntityGroup && ((EntityGroup)element).getEntityType() == Server.class) {
 			decoration.addOverlay(AbstractUIPlugin.imageDescriptorFromPlugin(Application.PLUGIN_ID,
-					IImageKeys.OVERLAY_STAR));
+					IImageKeys.OVERLAY_STAR_8x8));
 		}
 	}
 }

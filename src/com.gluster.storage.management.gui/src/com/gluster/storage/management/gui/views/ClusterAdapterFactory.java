@@ -52,24 +52,24 @@ public class ClusterAdapterFactory implements IAdapterFactory {
 			String iconPath = null;
 			
 			if(object instanceof GlusterDataModel || object instanceof Cluster) {
-				iconPath = IImageKeys.CLUSTER;
+				iconPath = IImageKeys.CLUSTER_16x16;
 			}
 			
 			if(object instanceof EntityGroup) {
 				Class<? extends Entity> entityType = ((EntityGroup) object).getEntityType(); 
 				if(entityType == Volume.class) {
-					iconPath = IImageKeys.VOLUMES;
+					iconPath = IImageKeys.VOLUMES_16x16;
 				} else {
-					iconPath = IImageKeys.SERVERS;
+					iconPath = IImageKeys.SERVERS_16x16;
 				}
 			}
 			
 			if(object instanceof Volume) {
-				iconPath = IImageKeys.VOLUME;
+				iconPath = IImageKeys.VOLUME_16x16;
 			}
 
 			if(object instanceof Server || object instanceof GlusterServer) {
-				iconPath = IImageKeys.SERVER;
+				iconPath = IImageKeys.SERVER_16x16;
 			}
 			
 			return AbstractUIPlugin.imageDescriptorFromPlugin(

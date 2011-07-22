@@ -174,19 +174,19 @@ public class ClusterSummaryView extends ViewPart {
 		Image alertImage = null;
 		switch (alert.getType()) {
 		case OFFLINE_VOLUME_BRICKS_ALERT:
-			alertImage = guiHelper.getImage(IImageKeys.BRICK_OFFLINE);
+			alertImage = guiHelper.getImage(IImageKeys.BRICK_OFFLINE_22x22);
 			break;
 		case DISK_USAGE_ALERT:
-			alertImage = guiHelper.getImage(IImageKeys.LOW_DISK_SPACE);
+			alertImage = guiHelper.getImage(IImageKeys.LOW_DISK_SPACE_22x22);
 			break;
 		case OFFLINE_SERVERS_ALERT:
-			alertImage = guiHelper.getImage(IImageKeys.SERVER_OFFLINE);
+			alertImage = guiHelper.getImage(IImageKeys.SERVER_OFFLINE_22x22);
 			break;
 		case MEMORY_USAGE_ALERT:
-			alertImage = guiHelper.getImage(IImageKeys.MEMORY_USAGE_ALERT);
+			alertImage = guiHelper.getImage(IImageKeys.MEMORY_USAGE_ALERT_22x22);
 			break;
 		case CPU_USAGE_ALERT:
-			alertImage = guiHelper.getImage(IImageKeys.SERVER_WARNING);
+			alertImage = guiHelper.getImage(IImageKeys.SERVER_WARNING_22x22);
 			break;
 		}
 		lblAlert.setImage(alertImage);
@@ -199,7 +199,7 @@ public class ClusterSummaryView extends ViewPart {
 
 		ImageHyperlink imageHyperlink = toolkit.createImageHyperlink(section, SWT.NONE);
 		imageHyperlink.setText("Create Volume");
-		imageHyperlink.setImage(guiHelper.getImage(IImageKeys.CREATE_VOLUME_BIG));
+		imageHyperlink.setImage(guiHelper.getImage(IImageKeys.CREATE_VOLUME_48x48));
 		imageHyperlink.addHyperlinkListener(new HyperlinkAdapter() {
 			@Override
 			public void linkActivated(HyperlinkEvent e) {
@@ -214,7 +214,7 @@ public class ClusterSummaryView extends ViewPart {
 
 		imageHyperlink = toolkit.createImageHyperlink(section, SWT.NONE);
 		imageHyperlink.setText("Add Server(s)");
-		imageHyperlink.setImage(guiHelper.getImage(IImageKeys.ADD_SERVER_BIG));
+		imageHyperlink.setImage(guiHelper.getImage(IImageKeys.ADD_SERVER_48x48));
 		imageHyperlink.addHyperlinkListener(new HyperlinkAdapter() {
 			@Override
 			public void linkActivated(HyperlinkEvent e) {
@@ -312,13 +312,13 @@ public class ClusterSummaryView extends ViewPart {
 		Image taskImage = null;
 		switch(taskInfo.getType()) {
 		case DISK_FORMAT:
-			taskImage = guiHelper.getImage(IImageKeys.DISK_INITIALIZING);
+			taskImage = guiHelper.getImage(IImageKeys.DISK_INITIALIZING_22x22);
 			break;
 		case BRICK_MIGRATE:
-			taskImage = guiHelper.getImage(IImageKeys.BRICK_MIGRATE_SMALL);
+			taskImage = guiHelper.getImage(IImageKeys.BRICK_MIGRATE_22x22);
 			break;
 		case VOLUME_REBALANCE:
-			taskImage = guiHelper.getImage(IImageKeys.VOLUME_REBALANCE_SMALL);
+			taskImage = guiHelper.getImage(IImageKeys.VOLUME_REBALANCE_22x22);
 			break;
 		}
 		lblAlert.setImage(taskImage);

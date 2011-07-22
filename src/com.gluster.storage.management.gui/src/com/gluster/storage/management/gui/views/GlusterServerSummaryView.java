@@ -280,7 +280,7 @@ public class GlusterServerSummaryView extends ViewPart {
 		CLabel lblStatusValue = new CLabel(section, SWT.NONE);
 		lblStatusValue.setText(server.getStatusStr());
 		lblStatusValue.setImage(server.getStatus() == GlusterServer.SERVER_STATUS.ONLINE ? guiHelper
-				.getImage(IImageKeys.STATUS_ONLINE) : guiHelper.getImage(IImageKeys.STATUS_OFFLINE));
+				.getImage(IImageKeys.STATUS_ONLINE_16x16) : guiHelper.getImage(IImageKeys.STATUS_OFFLINE_16x16));
 		toolkit.adapt(lblStatusValue, true, true);
 	}
 

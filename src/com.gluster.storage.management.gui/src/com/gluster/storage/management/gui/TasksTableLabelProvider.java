@@ -46,13 +46,13 @@ public class TasksTableLabelProvider extends TableLabelProviderAdapter {
 			
 			switch (statusCode) {
 			case Status.STATUS_CODE_SUCCESS:
-				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
+				return guiHelper.getImage(IImageKeys.STATUS_ONLINE_16x16);
 			case Status.STATUS_CODE_PAUSE:
-				return guiHelper.getImage(IImageKeys.PAUSE_TASK_SMALL);
+				return guiHelper.getImage(IImageKeys.PAUSE_TASK_16x16);
 			case Status.STATUS_CODE_RUNNING:
-				return guiHelper.getImage(IImageKeys.RESUME_TASK_SMALL);
+				return guiHelper.getImage(IImageKeys.RESUME_TASK_16x16);
 			case Status.STATUS_CODE_FAILURE:
-				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);				
+				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE_16x16);				
 			default:
 				break;
 			}

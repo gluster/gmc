@@ -300,7 +300,7 @@ public class GUIHelper {
 		filterText.setLayoutData(data);
 
 		ControlDecoration searchDecoration = new ControlDecoration(filterText, SWT.LEFT);
-		searchDecoration.setImage(getImage(IImageKeys.SEARCH));
+		searchDecoration.setImage(getImage(IImageKeys.SEARCH_22x22));
 		searchDecoration.show();
 		searchDecoration.setShowHover(true);
 		searchDecoration.setDescriptionText(tooltipMessage);
@@ -319,7 +319,7 @@ public class GUIHelper {
 		filterText.setLayoutData(data);
 
 		ControlDecoration searchDecoration = new ControlDecoration(filterText, SWT.RIGHT);
-		searchDecoration.setImage(getImage(IImageKeys.SEARCH));
+		searchDecoration.setImage(getImage(IImageKeys.SEARCH_22x22));
 		searchDecoration.show();
 		searchDecoration.setShowHover(true);
 		searchDecoration.setDescriptionText(tooltipMessage);
