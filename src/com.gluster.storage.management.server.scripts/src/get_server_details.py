@@ -39,6 +39,14 @@ def getServerDetails(listall):
     serverTag = responseDom.appendTagRoute("server")
     serverTag.appendChild(responseDom.createTag("name", serverName))
     serverTag.appendChild(responseDom.createTag("domainname", domain[0]))
+    if Utils.runCommand("pidof glusterd") == 0:
+        serverTag.appendChild(responseDom.createTag("status", "ONLINE"))
+    else:
+        serverTag.appendChild(responseDom.createTag("status", "OFFLINE"))
+    serverTag.appendChild(responseDom.createTag("cpuUsage", str(cpu)))
+    serverTag.appendChild(responseDom.createTag("totalMemory", str(convertKbToMb(meminfo['MemTotal']))))
+    serverTag.appendChild(responseDom.createTag("memoryInUse", str(convertKbToMb(meminfo['MemUsed']))))
+    serverTag.appendChild(responseDom.createTag("uuid", None))
 
     for dns in nameServerList:
         serverTag.appendChild(responseDom.createTag("dns%s" % str(nameServerList.index(dns) +1) , dns))
@@ -89,12 +97,6 @@ def getServerDetails(listall):
         sys.stderr.write("No disk found!")
         Utils.log("Failed to get disk details")
         sys.exit(1)
-
-    serverTag.appendChild(responseDom.createTag("cpuUsage", str(cpu)))
-    serverTag.appendChild(responseDom.createTag("totalMemory", str(convertKbToMb(meminfo['MemTotal']))))
-    serverTag.appendChild(responseDom.createTag("memoryInUse", str(convertKbToMb(meminfo['MemUsed']))))
-    serverTag.appendChild(responseDom.createTag("status", "ONLINE"))
-    serverTag.appendChild(responseDom.createTag("uuid", None))
 
     serverTag.appendChild(diskDom.getElementsByTagRoute("disks")[0])
     return serverTag
