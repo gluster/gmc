@@ -462,12 +462,11 @@ public class GlusterDataModelManager {
 						Alert.ALERT_TYPE_STR[ALERT_TYPES.OFFLINE_SERVERS_ALERT.ordinal()] + " " + server.getName()));
 				continue;
 			}
-			
+
 			if (alerts.size() == 3) {
-				alerts.add(new Alert(ALERT_TYPES.DISK_USAGE_ALERT, server.getName(),
-						Alert.ALERT_TYPE_STR[ALERT_TYPES.DISK_USAGE_ALERT.ordinal()] + " in " + server.getName() + ":" + "sdc"));
 				alerts.add(new Alert(ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT, "songs",
-						Alert.ALERT_TYPE_STR[ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT.ordinal()] + " [KVM-GVSA4:/export/hdb4/songs] in volume [songs]"));
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT.ordinal()]
+								+ " [KVM-GVSA4:/export/hdb4/songs] in volume [songs]"));
 				continue;
 			}
 		}

@@ -14,7 +14,7 @@ def main():
 
     volumeName = sys.argv[1]
     brickName = sys.argv[2]
-    pidFile = "/etc/glusterd/vols/%s/run/%s.pid" % (volumeName, brickName.replace(":", "-").replace("/", "-"))
+    pidFile = "/etc/glusterd/vols/%s/run/%s.pid" % (volumeName, brickName.replace(":", "").replace("/", "-"))
 
     if not os.path.exists(pidFile):
         print "OFFLINE"
