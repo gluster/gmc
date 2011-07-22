@@ -199,6 +199,7 @@ def getRaidDisk():
                 raid['Uuid']  = words[1].split("UUID=")[-1].split('"')[1]
                 raid['FsType'] = words[2].split("TYPE=")[-1].split('"')[1]
 
+        used = 0
         rv = Utils.runCommand("df %s" % (device), output=True, root=True)
         if rv["Status"] == 0:
             try:
