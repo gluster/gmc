@@ -396,7 +396,7 @@ public class GlusterDataModelManager {
 
 	public void initializeTasks(Cluster cluster) {
 		List<TaskInfo> taskInfoList = new TasksClient(cluster.getName()).getAllTasks();
-		// List<TaskInfo> taskInfoList = getDummyTasks();
+		//List<TaskInfo> taskInfoList = getDummyTasks();
 		cluster.setTaskInfoList(taskInfoList);
 	}
 
@@ -409,40 +409,65 @@ public class GlusterDataModelManager {
 		taskInfo.setName("Migrate Brick-music");
 		taskInfo.setPauseSupported(true);
 		taskInfo.setStopSupported(true);
-		taskInfo.setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, "")));
+		taskInfo.setStatus(new TaskStatus(new Status(Status.STATUS_CODE_PAUSE, "")));
 		
-		taskInfo.getStatus().setMessage("Migrating file xxxxx to yyyy");
-		taskInfo.setDescription("Migrate Brick on volume [music] from /export/adb/music to /export/sdc/music.");
+		taskInfo.getStatus().setMessage("Paused");
+		taskInfo.setDescription("Migrate Brick on volume [Movies] from /export/adb/music to /export/sdc/music.");
 		taskInfoList.add(taskInfo);
+		
 		// Task #2
 		taskInfo = new TaskInfo();
 		taskInfo.setType(TASK_TYPE.DISK_FORMAT);
-		taskInfo.setName("Format Disk-server1:sdc");
+		taskInfo.setName("Initialize disk [KVM-GVSA1:sdc]");
 		taskInfo.setPauseSupported(false);
 		taskInfo.setStopSupported(false);
-		taskInfo.setStatus( new TaskStatus(new Status(Status.STATUS_CODE_FAILURE, ""))); 
-		taskInfo.getStatus().setMessage("Format completes 80% ...");
-		taskInfo.setDescription("Formatting disk server1:sdc.");
+		taskInfo.setStatus( new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, ""))); 
+		taskInfo.getStatus().setMessage("Format completed 80% ...");
+		taskInfo.setDescription("Formatting disk [KVM-GVSA1:sdc]");
 		taskInfoList.add(taskInfo);
 
+		// Task #2
+		taskInfo = new TaskInfo();
+		taskInfo.setType(TASK_TYPE.VOLUME_REBALANCE);
+		taskInfo.setName("Rebalance volume [songs]");
+		taskInfo.setPauseSupported(false);
+		taskInfo.setStopSupported(false);
+		taskInfo.setStatus( new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, ""))); 
+		taskInfo.getStatus().setMessage("Rebalance step1: layout fix in progress");
+		taskInfo.setDescription("Rebalance volume [songs]");
+		taskInfoList.add(taskInfo);
+		
 		return taskInfoList;
 	}
 	
-	private List<Alert> getDummyAlerts() {
+	private List<Alert> getDummyAlerts(Cluster cluster) {
 		List<Alert> alerts = new ArrayList<Alert>();
-		for (Server server : model.getCluster().getServers()) {
+		for (Server server : cluster.getServers()) {
 			if (alerts.size() == 0) {
 				alerts.add(new Alert(ALERT_TYPES.CPU_USAGE_ALERT, server.getName(),
-						Alert.ALERT_TYPE_STR[ALERT_TYPES.CPU_USAGE_ALERT.ordinal()] + "[" + server.getCpuUsage()
-								+ "] in " + server.getName()));
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.CPU_USAGE_ALERT.ordinal()] + " [93.42 %] in "
+								+ server.getName()));
 				continue;
 			}
 
 			if (alerts.size() == 1) {
-				Double memoryUtilized = server.getMemoryInUse() / server.getTotalMemory() * 100d;
 				alerts.add(new Alert(ALERT_TYPES.MEMORY_USAGE_ALERT, server.getName(),
-						Alert.ALERT_TYPE_STR[ALERT_TYPES.MEMORY_USAGE_ALERT.ordinal()] + "[" + memoryUtilized + "%] in "
-						+ server.getName()));
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.MEMORY_USAGE_ALERT.ordinal()] + " [91.83 %] in "
+								+ server.getName()));
+				continue;
+			}
+
+			if (alerts.size() == 2) {
+				alerts.add(new Alert(ALERT_TYPES.OFFLINE_SERVERS_ALERT, server.getName(),
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.OFFLINE_SERVERS_ALERT.ordinal()] + " " + server.getName()));
+				continue;
+			}
+			
+			if (alerts.size() == 3) {
+				alerts.add(new Alert(ALERT_TYPES.DISK_USAGE_ALERT, server.getName(),
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.DISK_USAGE_ALERT.ordinal()] + " in " + server.getName() + ":" + "sdc"));
+				alerts.add(new Alert(ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT, "songs",
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT.ordinal()] + " [KVM-GVSA4:/export/hdb4/songs] in volume [songs]"));
 				continue;
 			}
 		}
@@ -453,7 +478,7 @@ public class GlusterDataModelManager {
 		AlertsManager alertsManager = new AlertsManager(cluster);
 		alertsManager.buildAlerts();
 		cluster.setAlerts( alertsManager.getAlerts() );
-		// cluster.addAlerts( getDummyAlerts() );
+		//cluster.setAlerts( getDummyAlerts(cluster) );
 	}
 
 

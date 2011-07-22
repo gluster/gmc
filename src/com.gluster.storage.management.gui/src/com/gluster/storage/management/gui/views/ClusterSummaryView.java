@@ -312,13 +312,13 @@ public class ClusterSummaryView extends ViewPart {
 		Image taskImage = null;
 		switch(taskInfo.getType()) {
 		case DISK_FORMAT:
-			taskImage = guiHelper.getImage(IImageKeys.DISK);
+			taskImage = guiHelper.getImage(IImageKeys.DISK_INITIALIZING);
 			break;
 		case BRICK_MIGRATE:
-			taskImage = guiHelper.getImage(IImageKeys.BRICK_MIGRATE);
+			taskImage = guiHelper.getImage(IImageKeys.BRICK_MIGRATE_SMALL);
 			break;
 		case VOLUME_REBALANCE:
-			taskImage = guiHelper.getImage(IImageKeys.VOLUME_REBALANCE);
+			taskImage = guiHelper.getImage(IImageKeys.VOLUME_REBALANCE_SMALL);
 			break;
 		}
 		lblAlert.setImage(taskImage);
