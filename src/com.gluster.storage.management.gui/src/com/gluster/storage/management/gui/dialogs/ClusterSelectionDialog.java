@@ -200,6 +200,7 @@ public class ClusterSelectionDialog extends Dialog {
 	private void createClusterRegisterComposite(Composite composite) {
 		clusterRegisterComposite = new Composite(composite, SWT.NONE);
 		GridLayout layout = new GridLayout(2, false);
+		layout.horizontalSpacing = 15;
 		clusterRegisterComposite.setLayout(layout);
 
 		createClusterNameLabel(clusterRegisterComposite);
@@ -224,6 +225,7 @@ public class ClusterSelectionDialog extends Dialog {
 	private void createClusterCreationComposite(Composite subComposite) {
 		clusterCreationComposite = new Composite(subComposite, SWT.NONE);
 		GridLayout layout = new GridLayout(2, false);
+		layout.horizontalSpacing = 15;
 		clusterCreationComposite.setLayout(layout);
 
 		createClusterNameLabel(clusterCreationComposite);

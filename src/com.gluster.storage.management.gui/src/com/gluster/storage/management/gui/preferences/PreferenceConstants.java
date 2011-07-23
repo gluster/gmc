@@ -31,10 +31,7 @@ public class PreferenceConstants {
 	public static final String P_SERVER_MEMORY_USAGE_THRESHOLD = "server.memory.threshold";
 	public static final String P_DISK_SPACE_USAGE_THRESHOLD = "disk.space.threshold"; // in percentage
 
-	// TODO: Remove after proper preferences are added
-	public static final String P_PATH = "pathPreference";
-	public static final String P_BOOLEAN = "booleanPreference";
-	public static final String P_CHOICE = "choicePreference";
-	public static final String P_STRING = "stringPreference";
-	// public static final String P_CPU_THRESHOLD = "stringPreference";
+	public static final String P_CPU_CHART_PERIOD = "cpu.chart.period";
+	public static final String P_MEM_CHART_PERIOD = "memory.chart.period";
+	public static final String P_NETWORK_CHART_PERIOD = "network.chart.period";
 }

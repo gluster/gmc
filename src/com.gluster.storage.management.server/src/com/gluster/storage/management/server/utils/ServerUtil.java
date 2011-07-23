@@ -237,7 +237,8 @@ public class ServerUtil {
 	}
 	
 	private ServerStats getFirstOnlineServerCPUStats(List<String> serverNames, boolean removeServerOnError, boolean removeOnlineServer) {
-		for(String serverName : serverNames) {
+		for(int i = serverNames.size() - 1; i >= 0; i--) {
+			String serverName = serverNames.get(i);
 			try {
 				ServerStats stats = fetchCPUUsageData(serverName);
 				if(removeOnlineServer) {

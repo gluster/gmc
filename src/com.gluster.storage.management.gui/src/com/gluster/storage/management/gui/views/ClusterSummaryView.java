@@ -20,6 +20,7 @@
  */
 package com.gluster.storage.management.gui.views;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.birt.chart.util.CDateTime;
@@ -40,6 +41,7 @@ import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 
+import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.EntityGroup;
@@ -47,6 +49,8 @@ import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
+import com.gluster.storage.management.core.model.ServerStats;
+import com.gluster.storage.management.core.model.ServerStatsRow;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.GlusterDataModelManager;
@@ -244,34 +248,40 @@ public class ClusterSummaryView extends ViewPart {
 	}
 
 	private void createCPUUsageSection() {
+		ServerStats stats;
+		try {
+			stats = new GlusterServersClient().getAggregatedCPUStats();
+		} catch(Exception e) {
+			return;
+		}
+		
 		Composite section = guiHelper.createSection(form, toolkit, "CPU Usage (aggregated)", null, 1, false);
 		if (cluster.getServers().size() == 0) {
 			toolkit.createLabel(section, "This section will be populated after at least\none server is added to the storage cloud.");
 			return;
 		}
 		
-//		ServerStats stats = new GlusterServersClient().getAggregatedCPUStats();
-//		List<Calendar> timestamps = new ArrayList<Calendar>();
-//		List<Double> data = new ArrayList<Double>();
-//		for(ServerStatsRow row : stats.getRows()) {
-//			// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
-//			Double cpuUsage = row.getUsageData().get(2);
-//			if(!cpuUsage.isNaN()) {
-//				timestamps.add(new CDateTime(row.getTimestamp() * 1000));
-//				data.add(cpuUsage);
-//			}
-//		}
-//		createLineChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]));
+		List<Calendar> timestamps = new ArrayList<Calendar>();
+		List<Double> data = new ArrayList<Double>();
+		for(ServerStatsRow row : stats.getRows()) {
+			// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
+			Double cpuUsage = row.getUsageData().get(2);
+			if(!cpuUsage.isNaN()) {
+				timestamps.add(new CDateTime(row.getTimestamp() * 1000));
+				data.add(cpuUsage);
+			}
+		}
+		createLineChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]), "%");
 
-		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
-				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
-				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
-				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
-				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
-				new CDateTime(1000l*1310473800) };
-		
-		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 89.31d, 57.39d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 21.43d, 16.45d, 14.86d, 15.27d };
-		createLineChart(section, timestamps, values, "%");
+//		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
+//				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
+//				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
+//				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
+//				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
+//				new CDateTime(1000l*1310473800) };
+//		
+//		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 89.31d, 57.39d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 21.43d, 16.45d, 14.86d, 15.27d };
+//		createLineChart(section, timestamps, values, "%");
 		createChartLinks(section, 4);
 	}
 

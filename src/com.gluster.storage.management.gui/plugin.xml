@@ -1389,9 +1389,16 @@
             name="Gluster">
       </page>
       <page
+            category="com.gluster.storage.management.gui.preferences.GlusterPreferencePage"
             class="com.gluster.storage.management.gui.preferences.AlertsPreferencePage"
             id="com.gluster.storage.management.gui.preferences.AlertsPreferencePage"
             name="Alerts">
+      </page>
+      <page
+            category="com.gluster.storage.management.gui.preferences.GlusterPreferencePage"
+            class="com.gluster.storage.management.gui.preferences.ChartsPreferencePage"
+            id="com.gluster.storage.management.gui.preferences.ChartsPreferencePage"
+            name="Charts">
       </page>
    </extension>
    <extension

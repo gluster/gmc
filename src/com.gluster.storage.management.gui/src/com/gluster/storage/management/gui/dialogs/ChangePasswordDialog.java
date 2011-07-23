@@ -193,6 +193,7 @@ public class ChangePasswordDialog extends Dialog {
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
 		okButton = createButton(parent, IDialogConstants.OK_ID, "&Change", true);
+		okButton.setEnabled(false);
 		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
 
 		setupDataBinding();
