@@ -25,8 +25,8 @@ def main():
         sys.stderr.write("usage: %s <DEVICE> <PERIOD>\n" % os.path.basename(sys.argv[0]))
         sys.exit(-1)
 
-    device = sys.argv[0]
-    period = sys.argv[1]
+    device = sys.argv[1]
+    period = sys.argv[2]
 
     rs = ResponseXml()
     command = "rrdtool xport --start -%s \

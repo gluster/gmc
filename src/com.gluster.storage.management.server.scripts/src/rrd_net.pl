@@ -41,7 +41,7 @@ sub updatenetdata {
     while (<NETDEV>) {
 	chomp;
 	s/^\s+//;             # remove left side whitespaces
-	/:\s/ or next;        # if input line contains ':' else continue
+	/:.+/ or next;        # if input line contains ':' else continue
 	next if /^lo:\s/;     # continue if input line starts with 'lo:'
 
 	@tokens = split /\s+/;
