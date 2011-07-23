@@ -20,6 +20,7 @@
  */
 package com.gluster.storage.management.gui.views;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.birt.chart.util.CDateTime;
@@ -40,6 +41,7 @@ import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 
+import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.EntityGroup;
@@ -47,6 +49,8 @@ import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
+import com.gluster.storage.management.core.model.ServerStats;
+import com.gluster.storage.management.core.model.ServerStatsRow;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.GlusterDataModelManager;
@@ -235,7 +239,6 @@ public class ClusterSummaryView extends ViewPart {
 		createDiskSpaceSection();
 		createCPUUsageSection();
 		createNetworkUsageSection();
-		//createMemoryUsageSection();
 		createActionsSection();
 		createAlertsSection();
 		createRunningTasksSection();
@@ -244,56 +247,53 @@ public class ClusterSummaryView extends ViewPart {
 	}
 
 	private void createCPUUsageSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "CPU Usage (aggregated)", null, 1, false);
+		// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
+		createAreaChartSection(cluster.getAggregatedCpuStats(), "CPU Usage (Aggregated)", 2, "%");
+	}
+
+	private void createAreaChartSection(ServerStats stats, String sectionTitle, int dataColumnIndex, String unit) {
+		List<Calendar> timestamps = new ArrayList<Calendar>();
+		List<Double> data = new ArrayList<Double>();
+		extractChartData(stats, timestamps, data, dataColumnIndex);
+		
+		if(timestamps.size() == 0) {
+			// Log a message saying no CPU stats available
+			return;
+		}
+
+		Composite section = guiHelper.createSection(form, toolkit, sectionTitle, null, 1, false);
 		if (cluster.getServers().size() == 0) {
 			toolkit.createLabel(section, "This section will be populated after at least\none server is added to the storage cloud.");
 			return;
 		}
 		
-//		ServerStats stats = new GlusterServersClient().getAggregatedCPUStats();
-//		List<Calendar> timestamps = new ArrayList<Calendar>();
-//		List<Double> data = new ArrayList<Double>();
-//		for(ServerStatsRow row : stats.getRows()) {
-//			// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
-//			Double cpuUsage = row.getUsageData().get(2);
-//			if(!cpuUsage.isNaN()) {
-//				timestamps.add(new CDateTime(row.getTimestamp() * 1000));
-//				data.add(cpuUsage);
-//			}
-//		}
-//		createLineChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]));
+		createLineChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]), unit);
 
-		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
-				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
-				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
-				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
-				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
-				new CDateTime(1000l*1310473800) };
-		
-		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 89.31d, 57.39d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 21.43d, 16.45d, 14.86d, 15.27d };
-		createLineChart(section, timestamps, values, "%");
+//		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
+//				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
+//				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
+//				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
+//				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
+//				new CDateTime(1000l*1310473800) };
+//		
+//		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 89.31d, 57.39d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 21.43d, 16.45d, 14.86d, 15.27d };
+//		createLineChart(section, timestamps, values, "%");
 		createChartLinks(section, 4);
 	}
 
+	private void extractChartData(ServerStats stats, List<Calendar> timestamps, List<Double> data, int dataColumnIndex) {
+		for(ServerStatsRow row : stats.getRows()) {
+			Double cpuUsage = row.getUsageData().get(dataColumnIndex);
+			if(!cpuUsage.isNaN()) {
+				timestamps.add(new CDateTime(row.getTimestamp() * 1000));
+				data.add(cpuUsage);
+			}
+		}
+	}
+
 	private void createNetworkUsageSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Network Usage (Aggregated)", null, 1, false);
-		//toolkit.createLabel(section, "Historical Network Usage graph will be displayed here.");
-		
-		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
-				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
-				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
-				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
-				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
-				new CDateTime(1000l*1310473800) };
-//		Date[] timestamps = new Date[] { new Date(1310468100), new Date(1310468400), new Date(1310468700),
-//				new Date(1310469000), new Date(1310469300), new Date(1310469600), new Date(1310469900),
-//				new Date(1310470200), new Date(1310470500), new Date(1310470800), new Date(1310471100),
-//				new Date(1310471400), new Date(1310471700), new Date(1310472000), new Date(1310472300),
-//				new Date(1310472600), new Date(1310472900), new Date(1310473200), new Date(1310473500),
-//				new Date(1310473800) };
-		Double[] values = new Double[] { 32d, 31.23d, 27.92d, 48.69d, 58.62d, 49.11d, 72.43d, 69.31d, 87.39d, 78.46d, 60.44d, 56.28d, 33.51d, 27.53d, 12.21, 10d, 21.43d, 36.45d, 34.86d, 35.27d };
-		createLineChart(section, timestamps, values, "KiB/s");
-		createChartLinks(section, 4);
+		// in case of network usage, there are three elements in usage data: received, transmitted and total. we use total.
+		createAreaChartSection(cluster.getAggregatedNetworkStats(), "Network Usage (Aggregated)", 2, "KiB/s");
 	}
 
 	private void createRunningTasksSection() {

@@ -16,22 +16,21 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.gui.preferences;
+package com.gluster.storage.management.server.utils;
+
+import org.springframework.stereotype.Component;
 
 /**
- * Constant definitions for plug-in preferences
+ *
  */
-public class PreferenceConstants {
+@Component
+public class MemoryStatsFactory extends AbstractStatsFactory {
 	
-	public static final String P_SHOW_CLUSTER_SELECTION_DIALOG = "show.cluster.selection.dialog";
-	public static final String P_DEFAULT_CLUSTER_NAME = "default.cluster.name";
-	public static final String P_DATA_SYNC_INTERVAL = "data.sync.interval";
-	
-	public static final String P_SERVER_CPU_CRITICAL_THRESHOLD = "server.cpu.threshold";
-	public static final String P_SERVER_MEMORY_USAGE_THRESHOLD = "server.memory.threshold";
-	public static final String P_DISK_SPACE_USAGE_THRESHOLD = "disk.space.threshold"; // in percentage
+	private static final String MEM_STATS_SCRIPT = "get_rrd_mem_details.py";
 
-	public static final String P_CPU_CHART_PERIOD = "cpu.chart.period";
-	public static final String P_MEM_CHART_PERIOD = "memory.chart.period";
-	public static final String P_NETWORK_CHART_PERIOD = "network.chart.period";
+	@Override
+	public String getStatsScriptName() {
+		return MEM_STATS_SCRIPT;
+	}
+	
 }

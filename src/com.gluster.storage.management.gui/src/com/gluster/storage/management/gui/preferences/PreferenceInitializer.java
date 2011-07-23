@@ -46,5 +46,10 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 		
 		// Default disk free space threshold 
 		store.setDefault(PreferenceConstants.P_DISK_SPACE_USAGE_THRESHOLD, 90);
+		
+		// Default period for server statistics charts
+		store.setDefault(PreferenceConstants.P_CPU_CHART_PERIOD, "1d");
+		store.setDefault(PreferenceConstants.P_MEM_CHART_PERIOD, "1d");
+		store.setDefault(PreferenceConstants.P_NETWORK_CHART_PERIOD, "1d");
 	}
 }

@@ -100,6 +100,8 @@ public class RESTConstants {
 	public static final String QUERY_PARAM_SERVER_NAME = "serverName";
 	public static final String QUERY_PARAM_DETAILS = "details";
 	public static final String QUERY_PARAM_TYPE = "type";
+	public static final String QUERY_PARAM_PERIOD = "period";
+	public static final String QUERY_PARAM_INTERFACE = "interface";
 	
 	public static final String STATISTICS_TYPE_CPU = "cpu";
 	public static final String STATISTICS_TYPE_NETWORK = "network";

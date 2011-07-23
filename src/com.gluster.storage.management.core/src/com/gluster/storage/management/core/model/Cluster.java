@@ -30,6 +30,8 @@ public class Cluster extends Entity {
 	List<Volume> volumes = new ArrayList<Volume>();
 	List<TaskInfo> taskInfoList = new ArrayList<TaskInfo>();
 	List<Alert> alerts = new ArrayList<Alert>();
+	ServerStats aggregatedCpuStats;
+	ServerStats aggregatedNetworkStats;
 
 	public Cluster() {
 	}
@@ -174,5 +176,21 @@ public class Cluster extends Entity {
 			}
 		}
 		return null;
+	}
+
+	public ServerStats getAggregatedCpuStats() {
+		return aggregatedCpuStats;
+	}
+
+	public void setAggregatedCpuStats(ServerStats aggregatedCpuStats) {
+		this.aggregatedCpuStats = aggregatedCpuStats;
+	}
+
+	public ServerStats getAggregatedNetworkStats() {
+		return aggregatedNetworkStats;
+	}
+
+	public void setAggregatedNetworkStats(ServerStats aggregatedNetworkStats) {
+		this.aggregatedNetworkStats = aggregatedNetworkStats;
 	}
 }

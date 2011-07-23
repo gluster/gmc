@@ -23,8 +23,10 @@ package com.gluster.storage.management.gui.views;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.eclipse.birt.chart.util.CDateTime;
 import org.eclipse.jface.layout.TableColumnLayout;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.TableViewer;
@@ -46,15 +48,20 @@ import org.eclipse.ui.forms.widgets.Hyperlink;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.ViewPart;
 
+import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
+import com.gluster.storage.management.core.model.ServerStats;
+import com.gluster.storage.management.core.model.ServerStatsRow;
 import com.gluster.storage.management.core.utils.NumberUtil;
+import com.gluster.storage.management.gui.Activator;
 import com.gluster.storage.management.gui.GlusterDataModelManager;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.NetworkInterfaceTableLabelProvider;
+import com.gluster.storage.management.gui.preferences.PreferenceConstants;
 import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
 import com.gluster.storage.management.gui.utils.ChartViewerComposite;
 import com.gluster.storage.management.gui.utils.GUIHelper;
@@ -69,6 +76,7 @@ public class GlusterServerSummaryView extends ViewPart {
 	private GlusterServer server;
 	private ClusterListener serverChangedListener;
 	private static final int CHART_WIDTH = 350;
+	private static final Logger logger = Logger.getLogger(GlusterServerSummaryView.class);
 
 	public enum NETWORK_INTERFACE_TABLE_COLUMN_INDICES {
 		INTERFACE, MODEL, SPEED, IP_ADDRESS, NETMASK, GATEWAY
@@ -154,32 +162,53 @@ public class GlusterServerSummaryView extends ViewPart {
 		interfaceCombo.select(0);
 	}
 
+	private void extractChartData(ServerStats stats, List<Calendar> timestamps, List<Double> data, int dataColumnIndex) {
+		for(ServerStatsRow row : stats.getRows()) {
+			Double cpuUsage = row.getUsageData().get(dataColumnIndex);
+			if(!cpuUsage.isNaN()) {
+				timestamps.add(new CDateTime(row.getTimestamp() * 1000));
+				data.add(cpuUsage);
+			}
+		}
+	}
+
+	private void createAreaChartSection(ServerStats stats, String sectionTitle, int dataColumnIndex, String unit) {
+		List<Calendar> timestamps = new ArrayList<Calendar>();
+		List<Double> data = new ArrayList<Double>();
+		extractChartData(stats, timestamps, data, dataColumnIndex);
+		
+		if(timestamps.size() == 0) {
+			// Log a message saying no CPU stats available
+			return;
+		}
+
+		Composite section = guiHelper.createSection(form, toolkit, sectionTitle, null, 1, false);
+		createLineChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]), unit);
+
+//		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
+//				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
+//				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
+//				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
+//				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
+//				new CDateTime(1000l*1310473800) };
+//		
+//		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 89.31d, 57.39d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 21.43d, 16.45d, 14.86d, 15.27d };
+//		createLineChart(section, timestamps, values, "%");
+		createChartLinks(section, 4);
+	}
 	
 	private void createCPUUsageSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "CPU Usage", null, 1, false);
-		//toolkit.createLabel(section, "Historical CPU Usage graph aggregated across\nall servers will be displayed here.");
-
-		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
-				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
-				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
-				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
-				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
-				new CDateTime(1000l*1310473800) };
-		//Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 20.31d, 19.63d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 40d, 10d, 90d, 40d };
-		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 89.31d, 57.39d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 21.43d, 16.45d, 14.86d, 15.27d };
-		createLineChart(section, timestamps, values, "%");
+		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
+		String cpuStatsPeriod = preferenceStore.getString(PreferenceConstants.P_CPU_CHART_PERIOD);
 		
-//		ServerStats stats = new GlusterServersClient().getAggregatedCPUStats();
-//		List<Calendar> timestamps = new ArrayList<Calendar>();
-//		List<Double> data = new ArrayList<Double>();
-//		for(ServerStatsRow row : stats.getRows()) {
-//			timestamps.add(new CDateTime(row.getTimestamp() * 1000));
-//			// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
-//			data.add(row.getUsageData().get(2));
-//		}
-//		
-//		createLineChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]));
-		createChartLinks(section, 4);
+		try {
+			ServerStats stats = new GlusterServersClient().getCpuStats(server.getName(), cpuStatsPeriod);
+			// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
+			createAreaChartSection(stats, "CPU Usage", 2, "%");
+		} catch(Exception e) {
+			logger.error("Couldn't fetch CPU usage statistics for server [" + server.getName() + "]", e);
+			return;
+		}
 	}
 	
 	private Composite createChartLinks(Composite section, int columnCount) {

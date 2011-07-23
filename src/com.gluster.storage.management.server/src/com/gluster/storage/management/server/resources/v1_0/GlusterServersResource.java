@@ -24,6 +24,8 @@ import static com.gluster.storage.management.core.constants.RESTConstants.PATH_P
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_DISK_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_SERVER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DETAILS;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_INTERFACE;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_PERIOD;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_TYPE;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_DISKS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
@@ -56,6 +58,7 @@ import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
+import com.gluster.storage.management.core.exceptions.GlusterValidationException;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.TaskStatus;
@@ -65,7 +68,11 @@ import com.gluster.storage.management.server.data.ClusterInfo;
 import com.gluster.storage.management.server.data.ServerInfo;
 import com.gluster.storage.management.server.services.ClusterService;
 import com.gluster.storage.management.server.tasks.InitializeDiskTask;
+import com.gluster.storage.management.server.utils.CpuStatsFactory;
+import com.gluster.storage.management.server.utils.MemoryStatsFactory;
+import com.gluster.storage.management.server.utils.NetworkStatsFactory;
 import com.gluster.storage.management.server.utils.SshUtil;
+import com.gluster.storage.management.server.utils.StatsFactory;
 import com.sun.jersey.api.core.InjectParam;
 import com.sun.jersey.spi.resource.Singleton;
 
@@ -87,7 +94,16 @@ public class GlusterServersResource extends AbstractServersResource {
 
 	@Autowired
 	private SshUtil sshUtil;
+	
+	@Autowired
+	private CpuStatsFactory cpuStatsFactory;
 
+	@Autowired
+	private MemoryStatsFactory memoryStatsFactory;
+	
+	@Autowired
+	private NetworkStatsFactory networkStatsFactory;
+	
 	protected void fetchServerDetails(GlusterServer server) {
 		try {
 			server.setStatus(SERVER_STATUS.ONLINE);
@@ -471,51 +487,54 @@ public class GlusterServersResource extends AbstractServersResource {
 	@Produces(MediaType.APPLICATION_XML)
 	@Path(RESOURCE_STATISTICS)
 	public Response getAggregatedPerformanceDataXML(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
-			@QueryParam(QUERY_PARAM_TYPE) String type) {
-		return getAggregaredPerformanceData(clusterName, type, MediaType.APPLICATION_XML);
+			@QueryParam(QUERY_PARAM_TYPE) String type, @QueryParam(QUERY_PARAM_PERIOD) String period) {
+		return getAggregaredPerformanceData(clusterName, type, period, MediaType.APPLICATION_XML);
 	}
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path(RESOURCE_STATISTICS)
 	public Response getAggregaredPerformanceDataJSON(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
-			@QueryParam(QUERY_PARAM_TYPE) String type) {
-		return getAggregaredPerformanceData(clusterName, type, MediaType.APPLICATION_JSON);
+			@QueryParam(QUERY_PARAM_TYPE) String type, @QueryParam(QUERY_PARAM_PERIOD) String period) {
+		return getAggregaredPerformanceData(clusterName, type, period, MediaType.APPLICATION_JSON);
 	}
 
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
 	@Path("{" + PATH_PARAM_SERVER_NAME + "}/" + RESOURCE_STATISTICS)
-	public Response getPerformanceDataXML(@PathParam(PATH_PARAM_SERVER_NAME) String serverName, @QueryParam(QUERY_PARAM_TYPE) String type) {
-		return getPerformanceData(serverName, type, MediaType.APPLICATION_XML);
+	public Response getPerformanceDataXML(@PathParam(PATH_PARAM_SERVER_NAME) String serverName,
+			@QueryParam(QUERY_PARAM_TYPE) String type, @QueryParam(QUERY_PARAM_PERIOD) String period,
+			@QueryParam(QUERY_PARAM_INTERFACE) String networkInterface) {
+		return getPerformanceData(serverName, type, period, networkInterface, MediaType.APPLICATION_XML);
 	}
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("{" + PATH_PARAM_SERVER_NAME + "}/" + RESOURCE_STATISTICS)
-	public Response getPerformanceDataJSON(@PathParam(PATH_PARAM_SERVER_NAME) String serverName, @QueryParam(QUERY_PARAM_TYPE) String type) {
-		return getPerformanceData(serverName, type, MediaType.APPLICATION_JSON);
+	public Response getPerformanceDataJSON(@PathParam(PATH_PARAM_SERVER_NAME) String serverName,
+			@QueryParam(QUERY_PARAM_TYPE) String type, @QueryParam(QUERY_PARAM_PERIOD) String period,
+			@QueryParam(QUERY_PARAM_INTERFACE) String networkInterface) {
+		return getPerformanceData(serverName, type, period, networkInterface, MediaType.APPLICATION_JSON);
 	}
 
-	private Response getAggregaredPerformanceData(String clusterName, String type, String mediaType) {
+	private Response getAggregaredPerformanceData(String clusterName, String type, String period, String mediaType) {
 		List<String> serverNames = getServerNames(getGlusterServers(clusterName, false));
-		if(type.equals(STATISTICS_TYPE_CPU)) {
-			return okResponse(serverUtil.fetchAggregatedCPUStats(serverNames), mediaType);
-		} else {
-			return badRequestResponse("Server Statistics for [" + type + "] not supported! Valid values are ["
-					+ STATISTICS_TYPE_CPU + ", " + STATISTICS_TYPE_NETWORK + ", " + STATISTICS_TYPE_MEMORY + "]");
-		}
+		return okResponse(getStatsFactory(type).fetchAggregatedStats(serverNames, period), mediaType);
 	}
 
-	private Response getPerformanceData(String serverName, String type, String mediaType) {
+	private Response getPerformanceData(String serverName, String type, String period, String networkInterface, String mediaType) {
+		return okResponse(getStatsFactory(type).fetchStats(serverName, period, networkInterface), mediaType);
+	}
+	
+	private StatsFactory getStatsFactory(String type) {
 		if(type.equals(STATISTICS_TYPE_CPU)) {
-			return okResponse(serverUtil.fetchCPUUsageData(serverName), mediaType);
-		} else if(type.equals(STATISTICS_TYPE_NETWORK)) {
-			return okResponse(serverUtil.fetchCPUUsageData(serverName), mediaType);
+			return cpuStatsFactory;
 		} else if(type.equals(STATISTICS_TYPE_MEMORY)) {
-			return okResponse(serverUtil.fetchCPUUsageData(serverName), mediaType);
+			return memoryStatsFactory;
+		} else if(type.equals(STATISTICS_TYPE_NETWORK)) {
+			return networkStatsFactory;
 		} else {
-			return badRequestResponse("Server Statistics for [" + type + "] not supported! Valid values are ["
+			throw new GlusterValidationException("Invalid server statistics type [" + type + "]. Valid values are ["
 					+ STATISTICS_TYPE_CPU + ", " + STATISTICS_TYPE_NETWORK + ", " + STATISTICS_TYPE_MEMORY + "]");
 		}
 	}

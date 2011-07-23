@@ -213,7 +213,7 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 		DateTimeDataElement dtde1 = DateTimeDataElementImpl.create(timestamps[0]);
 		xAxisPrimary.getScale().setMax(dtde);
 		xAxisPrimary.getScale().setStep((dtde.getValue() - dtde1.getValue())/ 10);
-		xAxisPrimary.getScale().setMajorGridsStepNumber(timestamps.length / 10);
+		xAxisPrimary.getScale().setMajorGridsStepNumber(timestamps.length > 10 ? timestamps.length / 10 : 1);
 		//xAxisPrimary.getMajorGrid().setTickStyle(TickStyle.ABOVE_LITERAL);
 		xAxisPrimary.getMajorGrid().getTickAttributes().setVisible(false);
 		xAxisPrimary.getMajorGrid().setLineAttributes(LineAttributesImpl.create(ColorDefinitionImpl.GREY(), LineStyle.SOLID_LITERAL, 1));

@@ -222,11 +222,10 @@ public class LoginDialog extends Dialog {
 		if (password.equalsIgnoreCase(CoreConstants.DEFAULT_PASSWORD)) {
 			String oldSecurityTokeString = GlusterDataModelManager.getInstance().getSecurityToken();
 			ChangePasswordDialog dialog = new ChangePasswordDialog(getShell());
-			dialog.open();
 
-			if (GlusterDataModelManager.getInstance().getSecurityToken().equals(oldSecurityTokeString)) {
-				MessageDialog.openInformation(getShell(), "Change password Cancelled",
-						"Gateway could not be accessed with default password !" + "\n\n" + "Application will close.");
+			if (dialog.open() == Dialog.CANCEL) {
+				MessageDialog.openError(getShell(), "Change password Cancelled",
+						"Password must be changed on first login!" + "\n" + "Application will close.");
 				cancelPressed();
 				return;
 			}
