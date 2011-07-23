@@ -36,14 +36,13 @@ import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Alert.ALERT_TYPES;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.TaskInfo;
-import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.gui.GlusterDataModelManager;
 import com.gluster.storage.management.gui.IImageKeys;
-import com.gluster.storage.management.gui.utils.ChartViewerComposite.CHART_TYPE;
-import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.utils.ChartViewerComposite;
+import com.gluster.storage.management.gui.utils.GUIHelper;
 
 /**
  *

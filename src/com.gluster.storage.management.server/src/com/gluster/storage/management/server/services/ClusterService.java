@@ -18,16 +18,10 @@
  *******************************************************************************/
 package com.gluster.storage.management.server.services;
 
-import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_CLUSTER_NAME;
-import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SERVER_NAME;
-import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityTransaction;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.PathParam;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,8 +31,9 @@ import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.GlusterServer;
-import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
+import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.utils.LRUCache;
+import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.server.data.ClusterInfo;
 import com.gluster.storage.management.server.data.PersistenceDao;
 import com.gluster.storage.management.server.data.ServerInfo;
@@ -105,15 +100,14 @@ public class ClusterService {
 
 		for (ServerInfo serverInfo : cluster.getServers()) {
 			GlusterServer server = new GlusterServer(serverInfo.getName());
-			server.setStatus(SERVER_STATUS.ONLINE);
 			try {
-				serverUtil.fetchServerDetails(server);
+				serverUtil.fetchServerDetails(server); // Online status come with server details
+				// server is online. add it to cache and return
 				if (server.isOnline() && !server.getName().equals(exceptServerName)) {
-					// server is online. add it to cache and return
 					addOnlineServer(clusterName, server);
 					return server;
 				}
-			} catch(ConnectionException e) {
+			} catch (ConnectionException e) {
 				// server is offline. continue checking next one.
 				continue;
 			}
