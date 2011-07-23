@@ -152,9 +152,6 @@ public class GlusterDataModelManager {
 
 			monitor.done();
 			return model;
-		} catch(RuntimeException e) {
-			logger.error("Error in data sync!", e);
-			return null;
 		} finally {
 			syncInProgress = false;
 		}

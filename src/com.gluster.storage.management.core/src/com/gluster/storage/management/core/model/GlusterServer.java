@@ -25,14 +25,7 @@ import com.gluster.storage.management.core.utils.StringUtil;
 
 @XmlRootElement(name = "glusterServer")
 public class GlusterServer extends Server {
-	public enum SERVER_STATUS {
-		ONLINE, OFFLINE
-	};
-
-	private static final String[] STATUS_STR = new String[] { "Online", "Offline" };
-
 	private String uuid;
-	private SERVER_STATUS status;
 
 	public GlusterServer() {
 	}
@@ -45,22 +38,6 @@ public class GlusterServer extends Server {
 			double totalMemory, double memoryInUse) {
 		super(name, parent, numOfCPUs, cpuUsage, totalMemory, memoryInUse);
 		setStatus(status);
-	}
-
-	public Boolean isOnline() {
-		return getStatus() == SERVER_STATUS.ONLINE;
-	}
-
-	public String getStatusStr() {
-		return STATUS_STR[getStatus().ordinal()];
-	}
-
-	public SERVER_STATUS getStatus() {
-		return status;
-	}
-
-	public void setStatus(SERVER_STATUS status) {
-		this.status = status;
 	}
 
 	public String getUuid() {

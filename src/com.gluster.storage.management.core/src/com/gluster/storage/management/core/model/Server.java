@@ -30,12 +30,19 @@ import com.gluster.storage.management.core.utils.StringUtil;
 
 @XmlRootElement(name = "server")
 public class Server extends Entity {
+	public enum SERVER_STATUS {
+		ONLINE, OFFLINE
+	};
+
+	protected static final String[] STATUS_STR = new String[] { "Online", "Offline" };
+	
 	private int numOfCPUs;
 	private double cpuUsage;
 	private double totalMemory;
 	private double memoryInUse;
 	private List<Disk> disks = new ArrayList<Disk>();
 	private List<NetworkInterface> networkInterfaces = new ArrayList<NetworkInterface>();
+	private SERVER_STATUS status;
 
 	public Server() {
 
@@ -166,6 +173,22 @@ public class Server extends Entity {
 		}
 		return ipAddresses;
 	}
+	
+	public String getStatusStr() {
+		return STATUS_STR[getStatus().ordinal()];
+	}
+	
+	public SERVER_STATUS getStatus() {
+		return status;
+	}
+
+	public void setStatus(SERVER_STATUS status) {
+		this.status = status;
+	}
+	
+	public Boolean isOnline() {
+		return getStatus() == SERVER_STATUS.ONLINE;
+	}
 
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
@@ -188,6 +211,7 @@ public class Server extends Entity {
 		setCpuUsage(server.getCpuUsage());
 		setTotalMemory(server.getTotalMemory());
 		setMemoryInUse(server.getMemoryInUse());
+		setStatus(server.getStatus());
 	}
 	
 	@Override
