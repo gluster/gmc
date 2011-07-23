@@ -215,6 +215,9 @@ public class LoginDialog extends Dialog {
 		// authentication successful. close the login dialog and open the next one.
 		close();
 
+		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
+		boolean showClusterSelectionDialog = preferenceStore.getBoolean(PreferenceConstants.P_SHOW_CLUSTER_SELECTION_DIALOG);
+
 		// If the password is default, Let user to change the password
 		if (password.equalsIgnoreCase(CoreConstants.DEFAULT_PASSWORD)) {
 			String oldSecurityTokeString = GlusterDataModelManager.getInstance().getSecurityToken();
@@ -227,12 +230,12 @@ public class LoginDialog extends Dialog {
 				cancelPressed();
 				return;
 			}
+			
+			// after first login, cluster selection dialog must be shown.
+			showClusterSelectionDialog = true;
 		}
 
 		ClustersClient clustersClient = new ClustersClient();
-
-		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
-		boolean showClusterSelectionDialog = preferenceStore.getBoolean(PreferenceConstants.P_SHOW_CLUSTER_SELECTION_DIALOG);
 
 		CLUSTER_MODE mode;
 		String clusterName = null;
@@ -270,7 +273,7 @@ public class LoginDialog extends Dialog {
 			
 			final String clusterName1 =  clusterName;
 			new ProgressMonitorDialog(getShell()).run(true, false, new IRunnableWithProgress() {
-
+				
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					GlusterDataModelManager.getInstance().initializeModel(clusterName1, monitor);
@@ -278,8 +281,14 @@ public class LoginDialog extends Dialog {
 			});
 			super.okPressed();
 		} catch (Exception e) {
+			String errMsg;
+			if(e instanceof InvocationTargetException) {
+				errMsg = ((InvocationTargetException) e).getTargetException().getMessage();
+			} else {
+				errMsg = e.getMessage();
+			}
 			setReturnCode(RETURN_CODE_ERROR);
-			MessageDialog.openError(getShell(), "Gluster Management Console", e.getMessage());
+			MessageDialog.openError(getShell(), "Gluster Management Console", errMsg);
 		}
 	}
 

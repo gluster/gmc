@@ -21,7 +21,7 @@ package com.gluster.storage.management.gui;
 import org.eclipse.swt.graphics.Image;
 
 import com.gluster.storage.management.core.model.GlusterServer;
-import com.gluster.storage.management.core.model.GlusterServer.SERVER_STATUS;
+import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.views.pages.GlusterServersPage.GLUSTER_SERVER_TABLE_COLUMN_INDICES;
