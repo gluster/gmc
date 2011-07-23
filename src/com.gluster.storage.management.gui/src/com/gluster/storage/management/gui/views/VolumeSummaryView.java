@@ -121,7 +121,7 @@ public class VolumeSummaryView extends ViewPart {
 
 	private void addAlertLabel(Composite section, Alert alert) {
 		CLabel lblAlert = new CLabel(section, SWT.NONE);
-		lblAlert.setImage(guiHelper.getImage(IImageKeys.BRICK_OFFLINE));
+		lblAlert.setImage(guiHelper.getImage(IImageKeys.BRICK_OFFLINE_22x22));
 		lblAlert.setText(alert.getMessage());
 		lblAlert.redraw();
 	}
@@ -453,7 +453,7 @@ public class VolumeSummaryView extends ViewPart {
 	private void updateVolumeStatusLabel() {
 		lblStatusValue.setText(volume.getStatusStr());
 		lblStatusValue.setImage((volume.getStatus() == Volume.VOLUME_STATUS.ONLINE) ? guiHelper
-				.getImage(IImageKeys.STATUS_ONLINE) : guiHelper.getImage(IImageKeys.STATUS_OFFLINE));
+				.getImage(IImageKeys.STATUS_ONLINE_16x16) : guiHelper.getImage(IImageKeys.STATUS_OFFLINE_16x16));
 		lblStatusValue.redraw();
 	}
 

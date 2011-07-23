@@ -32,7 +32,7 @@ public class RemoveBrickAction extends AbstractActionDelegate {
 		final String actionDesc = action.getDescription();
 		List<String> brickList = getBrickList(bricks);
 		Integer deleteOption = new MessageDialog(getShell(), "Remove Bricks(s)", GUIHelper.getInstance().getImage(
-				IImageKeys.VOLUME), "Are you sure you want to remove following bricks from volume [" + volume.getName()
+				IImageKeys.VOLUME_16x16), "Are you sure you want to remove following bricks from volume [" + volume.getName()
 				+ "] ? \n" + StringUtil.collectionToString(brickList, ", "), MessageDialog.QUESTION, new String[] {
 				"Cancel", "Remove bricks, delete data", "Remove bricks, keep data" }, -1).open();
 		if (deleteOption <= 0) { // By Cancel button(0) or Escape key(-1)

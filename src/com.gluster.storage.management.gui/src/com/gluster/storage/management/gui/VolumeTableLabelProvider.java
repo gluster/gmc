@@ -57,9 +57,9 @@ public class VolumeTableLabelProvider implements ITableLabelProvider {
 		if(columnIndex == VOLUME_TABLE_COLUMN_INDICES.VOLUME_STATUS.ordinal()) {
 			VOLUME_STATUS status = volume.getStatus();
 			if(status == VOLUME_STATUS.ONLINE) {
-				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
+				return guiHelper.getImage(IImageKeys.STATUS_ONLINE_16x16);
 			} else {
-				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
+				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE_16x16);
 			}
 		}
 		

@@ -134,7 +134,7 @@ public class BricksSelectionPage extends Composite {
 		GridData btnUpData = new GridData(SWT.LEFT, SWT.BOTTOM, true, false);
 		btnUpData.minimumWidth = 30;
 		btnUp.setLayoutData(btnUpData);
-		btnUp.setImage(guiHelper.getImage(IImageKeys.ARROW_UP));
+		btnUp.setImage(guiHelper.getImage(IImageKeys.ARROW_UP_16x16));
 		btnUp.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -157,7 +157,7 @@ public class BricksSelectionPage extends Composite {
 
 		btnDown = new Button(buttonContainer, SWT.TOGGLE);
 		btnDown.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false));
-		btnDown.setImage(guiHelper.getImage(IImageKeys.ARROW_DOWN));
+		btnDown.setImage(guiHelper.getImage(IImageKeys.ARROW_DOWN_16x16));
 		btnDown.addSelectionListener(new SelectionAdapter() {
 
 			@Override

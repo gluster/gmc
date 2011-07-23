@@ -42,7 +42,7 @@ public class StopVolumeAction extends AbstractActionDelegate {
 		}
 
 		Integer deleteOption = new MessageDialog(getShell(), "Stop Volume", GUIHelper.getInstance().getImage(
-				IImageKeys.VOLUME), "Are you sure you want to stop the volume [" + volume.getName() + "] ?",
+				IImageKeys.VOLUME_16x16), "Are you sure you want to stop the volume [" + volume.getName() + "] ?",
 				MessageDialog.QUESTION, new String[] { "No", "Yes" }, -1).open();
 
 		if (deleteOption <= 0) {

@@ -102,7 +102,7 @@ public class VolumesSummaryView extends ViewPart {
 		if (alert.getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT) {
 			CLabel lblAlert = new CLabel(section, SWT.NONE);
 			lblAlert.setImage((alert.getType() == Alert.ALERT_TYPES.DISK_USAGE_ALERT) ? guiHelper
-					.getImage(IImageKeys.LOW_DISK_SPACE) : guiHelper.getImage(IImageKeys.BRICK_OFFLINE));
+					.getImage(IImageKeys.LOW_DISK_SPACE_22x22) : guiHelper.getImage(IImageKeys.BRICK_OFFLINE_22x22));
 			lblAlert.setText(alert.getMessage());
 			lblAlert.redraw();
 		}
@@ -127,7 +127,7 @@ public class VolumesSummaryView extends ViewPart {
 			CLabel lblAlert = new CLabel(section, SWT.NONE);
 			lblAlert.setText(taskInfo.getDescription());
 			lblAlert.setImage((taskInfo.getType() == TASK_TYPE.BRICK_MIGRATE) ? guiHelper
-					.getImage(IImageKeys.BRICK_MIGRATE) : guiHelper.getImage(IImageKeys.VOLUME_REBALANCE));
+					.getImage(IImageKeys.BRICK_MIGRATE_32x32) : guiHelper.getImage(IImageKeys.VOLUME_REBALANCE_32x32));
 			lblAlert.redraw();
 		}
 	}

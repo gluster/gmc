@@ -74,16 +74,16 @@ public class DeviceTableLabelProvider extends LabelProvider implements ITableLab
 			switch (status) {
 			case INITIALIZED:
 				if(modelManager.isDeviceUsed(device)) {
-					return guiHelper.getImage(IImageKeys.DISK_IN_USE);
+					return guiHelper.getImage(IImageKeys.DISK_IN_USE_16x16);
 				} else {
-					return guiHelper.getImage(IImageKeys.DISK_AVAILABLE);
+					return guiHelper.getImage(IImageKeys.DISK_AVAILABLE_16x16);
 				}
 			case IO_ERROR:
-				return guiHelper.getImage(IImageKeys.IO_ERROR);
+				return guiHelper.getImage(IImageKeys.IO_ERROR_16x16);
 			case UNINITIALIZED:
-				return guiHelper.getImage(IImageKeys.DISK_UNINITIALIZED);
+				return guiHelper.getImage(IImageKeys.DISK_UNINITIALIZED_16x16);
 			case INITIALIZING:
-				return guiHelper.getImage(IImageKeys.DISK_INITIALIZING_SMALL);
+				return guiHelper.getImage(IImageKeys.DISK_INITIALIZING_16x16);
 			default:
 				throw new GlusterRuntimeException("Invalid disk status [" + status + "]");
 			}

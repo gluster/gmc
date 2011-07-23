@@ -47,13 +47,13 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 			// TODO: Use different images for all four statuses
 			switch (status) {
 			case INITIALIZED:
-				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
+				return guiHelper.getImage(IImageKeys.STATUS_ONLINE_16x16);
 			case IO_ERROR:
-				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
+				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE_16x16);
 			case UNINITIALIZED:
-				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
+				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE_16x16);
 			case INITIALIZING:
-				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
+				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE_16x16);
 			default:
 				throw new GlusterRuntimeException("Invalid brick status [" + status + "]");
 			}

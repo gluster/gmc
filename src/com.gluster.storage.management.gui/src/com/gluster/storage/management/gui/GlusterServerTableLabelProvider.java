@@ -39,9 +39,9 @@ public class GlusterServerTableLabelProvider extends TableLabelProviderAdapter {
 		if(columnIndex == GLUSTER_SERVER_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
 			SERVER_STATUS status = server.getStatus();
 			if(status == SERVER_STATUS.ONLINE) {
-				return guiHelper.getImage(IImageKeys.STATUS_ONLINE);
+				return guiHelper.getImage(IImageKeys.STATUS_ONLINE_16x16);
 			} else {
-				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE);
+				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE_16x16);
 			}
 		}
 		
