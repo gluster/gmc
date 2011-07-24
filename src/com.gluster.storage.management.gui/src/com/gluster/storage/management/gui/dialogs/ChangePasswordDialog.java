@@ -268,10 +268,9 @@ public class ChangePasswordDialog extends Dialog {
 		try {
 			usersClient.changePassword(user, oldPassword, newPassword);
 			MessageDialog.openInformation(getShell(), "Change password", "Password changed successfully!");
+			this.close();
 		} catch (Exception e) {
 			MessageDialog.openError(getShell(), "Change password Failed", e.getMessage());
-			setReturnCode(RETURN_CODE_ERROR);
 		}
-		this.close();
 	}
 }

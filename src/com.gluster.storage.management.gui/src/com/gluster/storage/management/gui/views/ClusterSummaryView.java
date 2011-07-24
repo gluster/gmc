@@ -247,27 +247,30 @@ public class ClusterSummaryView extends ViewPart {
 	}
 
 	private void createCPUUsageSection() {
-		// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
-		createAreaChartSection(cluster.getAggregatedCpuStats(), "CPU Usage (Aggregated)", 2, "%");
-	}
-
-	private void createAreaChartSection(ServerStats stats, String sectionTitle, int dataColumnIndex, String unit) {
-		List<Calendar> timestamps = new ArrayList<Calendar>();
-		List<Double> data = new ArrayList<Double>();
-		extractChartData(stats, timestamps, data, dataColumnIndex);
-		
-		if(timestamps.size() == 0) {
-			// Log a message saying no CPU stats available
+		ServerStats stats;
+		try {
+			stats = new GlusterServersClient().getAggregatedCPUStats();
+		} catch(Exception e) {
 			return;
 		}
-
-		Composite section = guiHelper.createSection(form, toolkit, sectionTitle, null, 1, false);
+		
+		Composite section = guiHelper.createSection(form, toolkit, "CPU Usage (aggregated)", null, 1, false);
 		if (cluster.getServers().size() == 0) {
 			toolkit.createLabel(section, "This section will be populated after at least\none server is added to the storage cloud.");
 			return;
 		}
 		
-		createLineChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]), unit);
+		List<Calendar> timestamps = new ArrayList<Calendar>();
+		List<Double> data = new ArrayList<Double>();
+		for(ServerStatsRow row : stats.getRows()) {
+			// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
+			Double cpuUsage = row.getUsageData().get(2);
+			if(!cpuUsage.isNaN()) {
+				timestamps.add(new CDateTime(row.getTimestamp() * 1000));
+				data.add(cpuUsage);
+			}
+		}
+		createLineChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]), "%");
 
 //		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
 //				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),

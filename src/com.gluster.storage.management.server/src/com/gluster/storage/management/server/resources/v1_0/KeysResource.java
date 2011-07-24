@@ -82,16 +82,33 @@ public class KeysResource extends AbstractResource {
 		String targetPemFile = targetDir + File.separator + SshUtil.PEM_FILE.getName();
 		String targetPubKeyFile = targetDir + File.separator + SshUtil.PUBLIC_KEY_FILE.getName();
 
+		if (!SshUtil.PEM_FILE.isFile()) {
+			throw new GlusterRuntimeException("No private key file [" + SshUtil.PEM_FILE.getName() + "] found!" );
+		}
+		
+		if (!SshUtil.PUBLIC_KEY_FILE.isFile()) {
+			throw new GlusterRuntimeException("No public key file [" + SshUtil.PUBLIC_KEY_FILE.getName() + "] found!" );
+		}
+		
 		// Copy keys to temp folder
-		processUtil.executeCommand("cp", sourcePemFile, targetPemFile);
-		processUtil.executeCommand("cp", sourcePubKeyFile, targetPubKeyFile);
-
-		// To zip the key files
-		processUtil.executeCommand("tar", "cvf", zipFile, "-C", "/tmp", SshUtil.PEM_FILE.getName(),
+		ProcessResult result = processUtil.executeCommand("cp", sourcePemFile, targetPemFile);
+		if (!result.isSuccess()) {
+			throw new GlusterRuntimeException("Failed to copy key files! [" + result.getOutput() + "]");
+		}
+		result = processUtil.executeCommand("cp", sourcePubKeyFile, targetPubKeyFile);
+		if (!result.isSuccess()) {
+			throw new GlusterRuntimeException("Failed to copy key files! [" + result.getOutput() + "]");
+		}
+		
+		// To compress the key files
+		result = processUtil.executeCommand("tar", "cvf", zipFile, "-C", "/tmp", SshUtil.PEM_FILE.getName(),
 				SshUtil.PUBLIC_KEY_FILE.getName());
+		if (!result.isSuccess()) {
+			throw new GlusterRuntimeException("Failed to compress key files! [" + result.getOutput() + "]");
+		}
 
 		// To remove the copied key files
-		processUtil.executeCommand("rm", "-f", targetPubKeyFile, targetPubKeyFile);
+		processUtil.executeCommand("rm", "-f", targetPubKeyFile, targetPubKeyFile); // Ignore the errors if any 
 
 		return zipFile;
 	}

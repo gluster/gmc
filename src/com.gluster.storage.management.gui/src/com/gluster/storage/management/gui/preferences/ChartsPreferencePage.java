@@ -20,10 +20,9 @@ package com.gluster.storage.management.gui.preferences;
 
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-
-import com.gluster.storage.management.gui.Activator;
 
 /**
  *
@@ -31,9 +30,18 @@ import com.gluster.storage.management.gui.Activator;
 public class ChartsPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
 	public ChartsPreferencePage() {
-		super(GRID);
-		setPreferenceStore(Activator.getDefault().getPreferenceStore());
-		setDescription("Gluster Management Console - Charts Preferences");
+	}
+
+	public ChartsPreferencePage(int style) {
+		super(style);
+	}
+
+	public ChartsPreferencePage(String title, int style) {
+		super(title, style);
+	}
+
+	public ChartsPreferencePage(String title, ImageDescriptor image, int style) {
+		super(title, image, style);
 	}
 
 	/* (non-Javadoc)
@@ -48,10 +56,10 @@ public class ChartsPreferencePage extends FieldEditorPreferencePage implements I
 	 */
 	@Override
 	protected void createFieldEditors() {
-		String[][] entryNamesAndValues = new String[][] { { "1 day", "1d" }, { "1 week", "1w" }, { "1 month", "1m" },
-				{ "1 year", "1y" } };
-		addField(new ComboFieldEditor(PreferenceConstants.P_CPU_CHART_PERIOD, "CPU Usage chart period",
-				entryNamesAndValues, getFieldEditorParent()));
+		String[][] entryNamesAndValues = new String[][] {
+				{ "1d", "1 day" }, { "1w", "1 week" }, { "1m", "1 month" }, { "1y", "1 year" } };
+		addField(new ComboFieldEditor(PreferenceConstants.P_CPU_CHART_PERIOD, "CPU Usage chart period", entryNamesAndValues,
+				getFieldEditorParent()));
 		addField(new ComboFieldEditor(PreferenceConstants.P_MEM_CHART_PERIOD, "Memory Usage chart period", entryNamesAndValues,
 				getFieldEditorParent()));
 		addField(new ComboFieldEditor(PreferenceConstants.P_NETWORK_CHART_PERIOD, "Network Usage chart period", entryNamesAndValues,
