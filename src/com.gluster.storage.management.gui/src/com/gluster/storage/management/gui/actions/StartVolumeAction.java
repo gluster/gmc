@@ -42,6 +42,9 @@ public class StartVolumeAction extends AbstractActionDelegate {
 			client.startVolume(volume.getName());
 			showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] started successfully!");
 			modelManager.updateVolumeStatus(volume, VOLUME_STATUS.ONLINE);
+			
+			Volume updatedVolume = client.getVolume(volume.getName());
+			modelManager.volumeChanged(volume, updatedVolume);
 		} catch (Exception e) {
 			showErrorDialog(actionDesc,
 					"Volume [" + volume.getName() + "] could not be started! Error: [" + e.getMessage() + "]");

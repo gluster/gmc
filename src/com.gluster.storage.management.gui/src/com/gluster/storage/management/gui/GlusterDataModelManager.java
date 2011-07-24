@@ -38,6 +38,7 @@ import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Alert.ALERT_TYPES;
+import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Event;
@@ -339,9 +340,7 @@ public class GlusterDataModelManager {
 		}
 	}
 	
-	
-	
-	private void volumeChanged(Volume oldVolume, Volume newVolume) {
+	public void volumeChanged(Volume oldVolume, Volume newVolume) {
 		oldVolume.copyFrom(newVolume);
 		for (ClusterListener listener : listeners) {
 			listener.volumeChanged(oldVolume, new Event(EVENT_TYPE.VOLUME_CHANGED, newVolume));
@@ -638,8 +637,17 @@ public class GlusterDataModelManager {
 
 	public void updateVolumeStatus(Volume volume, VOLUME_STATUS newStatus) {
 		volume.setStatus(newStatus);
+		
+		if(newStatus == VOLUME_STATUS.OFFLINE) {
+			// mark as bricks also as offline
+			for(Brick brick : volume.getBricks()) {
+				brick.setStatus(BRICK_STATUS.OFFLINE);
+			}
+		}
+		
 		for (ClusterListener listener : listeners) {
 			listener.volumeChanged(volume, new Event(EVENT_TYPE.VOLUME_STATUS_CHANGED, newStatus));
+			listener.volumeChanged(volume, new Event(EVENT_TYPE.BRICKS_CHANGED, volume.getBricks()));
 		}
 	}
 

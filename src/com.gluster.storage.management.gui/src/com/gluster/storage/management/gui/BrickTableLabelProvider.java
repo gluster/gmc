@@ -20,10 +20,9 @@ package com.gluster.storage.management.gui;
 
 import org.eclipse.swt.graphics.Image;
 
-import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Brick;
+import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import com.gluster.storage.management.core.model.Device;
-import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.views.pages.BricksPage.BRICK_TABLE_COLUMN_INDICES;
@@ -40,25 +39,16 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 		}
 
 		Brick brick = (Brick) element;
-		Device device = GlusterDataModelManager.getInstance().getDeviceDetails(brick.getDeviceName());
-
 		if (columnIndex == DISK_TABLE_COLUMN_INDICES.STATUS.ordinal()) {
-			DEVICE_STATUS status = device.getStatus();
-			// TODO: Use different images for all four statuses
-			switch (status) {
-			case INITIALIZED:
-				return guiHelper.getImage(IImageKeys.STATUS_ONLINE_16x16);
-			case IO_ERROR:
-				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE_16x16);
-			case UNINITIALIZED:
-				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE_16x16);
-			case INITIALIZING:
-				return guiHelper.getImage(IImageKeys.STATUS_OFFLINE_16x16);
-			default:
-				throw new GlusterRuntimeException("Invalid brick status [" + status + "]");
+			BRICK_STATUS status = brick.getStatus();
+			
+			switch(status) {
+			case ONLINE:
+				return guiHelper.getImage(IImageKeys.BRICK_ONLINE_16x16);
+			case OFFLINE:
+				return guiHelper.getImage(IImageKeys.BRICK_OFFLINE_16x16);
 			}
 		}
-
 		return null;
 	}
 
@@ -88,9 +78,8 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 		Device device = GlusterDataModelManager.getInstance().getDeviceDetails(brick.getDeviceName());
 		return (columnIndex == BRICK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? brick.getServerName()
 				: columnIndex == BRICK_TABLE_COLUMN_INDICES.BRICK.ordinal() ? brick.getBrickDirectory()
-						: columnIndex == BRICK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDeviceFreeSpace(device)
-								: columnIndex == BRICK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? getDeviceCapacity(device)
-										: columnIndex == BRICK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? brick
-												.getStatusStr() : "Invalid");
+				: columnIndex == BRICK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDeviceFreeSpace(device)
+				: columnIndex == BRICK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? getDeviceCapacity(device)
+				: columnIndex == BRICK_TABLE_COLUMN_INDICES.STATUS.ordinal() ? brick.getStatusStr() : "Invalid");
 	}
 }

@@ -20,6 +20,7 @@ package com.gluster.storage.management.gui.views.pages;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.IContentProvider;
@@ -33,7 +34,6 @@ import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Event;
-import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.BrickTableLabelProvider;
 
@@ -70,7 +70,14 @@ public class BricksPage extends AbstractTableViewerPage<Brick> {
 					break;
 
 				case BRICKS_CHANGED:
-					tableViewer.update(((Collection<Brick>) event.getEventData()).toArray(), null);
+					Object eventData = event.getEventData();
+					Brick[] updatedBricks;
+					if(eventData instanceof Map) {
+						updatedBricks = ((Map<Brick, Brick>) eventData).keySet().toArray(new Brick[0]); 
+					} else {
+						updatedBricks = ((Collection<Brick>)eventData).toArray(new Brick[0]);
+					}
+					tableViewer.update(updatedBricks, null);
 					parent.update();
 				default:
 					break;
