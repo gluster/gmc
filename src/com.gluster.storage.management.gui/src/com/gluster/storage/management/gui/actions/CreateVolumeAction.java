@@ -46,7 +46,7 @@ public class CreateVolumeAction extends AbstractActionDelegate {
 			}
 		};
 		dialog.create();
-		dialog.getShell().setSize(500, 550);
+		dialog.getShell().setSize(500, 585);
 		dialog.open();
 	}
 

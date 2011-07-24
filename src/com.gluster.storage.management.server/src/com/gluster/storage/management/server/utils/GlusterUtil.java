@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -410,7 +411,13 @@ public class GlusterUtil {
 	}
 
 	private void addBrickToVolume(Volume volume, String serverName, String brickDir, BRICK_STATUS status) {
-		volume.addBrick(new Brick(serverName, status, brickDir.split("/")[2].trim(), brickDir));
+		//If brick directory has standard path, find and assign device name otherwise null
+		String stdBrickDirPattern = "^/export/.*/.*"; // e.g: /export/sdb/test
+		String deviceName = null;
+		if (Pattern.matches(stdBrickDirPattern, brickDir) ) {
+			deviceName = brickDir.split("/")[2].trim();
+		}
+		volume.addBrick(new Brick(serverName, status, deviceName, brickDir));
 	}
 	
 	// Do not throw exception, Gracefully handle as Offline brick. 
