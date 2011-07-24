@@ -44,6 +44,9 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 		// Default CPU utilisation threshold 
 		store.setDefault(PreferenceConstants.P_SERVER_CPU_CRITICAL_THRESHOLD, 95);
 		
+		// Default Memory threshold
+		store.setDefault(PreferenceConstants.P_SERVER_MEMORY_USAGE_THRESHOLD, 90);
+		
 		// Default disk free space threshold 
 		store.setDefault(PreferenceConstants.P_DISK_SPACE_USAGE_THRESHOLD, 90);
 		
