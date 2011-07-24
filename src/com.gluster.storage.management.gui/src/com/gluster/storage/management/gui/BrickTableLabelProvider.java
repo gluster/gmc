@@ -61,7 +61,7 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 	}
 
 	private String getDeviceCapacity(Device device) {
-		if (device.isReady() && device.getSpace() != null && device.getSpace() != 0.0) {
+		if (device != null && device.isReady() && device.getSpace() != null && device.getSpace() != 0.0) {
 			return NumberUtil.formatNumber((device.getSpace() / 1024));
 		} else {
 			return "NA";
