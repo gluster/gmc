@@ -49,6 +49,7 @@ import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Partition;
 import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
@@ -581,6 +582,9 @@ public class GlusterDataModelManager {
 		List<Device> devices = new ArrayList<Device>();
 
 		for (Server server : model.getCluster().getServers()) {
+			if (server.getStatus() == SERVER_STATUS.OFFLINE) {
+				continue;
+			}
 			for (Disk disk : server.getDisks()) {
 				if(disk.hasPartitions()) {
 					for(Partition partition : disk.getPartitions()) {
