@@ -115,8 +115,8 @@ public class GlusterServerSummaryView extends ViewPart {
 		GlusterDataModelManager.getInstance().removeClusterListener(serverChangedListener);
 	}
 
-	private void createLineChart(Composite section, Calendar timestamps[], Double values[], String unit) {
-		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, timestamps, values, unit);
+	private void createAreaChart(Composite section, Calendar timestamps[], Double values[], String unit) {
+		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, timestamps, values, unit, "HH:mm");
 		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
 		data.widthHint = CHART_WIDTH;
 		data.heightHint = 250;
@@ -138,7 +138,7 @@ public class GlusterServerSummaryView extends ViewPart {
 				new CDateTime(1000l*1310473800) };
 		//Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 20.31d, 19.63d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 40d, 10d, 90d, 40d };
 		Double[] values = new Double[] { 35d, 34.23d, 37.92d, 28.69d, 38.62d, 39.11d, 38.46d, 30.44d, 36.28d, 72.43d, 79.31d, 77.39d, 33.51d, 37.53d, 32.21, 30d, 31.43d, 36.45d, 34.86d, 35.27d };
-		createLineChart(section, timestamps, values, "%");
+		createAreaChart(section, timestamps, values, "%");
 		createChartLinks(section, 4);
 	}
 	
@@ -153,7 +153,7 @@ public class GlusterServerSummaryView extends ViewPart {
 				new CDateTime(1000l*1310473800) };
 		Double[] values = new Double[] { 32d, 31.23d, 27.92d, 48.69d, 58.62d, 49.11d, 72.43d, 69.31d, 87.39d, 78.46d, 60.44d, 56.28d, 33.51d, 27.53d, 12.21, 10d, 21.43d, 36.45d, 34.86d, 35.27d };
 
-		createLineChart(section, timestamps, values, "Kib/s");
+		createAreaChart(section, timestamps, values, "Kib/s");
 
 		Composite graphComposite = createChartLinks(section, 5);
 		
@@ -183,7 +183,7 @@ public class GlusterServerSummaryView extends ViewPart {
 		}
 
 		Composite section = guiHelper.createSection(form, toolkit, sectionTitle, null, 1, false);
-		createLineChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]), unit);
+		createAreaChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]), unit);
 
 //		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
 //				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),

@@ -433,7 +433,7 @@ public class GlusterDataModelManager {
 		cluster.setTaskInfoList(taskInfoList);
 	}
 
-	private void initializeAggregatedCpuStats(Cluster cluster) {
+	public void initializeAggregatedCpuStats(Cluster cluster) {
 		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
 		String cpuStatsPeriod = preferenceStore.getString(PreferenceConstants.P_CPU_CHART_PERIOD);
 		
