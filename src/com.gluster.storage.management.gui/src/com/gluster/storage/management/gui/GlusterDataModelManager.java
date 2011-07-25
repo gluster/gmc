@@ -817,6 +817,10 @@ public class GlusterDataModelManager {
 	public void setAccessControlList(Volume volume, String accessControlList) {
 		setVolumeOption(volume, Volume.OPTION_AUTH_ALLOW, accessControlList);
 	}
+	
+	public void setNFSOption(Volume volume, String nfsOption) {
+		setVolumeOption(volume, Volume.OPTION_NFS, nfsOption);
+	}
 
 	public Server getGlusterServer(String serverName) {
 		for (Server server : model.getCluster().getServers()) {

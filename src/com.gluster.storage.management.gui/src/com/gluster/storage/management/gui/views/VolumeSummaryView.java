@@ -12,6 +12,8 @@ import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.FillLayout;
@@ -44,6 +46,7 @@ import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
+import com.gluster.storage.management.core.model.VolumeOption;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.core.utils.ValidationUtil;
@@ -67,6 +70,11 @@ public class VolumeSummaryView extends ViewPart {
 	private Composite parent;
 	private static final String COURIER_FONT = "Courier";
 	private Cluster cluster = GlusterDataModelManager.getInstance().getModel().getCluster();
+	private Button nfsCheckBox;
+	private FormText glusterNfsMountText;
+	private String nfsMountInfo;
+	private Label nfsLabel;
+	private String nfs;
 
 	@Override
 	public void createPartControl(Composite parent) {
@@ -85,6 +93,7 @@ public class VolumeSummaryView extends ViewPart {
 			public void volumeChanged(Volume volume, Event event) {
 				updateVolumeStatusLabel();
 				populateAccessControlText();
+				changeNFSStatus();
 				toolbarManager.updateToolbar(volume);
 			}
 		};
@@ -134,12 +143,12 @@ public class VolumeSummaryView extends ViewPart {
 
 	private void createVolumeMountingInfoSection() {
 		String glusterFs = "Gluster:";
-		String nfs = "NFS:";
+		nfs = "NFS:";
 		String onlineServers = getOnlineServers(10); // Limited to 10 servers
 		String firstOnlineServer = onlineServers.split(",")[0].trim();
 		String glusterFsMountInfo = "mount -t glusterfs " + firstOnlineServer + ":/" + volume.getName()
 				+ " <mount-point>";
-		String nfsMountInfo = "mount -t nfs " + firstOnlineServer + ":/" + volume.getName() + " <mount-point>";
+		nfsMountInfo = "mount -t nfs " + firstOnlineServer + ":/" + volume.getName() + " <mount-point>";
 		String info = "Server can be any server name in the storage cloud eg. <" + onlineServers + ">"; // TODO: if more
 																										// than 10
 																										// servers...
@@ -153,13 +162,12 @@ public class VolumeSummaryView extends ViewPart {
 		glusterfsMountText.setLayoutData(new GridData(GridData.BEGINNING, GridData.VERTICAL_ALIGN_CENTER, false, false,
 				2, 0)); // Label spanned two column
 
-		// TODO: Check required if nfs is optional
-		toolkit.createLabel(section, nfs, SWT.NORMAL);
-		FormText glusterNfsMountText = setFormTextStyle(toolkit.createFormText(section, true), COURIER_FONT, 10,
-				SWT.NONE);
-		glusterNfsMountText.setText(nfsMountInfo, false, false);
-		glusterNfsMountText.setLayoutData(new GridData(GridData.BEGINNING, GridData.VERTICAL_ALIGN_CENTER, false,
-				false, 2, 0));
+			nfsLabel = toolkit.createLabel(section, (volume.getOptions().getOption(Volume.OPTION_NFS).getValue().equals("on")) ? nfs : " ", SWT.NORMAL);
+			glusterNfsMountText = setFormTextStyle(toolkit.createFormText(section, true), COURIER_FONT, 10,
+					SWT.NONE);
+			glusterNfsMountText.setText((volume.getOptions().getOption(Volume.OPTION_NFS).getValue().equals("on")) ? nfsMountInfo : " ", false, false);
+			glusterNfsMountText.setLayoutData(new GridData(GridData.BEGINNING, GridData.VERTICAL_ALIGN_CENTER, false,
+					false, 2, 0));
 
 		toolkit.createLabel(section, "");
 		Label infoLabel = toolkit.createLabel(section, info, SWT.NONE);
@@ -315,6 +323,29 @@ public class VolumeSummaryView extends ViewPart {
 		guiHelper.clearStatusMessage();
 		parent.update();
 	}
+	
+	private void saveNFSOption() {
+		final String nfsOption = (nfsCheckBox.getSelection()) ? "on" : "off";
+
+		guiHelper.setStatusMessage("Setting NFS option...");
+		parent.update();
+		
+		BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
+			@Override
+			public void run() {
+				try {
+					new VolumesClient().setVolumeOption(volume.getName(), Volume.OPTION_NFS, nfsOption);
+
+					GlusterDataModelManager.getInstance().setNFSOption(volume, nfsOption);
+				} catch (Exception e) {
+					MessageDialog.openError(Display.getDefault().getActiveShell(), "NFS Option", e.getMessage());
+				}
+			}
+		});
+
+		guiHelper.clearStatusMessage();
+		parent.update();
+	}
 
 	private void addKeyListerForAccessControl() {
 		accessControlText.addKeyListener(new KeyAdapter() {
@@ -354,53 +385,92 @@ public class VolumeSummaryView extends ViewPart {
 		nasProtocolsComposite.setLayout(new FillLayout());
 
 		createCheckbox(nasProtocolsComposite, "Gluster", true, false);
-		final Button nfsCheckBox = createCheckbox(nasProtocolsComposite, "NFS",
-				volume.getNASProtocols().contains(NAS_PROTOCOL.NFS), true);
+		
+		// Check whether nfs option is off
+		VolumeOption option = volume.getOptions().getOption(Volume.OPTION_NFS);
+		
+		boolean isNFSEnabled = (volume.getOptions().getOption(Volume.OPTION_NFS).getValue().toLowerCase().equals("off")) ? false : true;
+		
+		nfsCheckBox = createCheckbox(nasProtocolsComposite, "NFS",
+				isNFSEnabled, true);
+		
+		nfsCheckBox.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if (nfsCheckBox.getSelection()) {
+					volume.enableNFS("on");
+					saveNFSOption();
+				} else {
+					volume.disableNFS("off");
+					saveNFSOption();
+				}
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+		
+		// CIFS checkbox
 		createCheckbox(nasProtocolsComposite, "CIFS", false, true);
 
 		toolkit.createLabel(section, "", SWT.NONE); // dummy
 		// createChangeLinkForNASProtocol(section, nfsCheckBox);
 	}
 
-	private Button createCheckbox(Composite parent, String label, boolean selected, boolean enabled) {
+	private Button createCheckbox(Composite parent, String label, boolean checked, boolean enabled) {
 		final Button checkBox = toolkit.createButton(parent, label, SWT.CHECK);
+		checkBox.setSelection(checked);
 		checkBox.setEnabled(enabled);
-		checkBox.setSelection(selected);
 		return checkBox;
 	}
-
-	private void createChangeLinkForNASProtocol(Composite section, final Button nfsCheckBox) {
-		final Hyperlink nasChangeLink = toolkit.createHyperlink(section, "change", SWT.NONE);
-		nasChangeLink.addHyperlinkListener(new HyperlinkAdapter() {
-
-			private void finishEdit() {
-				// TODO: Update value to back-end
-				if (nfsCheckBox.getSelection()) {
-					volume.enableNFS();
-				} else {
-					volume.disableNFS();
-				}
-				nfsCheckBox.setEnabled(false);
-				nasChangeLink.setText("change");
-			}
-
-			private void startEdit() {
-				nfsCheckBox.setEnabled(true);
-				nasChangeLink.setText("update");
-			}
-
-			@Override
-			public void linkActivated(HyperlinkEvent e) {
-				if (nfsCheckBox.isEnabled()) {
-					// we were already in edit mode.
-					finishEdit();
-				} else {
-					// Get in to edit mode
-					startEdit();
-				}
-			}
-		});
+	
+	private void changeNFSStatus() {
+		if (volume.getOptions().getOption(Volume.OPTION_NFS).getValue().equals("on")) {
+			nfsCheckBox.setSelection(true);
+			glusterNfsMountText.setText(nfsMountInfo, false, false);
+			nfsLabel.setText(nfs);
+		} else {
+			nfsCheckBox.setSelection(false);
+			glusterNfsMountText.setText(" ", false, false);
+			nfsLabel.setText(" ");
+		}
+		
 	}
+
+//	private void createChangeLinkForNASProtocol(Composite section, final Button nfsCheckBox) {
+//		final Hyperlink nasChangeLink = toolkit.createHyperlink(section, "change", SWT.NONE);
+//		nasChangeLink.addHyperlinkListener(new HyperlinkAdapter() {
+//
+//			private void finishEdit() {
+//				// TODO: Update value to back-end
+//				if (nfsCheckBox.getSelection()) {
+//					volume.enableNFS("");
+//				} else {
+//					volume.disableNFS("");
+//				}
+//				nfsCheckBox.setEnabled(false);
+//				nasChangeLink.setText("change");
+//			}
+//
+//			private void startEdit() {
+//				nfsCheckBox.setEnabled(true);
+//				nasChangeLink.setText("update");
+//			}
+//
+//			@Override
+//			public void linkActivated(HyperlinkEvent e) {
+//				if (nfsCheckBox.isEnabled()) {
+//					// we were already in edit mode.
+//					finishEdit();
+//				} else {
+//					// Get in to edit mode
+//					startEdit();
+//				}
+//			}
+//		});
+//	}
 
 	private double getDiskSize(String serverName, String deviceName) {
 		double diskSize = 0;

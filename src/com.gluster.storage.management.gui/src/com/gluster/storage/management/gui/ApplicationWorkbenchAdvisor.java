@@ -74,4 +74,9 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 			}
 		});
 	}
+	
+	@Override
+	public boolean preShutdown() {
+		return syncJob.cancel();
+	}
 }

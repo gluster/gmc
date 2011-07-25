@@ -41,6 +41,7 @@ import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
@@ -447,6 +448,15 @@ public class GlusterUtil {
 		if (line.matches("^[^:]*:.*$")) {
 			int index = line.indexOf(':');
 			volume.setOption(line.substring(0, index).trim(), line.substring(index + 1, line.length()).trim());
+			
+			if (line.substring(0, index).trim().equals(Volume.OPTION_NFS)) {
+				if (line.substring(index + 1, line.length()).trim().equals("off")) {
+					volume.disableNFS(line.substring(index + 1, line.length()).trim());
+				} else {
+					volume.enableNFS(line.substring(index + 1, line.length()).trim());
+				}
+			}
+			
 			return true;
 		}
 		return false;

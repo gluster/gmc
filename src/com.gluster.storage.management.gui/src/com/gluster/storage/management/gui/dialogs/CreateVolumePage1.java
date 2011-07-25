@@ -330,6 +330,12 @@ public class CreateVolumePage1 extends WizardPage {
 		nasProtocols.add(NAS_PROTOCOL.NFS);
 		
 		volume.setAccessControlList(txtAccessControl.getText());
+
+		if (btnNfs.getSelection()) {
+			volume.enableNFS("on");
+		} else {
+			volume.disableNFS("off");
+		}
 		
 		for(Device device : selectedDevices) {
 			Brick brick = new Brick(device.getServerName(), BRICK_STATUS.ONLINE, device.getName(), device.getMountPoint() + File.separator + volume.getName());
