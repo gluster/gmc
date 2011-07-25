@@ -24,13 +24,19 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.ViewPart;
 
+import com.gluster.storage.management.core.model.ClusterListener;
+import com.gluster.storage.management.core.model.DefaultClusterListener;
+import com.gluster.storage.management.core.model.Event;
+import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.gui.GlusterDataModelManager;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.views.pages.ServerDisksPage;
 
 public class GlusterServerDisksView extends ViewPart {
 	public static final String ID = GlusterServerDisksView.class.getName();
 	private static final GUIHelper guiHelper = GUIHelper.getInstance();
+	private ClusterListener clusterListener;
 	private GlusterServer server;
 	private ServerDisksPage page;
 
@@ -44,7 +50,28 @@ public class GlusterServerDisksView extends ViewPart {
 		}
 		page = new ServerDisksPage(parent, SWT.NONE, getSite(), server.getDisks());
 
-//		parent.layout(); // IMP: lays out the form properly
+		final ViewPart thisView = this;
+		clusterListener = new DefaultClusterListener() {
+			@Override
+			public void serverChanged(GlusterServer server, Event event) {
+				super.serverChanged(server, event);
+				if(event.getEventType() == EVENT_TYPE.GLUSTER_SERVER_CHANGED) {
+					if(!server.isOnline()) {
+						getViewSite().getPage().hideView(thisView);
+					}
+				}
+			}
+		};
+		
+		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
+		
+		parent.layout(); // IMP: lays out the form properly
+	}
+	
+	@Override
+	public void dispose() {
+		super.dispose();
+		GlusterDataModelManager.getInstance().removeClusterListener(clusterListener);
 	}
 
 	/* (non-Javadoc)

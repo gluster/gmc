@@ -454,6 +454,9 @@ public class VolumeSummaryView extends ViewPart {
 		lblStatusValue.setText(volume.getStatusStr());
 		lblStatusValue.setImage((volume.getStatus() == Volume.VOLUME_STATUS.ONLINE) ? guiHelper
 				.getImage(IImageKeys.STATUS_ONLINE_16x16) : guiHelper.getImage(IImageKeys.STATUS_OFFLINE_16x16));
+		GridData data = new GridData();
+		data.horizontalAlignment = SWT.FILL;
+		lblStatusValue.setLayoutData(data);
 		lblStatusValue.redraw();
 	}
 

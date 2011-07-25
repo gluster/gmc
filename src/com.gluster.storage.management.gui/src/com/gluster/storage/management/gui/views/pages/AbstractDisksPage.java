@@ -45,8 +45,11 @@ import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
+import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Entity;
+import com.gluster.storage.management.core.model.Event;
+import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Partition;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
@@ -74,7 +77,21 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 	}
 	
 	protected ClusterListener createClusterListener() {
-		return new DefaultClusterListener();
+		return new DefaultClusterListener() {
+			@Override
+			public void serverChanged(GlusterServer server, Event event) {
+				super.serverChanged(server, event);
+				EVENT_TYPE eventType = event.getEventType();
+				switch (eventType) {
+				case DISKS_REMOVED:
+				case DISKS_ADDED:
+				case DISKS_CHANGED:
+					treeViewer.refresh();
+				default:
+					break;
+				}
+			}
+		};
 	}
 	
 	private void createInitializeLink(final TreeItem item, final int rowNum, final Device uninitializedDevice) {
