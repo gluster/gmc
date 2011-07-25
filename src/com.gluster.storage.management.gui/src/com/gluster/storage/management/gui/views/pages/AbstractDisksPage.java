@@ -122,6 +122,8 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 				Device device = null;
 				int rowNum1 = -1;
 				TreeItem item1 = null;
+				
+				mainloop:
 				for (int i = 0; i < itemCount; i++) {
 					item1 = tree.getItem(i);
 					
@@ -141,8 +143,9 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 							// this is an uninitialized "partition"
 							rowNum1 = i + j;
 							item1 = partitionItem;
-							device = (Device) partitionItem.getData();
-							break;
+							device = partition;
+							// found the uninitialized device. break out.
+							break mainloop;
 						}
 					}
 				}
@@ -174,20 +177,24 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 	private void setupStatusCellEditor() {
 		final TreeViewer viewer = treeViewer;
 		final Tree tree = viewer.getTree();
-		for (int i = 0; i < tree.getItemCount(); i++) {
+		int rowNum = 0;
+		for (int i = 0; i < tree.getItemCount(); i++, rowNum++) {
 			final TreeItem item = tree.getItem(i);
 			if (item.isDisposed() || item.getData() == null) {
 				continue;
 			}
 			final Disk disk = (Disk) item.getData();
 			if (disk.isUninitialized()) {
-				createInitializeLink(item, i, disk);
+				createInitializeLink(item, rowNum, disk);
 			}
 			
 			if (disk.hasPartitions()) {
-				for (Partition partition : disk.getPartitions()) {
-					if(partition.isUninitialized()) {
-						createInitializeLink(item, i, partition);
+				for(int j = 0; j < disk.getPartitions().size(); j++, rowNum++) {
+					TreeItem partitionItem = item.getItem(j);
+					// check each partition
+					Device partition = (Device)partitionItem.getData();
+					if (partition.isUninitialized()) {
+						createInitializeLink(partitionItem, rowNum, partition);
 					}
 				}
 			}

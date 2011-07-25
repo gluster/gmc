@@ -61,6 +61,7 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.exceptions.GlusterValidationException;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
+import com.gluster.storage.management.core.model.ServerStats;
 import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
 import com.gluster.storage.management.core.response.ServerNameListResponse;
@@ -502,27 +503,47 @@ public class GlusterServersResource extends AbstractServersResource {
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
 	@Path("{" + PATH_PARAM_SERVER_NAME + "}/" + RESOURCE_STATISTICS)
-	public Response getPerformanceDataXML(@PathParam(PATH_PARAM_SERVER_NAME) String serverName,
+	public Response getPerformanceDataXML(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName, @PathParam(PATH_PARAM_SERVER_NAME) String serverName,
 			@QueryParam(QUERY_PARAM_TYPE) String type, @QueryParam(QUERY_PARAM_PERIOD) String period,
 			@QueryParam(QUERY_PARAM_INTERFACE) String networkInterface) {
-		return getPerformanceData(serverName, type, period, networkInterface, MediaType.APPLICATION_XML);
+		return getPerformanceData(clusterName, serverName, type, period, networkInterface, MediaType.APPLICATION_XML);
 	}
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("{" + PATH_PARAM_SERVER_NAME + "}/" + RESOURCE_STATISTICS)
-	public Response getPerformanceDataJSON(@PathParam(PATH_PARAM_SERVER_NAME) String serverName,
+	public Response getPerformanceDataJSON(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName, @PathParam(PATH_PARAM_SERVER_NAME) String serverName,
 			@QueryParam(QUERY_PARAM_TYPE) String type, @QueryParam(QUERY_PARAM_PERIOD) String period,
 			@QueryParam(QUERY_PARAM_INTERFACE) String networkInterface) {
-		return getPerformanceData(serverName, type, period, networkInterface, MediaType.APPLICATION_JSON);
+		return getPerformanceData(clusterName, serverName, type, period, networkInterface, MediaType.APPLICATION_JSON);
 	}
 
 	private Response getAggregaredPerformanceData(String clusterName, String type, String period, String mediaType) {
+		if (clusterName == null || clusterName.isEmpty()) {
+			throw new GlusterValidationException("Cluster name must not be empty!");
+		}
+
+		ClusterInfo cluster = clusterService.getCluster(clusterName);
+		if (cluster == null) {
+			return notFoundResponse("Cluster [" + clusterName + "] not found!");
+		}
+
+		if (cluster.getServers().size() == 0) {
+			// cluster is empty. return empty stats.
+			return okResponse(new ServerStats(), mediaType);
+		}
+
 		List<String> serverNames = getServerNames(getGlusterServers(clusterName, false));
 		return okResponse(getStatsFactory(type).fetchAggregatedStats(serverNames, period), mediaType);
 	}
 
-	private Response getPerformanceData(String serverName, String type, String period, String networkInterface, String mediaType) {
+	private Response getPerformanceData(String clusterName, String serverName, String type, String period, String networkInterface, String mediaType) {
+		if (clusterName == null || clusterName.isEmpty()) {
+			throw new GlusterValidationException("Cluster name must not be empty!");
+		}
+		if (serverName == null || serverName.isEmpty()) {
+			throw new GlusterValidationException("Server name must not be empty!");
+		}
 		return okResponse(getStatsFactory(type).fetchStats(serverName, period, networkInterface), mediaType);
 	}
 	
