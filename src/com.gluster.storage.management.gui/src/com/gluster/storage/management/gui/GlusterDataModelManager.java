@@ -32,15 +32,15 @@ import com.gluster.storage.management.client.DiscoveredServersClient;
 import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.client.TasksClient;
 import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Alert.ALERT_TYPES;
 import com.gluster.storage.management.core.model.Brick;
+import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.Device;
-import com.gluster.storage.management.core.model.Alert.ALERT_TYPES;
-import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Event;
@@ -821,7 +821,11 @@ public class GlusterDataModelManager {
 	public void setAccessControlList(Volume volume, String accessControlList) {
 		setVolumeOption(volume, Volume.OPTION_AUTH_ALLOW, accessControlList);
 	}
-
+	
+	public void setNfsEnabled(Volume volume, boolean enabled) {
+		setVolumeOption(volume, Volume.OPTION_NFS_DISABLE, (enabled) ? GlusterConstants.OFF : GlusterConstants.ON);
+	}
+	
 	public Server getGlusterServer(String serverName) {
 		for (Server server : model.getCluster().getServers()) {
 			if (server.getName().equals(serverName)) {

@@ -35,4 +35,7 @@ public class GlusterConstants {
 	public static final String FSTYPE_EXT_3 = "ext3";
 	public static final String FSTYPE_EXT_4 = "ext4";
 	public static final String FSTYPE_XFS = "xfs";
+	
+	public static final String ON = "on";
+	public static final String OFF = "off";
 }
