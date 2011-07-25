@@ -140,11 +140,11 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 	 *            Values of each category in the pie chart Constructs a pie
 	 *            chart viewer composite for given categories and values
 	 */
-	public ChartViewerComposite(Composite parent, int style, Calendar[] categories, Double[] values, String unit) {
+	public ChartViewerComposite(Composite parent, int style, Calendar[] categories, Double[] values, String unit, String timestampFormat) {
 		super(parent, style);
 		init();
 
-		chart = createLineChart(categories, values, unit);
+		createSingleAreaChart(categories, values, unit, timestampFormat);
 		addPaintListener(this);
 	}
 
@@ -170,8 +170,8 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 		});
 	}
 
-	private Chart createLineChart(Calendar[] timestamps, Double[] values, String unit) {
-		return createAreaChart(timestamps, new Double[][] {values}, unit);
+	private void createSingleAreaChart(Calendar[] timestamps, Double[] values, String unit, String timestampFormat) {
+		createAreaChart(timestamps, new Double[][] {values}, unit, timestampFormat);
 	}
 
 	/**
@@ -180,23 +180,23 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 	 * @return An instance of the simulated runtime chart model (containing
 	 *         filled datasets)
 	 */
-	public static final Chart createAreaChart(Calendar[] timestamps, Double[][] values, final String unit) {
-		ChartWithAxes cwaLine = ChartWithAxesImpl.create();
+	private final void createAreaChart(Calendar[] timestamps, Double[][] values, final String unit, final String timestampFormat) {
+		chart = ChartWithAxesImpl.create();
 		// Plot
-		cwaLine.getBlock().setBackground(ColorDefinitionImpl.WHITE());
-		Plot p = cwaLine.getPlot();
+		chart.getBlock().setBackground(ColorDefinitionImpl.WHITE());
+		Plot p = chart.getPlot();
 		p.getClientArea().setBackground(ColorDefinitionImpl.WHITE());
 		p.setBackground(ColorDefinitionImpl.WHITE());
 
 		// Title
-		cwaLine.getTitle().getLabel().getCaption().setValue("Line Chart");//$NON-NLS-1$
-		cwaLine.getTitle().setVisible(false);
-		cwaLine.getTitle().getLabel().setVisible(true);
-		cwaLine.getTitle().getInsets().set(0, 10, 0, 0);
-		cwaLine.getTitle().setAnchor(Anchor.SOUTH_LITERAL);
+		chart.getTitle().getLabel().getCaption().setValue("Line Chart");//$NON-NLS-1$
+		chart.getTitle().setVisible(false);
+		chart.getTitle().getLabel().setVisible(true);
+		chart.getTitle().getInsets().set(0, 10, 0, 0);
+		chart.getTitle().setAnchor(Anchor.SOUTH_LITERAL);
 
 		// Legend
-		Legend lg = cwaLine.getLegend();
+		Legend lg = chart.getLegend();
 		lg.setVisible(false);
 		LineAttributes lia = lg.getOutline( );
 		lia.setStyle( LineStyle.SOLID_LITERAL );
@@ -206,52 +206,17 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 		lg.getOutline( ).setVisible( false );
 		lg.setAnchor( Anchor.NORTH_LITERAL );
 
-		// X-Axis
-		Axis xAxisPrimary = cwaLine.getPrimaryBaseAxes()[0];
-		xAxisPrimary.setType(AxisType.TEXT_LITERAL);
-		DateTimeDataElement dtde = DateTimeDataElementImpl.create(timestamps[timestamps.length-1]);
-		DateTimeDataElement dtde1 = DateTimeDataElementImpl.create(timestamps[0]);
-		xAxisPrimary.getScale().setMax(dtde);
-		xAxisPrimary.getScale().setStep((dtde.getValue() - dtde1.getValue())/ 10);
-		xAxisPrimary.getScale().setMajorGridsStepNumber(timestamps.length > 10 ? timestamps.length / 10 : 1);
-		//xAxisPrimary.getMajorGrid().setTickStyle(TickStyle.ABOVE_LITERAL);
-		xAxisPrimary.getMajorGrid().getTickAttributes().setVisible(false);
-		xAxisPrimary.getMajorGrid().setLineAttributes(LineAttributesImpl.create(ColorDefinitionImpl.GREY(), LineStyle.SOLID_LITERAL, 1));
-		xAxisPrimary.getTitle().setVisible(false);
-		xAxisPrimary.getTitle().getInsets().set(1, 1, 1, 1);
-		xAxisPrimary.getLabel().getInsets().set(1, 1, 1, 1);
-		xAxisPrimary.getLabel().getCaption().setFont(createChartFont());
-		xAxisPrimary.setFormatSpecifier( JavaDateFormatSpecifierImpl.create( "HH:mm" ) );
+		updateDataSet(timestamps, values, unit, timestampFormat);
+	}
 
-		// Y-Axis
-		Axis yAxisPrimary = cwaLine.getPrimaryOrthogonalAxis(xAxisPrimary);
-		yAxisPrimary.getScale().setMax(NumberDataElementImpl.create(100));
-		yAxisPrimary.getScale().setMin(NumberDataElementImpl.create(0));
-		yAxisPrimary.setGapWidth(0);
-		yAxisPrimary.getScale().setStep(20);
-		yAxisPrimary.getScale().setMajorGridsStepNumber(1);
-		yAxisPrimary.getMajorGrid().setTickStyle(TickStyle.LEFT_LITERAL);
-		yAxisPrimary.getMajorGrid().setLineAttributes(LineAttributesImpl.create(ColorDefinitionImpl.GREY(), LineStyle.SOLID_LITERAL, 1));
-		yAxisPrimary.getLabel().setVisible(true);
-		yAxisPrimary.getLabel().getCaption().setFont(createChartFont());
-		yAxisPrimary.setFormatSpecifier(new NumberFormatSpecifierImpl() {
-			@Override
-			public String getSuffix() {
-				return " " + unit;
-			}
-		});
-		
-		// Data Set
-		DateTimeDataSet categoryValues = DateTimeDataSetImpl.create(timestamps);
+	private void updateDataSet(Calendar[] timestamps, Double[][] values, final String unit, final String timestampFormat) {
+		Axis xAxisPrimary = setupXAxis(timestamps, timestampFormat);
+		Axis yAxisPrimary = setupYAxis(unit, xAxisPrimary);
+		configureXSeries(timestamps, xAxisPrimary);
+		configureYSeries(values, yAxisPrimary);
+	}
 
-		// X-Series
-		Series seCategory = SeriesImpl.create();
-		seCategory.setDataSet(categoryValues);
-		SeriesDefinition sdX = SeriesDefinitionImpl.create();
-
-		xAxisPrimary.getSeriesDefinitions().add(sdX);
-		sdX.getSeries().add(seCategory);
-
+	private void configureYSeries(Double[][] values, Axis yAxisPrimary) {
 		SeriesDefinition sdY = SeriesDefinitionImpl.create();
 		sdY.getSeriesPalette().shift(-3);
 		yAxisPrimary.getSeriesDefinitions().add(sdY);
@@ -273,7 +238,59 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 			ls.getLabel().setVisible(false);
 			sdY.getSeries().add(ls);
 		}
-		return cwaLine;
+	}
+
+	private void configureXSeries(Calendar[] timestamps, Axis xAxisPrimary) {
+		// Data Set
+		DateTimeDataSet categoryValues = DateTimeDataSetImpl.create(timestamps);
+
+		// X-Series
+		Series seCategory = SeriesImpl.create();
+		seCategory.setDataSet(categoryValues);
+		SeriesDefinition sdX = SeriesDefinitionImpl.create();
+
+		xAxisPrimary.getSeriesDefinitions().add(sdX);
+		sdX.getSeries().add(seCategory);
+	}
+
+	private Axis setupYAxis(final String unit, Axis xAxisPrimary) {
+		Axis yAxisPrimary = ((ChartWithAxesImpl)chart).getPrimaryOrthogonalAxis(xAxisPrimary);
+		yAxisPrimary.getScale().setMax(NumberDataElementImpl.create(100));
+		yAxisPrimary.getScale().setMin(NumberDataElementImpl.create(0));
+		yAxisPrimary.setGapWidth(0);
+		yAxisPrimary.getScale().setStep(20);
+		yAxisPrimary.getScale().setMajorGridsStepNumber(1);
+		yAxisPrimary.getMajorGrid().setTickStyle(TickStyle.LEFT_LITERAL);
+		yAxisPrimary.getMajorGrid().setLineAttributes(LineAttributesImpl.create(ColorDefinitionImpl.GREY(), LineStyle.SOLID_LITERAL, 1));
+		yAxisPrimary.getLabel().setVisible(true);
+		yAxisPrimary.getLabel().getCaption().setFont(createChartFont());
+		yAxisPrimary.setFormatSpecifier(new NumberFormatSpecifierImpl() {
+			@Override
+			public String getSuffix() {
+				return " " + unit;
+			}
+		});
+		return yAxisPrimary;
+	}
+
+	private Axis setupXAxis(Calendar[] timestamps, final String timestampFormat) {
+		Axis xAxisPrimary = ((ChartWithAxesImpl)chart).getPrimaryBaseAxes()[0];
+		xAxisPrimary.setType(AxisType.TEXT_LITERAL);
+		DateTimeDataElement dtde = DateTimeDataElementImpl.create(timestamps[timestamps.length-1]);
+		DateTimeDataElement dtde1 = DateTimeDataElementImpl.create(timestamps[0]);
+		xAxisPrimary.getScale().setMax(dtde);
+		xAxisPrimary.getScale().setStep((dtde.getValue() - dtde1.getValue())/ 10);
+		xAxisPrimary.getScale().setMajorGridsStepNumber(timestamps.length > 10 ? timestamps.length / 10 : 1);
+		//xAxisPrimary.getMajorGrid().setTickStyle(TickStyle.ABOVE_LITERAL);
+		xAxisPrimary.getMajorGrid().getTickAttributes().setVisible(false);
+		xAxisPrimary.getMajorGrid().setLineAttributes(LineAttributesImpl.create(ColorDefinitionImpl.GREY(), LineStyle.SOLID_LITERAL, 1));
+		xAxisPrimary.getTitle().setVisible(false);
+		xAxisPrimary.getTitle().getInsets().set(1, 1, 1, 1);
+		xAxisPrimary.getLabel().getInsets().set(1, 1, 1, 1);
+		xAxisPrimary.getLabel().getCaption().setFont(createChartFont());
+		xAxisPrimary.getLabel( ).getCaption( ).getFont( ).setRotation( 75 );
+		xAxisPrimary.setFormatSpecifier( JavaDateFormatSpecifierImpl.create( timestampFormat ) );
+		return xAxisPrimary;
 	}
 
 	public static FontDefinition createChartFont() {
@@ -376,6 +393,27 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 			gc.drawImage(imgChart, d.x, d.y);
 		} catch (ChartException gex) {
 			logger.log(Level.SEVERE, "Exception while rendering pie chart [" + gex.getMessage() + "]", gex);
+		}
+	}
+	
+	public void chartRefresh(Calendar[] timestamps, Double[][] values, String unit, String timestampFormat)
+	{
+		if ( !isDisposed( ) )
+		{
+			final Generator gr = Generator.instance( );
+			updateDataSet( timestamps, values, unit, timestampFormat);
+
+			// Refresh
+			try
+			{
+				gr.refresh( generatedChartState );
+			}
+			catch ( ChartException ex )
+			{
+				// TODO: log the exception
+				ex.printStackTrace( );
+			}
+			redraw( );
 		}
 	}
 
