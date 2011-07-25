@@ -26,6 +26,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.gluster.storage.management.client.DiscoveredServersClient;
 import com.gluster.storage.management.client.GlusterServersClient;
@@ -33,6 +34,7 @@ import com.gluster.storage.management.client.TasksClient;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Alert;
+import com.gluster.storage.management.core.model.Alert.ALERT_TYPES;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.ClusterListener;
@@ -57,6 +59,7 @@ import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
+import com.gluster.storage.management.gui.preferences.PreferenceConstants;
 
 public class GlusterDataModelManager {
 	private static GlusterDataModelManager instance = new GlusterDataModelManager();
@@ -117,6 +120,16 @@ public class GlusterDataModelManager {
 			volumeChanged(oldVolume, newVolume);
 		}
 	}
+
+	private boolean isCancelled(IProgressMonitor monitor) {
+		if(monitor.isCanceled()) {
+			monitor.setTaskName("Data sync cancelled!");
+			monitor.done();
+			return true;
+		} else {
+			return false;
+		}
+	}
 	
 	public GlusterDataModel fetchModel(IProgressMonitor monitor) {
 		synchronized (syncInProgress) {
@@ -133,22 +146,45 @@ public class GlusterDataModelManager {
 			Cluster cluster = new Cluster(clusterName, model);
 			model.addCluster(cluster);
 
-			monitor.beginTask("Data Sync", 4);
+			monitor.beginTask("Data Sync", 6);
 
 			monitor.setTaskName("Syncing servers...");
 			initializeGlusterServers(cluster);
 			monitor.worked(1);
+			if(isCancelled(monitor)) {
+				return model;
+			}
 
 			monitor.setTaskName("Syncing volumes...");
 			initializeVolumes(cluster);
 			monitor.worked(1);
+			if(isCancelled(monitor)) {
+				return model;
+			}
 
 			monitor.setTaskName("Syncing discovered servers...");
 			initializeAutoDiscoveredServers(cluster);
 			monitor.worked(1);
+			if(isCancelled(monitor)) {
+				return model;
+			}
 
 			monitor.setTaskName("Syncing tasks...");
 			initializeTasks(cluster);
+			monitor.worked(1);
+			if(isCancelled(monitor)) {
+				return model;
+			}
+			
+			monitor.setTaskName("Syncing aggregated CPU stats...");
+			initializeAggregatedCpuStats(cluster);
+			monitor.worked(1);
+			if(isCancelled(monitor)) {
+				return model;
+			}
+
+			monitor.setTaskName("Syncing aggregated Network stats...");
+			initializeAggregatedNetworkStats(cluster);
 			monitor.worked(1);
 
 			monitor.done();
@@ -390,10 +426,24 @@ public class GlusterDataModelManager {
 		this.volumeOptionsDefaults = new VolumesClient(clusterName).getVolumeOptionsDefaults();
 	}
 
-	public void initializeTasks(Cluster cluster) {
+	private void initializeTasks(Cluster cluster) {
 		List<TaskInfo> taskInfoList = new TasksClient(cluster.getName()).getAllTasks();
 		//List<TaskInfo> taskInfoList = getDummyTasks();
 		cluster.setTaskInfoList(taskInfoList);
+	}
+
+	private void initializeAggregatedCpuStats(Cluster cluster) {
+		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
+		String cpuStatsPeriod = preferenceStore.getString(PreferenceConstants.P_CPU_CHART_PERIOD);
+		
+		cluster.setAggregatedCpuStats(new GlusterServersClient().getAggregatedCpuStats(cpuStatsPeriod));
+	}
+	
+	private void initializeAggregatedNetworkStats(Cluster cluster) {
+		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
+		String networkStatsPeriod = preferenceStore.getString(PreferenceConstants.P_NETWORK_CHART_PERIOD);
+		
+		cluster.setAggregatedNetworkStats(new GlusterServersClient().getAggregatedNetworkStats(networkStatsPeriod));
 	}
 
 	private List<TaskInfo> getDummyTasks() {

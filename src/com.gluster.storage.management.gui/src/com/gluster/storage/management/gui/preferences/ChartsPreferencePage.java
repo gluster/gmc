@@ -25,7 +25,6 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 /**
- * @author root
  *
  */
 public class ChartsPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {

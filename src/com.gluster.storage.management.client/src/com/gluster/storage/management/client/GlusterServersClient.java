@@ -85,15 +85,24 @@ public class GlusterServersClient extends AbstractClient {
 		deleteSubResource(serverName);
 	}
 	
-	public ServerStats getCPUStats(String serverName) {
+	public ServerStats getCpuStats(String serverName, String period) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.add(RESTConstants.QUERY_PARAM_TYPE, RESTConstants.STATISTICS_TYPE_CPU);
+		queryParams.add(RESTConstants.QUERY_PARAM_PERIOD, period);
 		return fetchSubResource(serverName + "/" + RESTConstants.RESOURCE_STATISTICS, queryParams, ServerStats.class);
 	}
 	
-	public ServerStats getAggregatedCPUStats() {
+	public ServerStats getAggregatedCpuStats(String period) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.add(RESTConstants.QUERY_PARAM_TYPE, RESTConstants.STATISTICS_TYPE_CPU);
+		queryParams.add(RESTConstants.QUERY_PARAM_PERIOD, period);
+		return fetchSubResource(RESTConstants.RESOURCE_STATISTICS, queryParams, ServerStats.class);
+	}
+	
+	public ServerStats getAggregatedNetworkStats(String period) {
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+		queryParams.add(RESTConstants.QUERY_PARAM_TYPE, RESTConstants.STATISTICS_TYPE_NETWORK);
+		queryParams.add(RESTConstants.QUERY_PARAM_PERIOD, period);
 		return fetchSubResource(RESTConstants.RESOURCE_STATISTICS, queryParams, ServerStats.class);
 	}
 }
