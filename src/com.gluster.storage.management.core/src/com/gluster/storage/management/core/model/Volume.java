@@ -33,6 +33,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.StringUtil;
 
@@ -59,6 +60,7 @@ public class Volume extends Entity {
 	public static final int DEFAULT_STRIPE_COUNT = 4;
 
 	public static final String OPTION_AUTH_ALLOW = "auth.allow";
+	public static final String OPTION_NFS_DISABLE = "nfs.disable";
 
 	private static final String[] VOLUME_TYPE_STR = new String[] { "Plain Distribute", "Distributed Mirror",
 			"Distributed Stripe" };
@@ -77,9 +79,9 @@ public class Volume extends Entity {
 	public Volume() {
 	}
 
-	// GlusterFS and NFS export is always enabled
+	// Only GlusterFS is enabled
 	private Set<NAS_PROTOCOL> nasProtocols = new LinkedHashSet<NAS_PROTOCOL>(Arrays.asList(new NAS_PROTOCOL[] {
-			NAS_PROTOCOL.GLUSTERFS, NAS_PROTOCOL.NFS }));
+			NAS_PROTOCOL.GLUSTERFS }));
 
 	public String getVolumeTypeStr() {
 		return getVolumeTypeStr(getVolumeType());
@@ -234,10 +236,12 @@ public class Volume extends Entity {
 
 	public void enableNFS() {
 		nasProtocols.add(NAS_PROTOCOL.NFS);
+		setOption(OPTION_NFS_DISABLE, GlusterConstants.OFF);
 	}
 
 	public void disableNFS() {
 		nasProtocols.remove(NAS_PROTOCOL.NFS);
+		setOption(OPTION_NFS_DISABLE, GlusterConstants.ON);
 	}
 
 	public Volume(String name, Entity parent, VOLUME_TYPE volumeType, TRANSPORT_TYPE transportType, VOLUME_STATUS status) {

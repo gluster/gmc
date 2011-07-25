@@ -157,13 +157,7 @@ public class VolumeOptionsPage extends Composite {
 						setAddButtonsEnabled(false);
 					}
 
-					if (tableViewer.getTable().getItemCount() < volume.getOptions().size()) {
-						// new volume set from outside this page. refresh the viewer.
-						tableViewer.refresh();
-					} else {
-						// existing volume option value changed. update that element.
-						tableViewer.update(volume.getOptions().get(key), null);
-					}
+					tableViewer.refresh();
 					break;
 				case VOLUME_CHANGED:
 					tableViewer.refresh();

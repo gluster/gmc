@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
@@ -447,6 +448,15 @@ public class GlusterUtil {
 		if (line.matches("^[^:]*:.*$")) {
 			int index = line.indexOf(':');
 			volume.setOption(line.substring(0, index).trim(), line.substring(index + 1, line.length()).trim());
+			
+			if (line.substring(0, index).trim().equals(Volume.OPTION_NFS_DISABLE)) {
+				if (line.substring(index + 1, line.length()).trim().equals(GlusterConstants.ON)) {
+					volume.disableNFS();
+				} else {
+					volume.enableNFS();
+				}
+			}
+			
 			return true;
 		}
 		return false;
