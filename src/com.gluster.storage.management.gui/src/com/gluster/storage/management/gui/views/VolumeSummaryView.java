@@ -14,6 +14,9 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.FillLayout;
@@ -46,6 +49,7 @@ import com.gluster.storage.management.core.model.Partition;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
+import com.gluster.storage.management.core.model.VolumeOption;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.core.utils.ValidationUtil;
@@ -347,7 +351,6 @@ public class VolumeSummaryView extends ViewPart {
 				}
 			}
 		});
-
 		GlusterDataModelManager.getInstance().addClusterListener(volumeChangedListener);
 		guiHelper.clearStatusMessage();
 		parent.update();
@@ -422,6 +425,39 @@ public class VolumeSummaryView extends ViewPart {
 		glusterNfsMountText.setVisible(isNFSExported);
 		nfsLabel.setVisible(isNFSExported);
 	}
+
+//	private void createChangeLinkForNASProtocol(Composite section, final Button nfsCheckBox) {
+//		final Hyperlink nasChangeLink = toolkit.createHyperlink(section, "change", SWT.NONE);
+//		nasChangeLink.addHyperlinkListener(new HyperlinkAdapter() {
+//
+//			private void finishEdit() {
+//				// TODO: Update value to back-end
+//				if (nfsCheckBox.getSelection()) {
+//					volume.enableNFS("");
+//				} else {
+//					volume.disableNFS("");
+//				}
+//				nfsCheckBox.setEnabled(false);
+//				nasChangeLink.setText("change");
+//			}
+//
+//			private void startEdit() {
+//				nfsCheckBox.setEnabled(true);
+//				nasChangeLink.setText("update");
+//			}
+//
+//			@Override
+//			public void linkActivated(HyperlinkEvent e) {
+//				if (nfsCheckBox.isEnabled()) {
+//					// we were already in edit mode.
+//					finishEdit();
+//				} else {
+//					// Get in to edit mode
+//					startEdit();
+//				}
+//			}
+//		});
+//	}
 
 	private double getDiskSize(String serverName, String deviceName) {
 		double diskSize = 0;
