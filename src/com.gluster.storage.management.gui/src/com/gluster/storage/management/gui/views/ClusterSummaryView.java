@@ -217,7 +217,9 @@ public class ClusterSummaryView extends ViewPart {
 		protected ServerStats fetchStats() {
 			IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
 			preferenceStore.setValue(PreferenceConstants.P_CPU_CHART_PERIOD, statsPeriod);
-			return new GlusterServersClient().getAggregatedCpuStats(statsPeriod);
+			ServerStats stats = new GlusterServersClient().getAggregatedCpuStats(statsPeriod);
+			cluster.setAggregatedCpuStats(stats);
+			return stats;
 		}
 
 		@Override
@@ -239,7 +241,9 @@ public class ClusterSummaryView extends ViewPart {
 		protected ServerStats fetchStats() {
 			IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
 			preferenceStore.setValue(PreferenceConstants.P_NETWORK_CHART_PERIOD, statsPeriod);
-			return new GlusterServersClient().getAggregatedNetworkStats(statsPeriod);
+			ServerStats stats = new GlusterServersClient().getAggregatedNetworkStats(statsPeriod);
+			cluster.setAggregatedNetworkStats(stats);
+			return stats;
 		}
 
 		@Override
