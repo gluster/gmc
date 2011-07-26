@@ -116,7 +116,7 @@ public class GlusterServerSummaryView extends ViewPart {
 	}
 
 	private void createAreaChart(Composite section, Calendar timestamps[], Double values[], String unit) {
-		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, timestamps, values, unit, "HH:mm");
+		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, timestamps, values, unit, "HH:mm", 100);
 		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
 		data.widthHint = CHART_WIDTH;
 		data.heightHint = 250;

@@ -39,12 +39,17 @@ public class FileUtil {
 		}
 	}
 
-	public static byte[] readFileAsByteArray(File file) throws FileNotFoundException, IOException {
-		FileInputStream fileInputStream = new FileInputStream(file);
-		byte[] data = new byte[fileInputStream.available()];
-		fileInputStream.read(data);
-		fileInputStream.close();
-		return data;
+	public static byte[] readFileAsByteArray(File file) {
+		try {
+			FileInputStream fileInputStream = new FileInputStream(file);
+			byte[] data = new byte[fileInputStream.available()];
+			fileInputStream.read(data);
+			fileInputStream.close();
+			return data;
+		} catch (Exception e) {
+			throw new GlusterRuntimeException("Exception while reading file [" + file.getName() + "]: "
+					+ e.getMessage(), e);
+		}
 	}
 	
 	public static void createTextFile(String fileName, String contents) {

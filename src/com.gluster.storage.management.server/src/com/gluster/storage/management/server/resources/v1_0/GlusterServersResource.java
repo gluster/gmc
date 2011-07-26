@@ -522,6 +522,14 @@ public class GlusterServersResource extends AbstractServersResource {
 		if (clusterName == null || clusterName.isEmpty()) {
 			throw new GlusterValidationException("Cluster name must not be empty!");
 		}
+		
+		if (type == null || type.isEmpty()) {
+			throw new GlusterValidationException("Statistics type name must not be empty!");
+		}
+
+		if (period == null || period.isEmpty()) {
+			throw new GlusterValidationException("Statistics period name must not be empty! Valid values are 1d/1w/1m/1y");
+		}
 
 		ClusterInfo cluster = clusterService.getCluster(clusterName);
 		if (cluster == null) {
@@ -541,9 +549,19 @@ public class GlusterServersResource extends AbstractServersResource {
 		if (clusterName == null || clusterName.isEmpty()) {
 			throw new GlusterValidationException("Cluster name must not be empty!");
 		}
+		
 		if (serverName == null || serverName.isEmpty()) {
 			throw new GlusterValidationException("Server name must not be empty!");
 		}
+
+		if (type == null || type.isEmpty()) {
+			throw new GlusterValidationException("Statistics type name must not be empty!");
+		}
+
+		if (period == null || period.isEmpty()) {
+			throw new GlusterValidationException("Statistics period name must not be empty! Valid values are 1d/1w/1m/1y");
+		}
+
 		return okResponse(getStatsFactory(type).fetchStats(serverName, period, networkInterface), mediaType);
 	}
 	

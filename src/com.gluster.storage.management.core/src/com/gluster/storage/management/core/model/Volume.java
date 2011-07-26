@@ -189,6 +189,16 @@ public class Volume extends Entity {
 	public void setAccessControlList(String accessControlList) {
 		setOption(OPTION_AUTH_ALLOW, accessControlList);
 	}
+	
+	@XmlTransient
+	public boolean isNfsEnabled() {
+		String nfsDisabled = options.get(OPTION_NFS_DISABLE);
+		if(nfsDisabled == null || nfsDisabled.equalsIgnoreCase(GlusterConstants.ON)) {
+			return false;
+		} else {
+			return true;
+		}
+	}
 
 	@XmlElement(name="options")
 	public VolumeOptions getOptions() {
