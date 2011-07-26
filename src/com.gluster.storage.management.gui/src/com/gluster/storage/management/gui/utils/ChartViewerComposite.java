@@ -18,8 +18,6 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.utils;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,7 +28,6 @@ import org.eclipse.birt.chart.exception.ChartException;
 import org.eclipse.birt.chart.factory.GeneratedChartState;
 import org.eclipse.birt.chart.factory.Generator;
 import org.eclipse.birt.chart.model.Chart;
-import org.eclipse.birt.chart.model.ChartWithAxes;
 import org.eclipse.birt.chart.model.ChartWithoutAxes;
 import org.eclipse.birt.chart.model.attribute.Anchor;
 import org.eclipse.birt.chart.model.attribute.AxisType;
@@ -39,7 +36,6 @@ import org.eclipse.birt.chart.model.attribute.ChartDimension;
 import org.eclipse.birt.chart.model.attribute.FontDefinition;
 import org.eclipse.birt.chart.model.attribute.LineAttributes;
 import org.eclipse.birt.chart.model.attribute.LineStyle;
-import org.eclipse.birt.chart.model.attribute.NumberFormatSpecifier;
 import org.eclipse.birt.chart.model.attribute.TickStyle;
 import org.eclipse.birt.chart.model.attribute.impl.BoundsImpl;
 import org.eclipse.birt.chart.model.attribute.impl.ColorDefinitionImpl;
@@ -72,16 +68,6 @@ import org.eclipse.birt.chart.model.type.impl.AreaSeriesImpl;
 import org.eclipse.birt.chart.model.type.impl.PieSeriesImpl;
 import org.eclipse.birt.core.framework.PlatformConfig;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.emf.common.notify.Adapter;
-import org.eclipse.emf.common.notify.Notification;
-import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.common.util.TreeIterator;
-import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EOperation;
-import org.eclipse.emf.ecore.EReference;
-import org.eclipse.emf.ecore.EStructuralFeature;
-import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.PaintEvent;
@@ -92,7 +78,6 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 
 import com.ibm.icu.util.Calendar;
-import com.ibm.icu.util.ULocale;
 
 /**
  * 
@@ -139,12 +124,13 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 	 * @param values
 	 *            Values of each category in the pie chart Constructs a pie
 	 *            chart viewer composite for given categories and values
+	 * @param maxValue 
 	 */
-	public ChartViewerComposite(Composite parent, int style, Calendar[] categories, Double[] values, String unit, String timestampFormat) {
+	public ChartViewerComposite(Composite parent, int style, Calendar[] categories, Double[] values, String unit, String timestampFormat, double maxValue) {
 		super(parent, style);
 		init();
 
-		createSingleAreaChart(categories, values, unit, timestampFormat);
+		createSingleAreaChart(categories, values, unit, timestampFormat, maxValue);
 		addPaintListener(this);
 	}
 
@@ -170,17 +156,18 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 		});
 	}
 
-	private void createSingleAreaChart(Calendar[] timestamps, Double[] values, String unit, String timestampFormat) {
-		createAreaChart(timestamps, new Double[][] {values}, unit, timestampFormat);
+	private void createSingleAreaChart(Calendar[] timestamps, Double[] values, String unit, String timestampFormat, double maxValue) {
+		createAreaChart(timestamps, new Double[][] {values}, unit, timestampFormat, maxValue);
 	}
 
 	/**
 	 * Creates a line chart model as a reference implementation
+	 * @param maxValue 
 	 * 
 	 * @return An instance of the simulated runtime chart model (containing
 	 *         filled datasets)
 	 */
-	private final void createAreaChart(Calendar[] timestamps, Double[][] values, final String unit, final String timestampFormat) {
+	private final void createAreaChart(Calendar[] timestamps, Double[][] values, final String unit, final String timestampFormat, double maxValue) {
 		chart = ChartWithAxesImpl.create();
 		// Plot
 		chart.getBlock().setBackground(ColorDefinitionImpl.WHITE());
@@ -206,12 +193,12 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 		lg.getOutline( ).setVisible( false );
 		lg.setAnchor( Anchor.NORTH_LITERAL );
 
-		updateDataSet(timestamps, values, unit, timestampFormat);
+		updateDataSet(timestamps, values, unit, timestampFormat, maxValue);
 	}
 
-	private void updateDataSet(Calendar[] timestamps, Double[][] values, final String unit, final String timestampFormat) {
+	private void updateDataSet(Calendar[] timestamps, Double[][] values, final String unit, final String timestampFormat, double maxValue) {
 		Axis xAxisPrimary = setupXAxis(timestamps, timestampFormat);
-		Axis yAxisPrimary = setupYAxis(unit, xAxisPrimary);
+		Axis yAxisPrimary = setupYAxis(unit, xAxisPrimary, maxValue);
 		configureXSeries(timestamps, xAxisPrimary);
 		configureYSeries(values, yAxisPrimary);
 	}
@@ -253,9 +240,11 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 		sdX.getSeries().add(seCategory);
 	}
 
-	private Axis setupYAxis(final String unit, Axis xAxisPrimary) {
+	private Axis setupYAxis(final String unit, Axis xAxisPrimary, double maxValue) {
 		Axis yAxisPrimary = ((ChartWithAxesImpl)chart).getPrimaryOrthogonalAxis(xAxisPrimary);
-		yAxisPrimary.getScale().setMax(NumberDataElementImpl.create(100));
+		if(maxValue > 0) {
+			yAxisPrimary.getScale().setMax(NumberDataElementImpl.create(maxValue));
+		}
 		yAxisPrimary.getScale().setMin(NumberDataElementImpl.create(0));
 		yAxisPrimary.setGapWidth(0);
 		yAxisPrimary.getScale().setStep(20);
@@ -396,26 +385,26 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 		}
 	}
 	
-	public void chartRefresh(Calendar[] timestamps, Double[][] values, String unit, String timestampFormat)
-	{
-		if ( !isDisposed( ) )
-		{
-			final Generator gr = Generator.instance( );
-			updateDataSet( timestamps, values, unit, timestampFormat);
-
-			// Refresh
-			try
-			{
-				gr.refresh( generatedChartState );
-			}
-			catch ( ChartException ex )
-			{
-				// TODO: log the exception
-				ex.printStackTrace( );
-			}
-			redraw( );
-		}
-	}
+//	public void chartRefresh(Calendar[] timestamps, Double[][] values, String unit, String timestampFormat)
+//	{
+//		if ( !isDisposed( ) )
+//		{
+//			final Generator gr = Generator.instance( );
+//			updateDataSet( timestamps, values, unit, timestampFormat);
+//
+//			// Refresh
+//			try
+//			{
+//				gr.refresh( generatedChartState );
+//			}
+//			catch ( ChartException ex )
+//			{
+//				// TODO: log the exception
+//				ex.printStackTrace( );
+//			}
+//			redraw( );
+//		}
+//	}
 
 	/*
 	 * (non-Javadoc)
