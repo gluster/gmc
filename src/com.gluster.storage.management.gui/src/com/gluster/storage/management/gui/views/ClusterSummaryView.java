@@ -47,6 +47,8 @@ import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Cluster;
+import com.gluster.storage.management.core.model.ClusterListener;
+import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
@@ -74,7 +76,11 @@ public class ClusterSummaryView extends ViewPart {
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	private ScrolledForm form;
 	private Cluster cluster;
+	private Composite cpuChartSection;
+	private Composite networkChartSection;
 	private GlusterDataModel model = GlusterDataModelManager.getInstance().getModel();
+	private ClusterListener clusterListener;
+	private static final IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
 	private static final int CHART_WIDTH = 350;
 
 	/*
@@ -89,6 +95,28 @@ public class ClusterSummaryView extends ViewPart {
 		}
 		setPartName("Summary");
 		createSections(parent);
+		
+		clusterListener = new DefaultClusterListener() {
+			@Override
+			public void aggregatedStatsChanged() {
+				super.aggregatedStatsChanged();
+				refreshCharts();
+			}
+		};
+		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
+	}
+	
+	@Override
+	public void dispose() {
+		super.dispose();
+		GlusterDataModelManager.getInstance().removeClusterListener(clusterListener);
+	}
+	
+	private void refreshCharts() {
+		String cpuStatsPeriod = preferenceStore.getString(PreferenceConstants.P_CPU_CHART_PERIOD);
+		String networkStatsPeriod = preferenceStore.getString(PreferenceConstants.P_NETWORK_CHART_PERIOD);
+		refreshChartSection(cpuChartSection, cluster.getAggregatedCpuStats(), cpuStatsPeriod, "%", 100, 4, new CpuChartPeriodLinkListener(cpuStatsPeriod));
+		refreshChartSection(networkChartSection, cluster.getAggregatedNetworkStats(), networkStatsPeriod, "KiB/s", -1, 4, new NetworkChartPeriodLinkListener(networkStatsPeriod));
 	}
 
 	private int getServerCountByStatus(Cluster cluster, SERVER_STATUS status) {
@@ -145,6 +173,7 @@ public class ClusterSummaryView extends ViewPart {
 		protected String statsPeriod;
 		protected String unit;
 		protected int columnCount;
+		protected double maxValue;
 
 		public String getStatsPeriod() {
 			return this.statsPeriod;
@@ -154,10 +183,11 @@ public class ClusterSummaryView extends ViewPart {
 			this.statsPeriod = statsPeriod;
 		}
 		
-		public ChartPeriodLinkListener(String statsPeriod, String unit, int columnCount) {
+		public ChartPeriodLinkListener(String statsPeriod, String unit, double maxValue, int columnCount) {
 			this.statsPeriod = statsPeriod;
 			this.unit = unit;
 			this.columnCount = columnCount;
+			this.maxValue = maxValue;
 		}
 		
 		@Override
@@ -165,16 +195,8 @@ public class ClusterSummaryView extends ViewPart {
 			super.linkActivated(e);
 			//GlusterDataModelManager.getInstance().initializeAlerts(cluster);
 			Composite section = ((Hyperlink)e.getSource()).getParent().getParent();
-			for(Control control : section.getChildren()) {
-				control.dispose();
-			}
-			List<Calendar> timestamps = new ArrayList<Calendar>();
-			List<Double> data = new ArrayList<Double>();
 			ServerStats stats = fetchStats();
-			extractChartData(stats, timestamps, data, 2);
-			createAreaChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]), unit, getTimestampFormatForPeriod(statsPeriod));
-			createChartLinks(section, columnCount, this);
-			section.layout();
+			refreshChartSection(section, stats, statsPeriod, unit, maxValue, columnCount, this);
 		}
 		
 		public abstract ChartPeriodLinkListener getInstance(String statsPeriod);
@@ -187,20 +209,22 @@ public class ClusterSummaryView extends ViewPart {
 			super(statsPeriod);
 		}
 		
-		private CpuChartPeriodLinkListener(String statsPeriod, String unit, int columnCount) {
-			super(statsPeriod, unit, columnCount);
+		private CpuChartPeriodLinkListener(String statsPeriod, String unit, double maxValue, int columnCount) {
+			super(statsPeriod, unit, maxValue, columnCount);
 		}
 
 		@Override
 		protected ServerStats fetchStats() {
 			IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
 			preferenceStore.setValue(PreferenceConstants.P_CPU_CHART_PERIOD, statsPeriod);
-			return new GlusterServersClient().getAggregatedCpuStats(statsPeriod);
+			ServerStats stats = new GlusterServersClient().getAggregatedCpuStats(statsPeriod);
+			cluster.setAggregatedCpuStats(stats);
+			return stats;
 		}
 
 		@Override
 		public ChartPeriodLinkListener getInstance(String statsPeriod) {
-			return new CpuChartPeriodLinkListener(statsPeriod, "%", 4);
+			return new CpuChartPeriodLinkListener(statsPeriod, "%", 100, 4);
 		}
 	}
 	
@@ -209,20 +233,22 @@ public class ClusterSummaryView extends ViewPart {
 			super(statsPeriod);
 		}
 		
-		private NetworkChartPeriodLinkListener(String statsPeriod, String unit, int columnCount) {
-			super(statsPeriod, unit, columnCount);
+		private NetworkChartPeriodLinkListener(String statsPeriod, String unit, double maxValue, int columnCount) {
+			super(statsPeriod, unit, maxValue, columnCount);
 		}
 
 		@Override
 		protected ServerStats fetchStats() {
 			IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
 			preferenceStore.setValue(PreferenceConstants.P_NETWORK_CHART_PERIOD, statsPeriod);
-			return new GlusterServersClient().getAggregatedNetworkStats(statsPeriod);
+			ServerStats stats = new GlusterServersClient().getAggregatedNetworkStats(statsPeriod);
+			cluster.setAggregatedNetworkStats(stats);
+			return stats;
 		}
 
 		@Override
 		public ChartPeriodLinkListener getInstance(String statsPeriod) {
-			return new NetworkChartPeriodLinkListener(statsPeriod, "KiB/s", 4);
+			return new NetworkChartPeriodLinkListener(statsPeriod, "KiB/s", -1d, 4);
 		}
 	}
 
@@ -253,8 +279,8 @@ public class ClusterSummaryView extends ViewPart {
 		}
 	}
 
-	private ChartViewerComposite createAreaChart(Composite section, Calendar timestamps[], Double values[], String unit, String timestampFormat) {
-		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, timestamps, values, unit, timestampFormat);
+	private ChartViewerComposite createAreaChart(Composite section, Calendar timestamps[], Double values[], String unit, String timestampFormat, double maxValue) {
+		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, timestamps, values, unit, timestampFormat, maxValue);
 		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
 		data.widthHint = CHART_WIDTH;
 		data.heightHint = 250;
@@ -345,7 +371,7 @@ public class ClusterSummaryView extends ViewPart {
 		parent.layout(); // IMP: lays out the form properly
 	}
 
-	private void createAreaChartSection(ServerStats stats, String sectionTitle, int dataColumnIndex, String unit, String timestampFormat, ChartPeriodLinkListener listener) {
+	private Composite createAreaChartSection(ServerStats stats, String sectionTitle, int dataColumnIndex, String unit, String timestampFormat, ChartPeriodLinkListener listener, double maxValue) {
 		Composite section = guiHelper.createSection(form, toolkit, sectionTitle, null, 1, false);
 		
 		List<Calendar> timestamps = new ArrayList<Calendar>();
@@ -353,17 +379,22 @@ public class ClusterSummaryView extends ViewPart {
 		
 		if (cluster.getServers().size() == 0) {
 			toolkit.createLabel(section, "This section will be populated after at least\none server is added to the storage cloud.");
-			return;
+			return null;
+		}
+		
+		if(stats == null) {
+			toolkit.createLabel(section, "Server statistics not available. Try after some time!");
+			return null;
 		}
 		
 		extractChartData(stats, timestamps, data, dataColumnIndex);
 		
 		if(timestamps.size() == 0) {
 			toolkit.createLabel(section, "Server statistics not available!\n Check if all services are running properly on the cluster servers.");
-			return;
+			return null;
 		}
 
-		createAreaChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]), unit, timestampFormat);
+		createAreaChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]), unit, timestampFormat, maxValue);
 
 //		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
 //				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
@@ -375,6 +406,7 @@ public class ClusterSummaryView extends ViewPart {
 //		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 89.31d, 57.39d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 21.43d, 16.45d, 14.86d, 15.27d };
 //		createLineChart(section, timestamps, values, "%");
 		createChartLinks(section, 4, listener);
+		return section;
 	}
 
 	private void createCPUUsageSection() {
@@ -382,7 +414,7 @@ public class ClusterSummaryView extends ViewPart {
 		String cpuStatsPeriod = preferenceStore.getString(PreferenceConstants.P_CPU_CHART_PERIOD);
 		
 		// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
-		createAreaChartSection(cluster.getAggregatedCpuStats(), "CPU Usage (Aggregated)", 2, "%", getTimestampFormatForPeriod(cpuStatsPeriod), new CpuChartPeriodLinkListener(cpuStatsPeriod));
+		cpuChartSection = createAreaChartSection(cluster.getAggregatedCpuStats(), "CPU Usage (Aggregated)", 2, "%", getTimestampFormatForPeriod(cpuStatsPeriod), new CpuChartPeriodLinkListener(cpuStatsPeriod), 100);
 	}
 
 	private String getTimestampFormatForPeriod(String statsPeriod) {
@@ -410,7 +442,7 @@ public class ClusterSummaryView extends ViewPart {
 		String networkStatsPeriod = preferenceStore.getString(PreferenceConstants.P_NETWORK_CHART_PERIOD);
 		
 		// in case of network usage, there are three elements in usage data: received, transmitted and total. we use total.
-		createAreaChartSection(cluster.getAggregatedNetworkStats(), "Network Usage (Aggregated)", 2, "KiB/s", getTimestampFormatForPeriod(networkStatsPeriod), new NetworkChartPeriodLinkListener(networkStatsPeriod));
+		networkChartSection = createAreaChartSection(cluster.getAggregatedNetworkStats(), "Network Usage (Aggregated)", 2, "KiB/s", getTimestampFormatForPeriod(networkStatsPeriod), new NetworkChartPeriodLinkListener(networkStatsPeriod), -1);
 	}
 
 	private void createRunningTasksSection() {
@@ -452,5 +484,19 @@ public class ClusterSummaryView extends ViewPart {
 		if (form != null) {
 			form.setFocus();
 		}
+	}
+
+	private void refreshChartSection(Composite section, ServerStats stats, String statsPeriod, String unit, double maxValue, int columnCount, ChartPeriodLinkListener linkListener) {
+		for(Control control : section.getChildren()) {
+			if(! control.isDisposed()) {
+				control.dispose();
+			}
+		}
+		List<Calendar> timestamps = new ArrayList<Calendar>();
+		List<Double> data = new ArrayList<Double>();
+		extractChartData(stats, timestamps, data, 2);
+		createAreaChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]), unit, getTimestampFormatForPeriod(statsPeriod), maxValue);
+		createChartLinks(section, columnCount, linkListener);
+		section.layout();
 	}
 }

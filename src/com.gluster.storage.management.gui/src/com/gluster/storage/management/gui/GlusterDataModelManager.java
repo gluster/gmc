@@ -201,8 +201,17 @@ public class GlusterDataModelManager {
 		updateDiscoveredServers(model);
 		updateTasks(model);
 		updateAlerts(model);
+		updateServerStatistics(model);
 	}
 	
+	private void updateServerStatistics(GlusterDataModel newModel) {
+		model.getCluster().setAggregatedCpuStats(newModel.getCluster().getAggregatedCpuStats());
+		model.getCluster().setAggregatedNetworkStats(newModel.getCluster().getAggregatedNetworkStats());
+		for(ClusterListener listener : listeners) {
+			listener.aggregatedStatsChanged();
+		}
+	}
+
 	private void updateAlerts(GlusterDataModel newModel) {
 		List<Alert> oldAlerts = model.getCluster().getAlerts();
 		List<Alert> newAlerts = newModel.getCluster().getAlerts();
