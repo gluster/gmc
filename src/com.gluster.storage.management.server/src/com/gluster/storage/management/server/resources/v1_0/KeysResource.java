@@ -37,7 +37,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
 
 import org.apache.log4j.Logger;
 
@@ -60,15 +59,6 @@ public class KeysResource extends AbstractResource {
 		byte[] data = FileUtil.readFileAsByteArray(archiveFile);
 		archiveFile.delete();
 		return streamingOutputResponse(createStreamingOutput(data));
-	}
-
-	private StreamingOutput createStreamingOutput(final byte[] data) {
-		return new StreamingOutput() {
-			@Override
-			public void write(OutputStream output) throws IOException {
-				output.write(data);
-			}
-		};
 	}
 	
 	private String createSskKeyZipFile() {

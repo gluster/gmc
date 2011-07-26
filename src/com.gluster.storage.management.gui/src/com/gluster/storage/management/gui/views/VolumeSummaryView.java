@@ -96,9 +96,7 @@ public class VolumeSummaryView extends ViewPart {
 			public void volumeChanged(Volume volume, Event event) {
 				updateVolumeStatusLabel();
 				populateAccessControlText();
-				Boolean isNFSExported = (volume.getOptions().getOption(Volume.OPTION_NFS_DISABLE).getValue()
-						.equals(GlusterConstants.OFF) ? true : false);
-				changeNFSStatus(isNFSExported);
+				changeNFSStatus(volume.isNfsEnabled());
 				toolbarManager.updateToolbar(volume);
 			}
 		};
@@ -395,10 +393,7 @@ public class VolumeSummaryView extends ViewPart {
 
 		createCheckbox(nasProtocolsComposite, "Gluster", true, false);
 		
-		boolean isNFSEnabled = (volume.getOptions().getOption(Volume.OPTION_NFS_DISABLE).getValue()
-				.equalsIgnoreCase(GlusterConstants.ON)) ? false : true;
-
-		nfsCheckBox = createCheckbox(nasProtocolsComposite, "NFS", isNFSEnabled, true);
+		nfsCheckBox = createCheckbox(nasProtocolsComposite, "NFS", volume.isNfsEnabled(), true);
 		
 		nfsCheckBox.addSelectionListener(new SelectionAdapter() {
 			@Override
