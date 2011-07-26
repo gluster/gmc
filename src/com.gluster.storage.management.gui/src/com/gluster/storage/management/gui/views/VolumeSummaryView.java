@@ -78,6 +78,9 @@ public class VolumeSummaryView extends ViewPart {
 	private String nfsMountInfo;
 	private Label nfsLabel;
 	private String nfs;
+	
+	private Label numberOfBricks;
+	private Label totalDiskSpace;
 
 	@Override
 	public void createPartControl(Composite parent) {
@@ -97,6 +100,7 @@ public class VolumeSummaryView extends ViewPart {
 				updateVolumeStatusLabel();
 				populateAccessControlText();
 				changeNFSStatus(volume.isNfsEnabled());
+				updateBrickChanges(volume);
 				toolbarManager.updateToolbar(volume);
 			}
 		};
@@ -420,6 +424,12 @@ public class VolumeSummaryView extends ViewPart {
 		nfsLabel.setVisible(isNFSExported);
 		nfsCheckBox.setSelection(isNFSExported);
 	}
+	
+	
+	private void updateBrickChanges(Volume volume) {
+		numberOfBricks.setText("" + volume.getNumOfBricks());
+		totalDiskSpace.setText("" + NumberUtil.formatNumber((getTotalDiskSpace() / 1024)));
+	}
 
 //	private void createChangeLinkForNASProtocol(Composite section, final Button nfsCheckBox) {
 //		final Hyperlink nasChangeLink = toolkit.createHyperlink(section, "change", SWT.NONE);
@@ -489,7 +499,7 @@ public class VolumeSummaryView extends ViewPart {
 	private void createDiskSpaceField(Composite section) {
 		Label diskSpaceLabel = toolkit.createLabel(section, "Total Disk Space (GB): ", SWT.NONE);
 		diskSpaceLabel.setToolTipText("<b>bold</b>normal");
-		toolkit.createLabel(section, "" + NumberUtil.formatNumber((getTotalDiskSpace() / 1024)), SWT.NONE);
+		totalDiskSpace = toolkit.createLabel(section, "" + NumberUtil.formatNumber((getTotalDiskSpace() / 1024)), SWT.NONE);
 		toolkit.createLabel(section, "", SWT.NONE); // dummy
 	}
 
@@ -520,7 +530,7 @@ public class VolumeSummaryView extends ViewPart {
 
 	private void createNumOfBricksField(Composite section) {
 		toolkit.createLabel(section, "Number of Bricks: ", SWT.NONE);
-		toolkit.createLabel(section, "" + volume.getNumOfBricks(), SWT.NONE);
+		numberOfBricks = toolkit.createLabel(section, "" + volume.getNumOfBricks(), SWT.NONE);
 		toolkit.createLabel(section, "", SWT.NONE); // dummy
 	}
 
