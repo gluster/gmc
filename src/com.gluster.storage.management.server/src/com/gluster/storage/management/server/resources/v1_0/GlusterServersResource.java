@@ -528,7 +528,7 @@ public class GlusterServersResource extends AbstractServersResource {
 			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
 
-		if (cluster.getServers().size() == 0) {
+		if (cluster.getServers().isEmpty()) {
 			// cluster is empty. return empty stats.
 			return okResponse(new ServerStats(), mediaType);
 		}
