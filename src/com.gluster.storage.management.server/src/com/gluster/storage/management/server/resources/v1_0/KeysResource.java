@@ -35,10 +35,11 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
+
+import org.apache.log4j.Logger;
 
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.utils.FileUtil;
@@ -49,31 +50,27 @@ import com.sun.jersey.multipart.FormDataParam;
 
 @Path(RESOURCE_PATH_KEYS)
 public class KeysResource extends AbstractResource {
-	ProcessUtil processUtil = new ProcessUtil();
+	private static final Logger logger = Logger.getLogger(KeysResource.class);
+	private ProcessUtil processUtil = new ProcessUtil();
 
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	public Response exportSshkeys() {
-		try {
-			StreamingOutput output = new StreamingOutput() {
-
-				@Override
-				public void write(OutputStream output) throws IOException, WebApplicationException {
-					try {
-						File archiveFile = new File(createSskKeyZipFile());
-						output.write(FileUtil.readFileAsByteArray(archiveFile));
-						archiveFile.delete();
-					} catch (Exception e) {
-						output.write(("Exception while archiving SSH Key files : " + e.getMessage()).getBytes());
-					}
-				}
-			};
-			return streamingOutputResponse(output);
-		} catch (Exception e) {
-			return errorResponse("Exporting SSH keys failed! [" + e.getMessage() + "]");
-		}
+		File archiveFile = new File(createSskKeyZipFile());
+		byte[] data = FileUtil.readFileAsByteArray(archiveFile);
+		archiveFile.delete();
+		return streamingOutputResponse(createStreamingOutput(data));
 	}
 
+	private StreamingOutput createStreamingOutput(final byte[] data) {
+		return new StreamingOutput() {
+			@Override
+			public void write(OutputStream output) throws IOException {
+				output.write(data);
+			}
+		};
+	}
+	
 	private String createSskKeyZipFile() {
 		String targetDir = System.getProperty("java.io.tmpdir");
 		String zipFile = targetDir + "ssh-keys.tar";
@@ -108,8 +105,11 @@ public class KeysResource extends AbstractResource {
 		}
 
 		// To remove the copied key files
-		processUtil.executeCommand("rm", "-f", targetPubKeyFile, targetPubKeyFile); // Ignore the errors if any 
-
+		try {
+			processUtil.executeCommand("rm", "-f", targetPemFile, targetPubKeyFile); // Ignore the errors if any
+		} catch (Exception e) {
+			logger.warn(e.toString());
+		}
 		return zipFile;
 	}
 
@@ -118,36 +118,32 @@ public class KeysResource extends AbstractResource {
 	public Response importSshKeys(@FormDataParam("file") InputStream uploadedInputStream) {
 		File uploadedFile = new File(System.getProperty("java.io.tmpdir") + File.separator + "keys.tar");
 		String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
-		try {
-			writeToFile(uploadedInputStream, uploadedFile.getAbsolutePath());
 
-			// To backup existing SSH pem and public keys
-			if (SshUtil.PEM_FILE.isFile()) {
-				if (!SshUtil.PEM_FILE.renameTo(new File(SshUtil.PEM_FILE.getAbsolutePath() + "-" + timestamp))) {
-					throw new GlusterRuntimeException("Unable to backup pem key!");
-				}
-			}
+		writeToFile(uploadedInputStream, uploadedFile.getAbsolutePath());
 
-			if (SshUtil.PUBLIC_KEY_FILE.isFile()) {
-				if (!SshUtil.PUBLIC_KEY_FILE.renameTo(new File(SshUtil.PUBLIC_KEY_FILE.getAbsolutePath() + "-"
-						+ timestamp))) {
-					throw new GlusterRuntimeException("Unable to backup public key!");
-				}
+		// To backup existing SSH pem and public keys, if exist.
+		if (SshUtil.PEM_FILE.isFile()) {
+			if (!SshUtil.PEM_FILE.renameTo(new File(SshUtil.PEM_FILE.getAbsolutePath() + "-" + timestamp))) {
+				throw new GlusterRuntimeException("Unable to backup pem key!");
 			}
-			// Extract SSH pem and public key files.
-			ProcessResult output = processUtil.executeCommand("tar", "xvf", uploadedFile.getName(), "-C",
-					SshUtil.SSH_AUTHORIZED_KEYS_DIR);
-			uploadedFile.delete();
-			if (output.isSuccess()) {
-				return createdResponse("SSH Key imported successfully");
-			} else {
-				return errorResponse(output.getOutput());
-			}
-		} catch (Exception e) {
-			return errorResponse(e.getMessage());
 		}
+
+		if (SshUtil.PUBLIC_KEY_FILE.isFile()) {
+			if (!SshUtil.PUBLIC_KEY_FILE
+					.renameTo(new File(SshUtil.PUBLIC_KEY_FILE.getAbsolutePath() + "-" + timestamp))) {
+				throw new GlusterRuntimeException("Unable to backup public key!");
+			}
+		}
+		// Extract SSH pem and public key files.
+		ProcessResult output = processUtil.executeCommand("tar", "xvf", uploadedFile.getName(), "-C",
+				SshUtil.SSH_AUTHORIZED_KEYS_DIR);
+		uploadedFile.delete();
+		if (!output.isSuccess()) {
+			throw new GlusterRuntimeException(output.getOutput());
+		}
+		return createdResponse("SSH Key imported successfully");
 	}
-	
+
 	// save uploaded file to the file (with path)
 	private void writeToFile(InputStream inputStream, String toFile) {
 		try {

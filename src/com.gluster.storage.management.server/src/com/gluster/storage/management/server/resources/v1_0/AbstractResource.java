@@ -19,20 +19,13 @@
 package com.gluster.storage.management.server.resources.v1_0;
 
 import java.net.URI;
-import java.util.ArrayList;
 
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
-
-import com.gluster.storage.management.core.constants.RESTConstants;
-import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
-import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.response.VolumeListResponse;
 
 /**
  *
