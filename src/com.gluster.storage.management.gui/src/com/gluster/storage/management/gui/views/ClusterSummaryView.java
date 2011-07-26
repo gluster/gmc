@@ -345,24 +345,25 @@ public class ClusterSummaryView extends ViewPart {
 		parent.layout(); // IMP: lays out the form properly
 	}
 
-	private ChartViewerComposite createAreaChartSection(ServerStats stats, String sectionTitle, int dataColumnIndex, String unit, String timestampFormat, ChartPeriodLinkListener listener) {
+	private void createAreaChartSection(ServerStats stats, String sectionTitle, int dataColumnIndex, String unit, String timestampFormat, ChartPeriodLinkListener listener) {
 		Composite section = guiHelper.createSection(form, toolkit, sectionTitle, null, 1, false);
 		
 		List<Calendar> timestamps = new ArrayList<Calendar>();
 		List<Double> data = new ArrayList<Double>();
+		
+		if (cluster.getServers().size() == 0) {
+			toolkit.createLabel(section, "This section will be populated after at least\none server is added to the storage cloud.");
+			return;
+		}
+		
 		extractChartData(stats, timestamps, data, dataColumnIndex);
 		
 		if(timestamps.size() == 0) {
-			toolkit.createLabel(section, "Server statistics not available!\n Please check if all services are running properly on the cluster servers.");
-			return null;
+			toolkit.createLabel(section, "Server statistics not available!\n Check if all services are running properly on the cluster servers.");
+			return;
 		}
 
-		if (cluster.getServers().size() == 0) {
-			toolkit.createLabel(section, "This section will be populated after at least\none server is added to the storage cloud.");
-			return null;
-		}
-		
-		ChartViewerComposite chart = createAreaChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]), unit, timestampFormat);
+		createAreaChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]), unit, timestampFormat);
 
 //		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
 //				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
@@ -374,7 +375,6 @@ public class ClusterSummaryView extends ViewPart {
 //		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 89.31d, 57.39d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 21.43d, 16.45d, 14.86d, 15.27d };
 //		createLineChart(section, timestamps, values, "%");
 		createChartLinks(section, 4, listener);
-		return chart;
 	}
 
 	private void createCPUUsageSection() {
