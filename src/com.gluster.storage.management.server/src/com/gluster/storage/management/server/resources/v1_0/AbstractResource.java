@@ -18,21 +18,16 @@
  *******************************************************************************/
 package com.gluster.storage.management.server.resources.v1_0;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
-import java.util.ArrayList;
 
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
-
-import com.gluster.storage.management.core.constants.RESTConstants;
-import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
-import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.response.VolumeListResponse;
 
 /**
  *
@@ -169,5 +164,14 @@ public class AbstractResource {
 	 */
 	protected Response streamingOutputResponse(StreamingOutput output) {
 		return Response.ok(output).type(MediaType.APPLICATION_OCTET_STREAM).build();
+	}
+	
+	protected StreamingOutput createStreamingOutput(final byte[] data) {
+		return new StreamingOutput() {
+			@Override
+			public void write(OutputStream output) throws IOException {
+				output.write(data);
+			}
+		};
 	}
 }
