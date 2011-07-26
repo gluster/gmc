@@ -51,7 +51,7 @@ public abstract class AbstractStatsFactory implements StatsFactory {
 				return stats;
 			} catch(Exception e) {
 				// server might be offline - continue with next one
-				logger.warn("Couldn't fetch CPU stats from server [" + serverName + "]!", e);
+				logger.warn("Couldn't fetch stats from server [" + serverName + "]!", e);
 				if(removeServerOnError) {
 					serverNames.remove(serverName);
 				}
