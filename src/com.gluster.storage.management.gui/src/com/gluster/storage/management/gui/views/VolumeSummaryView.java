@@ -351,7 +351,6 @@ public class VolumeSummaryView extends ViewPart {
 				}
 			}
 		});
-		GlusterDataModelManager.getInstance().addClusterListener(volumeChangedListener);
 		guiHelper.clearStatusMessage();
 		parent.update();
 	}
