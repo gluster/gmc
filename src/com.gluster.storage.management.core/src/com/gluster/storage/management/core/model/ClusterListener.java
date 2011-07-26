@@ -52,4 +52,6 @@ public interface ClusterListener {
 	public void alertRemoved(Alert alert);
 	
 	public void alertUpdated(Alert alert);
+	
+	public void aggregatedStatsChanged();
 }

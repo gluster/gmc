@@ -27,6 +27,7 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.NetworkInterface;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.ServerStats;
+import com.gluster.storage.management.core.model.ServerStatsRow;
 
 /**
  *
@@ -101,5 +102,22 @@ public class NetworkStatsFactory extends AbstractStatsFactory {
 		}
 		
 		averageAggregatedStats(aggregatedStats, dataCount);
+	}
+	
+	@Override
+	public ServerStats fetchStats(String serverName, String period, String... args) {
+		ServerStats stats = super.fetchStats(serverName, period, args);
+
+		// the data returned by rrd contains "bytes" transferred in the given time step. Update the stats object to represent KiB/s
+		int step = stats.getMetadata().getStep();
+		for(ServerStatsRow row : stats.getRows()) {
+			List<Double> data = row.getUsageData();
+			for (int i = 0; i < data.size(); i++) {
+				Double val = data.get(i);
+				data.set(i, val / 1024 / step);
+			}
+		}
+		
+		return stats;
 	}
 }
