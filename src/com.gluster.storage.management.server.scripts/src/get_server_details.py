@@ -30,7 +30,7 @@ from optparse import OptionParser
 def getServerDetails(listall):
     serverName = socket.gethostname()
     meminfo = getMeminfo()
-    cpu = 100 * float(getLoadavg())
+    cpu = getCpuUsageAvg()
     nameServerList, domain, searchDomain = readResolvConfFile()
     if not domain:
         domain = [None]
