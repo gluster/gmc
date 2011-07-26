@@ -423,6 +423,7 @@ public class VolumeSummaryView extends ViewPart {
 	private void changeNFSStatus(Boolean isNFSExported) {
 		glusterNfsMountText.setVisible(isNFSExported);
 		nfsLabel.setVisible(isNFSExported);
+		nfsCheckBox.setSelection(isNFSExported);
 	}
 
 //	private void createChangeLinkForNASProtocol(Composite section, final Button nfsCheckBox) {

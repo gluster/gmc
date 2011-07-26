@@ -672,6 +672,7 @@ public class GlusterDataModelManager {
 		// add it to discovered servers list
 		Server removedServer = new Server();
 		removedServer.copyFrom(server);
+		removedServer.addDisks(server.getDisks());
 		addDiscoveredServer(removedServer);
 	}
 
