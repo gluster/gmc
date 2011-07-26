@@ -386,41 +386,36 @@ def getCpuUsage():
         result[fields[0]] = tuple(data)
     return result
 
+def _getCpuStatList():
+    try:
+        fp = open("/proc/stat")
+        cpuStatList = map(float, fp.readline().split()[1:])
+        fp.close()
+        return cpuStatList
+    except IOError, e:
+        Utils.log("Failed to open /proc/stat: %s" % str(e))
+    return None
+
+def getCpuUsageAvg():
+    st1 = _getCpuStatList()
+    time.sleep(2)
+    st2 = _getCpuStatList()
+    if not (st1 and st2):
+        return None
+    delta = [st2[i] - st1[i] for i in range(len(st1))]
+    cpuPercent = sum(delta[:3]) / delta[3] * 100.0
+    return str('%.4f' % cpuPercent)
 
 def getLoadavg():
-    """-> 5-tuple containing the following numbers in order:
-    - 1-minute load average (float)
-    - 5-minute load average (float)
-    - 15-minute load average (float)
-    - Number of threads/processes currently executing (<= number of
-    CPUs) (int)
-    - Number of threads/processes that exist on the system (int)
-    - The PID of the most recently-created process on the system (int)
-    """
     try:
         loadavgstr = open('/proc/loadavg', 'r').readline().strip()
     except IOError:
         syslog.syslog(syslog.LOG_ERR, "failed to find cpu load")
         return None
 
-    data = loadavgstr.split()
-    avg1, avg5, avg15 = map(float, data[:3])
-    threads_and_procs_running, threads_and_procs_total = map(int,
-                                                             data[3].split('/'))
-    most_recent_pid = int(data[4])
-    ncpus = 1
-    final_avg = ""
-    if hasattr(os, "sysconf"):
-     if os.sysconf_names.has_key("SC_NPROCESSORS_ONLN"):
-         # Linux
-         ncpus = os.sysconf("SC_NPROCESSORS_ONLN")
-         if isinstance(ncpus, int) and ncpus > 0:
-             final_avg = "%.4f" % (1.0 * avg1 / ncpus)
-
-    # Future return everything when needed
-    # Commenting this for the time being
-    # avg5, avg15, threads_and_procs_running, threads_and_procs_total, most_recent_pid
-    return final_avg
+    data = map(float, loadavgstr.split()[1:])
+    # returns 1 minute load average
+    return data[0]
 
 
 def getInfinibandPortStatus():
