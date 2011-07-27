@@ -108,7 +108,7 @@ public class VolumesSummaryView extends ViewPart {
 			private void updateSummarySection() {
 				guiHelper.clearSection(summarySection);
 				populateSummarySection();
-				summarySection.layout();
+				summarySection.layout();	
 			}
 
 			@Override
@@ -116,7 +116,6 @@ public class VolumesSummaryView extends ViewPart {
 				super.alertsGenerated();
 				guiHelper.clearSection(alertsSection);
 				populateAlertSection();
-				alertsSection.layout();
 			}
 
 			@Override
@@ -140,7 +139,6 @@ public class VolumesSummaryView extends ViewPart {
 			private void updateTasksSection() {
 				guiHelper.clearSection(tasksSection);
 				populateTasks();
-				tasksSection.layout();
 			}
 		};
 		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
@@ -172,6 +170,8 @@ public class VolumesSummaryView extends ViewPart {
 				addAlertLabel(alertsSection, alert);
 			}
 		}
+		alertsSection.pack(true);
+		form.reflow(true);
 	}
 
 	private void addAlertLabel(Composite section, Alert alert) {
@@ -192,6 +192,8 @@ public class VolumesSummaryView extends ViewPart {
 			if (taskInfo.getType() == TASK_TYPE.BRICK_MIGRATE || taskInfo.getType() == TASK_TYPE.VOLUME_REBALANCE)
 				addTaskLabel(tasksSection, taskInfo);
 		}
+		tasksSection.pack(true);
+		form.reflow(true);
 	}
 
 	private void addTaskLabel(Composite section, TaskInfo taskInfo) {
