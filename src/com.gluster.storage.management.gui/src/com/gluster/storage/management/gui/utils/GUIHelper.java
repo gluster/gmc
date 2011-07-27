@@ -477,4 +477,16 @@ public class GUIHelper {
 	public String getDiskToolTip(Disk disk) {
 		return disk.getQualifiedName() + " - " + disk.getDescription();
 	}
+	
+	public void clearSection(Composite section) {
+		if (section.isDisposed()) {
+			return;
+		}
+		for(Control control : section.getChildren()) {
+			if(! control.isDisposed()) {
+				control.dispose();
+			}
+		}
+		section.layout(true);
+	}
 }

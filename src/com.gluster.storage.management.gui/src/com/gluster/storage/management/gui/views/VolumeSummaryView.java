@@ -14,9 +14,6 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.FillLayout;
@@ -47,9 +44,9 @@ import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Partition;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
-import com.gluster.storage.management.core.model.VolumeOption;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.core.utils.ValidationUtil;
@@ -81,6 +78,7 @@ public class VolumeSummaryView extends ViewPart {
 	
 	private Label numberOfBricks;
 	private Label totalDiskSpace;
+	private Composite alertsSection;
 
 	@Override
 	public void createPartControl(Composite parent) {
@@ -103,6 +101,14 @@ public class VolumeSummaryView extends ViewPart {
 				updateBrickChanges(volume);
 				toolbarManager.updateToolbar(volume);
 			}
+
+			@Override
+			public void alertsGenerated() {
+				super.alertsGenerated();
+				guiHelper.clearSection(alertsSection);
+				populateAlertSection();
+				alertsSection.layout();
+			}
 		};
 		GlusterDataModelManager.getInstance().addClusterListener(volumeChangedListener);
 	}
@@ -124,13 +130,17 @@ public class VolumeSummaryView extends ViewPart {
 	}
 
 	private void createVolumeAlertsSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Alerts", null, 1, false);
+		alertsSection = guiHelper.createSection(form, toolkit, "Alerts", null, 1, false);
+		populateAlertSection();
+	}
+	
+	private void populateAlertSection() {
 		List<Alert> alerts = GlusterDataModelManager.getInstance().getModel().getCluster().getAlerts();
 
 		for (int i = 0; i < alerts.size(); i++) {
 			if (alerts.get(i).getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT
 					&& alerts.get(i).getReference().split(":")[0].trim().equals(volume.getName())) {
-				addAlertLabel(section, alerts.get(i));
+				addAlertLabel(alertsSection, alerts.get(i));
 			}
 		}
 	}
@@ -156,9 +166,8 @@ public class VolumeSummaryView extends ViewPart {
 		String glusterFsMountInfo = "mount -t glusterfs " + firstOnlineServer + ":/" + volume.getName()
 				+ " <mount-point>";
 		nfsMountInfo = "mount -t nfs " + firstOnlineServer + ":/" + volume.getName() + " <mount-point>";
-		String info = "Server can be any server name in the storage cloud eg. <" + onlineServers + ">"; // TODO: if more
-																										// than 10
-																										// servers...
+		// TODO: if more than 10 servers...
+		String info = "Server can be any server name in the storage cloud eg. <" + onlineServers + ">"; 
 
 		Composite section = guiHelper.createSection(form, toolkit, "Mounting Information", null, 3, false);
 
