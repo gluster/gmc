@@ -18,12 +18,17 @@
 
 import os
 import sys
+import Globals
 import Utils
 import DiskUtils
 from optparse import OptionParser
 
 
 def main():
+    if Utils.runCommand("wget -q -O /dev/null %s" % Globals.AWS_WEB_SERVICE_URL) == 0:
+        sys.stderr.write("format device unsupported")
+        sys.exit(1)
+
     parser = OptionParser()
     parser.add_option("-t", "--type", action="store", type="string", dest="fstype")
     (options, args) = parser.parse_args()
@@ -39,7 +44,7 @@ def main():
 
     if DiskUtils.isDataDiskPartitionFormatted(device):
         sys.stderr.write("Device already formatted\n")
-        sys.exit(1)
+        sys.exit(2)
 
     if os.path.exists(deviceFormatStatusFile):
         Utils.log("format status file %s exists" % deviceFormatStatusFile)
@@ -49,10 +54,10 @@ def main():
             fp.close()
             if line.strip().upper() == "COMPLETED":
                 sys.stderr.write("Device already formatted\n")
-                sys.exit(1)
+                sys.exit(3)
             else:
                 sys.stderr.write("Device format already running\n")
-                sys.exit(2)
+                sys.exit(4)
         except IOError, e:
             Utils.log("failed to read format status file %s: %s" % (deviceFormatStatusFile, str(e)))
             sys.stderr.write("%s\n" % str(e))
@@ -61,7 +66,7 @@ def main():
     if os.path.exists(deviceFormatLockFile):
         Utils.log("lock file %s exists" % deviceFormatLockFile)
         sys.stderr.write("Device format already running\n")
-        sys.exit(2)
+        sys.exit(5)
 
     if options.fstype:
         command = ["gluster_provision_block_wrapper.py", "-t", "%s" % (options.fstype), "%s" % (device)]
@@ -72,7 +77,7 @@ def main():
         pid = os.fork()
     except OSError, e:
         Utils.log("failed to fork a child process: %s" % str(e))
-        sys.exit(1)
+        sys.exit(6)
     if pid == 0:
         os.execv("/usr/sbin/gluster_provision_block_wrapper.py", command)
     sys.exit(0)
