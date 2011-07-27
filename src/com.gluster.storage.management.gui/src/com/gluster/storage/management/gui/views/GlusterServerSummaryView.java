@@ -27,6 +27,8 @@ import org.apache.log4j.Logger;
 import org.eclipse.birt.chart.util.CDateTime;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.TableViewer;
@@ -56,6 +58,7 @@ import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.NetworkInterface;
+import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.ServerStats;
 import com.gluster.storage.management.core.model.ServerStatsRow;
@@ -79,7 +82,7 @@ public class GlusterServerSummaryView extends ViewPart {
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	private ScrolledForm form;
 	private GlusterServer server;
-	private ClusterListener serverChangedListener;
+	private ClusterListener clusterListener;
 	private static final int CHART_WIDTH = 350;
 	private static final int CHART_HEIGHT = 250;
 	private static final Logger logger = Logger.getLogger(GlusterServerSummaryView.class);
@@ -92,6 +95,11 @@ public class GlusterServerSummaryView extends ViewPart {
 	private static final String[] NETWORK_INTERFACE_TABLE_COLUMN_NAMES = { "Interface", "Model", "Speed", "IP Address",
 			"Netmask", "Gateway" };
 	private CoolGauge cpuGauge;
+	private IPropertyChangeListener propertyChangeListener;
+	private Composite cpuUsageSection;
+	private Composite networkUsageSection;
+	private Composite memoryUsageSection;
+	private static final ChartUtil chartUtil = ChartUtil.getInstance();
 
 	@Override
 	public void createPartControl(Composite parent) {
@@ -101,25 +109,88 @@ public class GlusterServerSummaryView extends ViewPart {
 		setPartName("Summary");
 		createSections(parent);
 		
-		final GlusterToolbarManager toolbarManager = new GlusterToolbarManager(getSite().getWorkbenchWindow());
-		// Refresh the navigation tree whenever there is a change to the data model
-		serverChangedListener = new DefaultClusterListener() {
+		createListeners();
+	}
+
+	private void createListeners() {
+		// Refresh the server details whenever the server has changed
+		createClusterListener();
+		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
+		
+		createPropertyChangeListener();
+		preferenceStore.addPropertyChangeListener(propertyChangeListener);
+	}
+
+	private void createPropertyChangeListener() {
+		propertyChangeListener = new IPropertyChangeListener() {
+			
 			@Override
-			public void serverChanged(GlusterServer server, Event event) {
-				updateServerDetails();
-				toolbarManager.updateToolbar(server);
+			public void propertyChange(PropertyChangeEvent event) {
+				String propertyName = event.getProperty();
+				if(propertyName.equals(PreferenceConstants.P_CPU_CHART_PERIOD)) {
+					refreshCpuChart();
+				} else if(propertyName.equals(PreferenceConstants.P_MEM_CHART_PERIOD)) {
+					refreshMemoryChart();
+				} else if(propertyName.equals(PreferenceConstants.P_NETWORK_CHART_PERIOD)) {
+					refreshNetworkChart();
+				}
 			}
 		};
-		GlusterDataModelManager.getInstance().addClusterListener(serverChangedListener);
+	}
+
+	private void createClusterListener() {
+		final GlusterToolbarManager toolbarManager = new GlusterToolbarManager(getSite().getWorkbenchWindow());
+		final GlusterServer thisServer = server;
+		clusterListener = new DefaultClusterListener() {
+			
+			@Override
+			public void serverChanged(GlusterServer server, Event event) {
+				if (event.getEventType() == EVENT_TYPE.GLUSTER_SERVER_CHANGED && server == thisServer) {
+					updateServerDetails();
+					toolbarManager.updateToolbar(server);
+					refreshCharts();
+				}
+			}
+		};
 	}
 	
+	private void refreshCharts() {
+		refreshCpuChart();
+		refreshMemoryChart();
+		refreshNetworkChart();
+	}
+
+	private void refreshNetworkChart() {
+		guiHelper.clearSection(networkUsageSection);
+		String statsPeriod = preferenceStore.getString(PreferenceConstants.P_NETWORK_CHART_PERIOD);
+		ServerStats stats = new GlusterServersClient().getNetworkStats(server.getName(), server.getNetworkInterfaces().get(0).getName(), statsPeriod);
+		chartUtil.refreshChartSection(toolkit, networkUsageSection, stats, statsPeriod, "KiB/s", -1, 5, chartUtil.new NetworkChartPeriodLinkListener(server, statsPeriod, toolkit), 2);
+	}
+
+	private void refreshMemoryChart() {
+		guiHelper.clearSection(memoryUsageSection);
+		String statsPeriod = preferenceStore.getString(PreferenceConstants.P_MEM_CHART_PERIOD);
+		ServerStats stats = new GlusterServersClient().getMemoryStats(server.getName(), statsPeriod);
+		chartUtil.refreshChartSection(toolkit, memoryUsageSection, stats, statsPeriod, "%", 100, 4, chartUtil.new MemoryChartPeriodLinkListener(server.getName(), statsPeriod, toolkit), 0);
+	}
+
+	private void refreshCpuChart() {
+		guiHelper.clearSection(cpuUsageSection);
+		String statsPeriod = preferenceStore.getString(PreferenceConstants.P_CPU_CHART_PERIOD);
+		ServerStats stats = new GlusterServersClient().getCpuStats(server.getName(), statsPeriod);
+		chartUtil.refreshChartSection(toolkit, cpuUsageSection, stats, statsPeriod, "%", 100, 4,
+				chartUtil.new CpuChartPeriodLinkListener(server.getName(), statsPeriod, toolkit), 2);
+	}
+
 	private void updateServerDetails() {
+		// TODO: Update the server details (cpu usage, memory usage)
 	}
 	
 	@Override
 	public void dispose() {
 		super.dispose();
-		GlusterDataModelManager.getInstance().removeClusterListener(serverChangedListener);
+		GlusterDataModelManager.getInstance().removeClusterListener(clusterListener);
+		preferenceStore.removePropertyChangeListener(propertyChangeListener);
 	}
 
 	private void createAreaChart(Composite section, Calendar timestamps[], Double values[], String unit) {
@@ -167,50 +238,46 @@ public class GlusterServerSummaryView extends ViewPart {
 	
 	private void createMemoryUsageSection() {
 		String memStatsPeriod = preferenceStore.getString(PreferenceConstants.P_MEM_CHART_PERIOD);
-		Composite section = guiHelper.createSection(form, toolkit, "Memory Usage", null, 1, false);
+		memoryUsageSection = guiHelper.createSection(form, toolkit, "Memory Usage", null, 1, false);
 		
 		ServerStats stats;
 		try {
-			guiHelper.setStatusMessage("Fetching server memory statistics...");
 			stats = new GlusterServersClient().getMemoryStats(server.getName(), memStatsPeriod);
 		} catch(Exception e) {
 			logger.error("Couldn't fetch memory usage statistics for server [" + server.getName() + "]", e);
-			toolkit.createLabel(section, "Couldn't fetch memory usage statistics for server [" + server.getName() + "]! Error: [" + e.getMessage() + "]");
+			toolkit.createLabel(memoryUsageSection, "Couldn't fetch memory usage statistics for server [" + server.getName() + "]! Error: [" + e.getMessage() + "]");
 			return;
 		}
 		
-		guiHelper.setStatusMessage("Creating memory chart...");
 		// in case of memory usage, there are four elements in usage data: user, free, cache, buffer and total. we use "user".
 		ChartUtil chartUtil = ChartUtil.getInstance();
-		chartUtil.createAreaChart(toolkit, section, stats, 0, "%", chartUtil
+		chartUtil.createAreaChart(toolkit, memoryUsageSection, stats, 0, "%", chartUtil
 				.getTimestampFormatForPeriod(memStatsPeriod),
 				chartUtil.new MemoryChartPeriodLinkListener(server.getName(), memStatsPeriod, toolkit), 100, 4);
-		guiHelper.setStatusMessage(null);
 	}
 	
 	private void createCPUUsageSection() {
 		String cpuStatsPeriod = preferenceStore.getString(PreferenceConstants.P_CPU_CHART_PERIOD);
-		Composite section = guiHelper.createSection(form, toolkit, "CPU Usage", null, 1, false);
+		cpuUsageSection = guiHelper.createSection(form, toolkit, "CPU Usage", null, 1, false);
 		
 		ServerStats stats;
 		try {
 			stats = new GlusterServersClient().getCpuStats(server.getName(), cpuStatsPeriod);
 		} catch(Exception e) {
 			logger.error("Couldn't fetch CPU usage statistics for server [" + server.getName() + "]", e);
-			toolkit.createLabel(section, "Couldn't fetch CPU usage statistics for server [" + server.getName() + "]! Error: [" + e.getMessage() + "]");
+			toolkit.createLabel(cpuUsageSection, "Couldn't fetch CPU usage statistics for server [" + server.getName() + "]! Error: [" + e.getMessage() + "]");
 			return;
 		}
 
 		// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
-		ChartUtil chartUtil = ChartUtil.getInstance();
-		chartUtil.createAreaChart(toolkit, section, stats, 0, "%", chartUtil
+		chartUtil.createAreaChart(toolkit, cpuUsageSection, stats, 0, "%", chartUtil
 				.getTimestampFormatForPeriod(cpuStatsPeriod),
 				chartUtil.new CpuChartPeriodLinkListener(server.getName(), cpuStatsPeriod, toolkit), 100, 4);
 	}
 	
 	private void createNetworkUsageSection() {
 		final String networkStatsPeriod = preferenceStore.getString(PreferenceConstants.P_NETWORK_CHART_PERIOD);
-		final Composite section = guiHelper.createSection(form, toolkit, "Network Usage", null, 1, false);
+		networkUsageSection = guiHelper.createSection(form, toolkit, "Network Usage", null, 1, false);
 
 		String networkInterface = server.getNetworkInterfaces().get(0).getName();
 		ServerStats stats;
@@ -218,14 +285,14 @@ public class GlusterServerSummaryView extends ViewPart {
 			stats = new GlusterServersClient().getNetworkStats(server.getName(), networkInterface, networkStatsPeriod);
 		} catch(Exception e) {
 			logger.error("Couldn't fetch Network usage statistics for server [" + server.getName() + "] network interface [" + networkInterface + "]", e);
-			toolkit.createLabel(section, "Couldn't fetch CPU usage statistics for server [" + server.getName() + "]! Error: [" + e.getMessage() + "]");
+			toolkit.createLabel(networkUsageSection, "Couldn't fetch CPU usage statistics for server [" + server.getName() + "]! Error: [" + e.getMessage() + "]");
 			return;
 		}
 
 		// in case of network usage, there are three elements in usage data: received, transmitted and total. we use total.
 		final ChartUtil chartUtil = ChartUtil.getInstance();
 		final ChartPeriodLinkListener networkChartPeriodLinkListener = chartUtil.new NetworkChartPeriodLinkListener(server, networkStatsPeriod, toolkit);
-		Composite graphComposite = chartUtil.createAreaChart(toolkit, section, stats, 2, "%", chartUtil
+		chartUtil.createAreaChart(toolkit, networkUsageSection, stats, 2, "%", chartUtil
 				.getTimestampFormatForPeriod(networkStatsPeriod),
 				networkChartPeriodLinkListener , -1, 5);
 	}

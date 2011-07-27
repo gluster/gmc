@@ -23,6 +23,8 @@ package com.gluster.storage.management.gui.views;
 import java.util.List;
 
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.graphics.Image;
@@ -79,6 +81,7 @@ public class ClusterSummaryView extends ViewPart {
 	private Composite alertsSection;
 	private Composite tasksSection;
 	private static final ChartUtil chartUtil = ChartUtil.getInstance();
+	private IPropertyChangeListener propertyChangeListener;
 
 	/*
 	 * (non-Javadoc)
@@ -93,6 +96,39 @@ public class ClusterSummaryView extends ViewPart {
 		setPartName("Summary");
 		createSections(parent);
 		
+		createListeners();
+	}
+
+	private void createListeners() {
+		createClusterListener();
+		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
+		
+		createPropertyChangeListener();
+		preferenceStore.addPropertyChangeListener(propertyChangeListener );
+	}
+
+	private void createPropertyChangeListener() {
+		propertyChangeListener = new IPropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent event) {
+				String preferenceName = event.getProperty();
+				GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+				if(preferenceName.equals(PreferenceConstants.P_CPU_AGGREGATED_CHART_PERIOD)) {
+					modelManager.initializeAggregatedCpuStats(cluster);
+					String cpuStatsPeriod = (String)event.getNewValue();
+					refreshChartSection(cpuChartSection, cluster.getAggregatedCpuStats(), cpuStatsPeriod, "%", 100, 4,
+							chartUtil.new CpuChartPeriodLinkListener(null, cpuStatsPeriod, toolkit), 2);
+				} else if(preferenceName.equals(PreferenceConstants.P_NETWORK_AGGREGATED_CHART_PERIOD)) {
+					modelManager.initializeAggregatedNetworkStats(cluster);
+					String networkStatsPeriod = (String)event.getNewValue();
+					refreshChartSection(networkChartSection, cluster.getAggregatedNetworkStats(), networkStatsPeriod, "KiB/s", -1,
+							4, chartUtil.new NetworkChartPeriodLinkListener(null, networkStatsPeriod, toolkit), 2);
+				}
+			}
+		};
+	}
+
+	private void createClusterListener() {
 		clusterListener = new DefaultClusterListener() {
 			@Override
 			public void aggregatedStatsChanged() {
@@ -130,13 +166,13 @@ public class ClusterSummaryView extends ViewPart {
 				populateTasksSection();
 			}
 		};
-		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
 	}
 	
 	@Override
 	public void dispose() {
 		super.dispose();
 		GlusterDataModelManager.getInstance().removeClusterListener(clusterListener);
+		preferenceStore.removePropertyChangeListener(propertyChangeListener);
 	}
 	
 	private void refreshCharts() {
