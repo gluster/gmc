@@ -136,7 +136,6 @@ public class ClusterSummaryView extends ViewPart {
 				populateTasksSection();
 				tasksSection.layout();
 			}
-			
 		};
 		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
 	}
