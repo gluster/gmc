@@ -177,7 +177,7 @@ public class ChangePasswordDialog extends Dialog {
 			return;
 		}
 
-		if (confirmPwd.equals(CoreConstants.DEFAULT_PASSWORD)) {
+		if (confirmPwd.equals(CoreConstants.DEFAULT_PASSWORD) || isContainsWhiteSpace(confirmPwd)) {
 			okButton.setEnabled(false);
 			return;
 		}
@@ -199,6 +199,10 @@ public class ChangePasswordDialog extends Dialog {
 		setupDataBinding();
 	}
 
+	public boolean isContainsWhiteSpace(String text) {
+		return text.matches(".*[\\s\\\\].*"); // White space or backslash
+	}
+	
 	public class ConfirmPasswordValidator extends StringRequiredValidator {
 		public ConfirmPasswordValidator(String errorText, ControlDecoration controlDecoration, Control linkedControl) {
 			super(errorText, controlDecoration, linkedControl);
@@ -210,6 +214,10 @@ public class ChangePasswordDialog extends Dialog {
 			IStatus status = super.validate(value);
 			if (status.isOK()) {
 				String errMsg = null;
+				if (errMsg == null && isContainsWhiteSpace( newPassword.getText())) {
+					errMsg = "Password should not contain space or back slash characters";
+				}
+				
 				if (!value.equals(newPassword.getText())) {
 					errMsg = "Passwords mismatched";
 				}

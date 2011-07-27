@@ -63,6 +63,7 @@ import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.NetworkInterfaceTableLabelProvider;
 import com.gluster.storage.management.gui.preferences.PreferenceConstants;
 import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
+import com.gluster.storage.management.gui.utils.ChartUtil;
 import com.gluster.storage.management.gui.utils.ChartViewerComposite;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.ibm.icu.util.Calendar;
@@ -116,7 +117,7 @@ public class GlusterServerSummaryView extends ViewPart {
 	}
 
 	private void createAreaChart(Composite section, Calendar timestamps[], Double values[], String unit) {
-		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, timestamps, values, unit, "HH:mm");
+		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, timestamps, values, unit, "HH:mm", 100);
 		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
 		data.widthHint = CHART_WIDTH;
 		data.heightHint = 250;
@@ -129,17 +130,25 @@ public class GlusterServerSummaryView extends ViewPart {
 	}
 
 	private void createMemoryUsageSection() {
+		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
+		String memStatsPeriod = preferenceStore.getString(PreferenceConstants.P_MEM_CHART_PERIOD);
+		
+		ServerStats stats;
+		try {
+			stats = new GlusterServersClient().getMemoryStats(server.getName(), memStatsPeriod);
+			// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
+			//createAreaChartSection(stats, "Memory Usage", 2, "%");
+		} catch(Exception e) {
+			logger.error("Couldn't fetch CPU usage statistics for server [" + server.getName() + "]", e);
+			return;
+		}
+		
 		Composite section = guiHelper.createSection(form, toolkit, "Memory Usage", null, 1, false);
-		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
-				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
-				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
-				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
-				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
-				new CDateTime(1000l*1310473800) };
-		//Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 20.31d, 19.63d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 40d, 10d, 90d, 40d };
-		Double[] values = new Double[] { 35d, 34.23d, 37.92d, 28.69d, 38.62d, 39.11d, 38.46d, 30.44d, 36.28d, 72.43d, 79.31d, 77.39d, 33.51d, 37.53d, 32.21, 30d, 31.43d, 36.45d, 34.86d, 35.27d };
-		createAreaChart(section, timestamps, values, "%");
-		createChartLinks(section, 4);
+		// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
+		ChartUtil chartUtil = ChartUtil.getInstance();
+		chartUtil.createAreaChartSection(toolkit, section, stats, 0, "%", chartUtil
+				.getTimestampFormatForPeriod(memStatsPeriod),
+				chartUtil.new MemoryChartPeriodLinkListener(server.getName(), memStatsPeriod, toolkit), 100);
 	}
 	
 	private void createNetworkUsageSection() {

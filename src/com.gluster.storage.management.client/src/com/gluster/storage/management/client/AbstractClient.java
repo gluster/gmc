@@ -167,8 +167,18 @@ public abstract class AbstractClient {
 	}
 
 	protected void downloadResource(WebResource res, String filePath) {
-		ClientResponse response = res.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_OCTET_STREAM)
+		ClientResponse response = null;
+		try {
+			response = res.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_OCTET_STREAM)
 				.get(ClientResponse.class);
+			if (response.getStatus() >= 300) {
+				throw new GlusterRuntimeException(response.getEntity(String.class));
+			}
+		} catch (Exception e1) {
+			logger.error("Error in downloading resource [" + res.toString() + "]", e1);
+			throw createGlusterException(e1);
+		}
+		
 		try {
 			if (!response.hasEntity()) {
 				throw new GlusterRuntimeException("No entity in response!");

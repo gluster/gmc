@@ -59,8 +59,6 @@ import static com.gluster.storage.management.core.constants.RESTConstants.TASK_S
 import static com.gluster.storage.management.core.constants.RESTConstants.TASK_STOP;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -77,10 +75,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
+
+import org.apache.log4j.Logger;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.RESTConstants;
@@ -114,6 +112,7 @@ import com.sun.jersey.spi.resource.Singleton;
 public class VolumesResource extends AbstractResource {
 	private static final String VOLUME_DIRECTORY_CLEANUP_SCRIPT = "clear_volume_directory.py";
 	private static final String VOLUME_BRICK_LOG_SCRIPT = "get_volume_brick_log.py";
+	private static final Logger logger = Logger.getLogger(VolumesResource.class);
 
 	@InjectParam
 	private ServerUtil serverUtil;
@@ -687,30 +686,20 @@ public class VolumesResource extends AbstractResource {
 		if (clusterService.getCluster(clusterName) == null) {
 			return notFoundResponse("Cluster [" + clusterName + "] not found!");
 		}
-		
+	
 		try {
 			final Volume volume = getVolume(clusterName, volumeName);
-			StreamingOutput output = new StreamingOutput() {
-
-				@Override
-				public void write(OutputStream output) throws IOException, WebApplicationException {
-					try {
-						File archiveFile = new File(downloadLogs(volume));
-						output.write(FileUtil.readFileAsByteArray(archiveFile));
-						archiveFile.delete();
-					} catch (Exception e) {
-						// TODO: Log the exception
-						e.printStackTrace();
-						String errMsg = "Exception while downloading/archiving volume log files : " + e.getMessage();
-						output.write(errMsg.getBytes());
-					}
-				}
-			};
-			return streamingOutputResponse(output);
-		} catch(Exception e) {
-			return errorResponse("Volume [" + volumeName + "] doesn't exist in cluster [" + clusterName + "]!");
+			File archiveFile = new File(downloadLogs(volume));
+			byte[] data = FileUtil.readFileAsByteArray(archiveFile);
+			archiveFile.delete();
+			return streamingOutputResponse(createStreamingOutput(data));
+		} catch (Exception e) {
+			logger.error("Volume [" + volumeName + "] doesn't exist in cluster [" + clusterName + "]! ["
+					+ e.getStackTrace() + "]");
+			throw (GlusterRuntimeException) e;
 		}
 	}
+	
 
 	private String downloadLogs(Volume volume) {
 		// create temporary directory
@@ -995,35 +984,5 @@ public class VolumesResource extends AbstractResource {
 		String taskId = "";
 		
 		taskResource.getTask(taskId).stop();
-	}
-	
-	public static void main(String[] args) throws ClassNotFoundException {
-		VolumesResource vr = new VolumesResource();
-		// VolumeListResponse response = vr.getAllVolumes();
-		// for (Volume volume : response.getVolumes()) {
-		// System.out.println("\nName:" + volume.getName() + "\nType: " + volume.getVolumeTypeStr() + "\nStatus: "
-		// + volume.getStatusStr());
-		// }
-		// Volume volume = new Volume();
-		// volume.setName("vol3");
-		// volume.setTransportType(TRANSPORT_TYPE.ETHERNET);
-		// List<String> disks = new ArrayList<String>();
-		// disks.add("192.168.1.210:sdb");
-		// volume.addDisks(disks);
-		// volume.setAccessControlList("192.168.*");
-		// // Status status = vr.createVolume(volume);
-		// // System.out.println(status.getMessage());
-		// Form form = new Form();
-		// form.add("volumeName", volume.getName());
-		// form.add(RESTConstants.FORM_PARAM_DELETE_OPTION, 1);
-		// Status status = vr.deleteVolume("Vol2", true);
-		// System.out.println("Code : " + status.getCode());
-		// System.out.println("Message " + status.getMessage());
-
-		// vr.removeBricks("testCluster", "test", "192.168.1.210:sdb", true);
-
-		String taskId = vr.migrateBrickStart("myGluster", "students", "devserver1:/export/sdc/students",
-				"devserver2:/export/sdb/students", true);
-		
 	}
 }
