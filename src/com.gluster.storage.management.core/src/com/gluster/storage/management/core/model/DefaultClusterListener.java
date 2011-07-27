@@ -97,20 +97,10 @@ public class DefaultClusterListener implements ClusterListener {
 	}
 
 	@Override
-	public void alertAdded(Alert alert) {
+	public void alertsGenerated() {
 		modelChanged();
 	}
-
-	@Override
-	public void alertRemoved(Alert alert) {
-		modelChanged();
-	}
-
-	@Override
-	public void alertUpdated(Alert alert) {
-		modelChanged();
-	}
-
+	
 	@Override
 	public void aggregatedStatsChanged() {
 		modelChanged();

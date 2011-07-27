@@ -22,7 +22,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.widgets.Display;
 
@@ -30,6 +29,7 @@ import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.gui.GlusterDataModelManager;
+import com.gluster.storage.management.gui.dialogs.ServerAdditionDialog;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public class AddServerAction extends AbstractActionDelegate {
@@ -48,6 +48,10 @@ public class AddServerAction extends AbstractActionDelegate {
 				Set<Server> partSuccessServers = new HashSet<Server>();
 				String errMsg = "";
 				String partErrMsg = "";
+				
+				if(selectedServers.isEmpty()) {
+					addServerManually();
+				}
 				for (Server server : selectedServers) {
 					guiHelper.setStatusMessage("Adding server [" + server.getName() + "]...");
 
@@ -63,6 +67,17 @@ public class AddServerAction extends AbstractActionDelegate {
 				guiHelper.clearStatusMessage();
 				showStatusMessage(action.getDescription(), selectedServers, successServers, partSuccessServers, errMsg,
 						partErrMsg);
+			}
+
+			private void addServerManually() {
+				try {
+					// To open a dialog for server addition
+					ServerAdditionDialog dialog = new ServerAdditionDialog(getShell());
+					dialog.open();
+				} catch (Exception e) {
+					logger.error("Error in Manual server addition", e);
+					showErrorDialog("Add server", "Add server failed! [" + e.getMessage() + "]");
+				}
 			}
 		};
 
@@ -103,15 +118,5 @@ public class AddServerAction extends AbstractActionDelegate {
 	@Override
 	public void dispose() {
 		System.out.println("Disposing [" + this.getClass().getSimpleName() + "]");
-	}
-
-	@Override
-	public void selectionChanged(IAction action, ISelection selection) {
-		Set<Server> selectedServers = GUIHelper.getInstance().getSelectedEntities(getWindow(), Server.class);
-		if (selectedServers == null || selectedServers.isEmpty()) {
-			action.setEnabled(false);
-		} else {
-			action.setEnabled(true);
-		}
 	}
 }

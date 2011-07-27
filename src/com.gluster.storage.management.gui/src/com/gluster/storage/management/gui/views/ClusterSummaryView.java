@@ -82,6 +82,8 @@ public class ClusterSummaryView extends ViewPart {
 	private ClusterListener clusterListener;
 	private static final IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
 	private static final int CHART_WIDTH = 350;
+	private Composite alertsSection;
+	private Composite tasksSection;
 
 	/*
 	 * (non-Javadoc)
@@ -102,6 +104,39 @@ public class ClusterSummaryView extends ViewPart {
 				super.aggregatedStatsChanged();
 				refreshCharts();
 			}
+
+			@Override
+			public void alertsGenerated() {
+				super.alertsGenerated();
+				guiHelper.clearSection(alertsSection);
+				populateAlerts();
+				alertsSection.layout();
+			}
+
+			@Override
+			public void taskAdded(TaskInfo taskInfo) {
+				super.taskAdded(taskInfo);
+				updateTaskSection();
+			}
+
+			@Override
+			public void taskRemoved(TaskInfo taskInfo) {
+				super.taskRemoved(taskInfo);
+				updateTaskSection();
+			}
+
+			@Override
+			public void taskUpdated(TaskInfo taskInfo) {
+				super.taskUpdated(taskInfo);
+				updateTaskSection();				
+			}
+			
+			private void updateTaskSection() {
+				guiHelper.clearSection(tasksSection);
+				populateTasksSection();
+				tasksSection.layout();
+			}
+			
 		};
 		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
 	}
@@ -290,14 +325,17 @@ public class ClusterSummaryView extends ViewPart {
 	}
 
 	private void createAlertsSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Alerts", null, 1, false);
-		List<Alert> alerts = cluster.getAlerts();
-
-		for (Alert alert : alerts) {
-			addAlertLabel(section, alert);
-		}
+		alertsSection = guiHelper.createSection(form, toolkit, "Alerts", null, 1, false);
+		populateAlerts();
 	}
 	
+	private void populateAlerts() {
+		List<Alert> alerts = cluster.getAlerts();
+		for (Alert alert : alerts) {
+			addAlertLabel(alertsSection, alert);
+		}
+	}
+
 	private void addAlertLabel(Composite section, Alert alert) {
 		CLabel lblAlert = new CLabel(section, SWT.FLAT);
 		Image alertImage = null;
@@ -446,10 +484,13 @@ public class ClusterSummaryView extends ViewPart {
 	}
 
 	private void createRunningTasksSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Running Tasks", null, 1, false);
+		tasksSection = guiHelper.createSection(form, toolkit, "Running Tasks", null, 1, false);
+		populateTasksSection();
+	}
 
+	private void populateTasksSection() {
 		for (TaskInfo taskInfo : cluster.getTaskInfoList()) {
-			addTaskLabel(section, taskInfo);
+			addTaskLabel(tasksSection, taskInfo);
 		}
 	}
 

@@ -168,7 +168,7 @@ public class ServerAdditionDialog extends Dialog {
 	public Boolean serverExists(String serverName) {
 		List<GlusterServer> servers = GlusterDataModelManager.getInstance().getModel().getCluster().getServers();
 		for (GlusterServer server : servers) {
-			if (server.getName().equals(serverName)) {
+			if (server.getName().equalsIgnoreCase(serverName)) {
 				return false;
 			}
 		}
