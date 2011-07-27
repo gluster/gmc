@@ -90,25 +90,25 @@ public class VolumesSummaryView extends ViewPart {
 			@Override
 			public void volumeCreated(Volume volume) {
 				super.volumeCreated(volume);
-				guiHelper.clearSection(summarySection);
-				populateSummarySection();
-				summarySection.layout();
+				updateSummarySection();
 			}
 
 			@Override
 			public void volumeDeleted(Volume volume) {
 				super.volumeDeleted(volume);
-				guiHelper.clearSection(summarySection);
-				populateSummarySection();
-				summarySection.layout();
+				updateSummarySection() ;
 			}
 
 			@Override
 			public void volumeChanged(Volume volume, Event event) {
 				super.volumeChanged(volume, event);
+				updateSummarySection();
+			}
+			
+			private void updateSummarySection() {
 				guiHelper.clearSection(summarySection);
 				populateSummarySection();
-				summarySection.layout();
+				summarySection.layout();	
 			}
 
 			@Override
@@ -116,34 +116,29 @@ public class VolumesSummaryView extends ViewPart {
 				super.alertsGenerated();
 				guiHelper.clearSection(alertsSection);
 				populateAlertSection();
-				alertsSection.layout();
 			}
 
 			@Override
 			public void taskAdded(TaskInfo taskInfo) {
 				super.taskAdded(taskInfo);
-				super.alertsGenerated();
-				guiHelper.clearSection(tasksSection);
-				populateTasks();
-				tasksSection.layout();
+				updateTasksSection();
 			}
 
 			@Override
 			public void taskRemoved(TaskInfo taskInfo) {
 				super.taskRemoved(taskInfo);
-				super.alertsGenerated();
-				guiHelper.clearSection(tasksSection);
-				populateTasks();
-				tasksSection.layout();
+				updateTasksSection();
 			}
 
 			@Override
 			public void taskUpdated(TaskInfo taskInfo) {
 				super.taskUpdated(taskInfo);
-				super.alertsGenerated();
+				updateTasksSection();
+			}
+			
+			private void updateTasksSection() {
 				guiHelper.clearSection(tasksSection);
 				populateTasks();
-				tasksSection.layout();
 			}
 		};
 		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
@@ -175,6 +170,8 @@ public class VolumesSummaryView extends ViewPart {
 				addAlertLabel(alertsSection, alert);
 			}
 		}
+		alertsSection.pack(true);
+		form.reflow(true);
 	}
 
 	private void addAlertLabel(Composite section, Alert alert) {
@@ -195,6 +192,8 @@ public class VolumesSummaryView extends ViewPart {
 			if (taskInfo.getType() == TASK_TYPE.BRICK_MIGRATE || taskInfo.getType() == TASK_TYPE.VOLUME_REBALANCE)
 				addTaskLabel(tasksSection, taskInfo);
 		}
+		tasksSection.pack(true);
+		form.reflow(true);
 	}
 
 	private void addTaskLabel(Composite section, TaskInfo taskInfo) {

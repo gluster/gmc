@@ -22,6 +22,7 @@ package com.gluster.storage.management.gui.views;
 
 import java.util.List;
 
+import org.eclipse.core.internal.resources.projectvariables.ParentVariableResolver;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.graphics.Image;
@@ -77,25 +78,24 @@ public class GlusterServersSummaryView extends ViewPart {
 			@Override
 			public void serverAdded(GlusterServer server) {
 				super.serverAdded(server);
-				guiHelper.clearSection(serversAvailabilitySection);
-				populateAvailabilitySection();
-				serversAvailabilitySection.layout();
+				updateServerAvailabilitySection();
 			}
 			
 			@Override
 			public void serverRemoved(GlusterServer server) {
 				super.serverRemoved(server);
-				guiHelper.clearSection(serversAvailabilitySection);
-				populateAvailabilitySection();
-				serversAvailabilitySection.layout();
+				updateServerAvailabilitySection();
 			}
 			
 			@Override
 			public void serverChanged(GlusterServer server, Event event) {
 				super.serverChanged(server, event);
+				updateServerAvailabilitySection();
+			}
+			
+			private void updateServerAvailabilitySection() {
 				guiHelper.clearSection(serversAvailabilitySection);
 				populateAvailabilitySection();
-				serversAvailabilitySection.layout();
 			}
 			
 			@Override
@@ -103,34 +103,29 @@ public class GlusterServersSummaryView extends ViewPart {
 				super.alertsGenerated();
 				guiHelper.clearSection(alertsSection);
 				populateAlertSection();
-				alertsSection.layout();
 			}
 			
 			@Override
 			public void taskAdded(TaskInfo taskInfo) {
 				super.taskAdded(taskInfo);
-				super.alertsGenerated();
-				guiHelper.clearSection(tasksSection);
-				populateTasksSection();
-				tasksSection.layout();
+				updateTasksSection();
 			}
 			
 			@Override
 			public void taskRemoved(TaskInfo taskInfo) {
 				super.taskRemoved(taskInfo);
-				super.alertsGenerated();
-				guiHelper.clearSection(tasksSection);
-				populateTasksSection();
-				tasksSection.layout();
+				updateTasksSection();
 			}
 			
 			@Override
 			public void taskUpdated(TaskInfo taskInfo) {
 				super.taskUpdated(taskInfo);
-				super.alertsGenerated();
+				updateTasksSection();
+			}
+			
+			private void updateTasksSection() {
 				guiHelper.clearSection(tasksSection);
 				populateTasksSection();
-				tasksSection.layout();
 			}
 		};
 		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
@@ -205,6 +200,8 @@ public class GlusterServersSummaryView extends ViewPart {
 				addAlertLabel(alertsSection, alert);
 			}
 		}
+		alertsSection.pack(true);
+		form.reflow(true);
 	}
 	
 	private void addAlertLabel(Composite section, Alert alert) {
@@ -245,6 +242,8 @@ public class GlusterServersSummaryView extends ViewPart {
 				addTaskLabel(tasksSection, taskInfo);
 			}
 		}
+		tasksSection.layout();
+		form.reflow(true);
 	}
 
 	private void addTaskLabel(Composite section, TaskInfo taskInfo) {
