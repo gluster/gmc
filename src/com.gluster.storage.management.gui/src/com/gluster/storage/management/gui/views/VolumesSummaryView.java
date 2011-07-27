@@ -33,16 +33,18 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Cluster;
+import com.gluster.storage.management.core.model.ClusterListener;
+import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.EntityGroup;
+import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.gui.GlusterDataModelManager;
 import com.gluster.storage.management.gui.IImageKeys;
-import com.gluster.storage.management.gui.utils.ChartViewerComposite.CHART_TYPE;
-import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.utils.ChartViewerComposite;
+import com.gluster.storage.management.gui.utils.GUIHelper;
 
 /**
  * 
@@ -54,11 +56,15 @@ public class VolumesSummaryView extends ViewPart {
 	private ScrolledForm form;
 	private EntityGroup<Volume> volumes;
 	private Cluster cluster = GlusterDataModelManager.getInstance().getModel().getCluster();
+	private ClusterListener clusterListener;
 
 	private static final String ALERTS = "Alerts";
 	private static final String RUNNING_TASKS = "Running Tasks";
 	private static final String VOLUMES_SUMMARY = "Volumes - Summary";
 	private static final String AVAILABILITY = "Availability";
+	private Composite alertsSection;
+	private Composite tasksSection;
+	private Composite summarySection;
 
 	/*
 	 * (non-Javadoc)
@@ -79,6 +85,74 @@ public class VolumesSummaryView extends ViewPart {
 		
 		setPartName("Summary");
 		createSections(parent);
+
+		clusterListener = new DefaultClusterListener() {
+			@Override
+			public void volumeCreated(Volume volume) {
+				super.volumeCreated(volume);
+				guiHelper.clearSection(summarySection);
+				populateSummarySection();
+				summarySection.layout();
+			}
+
+			@Override
+			public void volumeDeleted(Volume volume) {
+				super.volumeDeleted(volume);
+				guiHelper.clearSection(summarySection);
+				populateSummarySection();
+				summarySection.layout();
+			}
+
+			@Override
+			public void volumeChanged(Volume volume, Event event) {
+				super.volumeChanged(volume, event);
+				guiHelper.clearSection(summarySection);
+				populateSummarySection();
+				summarySection.layout();
+			}
+
+			@Override
+			public void alertsGenerated() {
+				super.alertsGenerated();
+				guiHelper.clearSection(alertsSection);
+				populateAlertSection();
+				alertsSection.layout();
+			}
+
+			@Override
+			public void taskAdded(TaskInfo taskInfo) {
+				super.taskAdded(taskInfo);
+				super.alertsGenerated();
+				guiHelper.clearSection(tasksSection);
+				populateTasks();
+				tasksSection.layout();
+			}
+
+			@Override
+			public void taskRemoved(TaskInfo taskInfo) {
+				super.taskRemoved(taskInfo);
+				super.alertsGenerated();
+				guiHelper.clearSection(tasksSection);
+				populateTasks();
+				tasksSection.layout();
+			}
+
+			@Override
+			public void taskUpdated(TaskInfo taskInfo) {
+				super.taskUpdated(taskInfo);
+				super.alertsGenerated();
+				guiHelper.clearSection(tasksSection);
+				populateTasks();
+				tasksSection.layout();
+			}
+		};
+		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
+	}
+	
+	@Override
+	public void dispose() {
+		super.dispose();
+		GlusterDataModelManager.getInstance().removeClusterListener(clusterListener);
 	}
 
 	private void createSections(Composite parent) {
@@ -91,29 +165,35 @@ public class VolumesSummaryView extends ViewPart {
 	}
 
 	private void createAlertsSection() {
-		Composite section = guiHelper.createSection(form, toolkit, ALERTS, null, 1, false);
+		alertsSection = guiHelper.createSection(form, toolkit, ALERTS, null, 1, false);
+		populateAlertSection();
+	}
 
+	private void populateAlertSection() {
 		for (Alert alert : cluster.getAlerts()) {
-			addAlertLabel(section, alert);
+			if (alert.getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT) {
+				addAlertLabel(alertsSection, alert);
+			}
 		}
 	}
 
 	private void addAlertLabel(Composite section, Alert alert) {
-		if (alert.getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT) {
-			CLabel lblAlert = new CLabel(section, SWT.NONE);
-			lblAlert.setImage((alert.getType() == Alert.ALERT_TYPES.DISK_USAGE_ALERT) ? guiHelper
-					.getImage(IImageKeys.LOW_DISK_SPACE_22x22) : guiHelper.getImage(IImageKeys.BRICK_OFFLINE_22x22));
-			lblAlert.setText(alert.getMessage());
-			lblAlert.redraw();
-		}
+		CLabel lblAlert = new CLabel(section, SWT.NONE);
+		lblAlert.setImage((alert.getType() == Alert.ALERT_TYPES.DISK_USAGE_ALERT) ? guiHelper
+				.getImage(IImageKeys.LOW_DISK_SPACE_22x22) : guiHelper.getImage(IImageKeys.BRICK_OFFLINE_22x22));
+		lblAlert.setText(alert.getMessage());
+		lblAlert.redraw();
 	}
 
 	private void createRunningTasksSection() {
-		Composite section = guiHelper.createSection(form, toolkit, RUNNING_TASKS, null, 1, false);
+		tasksSection = guiHelper.createSection(form, toolkit, RUNNING_TASKS, null, 1, false);
+		populateTasks();
+	}
 
+	private void populateTasks() {
 		for (TaskInfo taskInfo : cluster.getTaskInfoList()) {
 			if (taskInfo.getType() == TASK_TYPE.BRICK_MIGRATE || taskInfo.getType() == TASK_TYPE.VOLUME_REBALANCE)
-			addTaskLabel(section, taskInfo);
+				addTaskLabel(tasksSection, taskInfo);
 		}
 	}
 
@@ -133,17 +213,20 @@ public class VolumesSummaryView extends ViewPart {
 	}
 
 	private void createSummarySection() {
-		Composite section = guiHelper.createSection(form, toolkit, AVAILABILITY, null, 2, false);
+		summarySection = guiHelper.createSection(form, toolkit, AVAILABILITY, null, 2, false);
+		populateSummarySection();
+	}
 
+	private void populateSummarySection() {
 		if(volumes.getEntities().size() == 0) {
-			toolkit.createLabel(section,
+			toolkit.createLabel(summarySection,
 					"This section will be populated after at least\none volume is created the storage cloud.");
 			return;
 		}
 
 		Double[] values = new Double[] { Double.valueOf(getVolumeCountByStatus(volumes, VOLUME_STATUS.ONLINE)),
 				Double.valueOf(getVolumeCountByStatus(volumes, VOLUME_STATUS.OFFLINE)) };
-		createStatusChart(toolkit, section, values);
+		createStatusChart(toolkit, summarySection, values);
 	}
 
 	private int getVolumeCountByStatus(EntityGroup<Volume> volumes, VOLUME_STATUS status) {

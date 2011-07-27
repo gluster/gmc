@@ -34,7 +34,10 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Alert.ALERT_TYPES;
+import com.gluster.storage.management.core.model.ClusterListener;
+import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.EntityGroup;
+import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.TaskInfo;
@@ -52,11 +55,16 @@ public class GlusterServersSummaryView extends ViewPart {
 	private static final GUIHelper guiHelper = GUIHelper.getInstance();
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	private ScrolledForm form;
+	private ClusterListener clusterListener;
 	private EntityGroup<GlusterServer> servers;
+	private Composite alertsSection;
+	private Composite serversAvailabilitySection;
+	private Composite tasksSection;
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public void createPartControl(Composite parent) {
 		if (servers == null) {
@@ -64,6 +72,74 @@ public class GlusterServersSummaryView extends ViewPart {
 		}
 		setPartName("Summary");
 		createSections(parent);
+		
+		clusterListener = new DefaultClusterListener() {
+			@Override
+			public void serverAdded(GlusterServer server) {
+				super.serverAdded(server);
+				guiHelper.clearSection(serversAvailabilitySection);
+				populateAvailabilitySection();
+				serversAvailabilitySection.layout();
+			}
+			
+			@Override
+			public void serverRemoved(GlusterServer server) {
+				super.serverRemoved(server);
+				guiHelper.clearSection(serversAvailabilitySection);
+				populateAvailabilitySection();
+				serversAvailabilitySection.layout();
+			}
+			
+			@Override
+			public void serverChanged(GlusterServer server, Event event) {
+				super.serverChanged(server, event);
+				guiHelper.clearSection(serversAvailabilitySection);
+				populateAvailabilitySection();
+				serversAvailabilitySection.layout();
+			}
+			
+			@Override
+			public void alertsGenerated() {
+				super.alertsGenerated();
+				guiHelper.clearSection(alertsSection);
+				populateAlertSection();
+				alertsSection.layout();
+			}
+			
+			@Override
+			public void taskAdded(TaskInfo taskInfo) {
+				super.taskAdded(taskInfo);
+				super.alertsGenerated();
+				guiHelper.clearSection(tasksSection);
+				populateTasksSection();
+				tasksSection.layout();
+			}
+			
+			@Override
+			public void taskRemoved(TaskInfo taskInfo) {
+				super.taskRemoved(taskInfo);
+				super.alertsGenerated();
+				guiHelper.clearSection(tasksSection);
+				populateTasksSection();
+				tasksSection.layout();
+			}
+			
+			@Override
+			public void taskUpdated(TaskInfo taskInfo) {
+				super.taskUpdated(taskInfo);
+				super.alertsGenerated();
+				guiHelper.clearSection(tasksSection);
+				populateTasksSection();
+				tasksSection.layout();
+			}
+		};
+		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
+	}
+	
+	@Override
+	public void dispose() {
+		super.dispose();
+		GlusterDataModelManager.getInstance().removeClusterListener(clusterListener);
 	}
 
 	/**
@@ -80,16 +156,21 @@ public class GlusterServersSummaryView extends ViewPart {
 	}
 	
 	private void createSummarySection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Availability", null, 2, false);
-		if(servers.getEntities().size() == 0) {
-			toolkit.createLabel(section, "This section will be populated after at least\none server is added to the storage cloud.");
+		serversAvailabilitySection = guiHelper.createSection(form, toolkit, "Availability", null, 2, false);
+		populateAvailabilitySection();
+	}
+
+	private void populateAvailabilitySection() {
+		if (servers.getEntities().size() == 0) {
+			toolkit.createLabel(serversAvailabilitySection,
+					"This section will be populated after at least\none server is added to the storage cloud.");
 			return;
 		}
 
 		Double[] values = new Double[] { Double.valueOf(getServerCountByStatus(servers, SERVER_STATUS.ONLINE)),
 				Double.valueOf(getServerCountByStatus(servers, SERVER_STATUS.OFFLINE)) };
-		createStatusChart(section, values);
-	}
+		createStatusChart(serversAvailabilitySection, values);
+	}	
 	
 	private int getServerCountByStatus(EntityGroup<GlusterServer> servers, SERVER_STATUS status) {
 		int count = 0;
@@ -112,12 +193,16 @@ public class GlusterServersSummaryView extends ViewPart {
 	}
 
 	private void createAlertsSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Alerts", null, 1, false);
+		alertsSection = guiHelper.createSection(form, toolkit, "Alerts", null, 1, false);
+		populateAlertSection();
+	}
+	
+	private void populateAlertSection() {
 		List<Alert> alerts = GlusterDataModelManager.getInstance().getModel().getCluster().getAlerts();
 
 		for (Alert alert : alerts) {
 			if (alert.getType() != ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT) {
-				addAlertLabel(section, alert);
+				addAlertLabel(alertsSection, alert);
 			}
 		}
 	}
@@ -147,18 +232,21 @@ public class GlusterServersSummaryView extends ViewPart {
 		lblAlert.redraw();
 	}
 	
-	
-
 	private void createRunningTasksSection() {
-		Composite section = guiHelper.createSection(form, toolkit, "Running Tasks", null, 1, false);
+		tasksSection = guiHelper.createSection(form, toolkit, "Running Tasks", null, 1, false);
+		populateTasksSection();
 
+	}
+
+	private void populateTasksSection() {
 		for (TaskInfo taskInfo : GlusterDataModelManager.getInstance().getModel().getCluster().getTaskInfoList()) {
-			if (taskInfo.getType() != TASK_TYPE.VOLUME_REBALANCE && taskInfo.getType() != TASK_TYPE.BRICK_MIGRATE) { // Exclude volume related tasks
-				addTaskLabel(section, taskInfo);
+			// Exclude volume related tasks
+			if (taskInfo.getType() != TASK_TYPE.VOLUME_REBALANCE && taskInfo.getType() != TASK_TYPE.BRICK_MIGRATE) {
+				addTaskLabel(tasksSection, taskInfo);
 			}
 		}
 	}
-	
+
 	private void addTaskLabel(Composite section, TaskInfo taskInfo) {
 		CLabel lblAlert = new CLabel(section, SWT.NONE);
 		lblAlert.setText(taskInfo.getDescription());

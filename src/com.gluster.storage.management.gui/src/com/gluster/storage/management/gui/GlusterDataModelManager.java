@@ -213,25 +213,16 @@ public class GlusterDataModelManager {
 	}
 
 	private void updateAlerts(GlusterDataModel newModel) {
-		List<Alert> oldAlerts = model.getCluster().getAlerts();
-		List<Alert> newAlerts = newModel.getCluster().getAlerts();
+		model.getCluster().getAlerts().clear();
 		
-		Set<Alert> addedAlerts = GlusterCoreUtil.getAddedEntities(oldAlerts, newAlerts, true);
-		for(Alert alert : addedAlerts) {
-			addAlert(alert);
-		}
+		// generate alerts for "newModel"
+		initializeAlerts(newModel.getCluster());
 		
-		Set<Alert> removedAlerts = GlusterCoreUtil.getAddedEntities(newAlerts, oldAlerts, true);
-		for(Alert alert : removedAlerts) {
-			removeAlert(alert);
-		}
+		// set the new alerts on "model"
+		model.getCluster().setAlerts(newModel.getCluster().getAlerts());
 		
-		Map<Alert, Alert> modifiedAlerts = GlusterCoreUtil.getModifiedEntities(oldAlerts, newAlerts);
-		for(Entry<Alert, Alert> entry : modifiedAlerts.entrySet()) {
-			Alert modifiedAlert = entry.getKey();
-			modifiedAlert.copyFrom(entry.getValue());
-			updateAlert(modifiedAlert);
-		}
+		// fire event "alertsGenerated"
+		alertsGenerated();
 	}
 	
 	private void updateTasks(GlusterDataModel newModel) {
@@ -535,8 +526,7 @@ public class GlusterDataModelManager {
 		cluster.setAlerts( alertsManager.getAlerts() );
 		//cluster.setAlerts( getDummyAlerts(cluster) );
 	}
-
-
+	
 	public Volume addVolume(List<Volume> volumes, String name, Cluster cluster, VOLUME_TYPE volumeType,
 			TRANSPORT_TYPE transportType, VOLUME_STATUS status) {
 		Volume volume = new Volume(name, cluster, volumeType, transportType, status);
@@ -785,24 +775,10 @@ public class GlusterDataModelManager {
 			listener.taskRemoved(taskInfo);
 		}
 	}
-	
-	public void addAlert(Alert alert) {
-		model.getCluster().addAlert(alert);
+
+	public void alertsGenerated() {
 		for (ClusterListener listener : listeners) {
-			listener.alertAdded(alert);
-		}
-	}
-	
-	public void removeAlert(Alert alert) {
-		model.getCluster().removeAlert(alert);
-		for (ClusterListener listener : listeners) {
-			listener.alertRemoved(alert);
-		}
-	}
-	
-	public void updateAlert(Alert alert) {
-		for (ClusterListener listener : listeners) {
-			listener.alertUpdated(alert);
+			listener.alertsGenerated();
 		}
 	}
 	
