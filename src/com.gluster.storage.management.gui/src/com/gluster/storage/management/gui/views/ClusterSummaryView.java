@@ -105,7 +105,6 @@ public class ClusterSummaryView extends ViewPart {
 				super.alertsGenerated();
 				guiHelper.clearSection(alertsSection);
 				populateAlerts();
-				alertsSection.layout();
 			}
 
 			@Override
@@ -123,13 +122,12 @@ public class ClusterSummaryView extends ViewPart {
 			@Override
 			public void taskUpdated(TaskInfo taskInfo) {
 				super.taskUpdated(taskInfo);
-				updateTaskSection();				
+				updateTaskSection();
 			}
 			
 			private void updateTaskSection() {
 				guiHelper.clearSection(tasksSection);
 				populateTasksSection();
-				tasksSection.layout();
 			}
 		};
 		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
@@ -210,6 +208,8 @@ public class ClusterSummaryView extends ViewPart {
 		for (Alert alert : alerts) {
 			addAlertLabel(alertsSection, alert);
 		}
+		alertsSection.layout();
+		form.reflow(true);
 	}
 
 	private void addAlertLabel(Composite section, Alert alert) {
@@ -345,6 +345,8 @@ public class ClusterSummaryView extends ViewPart {
 		for (TaskInfo taskInfo : cluster.getTaskInfoList()) {
 			addTaskLabel(tasksSection, taskInfo);
 		}
+		tasksSection.layout();
+		form.reflow(true);
 	}
 
 	private void addTaskLabel(Composite section, TaskInfo taskInfo) {
