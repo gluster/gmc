@@ -170,7 +170,7 @@
             allowMultiple="false"
             category="com.gluster.storage.management.gui.category"
             class="com.gluster.storage.management.gui.views.TasksView"
-            icon="icons/tango/16x16/progress-bar.png"
+            icon="icons/tango/16x16/running-task.png"
             id="com.gluster.storage.management.gui.views.TasksView"
             name="Tasks"
             restorable="true">
