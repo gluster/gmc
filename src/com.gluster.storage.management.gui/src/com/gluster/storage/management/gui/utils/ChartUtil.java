@@ -25,6 +25,8 @@ import org.eclipse.birt.chart.util.CDateTime;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -226,13 +228,13 @@ public class ChartUtil {
 
 		@Override
 		protected ServerStats fetchStats(String serverName) {
-			IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
-			preferenceStore.setValue(PreferenceConstants.P_CPU_CHART_PERIOD, statsPeriod);
 			ServerStats stats;
 			if (serverName == null) {
+				preferenceStore.setValue(PreferenceConstants.P_CPU_AGGREGATED_CHART_PERIOD, statsPeriod);
 				stats = new GlusterServersClient().getAggregatedCpuStats(statsPeriod);
 				GlusterDataModelManager.getInstance().getModel().getCluster().setAggregatedCpuStats(stats);
 			} else {
+				preferenceStore.setValue(PreferenceConstants.P_CPU_CHART_PERIOD, statsPeriod);
 				stats = new GlusterServersClient().getCpuStats(serverName, statsPeriod);
 			}
 			return stats;
@@ -285,13 +287,13 @@ public class ChartUtil {
 
 		@Override
 		protected ServerStats fetchStats(String serverName) {
-			IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
-			preferenceStore.setValue(PreferenceConstants.P_NETWORK_CHART_PERIOD, statsPeriod);
 			ServerStats stats;
 			if (serverName == null) {
+				preferenceStore.setValue(PreferenceConstants.P_NETWORK_AGGREGATED_CHART_PERIOD, statsPeriod);
 				stats = new GlusterServersClient().getAggregatedNetworkStats(statsPeriod);
 				GlusterDataModelManager.getInstance().getModel().getCluster().setAggregatedNetworkStats(stats);
 			} else {
+				preferenceStore.setValue(PreferenceConstants.P_NETWORK_CHART_PERIOD, statsPeriod);
 				stats = new GlusterServersClient().getNetworkStats(serverName, "eth0", statsPeriod);
 			}
 
@@ -330,10 +332,9 @@ public class ChartUtil {
 		}
 		interfaceCombo.setItems(interfaces);
 		interfaceCombo.select(0);
-		interfaceCombo.addSelectionListener(new SelectionAdapter() {
+		interfaceCombo.addModifyListener(new ModifyListener() {
 			@Override
-			public void widgetSelected(SelectionEvent e) {
-				super.widgetSelected(e);
+			public void modifyText(ModifyEvent e) {
 				int selectionIndex = interfaceCombo.getSelectionIndex();
 				String networkInterface = interfaces[selectionIndex];
 				ServerStats stats = new GlusterServersClient().getNetworkStats(server.getName(), networkInterface,
@@ -346,13 +347,7 @@ public class ChartUtil {
 
 	public void refreshChartSection(FormToolkit toolkit, Composite section, ServerStats stats, String statsPeriod,
 			String unit, double maxValue, int columnCount, ChartPeriodLinkListener linkListener, int dataColumnIndex) {
-		// TODO: Invoke guiHelper.clearSection when it's ready
-		for (Control control : section.getChildren()) {
-			if (!control.isDisposed()) {
-				control.dispose();
-			}
-		}
-
+		GUIHelper.getInstance().clearSection(section);
 		createAreaChart(toolkit, section, stats, dataColumnIndex, unit, getTimestampFormatForPeriod(statsPeriod),
 				linkListener, maxValue, columnCount);
 		section.layout();
