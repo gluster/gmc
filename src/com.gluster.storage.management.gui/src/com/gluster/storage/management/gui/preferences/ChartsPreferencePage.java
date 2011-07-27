@@ -50,6 +50,10 @@ public class ChartsPreferencePage extends FieldEditorPreferencePage implements I
 	protected void createFieldEditors() {
 		String[][] entryNamesAndValues = new String[][] {
 				{ "1 day", "1d" }, { "1 week", "1w" }, { "1 month", "1m" }, { "1 year", "1y" } };
+		addField(new ComboFieldEditor(PreferenceConstants.P_CPU_AGGREGATED_CHART_PERIOD, "Aggregated CPU Usage chart period", entryNamesAndValues,
+				getFieldEditorParent()));
+		addField(new ComboFieldEditor(PreferenceConstants.P_NETWORK_AGGREGATED_CHART_PERIOD, "Aggregated Network Usage chart period", entryNamesAndValues,
+				getFieldEditorParent()));
 		addField(new ComboFieldEditor(PreferenceConstants.P_CPU_CHART_PERIOD, "CPU Usage chart period", entryNamesAndValues,
 				getFieldEditorParent()));
 		addField(new ComboFieldEditor(PreferenceConstants.P_MEM_CHART_PERIOD, "Memory Usage chart period", entryNamesAndValues,

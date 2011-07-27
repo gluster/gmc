@@ -34,4 +34,6 @@ public class PreferenceConstants {
 	public static final String P_CPU_CHART_PERIOD = "cpu.chart.period";
 	public static final String P_MEM_CHART_PERIOD = "memory.chart.period";
 	public static final String P_NETWORK_CHART_PERIOD = "network.chart.period";
+	public static final String P_CPU_AGGREGATED_CHART_PERIOD = "cpu.aggregated.chart.period";
+	public static final String P_NETWORK_AGGREGATED_CHART_PERIOD = "network.aggregated.chart.period";
 }

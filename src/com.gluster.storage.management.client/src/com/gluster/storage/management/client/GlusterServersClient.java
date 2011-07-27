@@ -101,7 +101,7 @@ public class GlusterServersClient extends AbstractClient {
 
 	public ServerStats getNetworkStats(String serverName, String networkInterface, String period) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-		queryParams.add(RESTConstants.QUERY_PARAM_TYPE, RESTConstants.STATISTICS_TYPE_MEMORY);
+		queryParams.add(RESTConstants.QUERY_PARAM_TYPE, RESTConstants.STATISTICS_TYPE_NETWORK);
 		queryParams.add(RESTConstants.QUERY_PARAM_PERIOD, period);
 		queryParams.add(RESTConstants.QUERY_PARAM_INTERFACE, networkInterface);
 		return fetchSubResource(serverName + "/" + RESTConstants.RESOURCE_STATISTICS, queryParams, ServerStats.class);

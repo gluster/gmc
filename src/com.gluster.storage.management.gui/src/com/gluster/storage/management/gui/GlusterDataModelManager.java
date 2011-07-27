@@ -435,14 +435,14 @@ public class GlusterDataModelManager {
 
 	public void initializeAggregatedCpuStats(Cluster cluster) {
 		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
-		String cpuStatsPeriod = preferenceStore.getString(PreferenceConstants.P_CPU_CHART_PERIOD);
+		String cpuStatsPeriod = preferenceStore.getString(PreferenceConstants.P_CPU_AGGREGATED_CHART_PERIOD);
 		
 		cluster.setAggregatedCpuStats(new GlusterServersClient().getAggregatedCpuStats(cpuStatsPeriod));
 	}
 	
 	private void initializeAggregatedNetworkStats(Cluster cluster) {
 		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
-		String networkStatsPeriod = preferenceStore.getString(PreferenceConstants.P_NETWORK_CHART_PERIOD);
+		String networkStatsPeriod = preferenceStore.getString(PreferenceConstants.P_NETWORK_AGGREGATED_CHART_PERIOD);
 		
 		cluster.setAggregatedNetworkStats(new GlusterServersClient().getAggregatedNetworkStats(networkStatsPeriod));
 	}

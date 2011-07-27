@@ -24,6 +24,9 @@ import java.util.List;
 import org.eclipse.birt.chart.util.CDateTime;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -35,12 +38,13 @@ import org.eclipse.ui.forms.widgets.Hyperlink;
 
 import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.constants.GlusterConstants;
-import com.gluster.storage.management.core.model.Cluster;
+import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.core.model.NetworkInterface;
 import com.gluster.storage.management.core.model.ServerStats;
 import com.gluster.storage.management.core.model.ServerStatsRow;
 import com.gluster.storage.management.gui.Activator;
+import com.gluster.storage.management.gui.GlusterDataModelManager;
 import com.gluster.storage.management.gui.preferences.PreferenceConstants;
-import com.gluster.storage.management.gui.views.ClusterSummaryView.ChartPeriodLinkListener;
 import com.ibm.icu.util.Calendar;
 
 /**
@@ -48,8 +52,8 @@ import com.ibm.icu.util.Calendar;
  */
 public class ChartUtil {
 	private static final ChartUtil instance = new ChartUtil();
-	private static final GUIHelper guiHelper = GUIHelper.getInstance();
 	private static final int CHART_WIDTH = 350;
+	private static final IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
 
 	private ChartUtil() {
 	}
@@ -58,16 +62,33 @@ public class ChartUtil {
 		return instance;
 	}
 
-	public Composite createAreaChartSection(FormToolkit toolkit, Composite section, ServerStats stats,
-			int dataColumnIndex, String unit, String timestampFormat, ChartPeriodLinkListener listener, double maxValue) {
+	/**
+	 * @param toolkit
+	 * @param section
+	 * @param stats
+	 * @param dataColumnIndex
+	 * @param unit
+	 * @param timestampFormat
+	 * @param listener
+	 * @param maxValue
+	 * @return The composite containing the various links related to the created chart
+	 */
+	public Composite createAreaChart(FormToolkit toolkit, Composite section, ServerStats stats, int dataColumnIndex,
+			String unit, String timestampFormat, ChartPeriodLinkListener listener, double maxValue, int linkColumnCount) {
+		if (stats == null) {
+			toolkit.createLabel(section, "Server statistics not available. Try after some time!");
+			return null;
+		}
+
 		List<Calendar> timestamps = new ArrayList<Calendar>();
 		List<Double> data = new ArrayList<Double>();
 
 		extractChartData(stats, timestamps, data, dataColumnIndex);
 
 		if (timestamps.size() == 0) {
-			toolkit.createLabel(section,
-					"Server statistics not available!\n Check if all services are running properly on the cluster servers.");
+			toolkit.createLabel(
+					section,
+					"Server statistics not available!\nCheck if all services are running properly \non the cluster servers, or try after some time!");
 			return null;
 		}
 
@@ -89,8 +110,13 @@ public class ChartUtil {
 		// Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 89.31d, 57.39d, 18.46d,
 		// 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 21.43d, 16.45d, 14.86d, 15.27d };
 		// createLineChart(section, timestamps, values, "%");
-		createChartLinks(toolkit, section, 4, listener);
-		return section;
+		Composite chartLinksComposite = createChartLinks(toolkit, section, linkColumnCount, listener);
+
+		if (linkColumnCount == 5) {
+			createNetworkInterfaceCombo(section, chartLinksComposite, toolkit,
+					(NetworkChartPeriodLinkListener) listener);
+		}
+		return chartLinksComposite;
 	}
 
 	private ChartViewerComposite createAreaChart(Composite section, Calendar timestamps[], Double values[],
@@ -149,23 +175,22 @@ public class ChartUtil {
 		protected String unit;
 		protected int columnCount;
 		protected double maxValue;
-		protected Cluster cluster;
 		protected FormToolkit toolkit;
 		protected String serverName;
+		protected int dataColumnIndex;
 
 		public String getStatsPeriod() {
 			return this.statsPeriod;
 		}
 
-		public ChartPeriodLinkListener(Cluster cluster, String serverName, String statsPeriod, String unit,
-				double maxValue, int columnCount, FormToolkit toolkit) {
-			this.cluster = cluster;
+		public ChartPeriodLinkListener(String serverName, String statsPeriod, String unit, double maxValue,
+				int columnCount, int dataColumnIndex, FormToolkit toolkit) {
 			this.serverName = serverName;
 			this.statsPeriod = statsPeriod;
 			this.unit = unit;
 			this.columnCount = columnCount;
 			this.maxValue = maxValue;
-			this.cluster = cluster;
+			this.dataColumnIndex = dataColumnIndex;
 			this.toolkit = toolkit;
 		}
 
@@ -178,10 +203,10 @@ public class ChartUtil {
 		@Override
 		public void linkActivated(HyperlinkEvent e) {
 			super.linkActivated(e);
-			// GlusterDataModelManager.getInstance().initializeAlerts(cluster);
 			Composite section = ((Hyperlink) e.getSource()).getParent().getParent();
 			ServerStats stats = fetchStats(serverName);
-			refreshChartSection(toolkit, section, stats, statsPeriod, unit, maxValue, columnCount, this);
+			refreshChartSection(toolkit, section, stats, statsPeriod, unit, maxValue, columnCount, this,
+					dataColumnIndex);
 		}
 
 		public abstract ChartPeriodLinkListener getInstance(String statsPeriod);
@@ -190,9 +215,13 @@ public class ChartUtil {
 	}
 
 	public class CpuChartPeriodLinkListener extends ChartPeriodLinkListener {
-		private CpuChartPeriodLinkListener(Cluster cluster, String serverName, String statsPeriod, String unit,
-				double maxValue, int columnCount, FormToolkit toolkit) {
-			super(cluster, serverName, statsPeriod, unit, maxValue, columnCount, toolkit);
+		public CpuChartPeriodLinkListener(String serverName, String statsPeriod, FormToolkit toolkit) {
+			super(serverName, statsPeriod, toolkit);
+		}
+
+		private CpuChartPeriodLinkListener(String serverName, String statsPeriod, String unit, double maxValue,
+				int columnCount, int dataColumnIndex, FormToolkit toolkit) {
+			super(serverName, statsPeriod, unit, maxValue, columnCount, dataColumnIndex, toolkit);
 		}
 
 		@Override
@@ -202,7 +231,7 @@ public class ChartUtil {
 			ServerStats stats;
 			if (serverName == null) {
 				stats = new GlusterServersClient().getAggregatedCpuStats(statsPeriod);
-				cluster.setAggregatedCpuStats(stats);
+				GlusterDataModelManager.getInstance().getModel().getCluster().setAggregatedCpuStats(stats);
 			} else {
 				stats = new GlusterServersClient().getCpuStats(serverName, statsPeriod);
 			}
@@ -211,7 +240,7 @@ public class ChartUtil {
 
 		@Override
 		public ChartPeriodLinkListener getInstance(String statsPeriod) {
-			return new CpuChartPeriodLinkListener(cluster, serverName, statsPeriod, "%", 100, 4, toolkit);
+			return new CpuChartPeriodLinkListener(serverName, statsPeriod, "%", 100, 4, dataColumnIndex, toolkit);
 		}
 	}
 
@@ -220,9 +249,9 @@ public class ChartUtil {
 			super(serverName, statsPeriod, toolkit);
 		}
 
-		private MemoryChartPeriodLinkListener(Cluster cluster, String serverName, String statsPeriod, String unit,
-				double maxValue, int columnCount, FormToolkit toolkit) {
-			super(cluster, serverName, statsPeriod, unit, maxValue, columnCount, toolkit);
+		private MemoryChartPeriodLinkListener(String serverName, String statsPeriod, String unit, double maxValue,
+				int columnCount, int dataColumnIndex, FormToolkit toolkit) {
+			super(serverName, statsPeriod, unit, maxValue, columnCount, dataColumnIndex, toolkit);
 		}
 
 		@Override
@@ -235,14 +264,23 @@ public class ChartUtil {
 
 		@Override
 		public ChartPeriodLinkListener getInstance(String statsPeriod) {
-			return new MemoryChartPeriodLinkListener(cluster, serverName, statsPeriod, "%", 100, 4, toolkit);
+			return new MemoryChartPeriodLinkListener(serverName, statsPeriod, "%", 100, 4, dataColumnIndex, toolkit);
 		}
 	}
 
 	public class NetworkChartPeriodLinkListener extends ChartPeriodLinkListener {
-		private NetworkChartPeriodLinkListener(Cluster cluster, String serverName, String statsPeriod, String unit,
-				double maxValue, int columnCount, FormToolkit toolkit) {
-			super(cluster, serverName, statsPeriod, unit, maxValue, columnCount, toolkit);
+		private GlusterServer server;
+
+		public NetworkChartPeriodLinkListener(GlusterServer server, String statsPeriod, FormToolkit toolkit) {
+			super(server == null ? null : server.getName(), statsPeriod, toolkit);
+			this.setServer(server);
+		}
+
+		private NetworkChartPeriodLinkListener(GlusterServer server, String statsPeriod, String unit, double maxValue,
+				int columnCount, int dataColumnIndex, FormToolkit toolkit) {
+			super(server == null ? null : server.getName(), statsPeriod, unit, maxValue, columnCount, dataColumnIndex,
+					toolkit);
+			this.setServer(server);
 		}
 
 		@Override
@@ -252,7 +290,7 @@ public class ChartUtil {
 			ServerStats stats;
 			if (serverName == null) {
 				stats = new GlusterServersClient().getAggregatedNetworkStats(statsPeriod);
-				cluster.setAggregatedNetworkStats(stats);
+				GlusterDataModelManager.getInstance().getModel().getCluster().setAggregatedNetworkStats(stats);
 			} else {
 				stats = new GlusterServersClient().getNetworkStats(serverName, "eth0", statsPeriod);
 			}
@@ -262,23 +300,61 @@ public class ChartUtil {
 
 		@Override
 		public ChartPeriodLinkListener getInstance(String statsPeriod) {
-			return new NetworkChartPeriodLinkListener(cluster, serverName, statsPeriod, "KiB/s", -1d, 4, toolkit);
+			// if serverName is null, it means we are showing aggregated stats - so the "network interface" combo will
+			// not be shown in the "links" composite.
+			int columnCount = (serverName == null ? 4 : 5);
+			return new NetworkChartPeriodLinkListener(server, statsPeriod, "KiB/s", -1d, columnCount, dataColumnIndex,
+					toolkit);
+		}
+
+		public void setServer(GlusterServer server) {
+			this.server = server;
+		}
+
+		public GlusterServer getServer() {
+			return server;
 		}
 	}
 
-	private void refreshChartSection(FormToolkit toolkit, Composite section, ServerStats stats, String statsPeriod,
-			String unit, double maxValue, int columnCount, ChartPeriodLinkListener linkListener) {
+	public void createNetworkInterfaceCombo(final Composite section, final Composite graphComposite,
+			final FormToolkit toolkit, final NetworkChartPeriodLinkListener networkChartPeriodLinkListener) {
+		final GlusterServer server = networkChartPeriodLinkListener.getServer();
+		final String networkStatsPeriod = preferenceStore.getString(PreferenceConstants.P_NETWORK_CHART_PERIOD);
+
+		final CCombo interfaceCombo = new CCombo(graphComposite, SWT.DROP_DOWN | SWT.READ_ONLY | SWT.BORDER | SWT.FLAT);
+		final List<NetworkInterface> niList = server.getNetworkInterfaces();
+		final String[] interfaces = new String[niList.size()];
+
+		for (int i = 0; i < interfaces.length; i++) {
+			interfaces[i] = niList.get(i).getName();
+		}
+		interfaceCombo.setItems(interfaces);
+		interfaceCombo.select(0);
+		interfaceCombo.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				super.widgetSelected(e);
+				int selectionIndex = interfaceCombo.getSelectionIndex();
+				String networkInterface = interfaces[selectionIndex];
+				ServerStats stats = new GlusterServersClient().getNetworkStats(server.getName(), networkInterface,
+						networkStatsPeriod);
+				ChartUtil.getInstance().refreshChartSection(toolkit, section, stats, networkStatsPeriod, "KiB/s", -1,
+						5, networkChartPeriodLinkListener, 2);
+			}
+		});
+	}
+
+	public void refreshChartSection(FormToolkit toolkit, Composite section, ServerStats stats, String statsPeriod,
+			String unit, double maxValue, int columnCount, ChartPeriodLinkListener linkListener, int dataColumnIndex) {
+		// TODO: Invoke guiHelper.clearSection when it's ready
 		for (Control control : section.getChildren()) {
 			if (!control.isDisposed()) {
 				control.dispose();
 			}
 		}
-		List<Calendar> timestamps = new ArrayList<Calendar>();
-		List<Double> data = new ArrayList<Double>();
-		extractChartData(stats, timestamps, data, 2);
-		createAreaChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]), unit,
-				getTimestampFormatForPeriod(statsPeriod), maxValue);
-		createChartLinks(toolkit, section, columnCount, linkListener);
+
+		createAreaChart(toolkit, section, stats, dataColumnIndex, unit, getTimestampFormatForPeriod(statsPeriod),
+				linkListener, maxValue, columnCount);
 		section.layout();
 	}
 

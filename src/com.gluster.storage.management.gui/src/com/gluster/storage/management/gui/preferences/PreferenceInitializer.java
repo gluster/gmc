@@ -54,5 +54,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 		store.setDefault(PreferenceConstants.P_CPU_CHART_PERIOD, "1d");
 		store.setDefault(PreferenceConstants.P_MEM_CHART_PERIOD, "1d");
 		store.setDefault(PreferenceConstants.P_NETWORK_CHART_PERIOD, "1d");
+		store.setDefault(PreferenceConstants.P_CPU_AGGREGATED_CHART_PERIOD, "1d");
+		store.setDefault(PreferenceConstants.P_NETWORK_AGGREGATED_CHART_PERIOD, "1d");
 	}
 }
