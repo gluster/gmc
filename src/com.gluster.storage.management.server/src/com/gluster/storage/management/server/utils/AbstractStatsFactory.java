@@ -76,7 +76,7 @@ public abstract class AbstractStatsFactory implements StatsFactory {
 				addServerStats(fetchStats(serverName, period), aggregatedStats, dataCount);
 			} catch(Exception e) {
 				// server might be offline - continue with next one
-				logger.warn("Couldn't fetch CPU stats from server [" + serverName + "]!", e);
+				logger.warn("Couldn't fetch performance stats from server [" + serverName + "]!", e);
 				continue;
 			}
 		}
@@ -137,7 +137,7 @@ public abstract class AbstractStatsFactory implements StatsFactory {
 	@Override
 	public ServerStats fetchAggregatedStats(List<String> serverNames, String period) {
 		if(serverNames == null || serverNames.size() == 0) {
-			throw new GlusterRuntimeException("No server names passed to fetchAggregaredCPUStats!");
+			throw new GlusterRuntimeException("No server names passed to fetchAggregaredStats!");
 		}
 		
 		ServerStats firstServerStats = getFirstOnlineServerStats(serverNames, period, true, true);

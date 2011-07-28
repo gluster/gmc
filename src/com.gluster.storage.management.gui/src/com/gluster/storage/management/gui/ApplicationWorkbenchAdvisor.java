@@ -23,6 +23,8 @@ import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.ui.application.IWorkbenchConfigurer;
 import org.eclipse.ui.application.IWorkbenchWindowConfigurer;
 import org.eclipse.ui.application.WorkbenchAdvisor;
@@ -37,6 +39,9 @@ import com.gluster.storage.management.gui.preferences.PreferenceConstants;
  */
 public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 	private Job syncJob;
+	private static final IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
+	private long JOB_INTERVAL = preferenceStore.getLong(PreferenceConstants.P_DATA_SYNC_INTERVAL) * 1000;
+	private IPropertyChangeListener propertyChangeListener;
 	
     public WorkbenchWindowAdvisor createWorkbenchWindowAdvisor(IWorkbenchWindowConfigurer configurer) {
         return new ApplicationWorkbenchWindowAdvisor(configurer);
@@ -50,8 +55,23 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 	public void initialize(IWorkbenchConfigurer configurer) {
 		super.initialize(configurer);
 		configurer.setSaveAndRestore(false); // we don't need save/restore as of now
+		
+		createPropertyChangeListener();
+		preferenceStore.addPropertyChangeListener(propertyChangeListener);
 	}
 	
+	private void createPropertyChangeListener() {
+		propertyChangeListener = new IPropertyChangeListener() {
+			
+			@Override
+			public void propertyChange(PropertyChangeEvent event) {
+				if(event.getProperty().equals(PreferenceConstants.P_DATA_SYNC_INTERVAL)) {
+					JOB_INTERVAL = (Long)event.getNewValue() * 1000;
+				}
+			}
+		};
+	}
+
 	@Override
 	public void postStartup() {
 		super.postStartup();
@@ -59,9 +79,6 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 	}
 	
 	private void setupBackgroundJobs() {
-		final IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
-		final long JOB_INTERVAL = preferenceStore.getLong(PreferenceConstants.P_DATA_SYNC_INTERVAL) * 1000;
-		
 		syncJob = new DataSyncJob("Cluster Data Sync");
 		syncJob.schedule(JOB_INTERVAL);
 		syncJob.addJobChangeListener(new JobChangeAdapter() {

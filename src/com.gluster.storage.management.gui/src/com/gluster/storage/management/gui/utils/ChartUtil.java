@@ -203,14 +203,12 @@ public class ChartUtil {
 		public void linkActivated(HyperlinkEvent e) {
 			super.linkActivated(e);
 			Composite section = ((Hyperlink) e.getSource()).getParent().getParent();
-			ServerStats stats = fetchStats(serverName);
-			refreshChartSection(toolkit, section, stats, statsPeriod, unit, maxValue, columnCount, this,
-					dataColumnIndex);
+			updatePreference(serverName);
 		}
 
 		public abstract ChartPeriodLinkListener getInstance(String statsPeriod);
 
-		protected abstract ServerStats fetchStats(String serverName);
+		protected abstract void updatePreference(String serverName);
 	}
 
 	public class CpuChartPeriodLinkListener extends ChartPeriodLinkListener {
@@ -224,17 +222,13 @@ public class ChartUtil {
 		}
 
 		@Override
-		protected ServerStats fetchStats(String serverName) {
+		protected void updatePreference(String serverName) {
 			ServerStats stats;
 			if (serverName == null) {
 				preferenceStore.setValue(PreferenceConstants.P_CPU_AGGREGATED_CHART_PERIOD, statsPeriod);
-				stats = new GlusterServersClient().getAggregatedCpuStats(statsPeriod);
-				GlusterDataModelManager.getInstance().getModel().getCluster().setAggregatedCpuStats(stats);
 			} else {
 				preferenceStore.setValue(PreferenceConstants.P_CPU_CHART_PERIOD, statsPeriod);
-				stats = new GlusterServersClient().getCpuStats(serverName, statsPeriod);
 			}
-			return stats;
 		}
 
 		@Override
@@ -254,11 +248,8 @@ public class ChartUtil {
 		}
 
 		@Override
-		protected ServerStats fetchStats(String serverName) {
-			IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
+		protected void updatePreference(String serverName) {
 			preferenceStore.setValue(PreferenceConstants.P_MEM_CHART_PERIOD, statsPeriod);
-			ServerStats stats = new GlusterServersClient().getMemoryStats(serverName, statsPeriod);
-			return stats;
 		}
 
 		@Override
@@ -283,18 +274,12 @@ public class ChartUtil {
 		}
 
 		@Override
-		protected ServerStats fetchStats(String serverName) {
-			ServerStats stats;
+		protected void updatePreference(String serverName) {
 			if (serverName == null) {
 				preferenceStore.setValue(PreferenceConstants.P_NETWORK_AGGREGATED_CHART_PERIOD, statsPeriod);
-				stats = new GlusterServersClient().getAggregatedNetworkStats(statsPeriod);
-				GlusterDataModelManager.getInstance().getModel().getCluster().setAggregatedNetworkStats(stats);
 			} else {
 				preferenceStore.setValue(PreferenceConstants.P_NETWORK_CHART_PERIOD, statsPeriod);
-				stats = new GlusterServersClient().getNetworkStats(serverName, "eth0", statsPeriod);
 			}
-
-			return stats;
 		}
 
 		@Override
@@ -318,8 +303,6 @@ public class ChartUtil {
 	public void createNetworkInterfaceCombo(final Composite section, final Composite graphComposite,
 			final FormToolkit toolkit, final NetworkChartPeriodLinkListener networkChartPeriodLinkListener) {
 		final GlusterServer server = networkChartPeriodLinkListener.getServer();
-		final String networkStatsPeriod = preferenceStore.getString(PreferenceConstants.P_NETWORK_CHART_PERIOD);
-
 		final CCombo interfaceCombo = new CCombo(graphComposite, SWT.DROP_DOWN | SWT.READ_ONLY | SWT.BORDER | SWT.FLAT);
 		final List<NetworkInterface> niList = server.getNetworkInterfaces();
 		final String[] interfaces = new String[niList.size()];
@@ -332,12 +315,7 @@ public class ChartUtil {
 		interfaceCombo.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				int selectionIndex = interfaceCombo.getSelectionIndex();
-				String networkInterface = interfaces[selectionIndex];
-				ServerStats stats = new GlusterServersClient().getNetworkStats(server.getName(), networkInterface,
-						networkStatsPeriod);
-				ChartUtil.getInstance().refreshChartSection(toolkit, section, stats, networkStatsPeriod, "KiB/s", -1,
-						5, networkChartPeriodLinkListener, 2);
+				preferenceStore.setValue(PreferenceConstants.P_DEFAULT_NETWORK_INTERFACE_PFX + server.getName(), interfaces[interfaceCombo.getSelectionIndex()]);
 			}
 		});
 	}

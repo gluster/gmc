@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
 import org.apache.log4j.Logger;
@@ -49,13 +48,15 @@ import com.gluster.storage.management.core.utils.ProcessResult;
 @Component
 public class SshUtil {
 	private static final String TEMP_DIR = "/tmp/";
-	public static final String SSH_AUTHORIZED_KEYS_DIR = "/root/.ssh/";
+	public static final String SSH_AUTHORIZED_KEYS_DIR_LOCAL = "/opt/glustermg/keys/";
+	public static final String SSH_AUTHORIZED_KEYS_DIR_REMOTE = "/root/.ssh/";
 	private static final String SSH_AUTHORIZED_KEYS_FILE = "authorized_keys";
-	private static final String SSH_AUTHORIZED_KEYS_PATH = SSH_AUTHORIZED_KEYS_DIR + SSH_AUTHORIZED_KEYS_FILE;
-	private LRUCache<String, Connection> sshConnCache = new LRUCache<String, Connection>(10);
-	public static final File PEM_FILE = new File(CoreConstants.USER_HOME + File.separator + ".ssh/id_rsa");
-	public static final File PUBLIC_KEY_FILE = new File(CoreConstants.USER_HOME + File.separator + ".ssh/id_rsa.pub");
+	private static final String SSH_AUTHORIZED_KEYS_PATH_REMOTE = SSH_AUTHORIZED_KEYS_DIR_REMOTE + SSH_AUTHORIZED_KEYS_FILE;
+	public static final File PRIVATE_KEY_FILE = new File(SSH_AUTHORIZED_KEYS_DIR_LOCAL + "id_rsa");
+	public static final File PUBLIC_KEY_FILE = new File(SSH_AUTHORIZED_KEYS_DIR_LOCAL + "id_rsa.pub");
 	private static final String SCRIPT_DISABLE_SSH_PASSWORD_AUTH = "disable-ssh-password-auth.sh";
+	private static final String PRIVATE_KEY_PASSPHRASE = "gluster";
+	private LRUCache<String, Connection> sshConnCache = new LRUCache<String, Connection>(10);
 
 	// TODO: Make user name configurable
 	private static final String USER_NAME = "root";
@@ -111,7 +112,7 @@ public class SshUtil {
 		}
 		try {
 			// get authorized_keys from server
-			scpClient.get(SSH_AUTHORIZED_KEYS_PATH, TEMP_DIR);
+			scpClient.get(SSH_AUTHORIZED_KEYS_PATH_REMOTE, TEMP_DIR);
 		} catch (IOException e) {
 			// file doesn't exist. it will get created.
 		}
@@ -134,7 +135,7 @@ public class SshUtil {
 		}
 		
 		try {
-			scpClient.put(localTempFile.getAbsolutePath(), SSH_AUTHORIZED_KEYS_FILE, SSH_AUTHORIZED_KEYS_DIR, "0600");
+			scpClient.put(localTempFile.getAbsolutePath(), SSH_AUTHORIZED_KEYS_FILE, SSH_AUTHORIZED_KEYS_DIR_REMOTE, "0600");
 		} catch (IOException e) {
 			throw new GlusterRuntimeException("Couldn't add public key to server [" + serverName + "]", e);
 		}
@@ -175,8 +176,7 @@ public class SshUtil {
 						+ "]");
 			}
 
-			// TODO: Introduce password for the PEM file (third argument) so that it is more secure
-			if (!conn.authenticateWithPublicKey(USER_NAME, PEM_FILE, null)) {
+			if (!conn.authenticateWithPublicKey(USER_NAME, PRIVATE_KEY_FILE, PRIVATE_KEY_PASSPHRASE)) {
 				throw new ConnectionException("SSH Authentication (public key) failed for server ["
 						+ conn.getHostname() + "]");
 			}
@@ -194,7 +194,6 @@ public class SshUtil {
 						+ "]");
 			}
 
-			// TODO: Introduce password for the PEM file (third argument) so that it is more secure
 			if (!conn.authenticateWithPassword(USER_NAME, DEFAULT_PASSWORD)) {
 				throw new ConnectionException("SSH Authentication (password) failed for server ["
 						+ conn.getHostname() + "]");

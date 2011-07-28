@@ -132,7 +132,8 @@ public class GlusterServerSummaryView extends ViewPart {
 					refreshCpuChart();
 				} else if(propertyName.equals(PreferenceConstants.P_MEM_CHART_PERIOD)) {
 					refreshMemoryChart();
-				} else if(propertyName.equals(PreferenceConstants.P_NETWORK_CHART_PERIOD)) {
+				} else if (propertyName.equals(PreferenceConstants.P_NETWORK_CHART_PERIOD)
+						|| propertyName.equals(PreferenceConstants.P_DEFAULT_NETWORK_INTERFACE_PFX + server.getName())) {
 					refreshNetworkChart();
 				}
 			}
@@ -164,7 +165,11 @@ public class GlusterServerSummaryView extends ViewPart {
 	private void refreshNetworkChart() {
 		guiHelper.clearSection(networkUsageSection);
 		String statsPeriod = preferenceStore.getString(PreferenceConstants.P_NETWORK_CHART_PERIOD);
-		ServerStats stats = new GlusterServersClient().getNetworkStats(server.getName(), server.getNetworkInterfaces().get(0).getName(), statsPeriod);
+		String networkInterface = preferenceStore.getString(PreferenceConstants.P_DEFAULT_NETWORK_INTERFACE_PFX + server.getName());
+		if(networkInterface == null || networkInterface.isEmpty()) {
+			networkInterface = server.getNetworkInterfaces().get(0).getName();
+		}
+		ServerStats stats = new GlusterServersClient().getNetworkStats(server.getName(), networkInterface, statsPeriod);
 		chartUtil.refreshChartSection(toolkit, networkUsageSection, stats, statsPeriod, "KiB/s", -1, 5, chartUtil.new NetworkChartPeriodLinkListener(server, statsPeriod, toolkit), 2);
 	}
 
@@ -273,7 +278,7 @@ public class GlusterServerSummaryView extends ViewPart {
 		}
 
 		// in case of CPU usage, there are three elements in usage data: user, system and total. we use total.
-		chartUtil.createAreaChart(toolkit, cpuUsageSection, stats, 0, "%", chartUtil
+		chartUtil.createAreaChart(toolkit, cpuUsageSection, stats, 2, "%", chartUtil
 				.getTimestampFormatForPeriod(cpuStatsPeriod),
 				chartUtil.new CpuChartPeriodLinkListener(server.getName(), cpuStatsPeriod, toolkit), 100, 4);
 	}
@@ -295,7 +300,7 @@ public class GlusterServerSummaryView extends ViewPart {
 		// in case of network usage, there are three elements in usage data: received, transmitted and total. we use total.
 		final ChartUtil chartUtil = ChartUtil.getInstance();
 		final ChartPeriodLinkListener networkChartPeriodLinkListener = chartUtil.new NetworkChartPeriodLinkListener(server, networkStatsPeriod, toolkit);
-		chartUtil.createAreaChart(toolkit, networkUsageSection, stats, 2, "%", chartUtil
+		chartUtil.createAreaChart(toolkit, networkUsageSection, stats, 2, "KiB/s", chartUtil
 				.getTimestampFormatForPeriod(networkStatsPeriod),
 				networkChartPeriodLinkListener , -1, 5);
 	}

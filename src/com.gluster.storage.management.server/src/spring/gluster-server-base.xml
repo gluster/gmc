@@ -49,7 +49,7 @@
 	<!-- Derby embedded data source -->
 	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" lazy-init="false">
 		<property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver" />
-		<property name="url" value="jdbc:derby:/etc/glustermg/data;create=true" />
+		<property name="url" value="jdbc:derby:/opt/glustermg/data;create=true" />
 		<property name="username" value="gluster" />
 		<property name="password" value="gluster" />
 	</bean>

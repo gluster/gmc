@@ -64,13 +64,13 @@ public class KeysResource extends AbstractResource {
 	private String createSskKeyZipFile() {
 		String targetDir = System.getProperty("java.io.tmpdir");
 		String zipFile = targetDir + "ssh-keys.tar";
-		String sourcePemFile = SshUtil.PEM_FILE.getAbsolutePath();
+		String sourcePemFile = SshUtil.PRIVATE_KEY_FILE.getAbsolutePath();
 		String sourcePubKeyFile = SshUtil.PUBLIC_KEY_FILE.getAbsolutePath();
-		String targetPemFile = targetDir + File.separator + SshUtil.PEM_FILE.getName();
+		String targetPemFile = targetDir + File.separator + SshUtil.PRIVATE_KEY_FILE.getName();
 		String targetPubKeyFile = targetDir + File.separator + SshUtil.PUBLIC_KEY_FILE.getName();
 
-		if (!SshUtil.PEM_FILE.isFile()) {
-			throw new GlusterRuntimeException("No private key file [" + SshUtil.PEM_FILE.getName() + "] found!" );
+		if (!SshUtil.PRIVATE_KEY_FILE.isFile()) {
+			throw new GlusterRuntimeException("No private key file [" + SshUtil.PRIVATE_KEY_FILE.getName() + "] found!" );
 		}
 		
 		if (!SshUtil.PUBLIC_KEY_FILE.isFile()) {
@@ -88,7 +88,7 @@ public class KeysResource extends AbstractResource {
 		}
 		
 		// To compress the key files
-		result = processUtil.executeCommand("tar", "cvf", zipFile, "-C", "/tmp", SshUtil.PEM_FILE.getName(),
+		result = processUtil.executeCommand("tar", "cvf", zipFile, "-C", "/tmp", SshUtil.PRIVATE_KEY_FILE.getName(),
 				SshUtil.PUBLIC_KEY_FILE.getName());
 		if (!result.isSuccess()) {
 			throw new GlusterRuntimeException("Failed to compress key files! [" + result.getOutput() + "]");
@@ -112,8 +112,8 @@ public class KeysResource extends AbstractResource {
 		writeToFile(uploadedInputStream, uploadedFile.getAbsolutePath());
 
 		// To backup existing SSH pem and public keys, if exist.
-		if (SshUtil.PEM_FILE.isFile()) {
-			if (!SshUtil.PEM_FILE.renameTo(new File(SshUtil.PEM_FILE.getAbsolutePath() + "-" + timestamp))) {
+		if (SshUtil.PRIVATE_KEY_FILE.isFile()) {
+			if (!SshUtil.PRIVATE_KEY_FILE.renameTo(new File(SshUtil.PRIVATE_KEY_FILE.getAbsolutePath() + "-" + timestamp))) {
 				throw new GlusterRuntimeException("Unable to backup pem key!");
 			}
 		}
@@ -126,7 +126,7 @@ public class KeysResource extends AbstractResource {
 		}
 		// Extract SSH pem and public key files.
 		ProcessResult output = processUtil.executeCommand("tar", "xvf", uploadedFile.getName(), "-C",
-				SshUtil.SSH_AUTHORIZED_KEYS_DIR);
+				SshUtil.SSH_AUTHORIZED_KEYS_DIR_LOCAL);
 		uploadedFile.delete();
 		if (!output.isSuccess()) {
 			throw new GlusterRuntimeException(output.getOutput());
