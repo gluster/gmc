@@ -139,6 +139,8 @@ public class VolumeOptionsPage extends Composite {
 				switch (event.getEventType()) {
 				case VOLUME_OPTIONS_RESET:
 					if (!tableViewer.getControl().isDisposed()) {
+						//While reseting the options, clear the filter text before refreshing the tree
+						filterText.setText("");  
 						tableViewer.refresh();
 						setAddButtonsEnabled(true);
 					}
