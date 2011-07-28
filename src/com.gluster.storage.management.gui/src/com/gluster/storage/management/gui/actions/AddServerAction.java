@@ -60,7 +60,10 @@ public class AddServerAction extends AbstractActionDelegate {
 							modelManager.addGlusterServer(glusterServersClient.getGlusterServer(server.getName()));
 							successServers.add(server);
 						} catch (Exception e) {
-							// TODO: Handle error conditions
+							if (!errMsg.isEmpty()) {
+								errMsg += CoreConstants.NEWLINE;
+							}
+							errMsg += "Server " + server.getName() + ". Error: [" + e.getMessage() + "]";
 						}
 					}
 
