@@ -668,11 +668,13 @@ public class GlusterDataModelManager {
 			listener.serverRemoved(server);
 		}
 		
-		// add it to discovered servers list
-		Server removedServer = new Server();
-		removedServer.copyFrom(server);
-		removedServer.addDisks(server.getDisks());
-		addDiscoveredServer(removedServer);
+		// add it to discovered servers list if it is online server
+		if (server.isOnline()) {
+			Server removedServer = new Server();
+			removedServer.copyFrom(server);
+			removedServer.addDisks(server.getDisks());
+			addDiscoveredServer(removedServer);
+		}
 	}
 
 	public void deleteVolume(Volume volume) {
