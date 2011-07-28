@@ -33,10 +33,7 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CLabel;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -56,9 +53,8 @@ import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Event;
-import com.gluster.storage.management.core.model.GlusterServer;
-import com.gluster.storage.management.core.model.NetworkInterface;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
+import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.ServerStats;
 import com.gluster.storage.management.core.model.ServerStatsRow;
@@ -100,6 +96,11 @@ public class GlusterServerSummaryView extends ViewPart {
 	private Composite networkUsageSection;
 	private Composite memoryUsageSection;
 	private static final ChartUtil chartUtil = ChartUtil.getInstance();
+	private Composite serverSummarySection;
+	private Label numCpus;
+	private ProgressBar memoryUsageBar;
+	private ProgressBar diskUsageBar;
+	private CLabel lblServerStatus;
 
 	@Override
 	public void createPartControl(Composite parent) {
@@ -184,6 +185,8 @@ public class GlusterServerSummaryView extends ViewPart {
 
 	private void updateServerDetails() {
 		// TODO: Update the server details (cpu usage, memory usage)
+		populateServerSummarySection(server);
+		
 	}
 	
 	@Override
@@ -332,38 +335,19 @@ public class GlusterServerSummaryView extends ViewPart {
 	}
 
 	private void createServerSummarySection(GlusterServer server, FormToolkit toolkit, final ScrolledForm form) {
-		Composite section = guiHelper.createSection(form, toolkit, "Summary", null, 2, false);
-
+		serverSummarySection = guiHelper.createSection(form, toolkit, "Summary", null, 2, false);
 		// toolkit.createLabel(section, "Preferred Network: ", SWT.NONE);
 		// toolkit.createLabel(section, server.getPreferredNetworkInterface().getName(), SWT.NONE);
+		
+		if (server.isOnline()) {
+			toolkit.createLabel(serverSummarySection, "Number of CPUs: ", SWT.NONE);
+			numCpus = toolkit.createLabel(serverSummarySection, "" + server.getNumOfCPUs(), SWT.NONE);
 
-		boolean online = server.getStatus() == SERVER_STATUS.ONLINE;
+			toolkit.createLabel(serverSummarySection, "% CPU Usage (avg): ", SWT.NONE);
+			cpuGauge = new CoolGauge(serverSummarySection, guiHelper.getImage(IImageKeys.GAUGE_SMALL));
 
-		if (online) {
-			toolkit.createLabel(section, "Number of CPUs: ", SWT.NONE);
-			toolkit.createLabel(section, "" + server.getNumOfCPUs(), SWT.NONE);
-
-			// toolkit.createLabel(section, "CPU Usage (%): ", SWT.NONE);
-			// toolkit.createLabel(section, online ? "" + server.getCpuUsage() : "NA", SWT.NONE);
-
-			toolkit.createLabel(section, "% CPU Usage (avg): ", SWT.NONE);
-			cpuGauge = new CoolGauge(section, guiHelper.getImage(IImageKeys.GAUGE_SMALL));
-			cpuGauge.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false));
-			cpuGauge.setGaugeNeedleColour(Display.getDefault().getSystemColor(SWT.COLOR_RED));
-			cpuGauge.setGaugeNeedleWidth(2);
-			cpuGauge.setGaugeNeedlePivot(new Point(66, 65));
-
-			cpuGauge.setPoints(getPnts());
-			cpuGauge.setLevel(server.getCpuUsage() / 100);
-			cpuGauge.setToolTipText(server.getCpuUsage() + "%");
-
-			toolkit.createLabel(section, "Memory Usage: ", SWT.NONE);
-			ProgressBar memoryUsageBar = new ProgressBar(section, SWT.SMOOTH);
-			memoryUsageBar.setMinimum(0);
-			memoryUsageBar.setMaximum((int) Math.round(server.getTotalMemory()));
-			memoryUsageBar.setSelection((int) Math.round(server.getMemoryInUse()));
-			memoryUsageBar.setToolTipText("Total: " + NumberUtil.formatNumber((server.getTotalMemory()/1024)) + "GB, In Use: "
-					+ NumberUtil.formatNumber((server.getMemoryInUse()/1024)) + "GB");
+			toolkit.createLabel(serverSummarySection, "Memory Usage: ", SWT.NONE);
+			memoryUsageBar = new ProgressBar(serverSummarySection, SWT.SMOOTH);
 
 			// toolkit.createLabel(section, "Memory Usage: ", SWT.NONE);
 			// final CoolProgressBar bar = new CoolProgressBar(section,SWT.HORIZONTAL,
@@ -379,21 +363,50 @@ public class GlusterServerSummaryView extends ViewPart {
 			// toolkit.createLabel(section, "Disk Space in Use (GB): ", SWT.NONE);
 			// toolkit.createLabel(section, online ? "" + server.getDiskSpaceInUse() : "NA", SWT.NONE);
 
-			toolkit.createLabel(section, "Disk Usage: ", SWT.NONE);
-			ProgressBar diskUsageBar = new ProgressBar(section, SWT.SMOOTH);
+			toolkit.createLabel(serverSummarySection, "Disk Usage: ", SWT.NONE);
+			diskUsageBar = new ProgressBar(serverSummarySection, SWT.SMOOTH);
+		}
+
+		toolkit.createLabel(serverSummarySection, "Status: ", SWT.NONE);
+		lblServerStatus = new CLabel(serverSummarySection, SWT.NONE);
+		populateServerSummarySection(server);
+	}
+	
+	private void populateServerSummarySection(GlusterServer server) {
+		if (server.isOnline()) {
+			numCpus.setText("" + server.getNumOfCPUs());
+			numCpus.redraw();
+
+			cpuGauge.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false));
+			cpuGauge.setGaugeNeedleColour(Display.getDefault().getSystemColor(SWT.COLOR_RED));
+			cpuGauge.setGaugeNeedleWidth(2);
+			cpuGauge.setGaugeNeedlePivot(new Point(66, 65));
+
+			cpuGauge.setPoints(getPnts());
+			cpuGauge.setLevel(server.getCpuUsage() / 100);
+			cpuGauge.setToolTipText(server.getCpuUsage() + "%");
+			cpuGauge.redraw();
+
+			memoryUsageBar.setMinimum(0);
+			memoryUsageBar.setMaximum((int) Math.round(server.getTotalMemory()));
+			memoryUsageBar.setSelection((int) Math.round(server.getMemoryInUse()));
+			memoryUsageBar.setToolTipText("Total: " + NumberUtil.formatNumber((server.getTotalMemory() / 1024))
+					+ "GB, In Use: " + NumberUtil.formatNumber((server.getMemoryInUse() / 1024)) + "GB");
+
 			diskUsageBar.setMinimum(0);
 			diskUsageBar.setMaximum((int) Math.round(server.getTotalDiskSpace()));
 			diskUsageBar.setSelection((int) Math.round(server.getDiskSpaceInUse()));
-			diskUsageBar.setToolTipText("Total: " + NumberUtil.formatNumber((server.getTotalDiskSpace()/1024))
-					+ "GB, In Use: " + NumberUtil.formatNumber((server.getDiskSpaceInUse()/1024)) + "GB");
-		}
+			diskUsageBar.setToolTipText("Total: " + NumberUtil.formatNumber((server.getTotalDiskSpace() / 1024))
+					+ "GB, In Use: " + NumberUtil.formatNumber((server.getDiskSpaceInUse() / 1024)) + "GB");
 
-		toolkit.createLabel(section, "Status: ", SWT.NONE);
-		CLabel lblStatusValue = new CLabel(section, SWT.NONE);
-		lblStatusValue.setText(server.getStatusStr());
-		lblStatusValue.setImage(server.getStatus() == GlusterServer.SERVER_STATUS.ONLINE ? guiHelper
+		}
+		lblServerStatus.setText(server.getStatusStr());
+		lblServerStatus.setImage(server.getStatus() == GlusterServer.SERVER_STATUS.ONLINE ? guiHelper
 				.getImage(IImageKeys.STATUS_ONLINE_16x16) : guiHelper.getImage(IImageKeys.STATUS_OFFLINE_16x16));
-		toolkit.adapt(lblStatusValue, true, true);
+		toolkit.adapt(lblServerStatus, true, true);
+
+		serverSummarySection.layout();
+		form.reflow(true);
 	}
 
 	private List<Point> getPnts() {
