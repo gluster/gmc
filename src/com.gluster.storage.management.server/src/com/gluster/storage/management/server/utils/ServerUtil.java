@@ -59,6 +59,7 @@ public class ServerUtil {
 	private static final String SCRIPT_DIR = "scripts";
 	private static final String SCRIPT_COMMAND = "python";
 	private static final String REMOTE_SCRIPT_GET_DISK_FOR_DIR = "get_disk_for_dir.py";
+	private static final String REMOTE_SCRIPT_GET_SERVER_DETAILS = "get_server_details.py";
 
 	public void setSshUtil(SshUtil sshUtil) {
 		this.sshUtil = sshUtil;
@@ -85,15 +86,25 @@ public class ServerUtil {
 	 *            Server whose details are to be fetched
 	 */
 	public void fetchServerDetails(Server server) {
-		// fetch standard server details like cpu, disk, memory details
-		Object response = executeOnServer(true, server.getName(), "get_server_details.py", Server.class);
-		if (response instanceof Status) {
-			throw new GlusterRuntimeException(((Status)response).getMessage());
-		}
+		Object response = fetchServerDetails(server.getName());
 		server.copyFrom((Server) response); // Update the details in <Server> object
 		server.setDisks(((Server) response).getDisks());
 	}
+	
+	public String fetchHostName(String serverName) {
+		Object response = fetchServerDetails(serverName);
+		return ((Server) response).getName();
+	}
 
+	private Object fetchServerDetails(String serverName) {
+		// fetch standard server details like cpu, disk, memory details
+		Object response = executeOnServer(true, serverName, REMOTE_SCRIPT_GET_SERVER_DETAILS, Server.class);
+		if (response instanceof Status) {
+			throw new GlusterRuntimeException(((Status) response).getMessage());
+		}
+		return response;
+	}
+	
 	/**
 	 * Executes given command on given server
 	 * 

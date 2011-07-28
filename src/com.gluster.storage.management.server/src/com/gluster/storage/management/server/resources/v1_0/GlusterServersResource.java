@@ -334,11 +334,12 @@ public class GlusterServersResource extends AbstractServersResource {
 					+ "Please reset it back to the standard default password and try again.");
 		}
 
+		String hostName = serverUtil.fetchHostName(serverName);
 		List<ServerInfo> servers = cluster.getServers();
 		if (servers != null && !servers.isEmpty()) {
 			// cluster has at least one existing server, so that peer probe can be performed
 			try {
-				performAddServer(clusterName, serverName);
+				performAddServer(clusterName, hostName);
 			} catch (Exception e) {
 				return errorResponse(e.getMessage());
 			}

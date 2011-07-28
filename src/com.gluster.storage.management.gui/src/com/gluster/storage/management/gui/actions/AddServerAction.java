@@ -49,24 +49,28 @@ public class AddServerAction extends AbstractActionDelegate {
 				String errMsg = "";
 				String partErrMsg = "";
 				
-				if(selectedServers.isEmpty()) {
+				if (selectedServers.isEmpty()) {
 					addServerManually();
-				}
-				for (Server server : selectedServers) {
-					guiHelper.setStatusMessage("Adding server [" + server.getName() + "]...");
+				} else {
+					for (Server server : selectedServers) {
+						guiHelper.setStatusMessage("Adding server [" + server.getName() + "]...");
 
-					try {
-						glusterServersClient.addServer(server.getName());
-						modelManager.addGlusterServer(glusterServersClient.getGlusterServer(server.getName()));
-						successServers.add(server);
-					} catch (Exception e) {
-						// TODO: Handle error conditions
+						try {
+							glusterServersClient.addServer(server.getName());
+							modelManager.addGlusterServer(glusterServersClient.getGlusterServer(server.getName()));
+							successServers.add(server);
+						} catch (Exception e) {
+							if (!errMsg.isEmpty()) {
+								errMsg += CoreConstants.NEWLINE;
+							}
+							errMsg += "Server " + server.getName() + ". Error: [" + e.getMessage() + "]";
+						}
 					}
-				}
 
-				guiHelper.clearStatusMessage();
-				showStatusMessage(action.getDescription(), selectedServers, successServers, partSuccessServers, errMsg,
-						partErrMsg);
+					guiHelper.clearStatusMessage();
+					showStatusMessage(action.getDescription(), selectedServers, successServers, partSuccessServers,
+							errMsg, partErrMsg);
+				}
 			}
 
 			private void addServerManually() {
