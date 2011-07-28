@@ -176,15 +176,34 @@ def writeIfcfgConfFile(deviceName, conf, root="", deviceFile=None):
         return False
     return True
 
-
-def getNetModel(deviceName):
+def getNetDeviceDetail(deviceName):
+    deviceDetail = {}
+    deviceDetail['Name'] = deviceName
     rv = runCommandFG("ifconfig %s" % deviceName, stdout=True, root=True)
     if rv["Status"] != 0:
         return False
     for line in rv["Stdout"].split():
         tokens = line.strip().split(":")
         if tokens[0].upper() == "ENCAP":
-            return tokens[1].strip().upper()
+            deviceDetail['Model'] = tokens[1].strip().upper()
+        if tokens[0].upper() == "ADDR":
+            deviceDetail['Ip'] = tokens[1].strip()
+        if tokens[0].upper() == "MASK":
+            deviceDetail['Mask'] = tokens[1].strip()
+    return deviceDetail
+
+def getNetDeviceGateway(deviceName):
+    rv = runCommand("route -n", output=True, root=True)
+    if rv["Status"] != 0:
+        return None
+    if not rv["Stdout"]:
+        return None
+    lines = [line for line in rv["Stdout"].split("\n") if line.find("UG") != -1 and line.find(deviceName)]
+    if not lines:
+        return None
+    line = lines[-1].split()
+    if line and len(line) > 1:
+        return line[1]
     return None
 
 def getNetSpeed(deviceName):
@@ -272,8 +291,6 @@ def getNetDeviceList(root=""):
         netDevice["type"] = None
         netDevice["onboot"] = None
         netDevice["bootproto"] = None
-        netDevice["ipaddr"] = None
-        netDevice["netmask"] = None
         netDevice["gateway"] = None
         netDevice["peerdns"] = None
         netDevice["autodns"] = None
@@ -294,7 +311,10 @@ def getNetDeviceList(root=""):
         netDevice["type"] = None
         netDevice["link"] = getLinkStatus(deviceName)
         netDevice["mode"] = getBondMode(deviceName, root + Globals.MODPROBE_CONF_FILE)
-        netDevice["model"] = getNetModel(deviceName)
+        deviceDetail = getNetDeviceDetail(deviceName)
+        netDevice["model"] = deviceDetail['Model']
+        netDevice["ipaddr"] = deviceDetail['Ip']
+        netDevice["netmask"] = deviceDetail['Mask']
         netDevice["speed"] = getNetSpeed(deviceName)
         try:
             netDevice["hwaddr"] = open("/sys/class/net/%s/address" % deviceName).read().strip()
@@ -314,18 +334,16 @@ def getNetDeviceList(root=""):
             netDevice["bootproto"] = conf["bootproto"]
         except KeyError:
             pass
-        try:
+        if conf.has_key("ipaddr") and conf["ipaddr"]:
             netDevice["ipaddr"] = conf["ipaddr"]
-        except KeyError:
-            pass
         try:
             netDevice["netmask"] = conf["netmask"]
         except KeyError:
             pass
-        try:
+        if conf.has_key("gateway") and conf["gateway"]:
             netDevice["gateway"] = conf["gateway"]
-        except KeyError:
-            pass
+        else:
+            netDevice["gateway"] = getNetDeviceGateway(deviceName)
         try:
             netDevice["peerdns"] = conf["peerdns"]
         except KeyError:
