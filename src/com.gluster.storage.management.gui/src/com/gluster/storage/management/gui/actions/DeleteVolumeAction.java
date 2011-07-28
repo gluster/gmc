@@ -82,6 +82,7 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 						"Volume [" + volume.getName() + "] could not be deleted! Error: [" + e.getMessage() + "]");
 			} else {
 				showWarningDialog(actionDesc, "Volume deleted, but following error(s) occured: " + e.getMessage());
+				modelManager.deleteVolume(volume);
 			}
 		}
 	}

@@ -440,7 +440,7 @@ public class GlusterDataModelManager {
 		cluster.setAggregatedCpuStats(new GlusterServersClient().getAggregatedCpuStats(cpuStatsPeriod));
 	}
 	
-	private void initializeAggregatedNetworkStats(Cluster cluster) {
+	public void initializeAggregatedNetworkStats(Cluster cluster) {
 		IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
 		String networkStatsPeriod = preferenceStore.getString(PreferenceConstants.P_NETWORK_AGGREGATED_CHART_PERIOD);
 		
@@ -668,11 +668,13 @@ public class GlusterDataModelManager {
 			listener.serverRemoved(server);
 		}
 		
-		// add it to discovered servers list
-		Server removedServer = new Server();
-		removedServer.copyFrom(server);
-		removedServer.addDisks(server.getDisks());
-		addDiscoveredServer(removedServer);
+		// add it to discovered servers list if it is online server
+		if (server.isOnline()) {
+			Server removedServer = new Server();
+			removedServer.copyFrom(server);
+			removedServer.addDisks(server.getDisks());
+			addDiscoveredServer(removedServer);
+		}
 	}
 
 	public void deleteVolume(Volume volume) {
