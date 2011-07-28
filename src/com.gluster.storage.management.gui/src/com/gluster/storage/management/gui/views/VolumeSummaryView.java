@@ -440,39 +440,6 @@ public class VolumeSummaryView extends ViewPart {
 		totalDiskSpace.setText("" + NumberUtil.formatNumber((getTotalDiskSpace() / 1024)));
 	}
 
-//	private void createChangeLinkForNASProtocol(Composite section, final Button nfsCheckBox) {
-//		final Hyperlink nasChangeLink = toolkit.createHyperlink(section, "change", SWT.NONE);
-//		nasChangeLink.addHyperlinkListener(new HyperlinkAdapter() {
-//
-//			private void finishEdit() {
-//				// TODO: Update value to back-end
-//				if (nfsCheckBox.getSelection()) {
-//					volume.enableNFS("");
-//				} else {
-//					volume.disableNFS("");
-//				}
-//				nfsCheckBox.setEnabled(false);
-//				nasChangeLink.setText("change");
-//			}
-//
-//			private void startEdit() {
-//				nfsCheckBox.setEnabled(true);
-//				nasChangeLink.setText("update");
-//			}
-//
-//			@Override
-//			public void linkActivated(HyperlinkEvent e) {
-//				if (nfsCheckBox.isEnabled()) {
-//					// we were already in edit mode.
-//					finishEdit();
-//				} else {
-//					// Get in to edit mode
-//					startEdit();
-//				}
-//			}
-//		});
-//	}
-
 	private double getDiskSize(String serverName, String deviceName) {
 		double diskSize = 0;
 		GlusterServer server = cluster.getServer(serverName);

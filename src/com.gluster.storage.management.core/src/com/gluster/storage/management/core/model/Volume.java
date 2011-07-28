@@ -193,10 +193,10 @@ public class Volume extends Entity {
 	@XmlTransient
 	public boolean isNfsEnabled() {
 		String nfsDisabled = options.get(OPTION_NFS_DISABLE);
-		if(nfsDisabled == null || nfsDisabled.equalsIgnoreCase(GlusterConstants.ON)) {
-			return false;
-		} else {
+		if(nfsDisabled == null || nfsDisabled.equalsIgnoreCase(GlusterConstants.OFF)) {
 			return true;
+		} else {
+			return false;
 		}
 	}
 
