@@ -502,7 +502,7 @@
                state="false"
                style="push"
                toolbarPath="Normal"
-               tooltip="Migrate Disk">
+               tooltip="Migrate Brick">
                <enablement>
                    <objectClass
                          name="com.gluster.storage.management.core.model.Disk">
