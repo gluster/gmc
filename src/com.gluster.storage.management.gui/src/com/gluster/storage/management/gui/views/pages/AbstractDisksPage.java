@@ -83,9 +83,9 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 				super.serverChanged(server, event);
 				EVENT_TYPE eventType = event.getEventType();
 				switch (eventType) {
-				case DISKS_REMOVED:
-				case DISKS_ADDED:
-				case DISKS_CHANGED:
+				case DEVICES_REMOVED:
+				case DEVICES_ADDED:
+				case DEVICES_CHANGED:
 					treeViewer.refresh();
 				default:
 					break;
