@@ -312,9 +312,18 @@ def getNetDeviceList(root=""):
         netDevice["link"] = getLinkStatus(deviceName)
         netDevice["mode"] = getBondMode(deviceName, root + Globals.MODPROBE_CONF_FILE)
         deviceDetail = getNetDeviceDetail(deviceName)
-        netDevice["model"] = deviceDetail['Model']
-        netDevice["ipaddr"] = deviceDetail['Ip']
-        netDevice["netmask"] = deviceDetail['Mask']
+        if deviceDetail.has_key('Model'):
+            netDevice["model"] = deviceDetail['Model']
+        else:
+            netDevice["model"] = None
+        if deviceDetail.has_key('Ip'):
+            netDevice["ipaddr"] = deviceDetail['Ip']
+        else:
+            netDevice["ipaddr"] = None
+        if deviceDetail.has_key('Mask'):
+            netDevice["netmask"] = deviceDetail['Mask']
+        else:
+            netDevice["netmask"] = None
         netDevice["speed"] = getNetSpeed(deviceName)
         try:
             netDevice["hwaddr"] = open("/sys/class/net/%s/address" % deviceName).read().strip()
