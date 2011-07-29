@@ -42,6 +42,7 @@ import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
+import com.gluster.storage.management.core.model.Device.DEVICE_TYPE;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
@@ -323,7 +324,49 @@ public class GlusterDataModelManager {
 			}
 		}
 	}
+	
+	public void updateDeviceStatus(String serverName, String deviceName, DEVICE_STATUS status) {
+		GlusterServer server = model.getCluster().getServer(serverName);
+		Device device = getDeviceDetails(serverName, deviceName);
+		if (device != null) {
+			device.setStatus(status);
+			device.setType(DEVICE_TYPE.DATA);
+			for (ClusterListener listener : listeners) {
+				listener.serverChanged((GlusterServer) server, new Event(EVENT_TYPE.DISKS_CHANGED, device));
+			}
+		}
+	}
+	
+	private Device getDeviceDetails(String serverName, String deviceName) {
+		List<Device> allDevices = getDevicesOfAllServers();
+		for (Device device : allDevices) {
+			if (device.getServerName().equals(serverName) && device.getName().equals(deviceName)) {
+				return device;
+			}
+		}
+		return null;
+	}
 
+	public List<Device> getDevicesOfAllServers() {
+		List<Device> devices = new ArrayList<Device>();
+
+		for (Server server : model.getCluster().getServers()) {
+			if (server.getStatus() == SERVER_STATUS.OFFLINE) {
+				continue;
+			}
+			for (Disk disk : server.getDisks()) {
+				if (disk.hasPartitions()) {
+					for (Partition partition : disk.getPartitions()) {
+							devices.add(partition);
+					}
+				} else {
+					devices.add(disk);
+				}
+			}
+		}
+		return devices;
+	}
+	
 	public void addDisks(Server server, Set<Disk> disks) {
 		if(disks.size() == 0) {
 			return;

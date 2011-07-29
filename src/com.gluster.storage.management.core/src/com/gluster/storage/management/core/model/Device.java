@@ -213,4 +213,13 @@ public class Device extends Entity {
 		
 		return false;
 	}
+
+	public void copyFrom(Device newDevice) {
+		setName(newDevice.getName());
+		setMountPoint(newDevice.getMountPoint());
+		setServerName(newDevice.getServerName());
+		setStatus(newDevice.getStatus());
+		setSpace(newDevice.getSpace());
+		setSpaceInUse(newDevice.getSpaceInUse());
+	}
 }

@@ -143,13 +143,8 @@ public class Disk extends Device {
 	}
 
 	public void copyFrom(Disk newDisk) {
-		setName(newDisk.getName());
+		super.copyFrom(newDisk);
 		setDescription(newDisk.getDescription());
-		setMountPoint(newDisk.getMountPoint());
-		setServerName(newDisk.getServerName());
-		setStatus(newDisk.getStatus());
-		setSpace(newDisk.getSpace());
-		setSpaceInUse(newDisk.getSpaceInUse());
 	}
 	
 	@Override
@@ -171,9 +166,7 @@ public class Disk extends Device {
 		Double space = 0d;
 		if (hasPartitions()) {
 			for (Partition partition : getPartitions()) {
-				if (partition.isInitialized()) {
-					space += partition.getSpace();
-				}
+				space += partition.getSpace();
 			}
 			return space;
 		} else {

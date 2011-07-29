@@ -261,13 +261,15 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 				if (taskInfo != null && taskInfo instanceof TaskInfo) {
 					GlusterDataModelManager.getInstance().getModel().getCluster().addTaskInfo(taskInfo);
 				}
-				
+
 				if (taskInfo.getStatus().getCode() == Status.STATUS_CODE_RUNNING) {
 					updateStatus(DEVICE_STATUS.INITIALIZING, true);
-				} else if(taskInfo.getStatus().getCode() == Status.STATUS_CODE_SUCCESS) {
+				} else if (taskInfo.getStatus().getCode() == Status.STATUS_CODE_SUCCESS) {
 					updateStatus(DEVICE_STATUS.INITIALIZED, true);
+					GlusterDataModelManager.getInstance().updateDeviceStatus(device.getServerName(), device.getName(),
+							DEVICE_STATUS.INITIALIZED);
 				}
-				
+
 			} catch (Exception e1) {
 				MessageDialog.openError(getShell(), "Error: Initialize disk", e1.getMessage());
 			}
