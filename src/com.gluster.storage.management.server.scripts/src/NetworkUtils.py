@@ -186,10 +186,18 @@ def getNetDeviceDetail(deviceName):
         tokens = line.strip().split(":")
         if tokens[0].upper() == "ENCAP":
             deviceDetail['Model'] = tokens[1].strip().upper()
-        if tokens[0].upper() == "ADDR":
-            deviceDetail['Ip'] = tokens[1].strip()
-        if tokens[0].upper() == "MASK":
-            deviceDetail['Mask'] = tokens[1].strip()
+            break
+
+    for line in rv["Stdout"].split("\n"):
+        if line.strip().startswith("inet addr:"):
+            tokens = line.strip().split(":")
+            if tokens[0].upper() == "INET ADDR":
+                try:
+                    deviceDetail['Ip'] = tokens[1].strip().split()[0]
+                    deviceDetail['Mask'] = tokens[-1].strip()
+                except IndexError:
+                    pass
+            break
     return deviceDetail
 
 def getNetDeviceGateway(deviceName):

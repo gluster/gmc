@@ -6,6 +6,7 @@ my $rrdlog = '/var/lib/rrd';
 my $graphs = '/var/lib/rrd';
 
 updatenetdata();
+#updatenetgraph('hour');
 #updatenetgraph('day');
 #updatenetgraph('week');
 #updatenetgraph('month');
@@ -17,7 +18,7 @@ sub updatenetgraph {
     foreach $rrdfile (<$rrdlog/network-*.rrd>) {
         RRDs::graph ("$graphs/network-$device-$period.png",
 		     "--start", "-1$period", "-aPNG", "-i", "-z",
-		     "--alt-y-grid", "-w 300", "-h 50", "-l 0", "-u 100", "-r",
+		     "--alt-y-grid", "-w 800", "-h 400", "-l 0", "-u 10000000", "-r",
 		     "--color", "SHADEA#FFFFFF",
 		     "--color", "SHADEB#FFFFFF",
 		     "--color", "BACK#FFFFFF",
@@ -25,12 +26,9 @@ sub updatenetgraph {
 		     "DEF:received=$rrdfile:received:AVERAGE",
 		     "DEF:transmitted=$rrdfile:transmitted:AVERAGE",
 
-		     "CDEF:total=received,transmitted,+,+",
-		     "CDEF:receivedpct=100,received,total,/,*",
-		     "CDEF:transmittedpct=100,transmitted,total,/,*",
+		     "LINE2:received#FF0000:received load\\j",
+		     "LINE1:transmitted#0000FF:transmitted load\\j");
 
-		     "AREA:receivedpct#0000FF:received load\\j",
-		     "STACK:transmittedpct#FF0000:transmitted load\\j");
         $ERROR = RRDs::error;
         print "Error in RRD::graph for network $device: $ERROR\n" if $ERROR;
     }
@@ -44,11 +42,14 @@ sub updatenetdata {
 	/:.+/ or next;        # if input line contains ':' else continue
 	next if /^lo:\s/;     # continue if input line starts with 'lo:'
 
-	@tokens = split /\s+/;
-	@name = split(/:/, $tokens[0]);
-	$device = $name[0];
+        @tokens1 = split /:/;
+        @tokens2 = split(/\s+/, $tokens1[1]);
 
-	#print "$device, $tokens[1], $tokens[9]\n";
+        $device = $tokens1[0];
+        $received = $tokens2[0];
+        $transmitted = $tokens2[8];
+
+	#print "$device, $received, $transmitted \n";
 
 	if ( ! -e "$rrdlog/network-$device.rrd") {
 	    RRDs::create ("$rrdlog/network-$device.rrd", "--step=300",
@@ -65,7 +66,7 @@ sub updatenetdata {
 
 	RRDs::update ("$rrdlog/network-$device.rrd",
 		      "-t", "received:transmitted",
-		      "N:$tokens[1]:$tokens[9]");
+		      "N:$received:$transmitted");
 	$ERROR = RRDs::error;
 	print "Error in RRD::update for net: $ERROR\n" if $ERROR;
     }
