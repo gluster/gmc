@@ -120,8 +120,10 @@ def removeVolumeCifsConfiguration(volumeName):
     volumeFile = "%s/%s.smbconf" % (Globals.VOLUME_CONF_DIR, volumeName)
     try:
         os.remove(volumeFile)
+        return True
     except OSError, e:
         log("Failed to remove file %s: %s" % (volumeFile, str(e)))
+        return False
 
 
 def getVolumeListByPartitionName(partitionName):
