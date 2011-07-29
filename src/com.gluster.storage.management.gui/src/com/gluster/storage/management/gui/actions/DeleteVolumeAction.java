@@ -18,7 +18,10 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.actions;
 
-import org.apache.log4j.Logger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
@@ -26,24 +29,31 @@ import org.eclipse.jface.viewers.ISelection;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
+import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.gui.GlusterDataModelManager;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public class DeleteVolumeAction extends AbstractActionDelegate {
-	private Volume volume;
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
-	private static final Logger logger = Logger.getLogger(DeleteVolumeAction.class);
+	private List<Volume> volumes = new ArrayList<Volume>();
+	private List<String> selectedVolumeNames = new ArrayList<String>();
+	private List<String> onlineVolumeNames = new ArrayList<String>();
 
 	@Override
 	protected void performAction(final IAction action) {
 		final String actionDesc = action.getDescription();
+		VolumesClient vc = new VolumesClient();
 
+		collectVolumeNames();
 		String warningMessage;
-		if (volume.getStatus() == VOLUME_STATUS.OFFLINE) {
-			warningMessage = "Are you sure to delete the Volume[" + volume.getName() + "] ?";
+		if (onlineVolumeNames.size() > 0) { // There are some online volumes, get confirmation to stop and delete all
+											// the volumes
+			warningMessage = "Following volume(s) [" + StringUtil.collectionToString(onlineVolumeNames, ", ")
+					+ "] are online, \nAre you sure to continue?";
 		} else {
-			warningMessage = "Volume [" + volume.getName() + "] is online, \nAre you sure to continue?";
+			warningMessage = "Are you sure to delete the following volume(s) ["
+					+ StringUtil.collectionToString(selectedVolumeNames, ", ") + "] ?";
 		}
 
 		Integer deleteOption = new MessageDialog(getShell(), "Delete Volume", GUIHelper.getInstance().getImage(
@@ -53,36 +63,56 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 			return;
 		}
 
-		VolumesClient client = new VolumesClient();
+		boolean confirmDelete = (deleteOption == 1) ? true : false;
+		List<String> deletedVolumes = new ArrayList<String>();
+		List<String> failedVolumes = new ArrayList<String>();
+		String errorMessage = "";
 
-		if (volume.getStatus() == VOLUME_STATUS.ONLINE) { // To stop the volume service, if running
+		for (Volume volume : volumes) {
 			try {
-				client.stopVolume(volume.getName());
+				if (volume.getStatus() == VOLUME_STATUS.ONLINE) { // stop if online volume
+					vc.stopVolume(volume.getName());
+				}
+				vc.deleteVolume(volume, confirmDelete);
+				modelManager.deleteVolume(volume);
+				deletedVolumes.add(volume.getName());
 			} catch (Exception e) {
-				showErrorDialog(actionDesc,
-						"Volume [" + volume.getName() + "] could not be stopped! Error: [" + e.getMessage() + "]");
-				return;
+				// there is a possibility that the error was in post-delete operation, which means
+				// volume was deleted, but some other error happened. check if this is the case.
+				if (vc.volumeExists(volume.getName())) {
+					errorMessage += "\nVolume [" + volume.getName() + "] could not be deleted! Error: ["
+							+ e.getMessage() + "]";
+					failedVolumes.add(volume.getName());
+				} else {
+					errorMessage += "\nVolume deleted, but following error(s) occured: [" + e.getMessage() + "]";
+					modelManager.deleteVolume(volume);
+					deletedVolumes.add(volume.getName());
+				}
 			}
 		}
 
-		boolean confirmDelete = false;
-		if (deleteOption == 1) {
-			confirmDelete = true;
+		// Display the success or failure info
+		if (deletedVolumes.size() == 0) { // No volume(s) deleted successfully
+			showErrorDialog(actionDesc, "Following colume(s) [" + StringUtil.collectionToString(failedVolumes, ", ")
+					+ "] could not be delete! " + "\nError: [" + errorMessage + "]");
+		} else {
+			String info = "Following volumes [" + StringUtil.collectionToString(deletedVolumes, ", ")
+					+ "] are deleted successfully!";
+			if (errorMessage != "") {
+				info += "\n\nFollowing volumes [" + StringUtil.collectionToString(failedVolumes, ", ")
+						+ "] are failed to delete! [" + errorMessage + "]";
+			}
+			showInfoDialog(actionDesc, info);
 		}
+	}
 
-		try {
-			client.deleteVolume(volume, confirmDelete);
-			showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] deleted successfully!");
-			modelManager.deleteVolume(volume);
-		} catch (Exception e) {
-			// there is a possibility that the error was in post-delete operation, which means
-			// volume was deleted, but some other error happened. check if this is the case.
-			if (client.volumeExists(volume.getName())) {
-				showErrorDialog(actionDesc,
-						"Volume [" + volume.getName() + "] could not be deleted! Error: [" + e.getMessage() + "]");
-			} else {
-				showWarningDialog(actionDesc, "Volume deleted, but following error(s) occured: " + e.getMessage());
-				modelManager.deleteVolume(volume);
+	private void collectVolumeNames() {
+		selectedVolumeNames.clear();
+		onlineVolumeNames.clear();
+		for (Volume volume : volumes) {
+			selectedVolumeNames.add(volume.getName());
+			if (volume.getStatus() == VOLUME_STATUS.ONLINE) {
+				onlineVolumeNames.add(volume.getName());
 			}
 		}
 	}
@@ -94,9 +124,17 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
-		super.selectionChanged(action, selection);
-		if (selectedEntity instanceof Volume) {
-			volume = (Volume) selectedEntity;
+		Set<Volume> selectedVolumes = GUIHelper.getInstance().getSelectedEntities(getWindow(), Volume.class);
+		volumes.clear();
+		if (selectedVolumes == null || selectedVolumes.isEmpty()) {
+			super.selectionChanged(action, selection);
+			if (selectedEntity instanceof Volume) {
+				volumes.add((Volume) selectedEntity);
+			}
+		} else {
+			volumes.addAll(selectedVolumes); //TODO reverse the collection to maintain the selected order
 		}
+
+		action.setEnabled( (volumes.size() > 0) );
 	}
 }

@@ -18,6 +18,10 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.actions;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
@@ -25,37 +29,87 @@ import org.eclipse.jface.viewers.ISelection;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
+import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.gui.GlusterDataModelManager;
 import com.gluster.storage.management.gui.IImageKeys;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 
 public class StopVolumeAction extends AbstractActionDelegate {
-	private Volume volume;
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+	private List<Volume> volumes = new ArrayList<Volume>();
+	private List<String> selectedVolumeNames = new ArrayList<String>();
+	private List<String> onlineVolumeNames = new ArrayList<String>();
 
 	@Override
 	protected void performAction(final IAction action) {
 		final String actionDesc = action.getDescription();
-		if (volume.getStatus() == VOLUME_STATUS.OFFLINE) {
-			showWarningDialog(actionDesc, "Volume [" + volume.getName() + "] is already offline!");
+		VolumesClient vc = new VolumesClient();
+
+		collectVolumeNames();
+
+		if (onlineVolumeNames.size() == 0) {
+			String errorMessage;
+			if (selectedVolumeNames.size() == 1) {
+				errorMessage = "Volume [" + StringUtil.collectionToString(selectedVolumeNames, ", ")
+						+ "] is already offline!";
+			} else {
+				errorMessage = "Volumes [" + StringUtil.collectionToString(selectedVolumeNames, ", ")
+						+ "] are already offline!";
+			}
+			showWarningDialog(actionDesc, errorMessage);
 			return; // Volume already offline. Don't do anything.
 		}
 
-		Integer deleteOption = new MessageDialog(getShell(), "Stop Volume", GUIHelper.getInstance().getImage(
-				IImageKeys.VOLUME_16x16), "Are you sure you want to stop the volume [" + volume.getName() + "] ?",
-				MessageDialog.QUESTION, new String[] { "No", "Yes" }, -1).open();
+		Integer userAction = new MessageDialog(getShell(), "Stop Volume", GUIHelper.getInstance().getImage(
+				IImageKeys.VOLUME_16x16), "Are you sure you want to stop the following volume(s)?\n" + "["
+				+ StringUtil.collectionToString(onlineVolumeNames, ", ") + "]", MessageDialog.QUESTION, new String[] {
+				"No", "Yes" }, -1).open();
 
-		if (deleteOption <= 0) {
+		if (userAction <= 0) { // user select cancel or pressed escape key
 			return;
 		}
 
-		try {
-			new VolumesClient().stopVolume(volume.getName());
-			showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] stopped successfully!");
-			modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
-		} catch (Exception e) {
-			showErrorDialog(actionDesc,
-					"Volume [" + volume.getName() + "] could not be stopped! Error: [" + e.getMessage() + "]");
+		List<String> stoppedVolumes = new ArrayList<String>();
+		List<String> failedVolumes = new ArrayList<String>();
+		String errorMessage = "";
+
+		for (Volume volume : volumes) {
+			if (volume.getStatus() == VOLUME_STATUS.OFFLINE) {
+				continue; // skip if offline volume
+			}
+			try {
+				vc.stopVolume(volume.getName());
+				modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
+				stoppedVolumes.add(volume.getName());
+			} catch (Exception e) {
+				failedVolumes.add(volume.getName());
+				errorMessage += e.getMessage();
+			}
+		}
+
+		// Display the success or failure info
+		if (stoppedVolumes.size() == 0) { // No volume(s) stopped successfully
+			showErrorDialog(actionDesc, "Following volume(s) [" + StringUtil.collectionToString(failedVolumes, ", ")
+					+ "] could not be stopped! " + "\nError: [" + errorMessage + "]");
+		} else {
+			String info = "Following volume(s) [" + StringUtil.collectionToString(stoppedVolumes, ", ")
+					+ "] are stopped successfully!";
+			if (errorMessage != "") {
+				info += "\n\nFollowing volume(s) [" + StringUtil.collectionToString(failedVolumes, ", ")
+						+ "] are failed to stop! [" + errorMessage + "]";
+			}
+			showInfoDialog(actionDesc, info);
+		}
+	}
+
+	private void collectVolumeNames() {
+		selectedVolumeNames.clear();
+		onlineVolumeNames.clear();
+		for (Volume volume : volumes) {
+			selectedVolumeNames.add(volume.getName());
+			if (volume.getStatus() == VOLUME_STATUS.ONLINE) {
+				onlineVolumeNames.add(volume.getName());
+			}
 		}
 	}
 
@@ -72,11 +126,25 @@ public class StopVolumeAction extends AbstractActionDelegate {
 	 */
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
-		super.selectionChanged(action, selection);
 
-		if (selectedEntity instanceof Volume) {
-			volume = (Volume) selectedEntity;
-			action.setEnabled(volume.getStatus() == VOLUME_STATUS.ONLINE);
+		Set<Volume> selectedVolumes = GUIHelper.getInstance().getSelectedEntities(getWindow(), Volume.class);
+		volumes.clear();
+		if (selectedVolumes == null || selectedVolumes.isEmpty()) {
+			super.selectionChanged(action, selection);
+			if (selectedEntity instanceof Volume) {
+				volumes.add((Volume) selectedEntity);
+			}
+		} else {
+			volumes.addAll(selectedVolumes); //TODO reverse the collection to maintain the selected order
+		}
+
+		action.setEnabled(false);
+		// To enable the action
+		for (Volume volume : volumes) {
+			if (volume.getStatus() == VOLUME_STATUS.ONLINE) {
+				action.setEnabled(true);
+				break;// If find an online volume, enable the action
+			}
 		}
 	}
 }

@@ -28,6 +28,7 @@ import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.TaskInfo;
+import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.GlusterDataModelManager;
 
@@ -35,7 +36,8 @@ public class MigrateBrickWizard extends Wizard {
 	private Volume volume;
 	private Brick brick;
 	private MigrateBrickPage1 page;
-	private Cluster cluster = GlusterDataModelManager.getInstance().getModel().getCluster();
+	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+	private Cluster cluster = modelManager.getModel().getCluster();
 
 	public MigrateBrickWizard(Volume volume, Brick brick) {
 		setWindowTitle("Gluster Management Console - Migrate Brick [" + volume.getName() + "]");
@@ -57,6 +59,7 @@ public class MigrateBrickWizard extends Wizard {
 		String targetDir = page.getTargetBrickDir();
 		Boolean autoCommit = page.getAutoCommitSelection();
 		VolumesClient volumesClient = new VolumesClient();
+		String dialogTitle = "Brick migration";
 
 		try {
 			URI uri = volumesClient.startMigration(volume.getName(), sourceDir, targetDir, autoCommit);
@@ -66,11 +69,25 @@ public class MigrateBrickWizard extends Wizard {
 			TaskInfo taskInfo = taskClient.getTaskInfo(uri);
 			if (taskInfo != null && taskInfo instanceof TaskInfo) {
 				cluster.addTaskInfo(taskInfo);
-				GlusterDataModelManager.getInstance().refreshVolumeData(cluster.getVolume(taskInfo.getReference()));
-			}
-			MessageDialog.openInformation(getShell(), "Brick migration", "Brick migration started successfully");
+				modelManager.refreshVolumeData(cluster.getVolume(taskInfo.getReference()));
+				
+				// If auto commit selected and migration operation complete immediately, 
+				if (taskInfo.getStatus().getCode() == TaskStatus.STATUS_CODE_SUCCESS) {
+					
+					String volumeName = taskInfo.getReference();
+					Volume oldVolume = cluster.getVolume(volumeName);
+					Volume newVolume = (new VolumesClient()).getVolume(volumeName);
+					
+					modelManager.volumeChanged(oldVolume, newVolume);
+					
+					MessageDialog.openInformation(getShell(), dialogTitle, "Brick migration completed successfully");
+					return true;
+				}
+			} 
+			MessageDialog.openInformation(getShell(), dialogTitle, "Brick migration started successfully");
+			
 		} catch (Exception e) {
-			MessageDialog.openError(getShell(), "Error: Migrate brick", e.getMessage());
+			MessageDialog.openError(getShell(), dialogTitle, "Brick Migration failed! [" + e.getMessage() + "]");
 		}
 		return true;
 	}

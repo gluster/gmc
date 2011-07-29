@@ -1,12 +1,21 @@
 package com.gluster.storage.management.gui.actions;
 
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.custom.BusyIndicator;
+import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.TasksClient;
+import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.TaskStatus;
+import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.GlusterDataModelManager;
 
 public class CommitTaskAction extends AbstractActionDelegate {
@@ -19,12 +28,29 @@ public class CommitTaskAction extends AbstractActionDelegate {
 		try {
 			new TasksClient().commitTask(taskInfo.getName());
 			taskInfo.setStatus(new TaskStatus(new Status(Status.STATUS_CODE_SUCCESS, "Committed")));
-			showInfoDialog(actionDesc, "Commit successful");
 			modelManager.removeTask(taskInfo);
+			showInfoDialog(actionDesc, "Commit successful");
 		} catch (Exception e) {
 			showErrorDialog(actionDesc,
 					"Task [" + taskInfo.getName() + "] could not be Committed! Error: [" + e.getMessage() + "]");
+			return; // Prevent to update model
 		}
+		
+		BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
+			@Override
+			public void run() {
+				try {
+					String volumeName = taskInfo.getReference();
+					Volume oldVolume = modelManager.getModel().getCluster().getVolume(volumeName);
+					Volume newVolume = (new VolumesClient()).getVolume(volumeName);
+					
+					modelManager.volumeChanged(oldVolume, newVolume);
+				} catch (Exception e) {
+					logger.error(e);
+					showInfoDialog(actionDesc, "Volume brick update failed! [" + e.getMessage() + "]");
+				}
+			}
+		});
 	}
 
 	@Override
@@ -36,6 +62,10 @@ public class CommitTaskAction extends AbstractActionDelegate {
 			action.setEnabled(taskInfo.getCommitSupported()
 					&& taskInfo.getStatus().getCode() == Status.STATUS_CODE_COMMIT_PENDING);
 		}
+	}
+	
+	public void updateVolume(String volumeName) {
+		
 	}
 
 	@Override
