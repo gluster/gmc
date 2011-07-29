@@ -94,10 +94,8 @@ public class Server extends Entity {
 
 	public double getTotalDiskSpace() {
 		double totalDiskSpace = 0;
-		for(Disk disk : getDisks()) {
-			if(disk.isReady()) {
-				totalDiskSpace += disk.getSpace();
-			}
+		for (Disk disk : getDisks()) {
+			totalDiskSpace += disk.getSpace();
 		}
 		return totalDiskSpace;
 	}

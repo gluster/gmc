@@ -42,6 +42,7 @@ import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Device.DEVICE_STATUS;
+import com.gluster.storage.management.core.model.Device.DEVICE_TYPE;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
@@ -317,13 +318,42 @@ public class GlusterDataModelManager {
 		}
 		for (ClusterListener listener : listeners) {
 			if (server instanceof GlusterServer) {
-				listener.serverChanged((GlusterServer) server, new Event(EVENT_TYPE.DISKS_CHANGED, modifiedDisks));
+				listener.serverChanged((GlusterServer) server, new Event(EVENT_TYPE.DEVICES_CHANGED, modifiedDisks));
 			} else {
-				listener.discoveredServerChanged(server, new Event(EVENT_TYPE.DISKS_CHANGED, modifiedDisks));
+				listener.discoveredServerChanged(server, new Event(EVENT_TYPE.DEVICES_CHANGED, modifiedDisks));
 			}
 		}
 	}
-
+	
+	public void updateDeviceStatus(String serverName, String deviceName, DEVICE_STATUS status) {
+		GlusterServer server = model.getCluster().getServer(serverName);
+		Device device = getDeviceDetails(server, deviceName);
+		if (device != null) {
+			device.setStatus(status);
+			device.setType(DEVICE_TYPE.DATA);
+			for (ClusterListener listener : listeners) {
+				listener.serverChanged((GlusterServer) server, new Event(EVENT_TYPE.DEVICES_CHANGED, device));
+			}
+		}
+	}
+	
+	private Device getDeviceDetails(GlusterServer server, String deviceName) {
+		for (Disk disk : server.getDisks()) {
+			if (disk.hasPartitions()) {
+				for (Partition partition : disk.getPartitions()) {
+					if (partition.getName().equals(deviceName)) {
+						return partition;
+					}
+				}
+			} else {
+				if (disk.getName().equals(deviceName)) {
+					return (Device) disk;
+				}
+			}
+		}
+		return null;
+	}
+	
 	public void addDisks(Server server, Set<Disk> disks) {
 		if(disks.size() == 0) {
 			return;
@@ -332,9 +362,9 @@ public class GlusterDataModelManager {
 		server.addDisks(disks);
 		for (ClusterListener listener : listeners) {
 			if(server instanceof GlusterServer) {
-				listener.serverChanged((GlusterServer)server, new Event(EVENT_TYPE.DISKS_ADDED, disks));
+				listener.serverChanged((GlusterServer)server, new Event(EVENT_TYPE.DEVICES_ADDED, disks));
 			} else {
-				listener.discoveredServerChanged(server, new Event(EVENT_TYPE.DISKS_ADDED, disks));
+				listener.discoveredServerChanged(server, new Event(EVENT_TYPE.DEVICES_ADDED, disks));
 			}
 		}
 	}
@@ -350,9 +380,9 @@ public class GlusterDataModelManager {
 		
 		for (ClusterListener listener : listeners) {
 			if(server instanceof GlusterServer) {
-				listener.serverChanged((GlusterServer)server, new Event(EVENT_TYPE.DISKS_REMOVED, disks));
+				listener.serverChanged((GlusterServer)server, new Event(EVENT_TYPE.DEVICES_REMOVED, disks));
 			} else {
-				listener.discoveredServerChanged(server, new Event(EVENT_TYPE.DISKS_REMOVED, disks));
+				listener.discoveredServerChanged(server, new Event(EVENT_TYPE.DEVICES_REMOVED, disks));
 			}
 		}
 	}
