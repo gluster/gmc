@@ -318,9 +318,9 @@ public class GlusterDataModelManager {
 		}
 		for (ClusterListener listener : listeners) {
 			if (server instanceof GlusterServer) {
-				listener.serverChanged((GlusterServer) server, new Event(EVENT_TYPE.DISKS_CHANGED, modifiedDisks));
+				listener.serverChanged((GlusterServer) server, new Event(EVENT_TYPE.DEVICES_CHANGED, modifiedDisks));
 			} else {
-				listener.discoveredServerChanged(server, new Event(EVENT_TYPE.DISKS_CHANGED, modifiedDisks));
+				listener.discoveredServerChanged(server, new Event(EVENT_TYPE.DEVICES_CHANGED, modifiedDisks));
 			}
 		}
 	}
@@ -332,7 +332,7 @@ public class GlusterDataModelManager {
 			device.setStatus(status);
 			device.setType(DEVICE_TYPE.DATA);
 			for (ClusterListener listener : listeners) {
-				listener.serverChanged((GlusterServer) server, new Event(EVENT_TYPE.DISKS_CHANGED, device));
+				listener.serverChanged((GlusterServer) server, new Event(EVENT_TYPE.DEVICES_CHANGED, device));
 			}
 		}
 	}
@@ -375,9 +375,9 @@ public class GlusterDataModelManager {
 		server.addDisks(disks);
 		for (ClusterListener listener : listeners) {
 			if(server instanceof GlusterServer) {
-				listener.serverChanged((GlusterServer)server, new Event(EVENT_TYPE.DISKS_ADDED, disks));
+				listener.serverChanged((GlusterServer)server, new Event(EVENT_TYPE.DEVICES_ADDED, disks));
 			} else {
-				listener.discoveredServerChanged(server, new Event(EVENT_TYPE.DISKS_ADDED, disks));
+				listener.discoveredServerChanged(server, new Event(EVENT_TYPE.DEVICES_ADDED, disks));
 			}
 		}
 	}
@@ -393,9 +393,9 @@ public class GlusterDataModelManager {
 		
 		for (ClusterListener listener : listeners) {
 			if(server instanceof GlusterServer) {
-				listener.serverChanged((GlusterServer)server, new Event(EVENT_TYPE.DISKS_REMOVED, disks));
+				listener.serverChanged((GlusterServer)server, new Event(EVENT_TYPE.DEVICES_REMOVED, disks));
 			} else {
-				listener.discoveredServerChanged(server, new Event(EVENT_TYPE.DISKS_REMOVED, disks));
+				listener.discoveredServerChanged(server, new Event(EVENT_TYPE.DEVICES_REMOVED, disks));
 			}
 		}
 	}
