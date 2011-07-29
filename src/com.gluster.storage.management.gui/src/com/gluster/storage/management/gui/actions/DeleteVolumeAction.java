@@ -97,6 +97,9 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 		super.selectionChanged(action, selection);
 		if (selectedEntity instanceof Volume) {
 			volume = (Volume) selectedEntity;
+			action.setEnabled(true);
+		}else {
+			action.setEnabled(false);
 		}
 	}
 }

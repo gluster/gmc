@@ -77,6 +77,8 @@ public class StopVolumeAction extends AbstractActionDelegate {
 		if (selectedEntity instanceof Volume) {
 			volume = (Volume) selectedEntity;
 			action.setEnabled(volume.getStatus() == VOLUME_STATUS.ONLINE);
+		} else {
+			action.setEnabled(false);
 		}
 	}
 }
