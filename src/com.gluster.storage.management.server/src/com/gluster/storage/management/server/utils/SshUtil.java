@@ -54,7 +54,7 @@ public class SshUtil {
 	private static final String SSH_AUTHORIZED_KEYS_PATH_REMOTE = SSH_AUTHORIZED_KEYS_DIR_REMOTE + SSH_AUTHORIZED_KEYS_FILE;
 	public static final File PRIVATE_KEY_FILE = new File(SSH_AUTHORIZED_KEYS_DIR_LOCAL + "id_rsa");
 	public static final File PUBLIC_KEY_FILE = new File(SSH_AUTHORIZED_KEYS_DIR_LOCAL + "id_rsa.pub");
-	private static final String SCRIPT_DISABLE_SSH_PASSWORD_AUTH = "disable-ssh-password-auth.sh";
+//	private static final String SCRIPT_DISABLE_SSH_PASSWORD_AUTH = "disable-ssh-password-auth.sh";
 	private static final String PRIVATE_KEY_PASSPHRASE = "gluster";
 	private LRUCache<String, Connection> sshConnCache = new LRUCache<String, Connection>(10);
 
@@ -119,7 +119,7 @@ public class SshUtil {
 		
 		byte[] publicKeyData;
 		try {
-			publicKeyData = new FileUtil().readFileAsByteArray(PUBLIC_KEY_FILE);
+			publicKeyData = FileUtil.readFileAsByteArray(PUBLIC_KEY_FILE);
 		} catch (Exception e) {
 			throw new GlusterRuntimeException("Couldn't load public key file [" + PUBLIC_KEY_FILE + "]", e);
 		}
@@ -140,16 +140,17 @@ public class SshUtil {
 			throw new GlusterRuntimeException("Couldn't add public key to server [" + serverName + "]", e);
 		}
 		
-		disableSshPasswordLogin(serverName, scpClient);
+		// It was decided NOT to disable password login as this may not be acceptable in a bare-metal environment
+		// disableSshPasswordLogin(serverName, scpClient);
 	}
 
-	private void disableSshPasswordLogin(String serverName, SCPClient scpClient) {
-		ProcessResult result = executeRemote(serverName, SCRIPT_DISABLE_SSH_PASSWORD_AUTH);
-		if(!result.isSuccess()) {
-			throw new GlusterRuntimeException("Couldn't disable SSH password authentication on [" + serverName
-					+ "]. Error: " + result);
-		}
-	}
+//	private void disableSshPasswordLogin(String serverName, SCPClient scpClient) {
+//		ProcessResult result = executeRemote(serverName, SCRIPT_DISABLE_SSH_PASSWORD_AUTH);
+//		if(!result.isSuccess()) {
+//			throw new GlusterRuntimeException("Couldn't disable SSH password authentication on [" + serverName
+//					+ "]. Error: " + result);
+//		}
+//	}
 
 	private Connection getConnectionWithPassword(String serverName) {
 		Connection conn = createConnection(serverName);
