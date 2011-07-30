@@ -1,12 +1,13 @@
-DIR_NAME=gmg-scripts
-TAR_NAME=${DIR_NAME}.tar
+ROOT_DIR=glustermg-1.0.0
+DIR_NAME=${ROOT_DIR}/gmg-scripts
+TAR_NAME=${ROOT_DIR}.tar
 
 prepare-script-dir()
 {
 	if [ -d ${DIR_NAME} ]; then
 		rm -rf ${DIR_NAME}
 	fi
-	mkdir ${DIR_NAME}
+	mkdir -p ${DIR_NAME}
 }
 
 get-scripts()
@@ -25,7 +26,7 @@ prepare-script-dir
 get-scripts
 
 /bin/rm -rf ${TAR_NAME} ${TAR_NAME}.gz
-tar cvf ${TAR_NAME} ${DIR_NAME}
+tar cvf ${TAR_NAME} ${ROOT_DIR}
 gzip ${TAR_NAME}
 
 echo "Done!"
