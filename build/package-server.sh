@@ -9,6 +9,9 @@ prepare-dist-dir()
 		rm -rf ${WAR_NAME}
 	fi
 	mkdir ${WAR_NAME}
+	if [ -d ${NEW_WAR_NAME} ]; then
+		rm -rf ${NEW_WAR_NAME}
+	fi
 }
 
 get-server-war()
