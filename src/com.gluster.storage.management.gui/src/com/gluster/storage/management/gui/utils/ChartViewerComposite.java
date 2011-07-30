@@ -276,7 +276,8 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 		xAxisPrimary.getTitle().setVisible(false);
 		xAxisPrimary.getTitle().getInsets().set(1, 1, 1, 1);
 		xAxisPrimary.getLabel().getInsets().set(1, 1, 1, 1);
-		xAxisPrimary.getLabel().getCaption().setFont(createChartFont());
+		//xAxisPrimary.getLabel().getCaption().setFont(createChartFont());
+		xAxisPrimary.getLabel( ).getCaption( ).getFont( ).setSize(8);
 		xAxisPrimary.getLabel( ).getCaption( ).getFont( ).setRotation( 75 );
 		xAxisPrimary.setFormatSpecifier( JavaDateFormatSpecifierImpl.create( timestampFormat ) );
 		return xAxisPrimary;

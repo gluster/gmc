@@ -1,4 +1,5 @@
 WAR_NAME="glustermg.war"
+NEW_WAR_NAME="glustermg"
 TAR_NAME=${WAR_NAME}.tar
 SERVER_DIST_DIR="${WORKSPACE}/../../gmc-server/lastSuccessful"
 
@@ -48,8 +49,9 @@ prepare-dist-dir
 get-server-war
 get-console-dists
 
+/bin/mv -f ${WAR_NAME} ${NEW_WAR_NAME}
 /bin/rm -rf ${TAR_NAME} ${TAR_NAME}.gz
-tar cvf ${TAR_NAME} ${WAR_NAME}
+tar cvf ${TAR_NAME} ${NEW_WAR_NAME}
 gzip ${TAR_NAME}
 
 echo "Done!"

@@ -1,4 +1,4 @@
-DIR_NAME=gmc-scripts
+DIR_NAME=gmg-scripts
 TAR_NAME=${DIR_NAME}.tar
 
 prepare-script-dir()
