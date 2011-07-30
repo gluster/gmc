@@ -61,7 +61,7 @@ if ! grep -q JAVA_HOME /etc/sysconfig/tomcat5; then
     echo JAVA_HOME=/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64 >> /etc/sysconfig/tomcat5
 fi
 if ! grep -q JAVA_OPTS /etc/sysconfig/tomcat5; then
-    echo 'JAVA_OPTS="-Xms1024m -Xmx1024m -XX:PermSize=256m -XX:MaxPermSize=256m"' >> /etc/sysconfig/tomcat5
+    echo 'JAVA_OPTS="${JAVA_OPTS} -Xms1024m -Xmx1024m -XX:PermSize=256m -XX:MaxPermSize=256m"' >> /etc/sysconfig/tomcat5
 fi
 if ! grep /usr/share/tomcat5/webapps/glustermg/ssl/gmg-ssl.keystore /usr/share/tomcat5/conf/server.xml; then
     cat >> /usr/share/tomcat5/conf/server.xml <<EOF
