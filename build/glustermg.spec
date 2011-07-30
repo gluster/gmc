@@ -1,4 +1,4 @@
-%define glustermg_war_url http://build.gluster.com:8080/job/gmc-package/lastSuccessfulBuild/artifact/glustermg.war.tar.gz
+%define glustermg_war_url http://build.gluster.com:8080/job/gmg-package/lastSuccessfulBuild/artifact/glustermg.war.tar.gz
 
 %define product_family Gluster Management Gateway
 %define release_version 1.0.0
