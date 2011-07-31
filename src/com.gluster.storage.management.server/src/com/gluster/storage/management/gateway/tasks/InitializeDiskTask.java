@@ -33,6 +33,7 @@ import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.gateway.services.ClusterService;
 import com.gluster.storage.management.gateway.utils.GlusterUtil;
+import com.gluster.storage.management.gateway.utils.ServerUtil;
 import com.gluster.storage.management.gateway.utils.SshUtil;
 import com.sun.jersey.core.util.Base64;
 
@@ -43,7 +44,7 @@ public class InitializeDiskTask extends Task {
 	private String serverName;
 	private String diskName;
 	private String fsType;
-	private SshUtil sshUtil;
+	private ServerUtil serverUtil;
 	private GlusterUtil glusterUtil;
 
 	public InitializeDiskTask(ClusterService clusterService, String clusterName, String serverName, String diskName, String fsType) {
@@ -65,7 +66,7 @@ public class InitializeDiskTask extends Task {
 	private void init() {
 		ApplicationContext ctx = ContextLoader.getCurrentWebApplicationContext();
 		glusterUtil = ctx.getBean(GlusterUtil.class);
-		sshUtil = ctx.getBean(SshUtil.class);
+		serverUtil = ctx.getBean(ServerUtil.class);
 	}
 	
 	@Override
@@ -118,17 +119,12 @@ public class InitializeDiskTask extends Task {
 
 	private void startInitializeDisk(String serverName) {
 		String fsTypeCommand = (getFsType().equals(GlusterConstants.FSTYPE_DEFAULT)) ? "" : " -t " + getFsType();
-		ProcessResult processResult = sshUtil.executeRemote(serverName, INITIALIZE_DISK_SCRIPT + fsTypeCommand + " "
-				+ getDiskName());
-		if (processResult.isSuccess()) {
-			TaskStatus taskStatus = new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, processResult.getOutput()));
-			taskStatus.setPercentageSupported((getFsType().equals(GlusterConstants.FSTYPE_XFS)) ? false : true);
-			getTaskInfo().setStatus(taskStatus);
-			return;
-		}
-
-		// if we reach here, it means Initialize disk start failed.
-		throw new GlusterRuntimeException(processResult.toString());
+		
+		String output = (String) serverUtil.executeScriptOnServer(true, serverName, INITIALIZE_DISK_SCRIPT
+				+ fsTypeCommand + " " + getDiskName(), String.class);
+		TaskStatus taskStatus = new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, output));
+		taskStatus.setPercentageSupported((getFsType().equals(GlusterConstants.FSTYPE_XFS)) ? false : true);
+		getTaskInfo().setStatus(taskStatus);
 	}
 
 	@Override

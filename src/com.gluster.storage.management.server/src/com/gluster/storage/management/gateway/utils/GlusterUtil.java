@@ -42,7 +42,6 @@ import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
@@ -50,7 +49,6 @@ import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.gateway.resources.v1_0.TasksResource;
-import com.sun.jersey.api.core.InjectParam;
 
 @Component
 public class GlusterUtil {
@@ -617,8 +615,8 @@ public class GlusterUtil {
 	}
 	
 	public TaskStatus getInitializingDeviceStatus(String serverName, String diskName) {
-		Object response = serverUtil.executeOnServer(true, serverName, INITIALIZE_DISK_STATUS_SCRIPT + " " + diskName,
-				InitDiskStatusResponse.class);
+		Object response = serverUtil.executeScriptOnServer(true, serverName, INITIALIZE_DISK_STATUS_SCRIPT + " "
+				+ diskName, InitDiskStatusResponse.class);
 
 		TaskStatus taskStatus = new TaskStatus();
 		if (response instanceof Status) {

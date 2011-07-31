@@ -31,6 +31,7 @@ import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.gateway.services.ClusterService;
 import com.gluster.storage.management.gateway.utils.GlusterUtil;
+import com.gluster.storage.management.gateway.utils.ServerUtil;
 import com.gluster.storage.management.gateway.utils.SshUtil;
 import com.sun.jersey.core.util.Base64;
 
@@ -38,7 +39,7 @@ public class RebalanceVolumeTask extends Task {
 
 	private String layout;
 	private String serverName;
-	private SshUtil sshUtil;
+	private ServerUtil serverUtil;
 	private GlusterUtil glusterUtil;
 
 	public RebalanceVolumeTask(ClusterService clusterService, String clusterName, String volumeName, String layout) {
@@ -51,7 +52,7 @@ public class RebalanceVolumeTask extends Task {
 	
 	private void init() {
 		ApplicationContext ctx = ContextLoader.getCurrentWebApplicationContext();
-		sshUtil = ctx.getBean(SshUtil.class);
+		serverUtil = ctx.getBean(ServerUtil.class);
 		glusterUtil = ctx.getBean(GlusterUtil.class);
 	}
 
@@ -74,14 +75,8 @@ public class RebalanceVolumeTask extends Task {
 
 	private void startRebalance(String serverName) {
 		String command = "gluster volume rebalance " + getTaskInfo().getReference() + " " + getLayout() + " start";
-		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
-		if (processResult.isSuccess()) {
-			getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, processResult.getOutput())));
-			return;
-		}
-
-		// if we reach here, it means rebalance start failed.
-		throw new GlusterRuntimeException(processResult.toString());
+		String output = (String)serverUtil.executeOnServer(true, serverName, command, String.class);
+		getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, output)));
 	}
 
 	@Override

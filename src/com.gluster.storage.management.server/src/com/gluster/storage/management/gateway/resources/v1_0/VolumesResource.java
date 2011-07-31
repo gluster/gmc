@@ -84,6 +84,7 @@ import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
+import com.gluster.storage.management.core.exceptions.GlusterValidationException;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Status;
@@ -368,13 +369,13 @@ public class VolumesResource extends AbstractResource {
 		}
 	}
 
-	private Status performOperation(String volumeName, String operation, GlusterServer onlineServer) {
+	private void performOperation(String volumeName, String operation, GlusterServer onlineServer) {
 		if (operation.equals(TASK_START)) {
-			return glusterUtil.startVolume(volumeName, onlineServer.getName());
+			glusterUtil.startVolume(volumeName, onlineServer.getName());
 		} else if (operation.equals(TASK_STOP)) {
-			return glusterUtil.stopVolume(volumeName, onlineServer.getName());
+			glusterUtil.stopVolume(volumeName, onlineServer.getName());
 		} else {
-			return new Status(Status.STATUS_CODE_FAILURE, "Invalid operation code [" + operation + "]");
+			throw new GlusterValidationException("Invalid operation code [" + operation + "]");
 		}
 	}
 
@@ -500,7 +501,7 @@ public class VolumesResource extends AbstractResource {
 			String brickDirectory = brickInfo[1];
 
 			String mountPoint = brickDirectory.substring(0, brickDirectory.lastIndexOf("/"));
-			Object response = serverUtil.executeOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
+			Object response = serverUtil.executeScriptOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
 					+ mountPoint + " " + volumeName + " " + (deleteFlag ? "-d" : ""), GenericResponse.class);
 			if (response instanceof GenericResponse) {
 				result = ((GenericResponse) response).getStatus();
@@ -524,7 +525,7 @@ public class VolumesResource extends AbstractResource {
 			String brickDirectory = brick.getBrickDirectory();
 			String mountPoint = brickDirectory.substring(0, brickDirectory.lastIndexOf("/"));
 
-			result = (Status) serverUtil.executeOnServer(true, brick.getServerName(), VOLUME_DIRECTORY_CLEANUP_SCRIPT
+			result = (Status) serverUtil.executeScriptOnServer(true, brick.getServerName(), VOLUME_DIRECTORY_CLEANUP_SCRIPT
 					+ " " + mountPoint + " " + volumeName + (deleteFlag ? " -d" : ""), Status.class);
 			if (!result.isSuccess()) {
 				throw new GlusterRuntimeException("Error in post-delete operation of volume [" + volumeName + "]: "
@@ -652,8 +653,8 @@ public class VolumesResource extends AbstractResource {
 		String logFilePath = logDir + CoreConstants.FILE_SEPARATOR + logFileName;
 
 		// Usage: get_volume_disk_log.py <volumeName> <diskName> <lineCount>
-		Object responseObj = serverUtil.executeOnServer(true, brick.getServerName(), VOLUME_BRICK_LOG_SCRIPT + " "
-				+ logFilePath + " " + lineCount, LogMessageListResponse.class);
+		Object responseObj = serverUtil.executeScriptOnServer(true, brick.getServerName(), VOLUME_BRICK_LOG_SCRIPT
+				+ " " + logFilePath + " " + lineCount, LogMessageListResponse.class);
 
 		LogMessageListResponse response = null;
 		if (responseObj instanceof LogMessageListResponse) {

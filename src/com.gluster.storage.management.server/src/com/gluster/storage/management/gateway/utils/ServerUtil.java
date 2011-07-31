@@ -22,6 +22,7 @@ package com.gluster.storage.management.gateway.utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,12 +55,17 @@ public class ServerUtil {
 	@Autowired
 	private SshUtil sshUtil;
 	
+	@Autowired
+	private String appVersion;
+	
 	private static final Logger logger = Logger.getLogger(ServerUtil.class);
 
 	private static final String SCRIPT_DIR = "scripts";
 	private static final String SCRIPT_COMMAND = "python";
 	private static final String REMOTE_SCRIPT_GET_DISK_FOR_DIR = "get_disk_for_dir.py";
 	private static final String REMOTE_SCRIPT_GET_SERVER_DETAILS = "get_server_details.py";
+	private static final String REMOTE_SCRIPT_BASE_DIR = "/opt/glustermg";
+	private static final String REMOTE_SCRIPT_DIR_NAME = "backend";
 
 	public void setSshUtil(SshUtil sshUtil) {
 		this.sshUtil = sshUtil;
@@ -75,8 +81,11 @@ public class ServerUtil {
 	}
 
 	private String getScriptPath(String scriptName) {
-		String scriptPath = servletContext.getRealPath(SCRIPT_DIR) + CoreConstants.FILE_SEPARATOR + scriptName;
-		return scriptPath;
+		return servletContext.getRealPath(SCRIPT_DIR) + CoreConstants.FILE_SEPARATOR + scriptName;
+	}
+	
+	private String getRemoteScriptDir() {
+		return REMOTE_SCRIPT_BASE_DIR + File.separator + appVersion + File.separator + REMOTE_SCRIPT_DIR_NAME;
 	}
 	
 	/**
@@ -98,11 +107,30 @@ public class ServerUtil {
 
 	private Object fetchServerDetails(String serverName) {
 		// fetch standard server details like cpu, disk, memory details
-		Object response = executeOnServer(true, serverName, REMOTE_SCRIPT_GET_SERVER_DETAILS, Server.class);
+		Object response = executeScriptOnServer(true, serverName, REMOTE_SCRIPT_GET_SERVER_DETAILS, Server.class);
 		if (response instanceof Status) {
 			throw new GlusterRuntimeException(((Status) response).getMessage());
 		}
 		return response;
+	}
+
+	/**
+	 * Executes given script on given server. Since the remote server may contain multiple versions of backend, this
+	 * method will invoke the script present in directory of same version as the gateway.
+	 * 
+	 * @param runInForeground
+	 * @param serverName
+	 * @param scriptWithArgs
+	 *            The script name followed by arguments to be passed. Note that the script name should not contain path
+	 *            as it will be automatically identified by the method.
+	 * @param expectedClass
+	 *            Class of the object expected from script execution
+	 * @return Object of the expected class from remote execution of the command. In case the remote execution fails
+	 *         ungracefully, an object of class {@link Status} will be returned.
+	 */
+	public Object executeScriptOnServer(boolean runInForeground, String serverName, String scriptWithArgs,
+			@SuppressWarnings("rawtypes") Class expectedClass) {
+		return executeOnServer(runInForeground, serverName, getRemoteScriptDir() + File.separator + scriptWithArgs, expectedClass);
 	}
 	
 	/**
@@ -232,7 +260,7 @@ public class ServerUtil {
 	 * @return Status object containing the disk name, or error message in case the remote script fails.
 	 */
 	public Status getDiskForDir(String serverName, String brickDir) {
-		return (Status) executeOnServer(true, serverName, REMOTE_SCRIPT_GET_DISK_FOR_DIR + " " + brickDir, Status.class);
+		return (Status) executeScriptOnServer(true, serverName, REMOTE_SCRIPT_GET_DISK_FOR_DIR + " " + brickDir, Status.class);
 	}
 
 	public static void main(String[] args) {
