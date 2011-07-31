@@ -4,8 +4,8 @@ importtarget --active src/com.gluster.storage.management.releng/gluster-manageme
 
 import src/com.gluster.storage.management.releng/com.gluster.storage.management.core.cquery
 #import src/com.gluster.storage.management.releng/com.gluster.storage.management.client.cquery
-import src/com.gluster.storage.management.releng/com.gluster.storage.management.server.cquery
+import src/com.gluster.storage.management.releng/com.gluster.storage.management.gateway.cquery
 
 perform com.gluster.storage.management.core#bundle.jar
 #perform com.gluster.storage.management.client#bundle.jar
-perform com.gluster.storage.management.server#archive
+perform com.gluster.storage.management.gateway#archive
