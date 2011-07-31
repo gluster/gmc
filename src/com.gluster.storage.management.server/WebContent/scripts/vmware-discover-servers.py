@@ -22,8 +22,8 @@ import signal
 import struct
 import syslog
 import Globals
-import Common
 import time
+import Utils
 from XmlHandler import *
 
 class TimeoutException(Exception):
@@ -74,7 +74,7 @@ def main():
     syslog.openlog("discovery server request")
     servers = serverDiscoveryRequest(Globals.MULTICAST_GROUP, Globals.MULTICAST_PORT)
     if not servers:
-        Common.log(syslog.LOG_ERR, "Failed to discover new servers")
+        Utils.log(syslog.LOG_ERR, "Failed to discover new servers")
         sys.exit(-1)
 
     servers = set(servers)
@@ -82,7 +82,7 @@ def main():
         for server in servers:
             print server
     except IOError:
-        Common.log(syslog.LOG_ERR, "Unable to open file %s" % Globals.DISCOVERED_SERVER_LIST_FILENAME)
+        Utils.log(syslog.LOG_ERR, "Unable to open file %s" % Globals.DISCOVERED_SERVER_LIST_FILENAME)
         sys.exit(-1)
     sys.exit(0)
 
