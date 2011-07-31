@@ -55,7 +55,7 @@ VOLUME_USER_DESCRIPTION   = "Gluster Volume User"
 SERVER_AGENT_RUN_USERNAME = "gluster"
 INSTALLER_SERVER_NAME     = "$installer$"
 
-GLUSTER_BASE_DIR         = "/GLUSTER"
+GLUSTER_BASE_DIR         = "/etc/glustermg"
 GLUSTER_LUN_DIR          = "/data"
 REEXPORT_DIR             = "/reexport"
 NFS_EXPORT_DIR           = "/nfs"
@@ -118,3 +118,6 @@ DOWNLOAD_GLUSTER_UPDATE_MD5SUM = None
 REQUEST_MAP = {}
 VERSION_DICTONARY = {}
 ##
+
+AWS_WEB_SERVICE_URL = "http://169.254.169.254/latest"
+REAL_SAMBA_CONF_FILE = "/etc/samba/real.smb.conf"
