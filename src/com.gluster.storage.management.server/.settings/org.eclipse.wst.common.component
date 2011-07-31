@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-modules id="moduleCoreId" project-version="1.5.0">
-    <wb-module deploy-name="com.gluster.storage.management.server">
+    <wb-module deploy-name="com.gluster.storage.management.gateway">
         <wb-resource deploy-path="/" source-path="/WebContent"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/junit"/>
-        <property name="java-output-path" value="/com.gluster.storage.management.server/build/classes"/>
+        <property name="java-output-path" value="/com.gluster.storage.management.gateway/build/classes"/>
         <property name="context-root" value="glustermg"/>
     </wb-module>
 </project-modules>

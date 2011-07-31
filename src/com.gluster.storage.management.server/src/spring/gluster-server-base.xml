@@ -7,7 +7,7 @@
    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
    http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd 
    http://www.springframework.org/schema/tx  http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
-	<context:component-scan base-package="com.gluster.storage.management.server" />
+	<context:component-scan base-package="com.gluster.storage.management.gateway" />
 	<task:scheduler id="taskScheduler" />
 	<task:executor id="taskExecutor" pool-size="1" />
 	<task:annotation-driven executor="taskExecutor" scheduler="taskScheduler" />
@@ -69,19 +69,19 @@
 	<bean
         class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor" />
 
-	<bean id="clusterDao" class="com.gluster.storage.management.server.data.PersistenceDao">
+	<bean id="clusterDao" class="com.gluster.storage.management.gateway.data.PersistenceDao">
 		<constructor-arg type="java.lang.Class">
-			<value>com.gluster.storage.management.server.data.ClusterInfo</value>
+			<value>com.gluster.storage.management.gateway.data.ClusterInfo</value>
 		</constructor-arg>
 	</bean>
 
-	<bean id="serverDao" class="com.gluster.storage.management.server.data.PersistenceDao">
+	<bean id="serverDao" class="com.gluster.storage.management.gateway.data.PersistenceDao">
 		<constructor-arg type="java.lang.Class">
-			<value>com.gluster.storage.management.server.data.ServerInfo</value>
+			<value>com.gluster.storage.management.gateway.data.ServerInfo</value>
 		</constructor-arg>
 	</bean>
 	
-	<!-- bean id="dataSourceFactory" class="com.gluster.storage.management.server.data.GlusterDataSource" />
+	<!-- bean id="dataSourceFactory" class="com.gluster.storage.management.gateway.data.GlusterDataSource" />
 		<bean id="dataSource" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
 		<property name="targetObject">
 		<ref local="dataSourceFactory" />
@@ -91,10 +91,10 @@
 		</property>
 		</bean -->
 
-	<!-- bean id="dataSource" class="com.gluster.storage.management.server.data.GlusterDataSource"
+	<!-- bean id="dataSource" class="com.gluster.storage.management.gateway.data.GlusterDataSource"
 		lazy-init="false" autowire="byType" / -->
 
-	<bean class="com.gluster.storage.management.server.tasks.InitServerTask" init-method="initServer" depends-on="dataSource">
+	<bean class="com.gluster.storage.management.gateway.tasks.InitServerTask" init-method="initServer" depends-on="dataSource">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 </beans>
