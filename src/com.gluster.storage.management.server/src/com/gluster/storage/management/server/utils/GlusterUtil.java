@@ -84,7 +84,7 @@ public class GlusterUtil {
 	@Autowired
 	private ServerUtil serverUtil;
 	
-	@InjectParam
+	@Autowired
 	private TasksResource taskResource; 
 
 	public void setSshUtil(SshUtil sshUtil) {

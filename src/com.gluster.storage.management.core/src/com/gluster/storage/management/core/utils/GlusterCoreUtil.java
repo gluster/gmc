@@ -97,18 +97,17 @@ public class GlusterCoreUtil {
 			boolean caseInsensitive) {
 		return getEntity(entityList, searchEntity.getName(), caseInsensitive) != null;
 	}
+	
+	public static <T extends Entity> boolean containsEntityWithName(List<T> entityList, String searchName,
+			boolean caseInsensitive) {
+		return getEntity(entityList, searchName, caseInsensitive) != null;
+	}
 
 	public static <T extends Entity> T getEntity(Collection<T> entityList, String searchEntityName, boolean caseInsensitive) {
-		if (caseInsensitive) {
-			searchEntityName = searchEntityName.toUpperCase();
-		}
-
 		for (T entity : entityList) {
 			String nextEntityName = entity.getName();
-			if (caseInsensitive) {
-				nextEntityName = nextEntityName.toUpperCase();
-			}
-			if (nextEntityName.equals(searchEntityName)) {
+			if (nextEntityName.equals(searchEntityName)
+					|| (caseInsensitive && nextEntityName.equalsIgnoreCase(searchEntityName))) {
 				return entity;
 			}
 		}

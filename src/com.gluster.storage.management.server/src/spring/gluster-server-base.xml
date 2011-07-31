@@ -12,19 +12,20 @@
 	<task:executor id="taskExecutor" pool-size="1" />
 	<task:annotation-driven executor="taskExecutor" scheduler="taskScheduler" />
 
+	<!-- Syncs discovered servers and cluster-server mapping. -->
 	<task:scheduled-tasks>
-		<task:scheduled ref="serverDiscoveryTask" method="discoverServers" fixed-delay="60000" />
+		<task:scheduled ref="serverSyncTask" method="perform" fixed-delay="60000" />
 	</task:scheduled-tasks>
 
 	<!-- This task keeps checking status of disk migration tasks (wherever auto-commit is set to true)
 	so that auto-commit can be performed as soon as the migration is complete -->
-	<task:scheduled-tasks>
+	<!-- task:scheduled-tasks>
 		<task:scheduled ref="brickMigrationStatusTask" method="checkMigrationStatus" fixed-delay="60000" />
-	</task:scheduled-tasks>
+	</task:scheduled-tasks-->
 
 	<!-- Cluster environment. Valid values: vmware, aws, baremetal -->
-	<bean id="environment" class="java.lang.String">
-		<constructor-arg value="vmware" />
+	<bean id="discoveryMechanism" class="java.lang.String">
+		<constructor-arg value="multicast" />
 	</bean>
 
 	<!-- SSH timeouts - all in milliseconds. zero means no timeout. -->

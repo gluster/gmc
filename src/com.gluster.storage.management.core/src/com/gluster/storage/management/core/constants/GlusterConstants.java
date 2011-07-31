@@ -38,6 +38,8 @@ public class GlusterConstants {
 	
 	public static final String ON = "on";
 	public static final String OFF = "off";
+	public static final String NONE = "none";
+	
 	public static final String STATS_PERIOD_1DAY = "1d";
 	public static final String STATS_PERIOD_1WEEK = "1w";
 	public static final String STATS_PERIOD_1MONTH = "1m";

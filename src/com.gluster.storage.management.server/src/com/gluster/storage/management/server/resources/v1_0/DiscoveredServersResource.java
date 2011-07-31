@@ -38,12 +38,21 @@ import org.springframework.stereotype.Component;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.response.ServerListResponse;
 import com.gluster.storage.management.core.response.ServerNameListResponse;
+import com.gluster.storage.management.server.utils.GlusterUtil;
+import com.gluster.storage.management.server.utils.ServerUtil;
+import com.sun.jersey.api.core.InjectParam;
 import com.sun.jersey.spi.resource.Singleton;
 
 @Component
 @Singleton
 @Path(RESOURCE_PATH_DISCOVERED_SERVERS)
-public class DiscoveredServersResource extends AbstractServersResource {
+public class DiscoveredServersResource extends AbstractResource {
+	@InjectParam
+	protected ServerUtil serverUtil;
+	
+	@InjectParam
+	protected GlusterUtil glusterUtil;
+	
 	private List<String> discoveredServerNames = new ArrayList<String>();
 	
 	public List<String> getDiscoveredServerNames() {
