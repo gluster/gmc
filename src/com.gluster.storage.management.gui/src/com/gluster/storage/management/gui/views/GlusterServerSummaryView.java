@@ -23,7 +23,6 @@ package com.gluster.storage.management.gui.views;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.eclipse.birt.chart.util.CDateTime;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -69,6 +68,7 @@ import com.gluster.storage.management.gui.utils.ChartUtil;
 import com.gluster.storage.management.gui.utils.ChartUtil.ChartPeriodLinkListener;
 import com.gluster.storage.management.gui.utils.ChartViewerComposite;
 import com.gluster.storage.management.gui.utils.GUIHelper;
+import com.gluster.storage.management.gui.utils.GlusterLogger;
 import com.ibm.icu.util.Calendar;
 import com.richclientgui.toolbox.gauges.CoolGauge;
 
@@ -81,7 +81,7 @@ public class GlusterServerSummaryView extends ViewPart {
 	private ClusterListener clusterListener;
 	private static final int CHART_WIDTH = 350;
 	private static final int CHART_HEIGHT = 250;
-	private static final Logger logger = Logger.getLogger(GlusterServerSummaryView.class);
+	private static final GlusterLogger logger = GlusterLogger.getInstance();
 	private static final IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
 
 	public enum NETWORK_INTERFACE_TABLE_COLUMN_INDICES {

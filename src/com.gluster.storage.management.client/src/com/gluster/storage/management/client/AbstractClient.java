@@ -22,8 +22,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
-import org.apache.log4j.Logger;
-
 import com.gluster.storage.management.client.utils.ClientUtil;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.sun.jersey.api.client.Client;
@@ -40,7 +38,6 @@ import com.sun.jersey.multipart.FormDataMultiPart;
 public abstract class AbstractClient {
 	private static final String HTTP_HEADER_AUTH = "Authorization";
 	protected static final MultivaluedMap<String, String> NO_PARAMS = new MultivaluedMapImpl();
-	private static final Logger logger = Logger.getLogger(AbstractClient.class);
 	protected static String clusterName;
 	protected static String securityToken;
 	protected WebResource resource;
@@ -136,7 +133,6 @@ public abstract class AbstractClient {
 			return res.queryParams(queryParams).header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_XML)
 					.get(responseClass);
 		} catch (Exception e1) {
-			logger.error("Error in fetching response", e1);
 			throw createGlusterException(e1);
 		}
 	}
@@ -175,7 +171,6 @@ public abstract class AbstractClient {
 				throw new GlusterRuntimeException(response.getEntity(String.class));
 			}
 		} catch (Exception e1) {
-			logger.error("Error in downloading resource [" + res.toString() + "]", e1);
 			throw createGlusterException(e1);
 		}
 		

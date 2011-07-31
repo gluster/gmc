@@ -1,9 +1,6 @@
 package com.gluster.storage.management.gui.actions;
 
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.custom.BusyIndicator;
@@ -11,7 +8,6 @@ import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.TasksClient;
 import com.gluster.storage.management.client.VolumesClient;
-import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.TaskStatus;
@@ -46,8 +42,9 @@ public class CommitTaskAction extends AbstractActionDelegate {
 					
 					modelManager.volumeChanged(oldVolume, newVolume);
 				} catch (Exception e) {
-					logger.error(e);
-					showInfoDialog(actionDesc, "Volume brick update failed! [" + e.getMessage() + "]");
+					String errMsg = "Volume brick update failed! [" + e.getMessage() + "]";
+					logger.error(errMsg, e);
+					showInfoDialog(actionDesc, errMsg);
 				}
 			}
 		});

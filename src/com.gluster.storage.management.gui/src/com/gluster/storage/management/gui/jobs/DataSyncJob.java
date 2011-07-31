@@ -18,7 +18,6 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.jobs;
 
-import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -27,12 +26,13 @@ import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.gui.GlusterDataModelManager;
+import com.gluster.storage.management.gui.utils.GlusterLogger;
 
 /**
  *
  */
 public class DataSyncJob extends Job {
-	private static final Logger logger = Logger.getLogger(DataSyncJob.class);
+	private static final GlusterLogger logger = GlusterLogger.getInstance();
 
 	public DataSyncJob(String name) {
 		super(name);

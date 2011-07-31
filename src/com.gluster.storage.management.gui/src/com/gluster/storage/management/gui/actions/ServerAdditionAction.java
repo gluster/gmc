@@ -1,12 +1,12 @@
 package com.gluster.storage.management.gui.actions;
 
-import org.apache.log4j.Logger;
 import org.eclipse.jface.action.IAction;
 
 import com.gluster.storage.management.gui.dialogs.ServerAdditionDialog;
+import com.gluster.storage.management.gui.utils.GlusterLogger;
 
 public class ServerAdditionAction extends AbstractActionDelegate {
-	private static final Logger logger = Logger.getLogger(ServerAdditionAction.class);
+	private static final GlusterLogger logger = GlusterLogger.getInstance();
 	@Override
 	public void dispose() {
 		// TODO Auto-generated method stub

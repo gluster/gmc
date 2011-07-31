@@ -18,21 +18,18 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.actions;
 
-import org.apache.log4j.Logger;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.UIPlugin;
 
 import com.gluster.storage.management.core.model.Entity;
+import com.gluster.storage.management.gui.utils.GlusterLogger;
 
 /**
  * All action delegates in the application should extend from this class. It provides common functionality of grabbing
@@ -42,7 +39,7 @@ import com.gluster.storage.management.core.model.Entity;
 @SuppressWarnings("restriction")
 public abstract class AbstractActionDelegate implements IWorkbenchWindowActionDelegate {
 	protected IWorkbenchWindow window;
-	protected Logger logger = Logger.getLogger(this.getClass());
+	protected static final GlusterLogger logger = GlusterLogger.getInstance();
 	
 	// the latest selected entity
 	protected Entity selectedEntity;

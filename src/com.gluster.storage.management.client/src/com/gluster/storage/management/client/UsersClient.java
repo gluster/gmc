@@ -18,8 +18,6 @@
  *******************************************************************************/
 package com.gluster.storage.management.client;
 
-import org.apache.log4j.Logger;
-
 import com.gluster.storage.management.core.model.Status;
 import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.core.util.Base64;
@@ -29,7 +27,6 @@ public class UsersClient extends AbstractClient {
 	private static final String RESOURCE_NAME = "users";
 	private static final String FORM_PARAM_OLD_PASSWORD = "oldpassword";
 	private static final String FORM_PARAM_NEW_PASSWORD = "newpassword";
-	private static final Logger logger = Logger.getLogger(UsersClient.class);
 
 	private String generateSecurityToken(String user, String password) {
 		return new String(Base64.encode(user + ":" + password));

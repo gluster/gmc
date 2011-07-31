@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.preference.IPreferenceStore;
 
@@ -62,6 +61,7 @@ import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.gui.preferences.PreferenceConstants;
+import com.gluster.storage.management.gui.utils.GlusterLogger;
 
 public class GlusterDataModelManager {
 	private static GlusterDataModelManager instance = new GlusterDataModelManager();
@@ -71,7 +71,7 @@ public class GlusterDataModelManager {
 	private List<VolumeOptionInfo> volumeOptionsDefaults;
 	private String clusterName;
  	private static Boolean syncInProgress = false;
-	private static final Logger logger = Logger.getLogger(GlusterDataModelManager.class);
+ 	private static final GlusterLogger logger = GlusterLogger.getInstance();;
 
 	private GlusterDataModelManager() {
 	}
