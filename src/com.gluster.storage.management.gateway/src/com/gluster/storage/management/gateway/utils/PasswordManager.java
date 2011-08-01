@@ -45,7 +45,6 @@ public class PasswordManager {
 			System.out.println("Password for user [" + username + "] reset successsfully to default value of ["
 					+ CoreConstants.DEFAULT_PASSWORD + "].\n");
 		} catch (Exception e) {
-			e.printStackTrace();
 			System.err
 					.println("\n\nPassword reset for user ["
 							+ username
@@ -71,11 +70,11 @@ public class PasswordManager {
 	}
 
 	public static void main(String args[]) {
-		if (args.length != 2) {
-			System.err.println("Usage: java " + PasswordManager.class.getName() + " set <username>\n");
+		if (args.length != 2 || !args[0].equals("reset")) {
+			System.err.println("Usage: java " + PasswordManager.class.getName() + " reset <username>\n");
 			System.exit(USAGE_ERR);
 		}
-
+		
 		new PasswordManager().resetPassword(args[1]);
 	}
 }
