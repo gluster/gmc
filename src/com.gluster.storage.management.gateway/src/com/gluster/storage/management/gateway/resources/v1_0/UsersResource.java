@@ -32,11 +32,17 @@ import javax.ws.rs.core.Response;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.dao.SaltSource;
 import org.springframework.security.authentication.encoding.PasswordEncoder;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.stereotype.Component;
 
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
+import com.gluster.storage.management.core.exceptions.GlusterValidationException;
 import com.gluster.storage.management.core.model.Status;
 import com.sun.jersey.spi.resource.Singleton;
 
@@ -49,6 +55,12 @@ public class UsersResource extends AbstractResource {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private SaltSource saltSource;
+
+	@Autowired
+	private UserDetailsService userDetailsService;
 	
 	private static final Logger logger = Logger.getLogger(UsersResource.class);
 
@@ -77,14 +89,29 @@ public class UsersResource extends AbstractResource {
 
 	@Path("{" + PATH_PARAM_USER + "}")
 	@PUT
-	public Response changePassword(@FormParam("oldpassword") String oldPassword,
+	public Response changePassword(@PathParam("user") String username, @FormParam("oldpassword") String oldPassword,
 			@FormParam("newpassword") String newPassword) {
 		try {
-			jdbcUserService.changePassword(oldPassword, passwordEncoder.encodePassword(newPassword, null));
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			String loggedInUser = ((UserDetails)auth.getPrincipal()).getUsername();
+			if(!loggedInUser.equals(username)) {
+				// Temporary check as we currently have only one user.
+				throw new GlusterValidationException("User [" + loggedInUser
+						+ "] is not allowed to change password of user [" + username + "]!");
+			}
+
+			String correctOldPassword = auth.getCredentials().toString();
+			if(!oldPassword.equals(correctOldPassword)) {
+				throw new GlusterValidationException("Invalid old password!");
+			}
+			
+			UserDetails user = userDetailsService.loadUserByUsername(username);
+			String encodedNewPassword = passwordEncoder.encodePassword(newPassword, saltSource.getSalt(user));
+			jdbcUserService.changePassword(oldPassword, encodedNewPassword);
 		} catch (Exception ex) {
 			String errMsg = "Could not change password. Error: [" + ex.getMessage() + "]";
 			logger.error(errMsg, ex);
-			return errorResponse(errMsg);
+			throw new GlusterRuntimeException(errMsg);
 		}
 		return noContentResponse();
 	}

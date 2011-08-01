@@ -3,6 +3,10 @@
  */
 package com.gluster.storage.management.gateway.filters;
 
+import java.util.Date;
+
+import org.apache.log4j.Logger;
+
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerRequestFilter;
 import com.sun.jersey.spi.container.ContainerResponse;
@@ -13,7 +17,8 @@ import com.sun.jersey.spi.container.ResourceFilter;
  * Resource filter for maintaining audit trail of resource access
  */
 public class AuditFilter implements ResourceFilter, ContainerRequestFilter, ContainerResponseFilter {
-
+	private static final Logger logger = Logger.getLogger(AuditFilter.class);
+	
 	@Override
 	public ContainerRequestFilter getRequestFilter() {
 		return this;
@@ -26,13 +31,13 @@ public class AuditFilter implements ResourceFilter, ContainerRequestFilter, Cont
 
 	@Override
 	public ContainerRequest filter(ContainerRequest req) {
-		System.out.println("REQUEST: [" + req.getMethod() + "][" + req.getPath() + "]");
+		logger.info("REQUEST: [" + req.getMethod() + "][" + req.getPath() + "]");
 		return req;
 	}
 
 	@Override
 	public ContainerResponse filter(ContainerRequest req, ContainerResponse response) {
-		System.out.println("RESPONSE: [" + req.getMethod() + "][" + req.getPath() + "]");
+		logger.info("RESPONSE: [" + req.getMethod() + "][" + req.getPath() + "]");
 		return response;
 	}
 }

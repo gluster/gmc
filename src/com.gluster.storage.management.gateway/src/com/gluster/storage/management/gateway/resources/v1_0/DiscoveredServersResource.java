@@ -33,6 +33,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.model.Server;
@@ -54,6 +55,8 @@ public class DiscoveredServersResource extends AbstractResource {
 	protected GlusterUtil glusterUtil;
 	
 	private List<String> discoveredServerNames = new ArrayList<String>();
+	
+	private static final Logger logger = Logger.getLogger(DiscoveredServersResource.class);
 	
 	public List<String> getDiscoveredServerNames() {
 		return discoveredServerNames;
@@ -104,7 +107,7 @@ public class DiscoveredServersResource extends AbstractResource {
 			try {
 				discoveredServers.add(getDiscoveredServer(serverName));
 			} catch(Exception e) {
-				// TODO: Log the exception 
+				logger.warn("Could not fetch details of discovered server [ " + serverName + "]", e);
 				// continue with next discovered server
 			}
 		}

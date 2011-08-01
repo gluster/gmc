@@ -23,6 +23,10 @@
 		<http-basic />
 	</http>
 
+	<beans:bean class="org.springframework.security.authentication.dao.ReflectionSaltSource" id="saltSource">
+		<beans:property name="userPropertyToUse" value="username" />
+	</beans:bean>
+
 	<beans:bean
 		class="org.springframework.security.authentication.encoding.ShaPasswordEncoder"
 		id="passwordEncoder" />
@@ -30,7 +34,9 @@
 	<authentication-manager alias="authenticationManager">
 		<authentication-provider user-service-ref="jdbcUserService">
 			<!-- Passwords are SHA encrypted -->
-			<password-encoder hash="sha" />
+			<password-encoder ref="passwordEncoder" hash="sha">
+				<salt-source ref="saltSource" />
+			</password-encoder>
 		</authentication-provider>
 	</authentication-manager>
 
