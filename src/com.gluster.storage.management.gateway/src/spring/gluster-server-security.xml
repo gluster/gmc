@@ -27,9 +27,9 @@
 		<beans:property name="userPropertyToUse" value="username" />
 	</beans:bean>
 
-	<beans:bean
-		class="org.springframework.security.authentication.encoding.ShaPasswordEncoder"
-		id="passwordEncoder" />
+	<beans:bean class="org.springframework.security.authentication.encoding.ShaPasswordEncoder" id="passwordEncoder">
+		<beans:constructor-arg value="256" />
+	</beans:bean>
 
 	<authentication-manager alias="authenticationManager">
 		<authentication-provider user-service-ref="jdbcUserService">

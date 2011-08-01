@@ -39,6 +39,11 @@
 				<include name="**/*.xml" />
 			</fileset>
 		</copy>
+		<copy todir="${WEB-INF}/classes">
+			<fileset dir="${basedir}/src" casesensitive="yes">
+				<include name="log4j.properties" />
+			</fileset>
+		</copy>
 		<!-- TODO: make debug option configurable in jenkins -->
 		<javac srcdir="${basedir}/src" destdir="${WEB-INF}/classes" classpathref="libs" debug="true" debuglevel="lines,vars,source"/>
 	</target>
