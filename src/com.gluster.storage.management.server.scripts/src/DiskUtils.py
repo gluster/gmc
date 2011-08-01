@@ -138,12 +138,10 @@ def getMounts():
             device["Uuid"] = getDiskPartitionUuid(tokens[0].strip())
             device["Status"] = "INITIALIZED"
             if mountPoint:
-                if "/export/" in mountPoint:
-                    device["Type"] = "DATA"
-                else:
+                if mountPoint in ["/", "/boot"]:
                     device["Type"] = "BOOT"
-            else:
-                device["Type"] = "UNKNOWN"
+                else:
+                    device["Type"] = "DATA"
             mounts[tokens[0].strip()] = device
     return mounts
 
@@ -179,12 +177,7 @@ def getRaidDisk():
         device = getDevice(tokens[0])
         raid['MountPoint'] = getDeviceMountPoint(device)
         if raid['MountPoint']:
-            if "/export/" in raid['MountPoint']:
-                raid['Type'] = "DATA"
-            else:
-                raid['Type'] = "BOOT"
-        else:
-            raid['Type'] = "UNKNOWN"
+            raid['Type'] = "DATA"
         rv = Utils.runCommand("blkid -c /dev/null %s" % (device), output=True, root=True)
         raid['Uuid'] = None
         raid['FsType'] = None
@@ -310,12 +303,10 @@ def getDiskInfo(diskDeviceList=None):
                 disk["Status"] = "INITIALIZED"
                 mountPoint = str(partitionHalDevice.GetProperty('volume.mount_point'))
                 if mountPoint:
-                    if "/export/" in mountPoint:
-                        disk["Type"] = "DATA"
-                    else:
+                    if mountPoint in ["/", "/boot"]:
                         disk["Type"] = "BOOT"
-                else:
-                    disk["Type"] = "UNKNOWN"
+                    else:
+                        disk["Type"] = "DATA"
                 disk["FsType"] = str(partitionHalDevice.GetProperty('volume.fstype'))
                 if disk["FsType"] and "UNINITIALIZED" == disk["Status"]:
                     disk["Status"] = "INITIALIZED"
@@ -352,10 +343,10 @@ def getDiskInfo(diskDeviceList=None):
                 partition["Init"] = True
                 partition["Status"] = "INITIALIZED"
             if partition["MountPoint"]:
-                if "/export/" in partition["MountPoint"]:
-                    partition["Type"] = "DATA"
-                else:
+                if partition["MountPoint"] in ["/", "/boot"]:
                     partition["Type"] = "BOOT"
+                else:
+                    partition["Type"] = "DATA"
             else:
                 if "SWAP" == partition["FsType"].strip().upper():
                     partition["Type"] = "SWAP"
