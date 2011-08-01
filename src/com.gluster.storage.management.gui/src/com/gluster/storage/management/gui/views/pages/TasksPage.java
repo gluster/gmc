@@ -36,10 +36,7 @@ import org.eclipse.ui.IWorkbenchSite;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Entity;
-import com.gluster.storage.management.core.model.Event;
-import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import com.gluster.storage.management.core.model.TaskInfo;
-import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.TasksTableLabelProvider;
 import com.gluster.storage.management.gui.toolbar.GlusterToolbarManager;
 

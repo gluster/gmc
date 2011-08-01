@@ -18,9 +18,6 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.views.pages;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.swt.SWT;

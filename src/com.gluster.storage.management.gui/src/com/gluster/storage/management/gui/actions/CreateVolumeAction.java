@@ -20,14 +20,10 @@ package com.gluster.storage.management.gui.actions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 
-import com.gluster.storage.management.core.model.EntityGroup;
-import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.gui.dialogs.CreateVolumeWizard;
 
 public class CreateVolumeAction extends AbstractActionDelegate {
@@ -46,7 +42,7 @@ public class CreateVolumeAction extends AbstractActionDelegate {
 			}
 		};
 		dialog.create();
-		dialog.getShell().setSize(500, 585);
+		dialog.getShell().setSize(500, 610);
 		dialog.open();
 	}
 

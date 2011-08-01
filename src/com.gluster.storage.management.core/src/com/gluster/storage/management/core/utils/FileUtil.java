@@ -20,10 +20,8 @@ package com.gluster.storage.management.core.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.UUID;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
