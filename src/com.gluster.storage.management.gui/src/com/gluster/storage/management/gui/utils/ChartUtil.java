@@ -35,14 +35,12 @@ import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Hyperlink;
 
-import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.NetworkInterface;
 import com.gluster.storage.management.core.model.ServerStats;
 import com.gluster.storage.management.core.model.ServerStatsRow;
 import com.gluster.storage.management.gui.Activator;
-import com.gluster.storage.management.gui.GlusterDataModelManager;
 import com.gluster.storage.management.gui.preferences.PreferenceConstants;
 import com.ibm.icu.util.Calendar;
 

@@ -844,6 +844,22 @@ public class GlusterDataModelManager {
 		setVolumeOption(volume, Volume.OPTION_NFS_DISABLE, (enabled) ? GlusterConstants.OFF : GlusterConstants.ON);
 	}
 	
+	public void setCifsConfig(Volume volume, boolean enabled, List<String> cifsUsers) {
+		if (enabled) {
+			volume.enableCifs();
+			volume.setCifsUsers(cifsUsers);
+		} else {
+			volume.disableCifs();
+		}
+	}
+	
+	public void setCifsOption(Volume volume, String optionKey, String optionValue) {
+		volume.setOption(optionKey, optionValue);
+		for (ClusterListener listener : listeners) {
+			listener.volumeChanged(volume, new Event(EVENT_TYPE.VOLUME_OPTION_SET, optionKey));
+		}
+	}
+	
 	public Server getGlusterServer(String serverName) {
 		for (Server server : model.getCluster().getServers()) {
 			if (server.getName().equals(serverName)) {

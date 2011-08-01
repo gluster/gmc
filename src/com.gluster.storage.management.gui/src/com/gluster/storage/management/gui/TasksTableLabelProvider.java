@@ -24,8 +24,6 @@ import org.eclipse.swt.graphics.Image;
 
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
-import com.gluster.storage.management.core.model.TaskStatus;
-import com.gluster.storage.management.gui.DeviceTableLabelProvider.DEVICE_COLUMN_INDICES;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 import com.gluster.storage.management.gui.views.pages.TasksPage.TASK_TABLE_COLUMN_INDICES;
 
