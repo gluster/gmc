@@ -14,6 +14,7 @@ get-scripts()
 {
 	cd ${DIR_NAME}
 	cp ../../src/com.gluster.storage.management.gateway.scripts/src/*.* .
+	chmod +x *
 	cd -
 }
 
