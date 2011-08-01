@@ -43,39 +43,47 @@ Requires:       crontabs
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/opt/glustermg/%{release_version}
 mkdir -p $RPM_BUILD_ROOT/opt/glustermg/keys
-mkdir -p $RPM_BUILD_ROOT/usr/share/tomcat5/webapps
 wget -P $RPM_BUILD_ROOT %{glustermg_war_url}
 tar -C $RPM_BUILD_ROOT/opt/glustermg/%{release_version} -zxf $RPM_BUILD_ROOT/glustermg.war.tar.gz
 rm -f $RPM_BUILD_ROOT/glustermg.war.tar.gz
-ln -fs /opt/glustermg/%{release_version}/glustermg $RPM_BUILD_ROOT/usr/share/tomcat5/webapps/glustermg
 
 mkdir -p $RPM_BUILD_ROOT/opt/glustermg/%{release_version}/backend
 mkdir -p $RPM_BUILD_ROOT/var/lib/rrd
 cp -pa gmg-scripts/* $RPM_BUILD_ROOT/opt/glustermg/%{release_version}/backend
 
 %post
+ln -fs /opt/glustermg/%{release_version}/glustermg /usr/share/tomcat5/webapps/glustermg
 if [ ! -f /opt/glustermg/keys/id_rsa ]; then
     ssh-keygen -r rsa -f /opt/glustermg/keys/id_rsa -N gluster
 fi
-if ! grep -q JAVA_HOME /etc/sysconfig/tomcat5; then
-    echo JAVA_HOME=/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64 >> /etc/sysconfig/tomcat5
+if ! grep -q '^JAVA_HOME="/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64"' /etc/sysconfig/tomcat5; then
+    sed -i 's/^JAVA_HOME=/# JAVA_HOME=/g' /etc/sysconfig/tomcat5
+    echo 'JAVA_HOME="/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64"' >> /etc/sysconfig/tomcat5
 fi
-if ! grep -q JAVA_OPTS /etc/sysconfig/tomcat5; then
+if ! grep -q '# Added by Gluster: JAVA_OPTS="${JAVA_OPTS} -Xms1024m -Xmx1024m -XX:PermSize=256m -XX:MaxPermSize=256m"' /etc/sysconfig/tomcat5; then
+    echo '# Added by Gluster: JAVA_OPTS="${JAVA_OPTS} -Xms1024m -Xmx1024m -XX:PermSize=256m -XX:MaxPermSize=256m"' >> /etc/sysconfig/tomcat5
     echo 'JAVA_OPTS="${JAVA_OPTS} -Xms1024m -Xmx1024m -XX:PermSize=256m -XX:MaxPermSize=256m"' >> /etc/sysconfig/tomcat5
 fi
-if ! grep /usr/share/tomcat5/webapps/glustermg/ssl/gmg-ssl.keystore /usr/share/tomcat5/conf/server.xml; then
-    cat >> /usr/share/tomcat5/conf/server.xml <<EOF
-<Connector SSLEnabled="true"
-                   clientAuth="false"
-                   executor="tomcatThreadPool"
-                   maxThreads="150" port="8443"
-                   keystoreFile="/usr/share/tomcat5/webapps/glustermg/ssl/gmg-ssl.keystore"
-                   keystorePass="gluster"
-                   protocol="org.apache.coyote.http11.Http11Protocol" scheme="https"
-                   secure="true"
-                   sslProtocol="TLS" />
-EOF
+if ! grep -q /usr/share/tomcat5/webapps/glustermg/ssl/gmg-ssl.keystore /etc/tomcat5/server.xml; then
+    sed '/<\/Service>/i \
+    <Connector SSLEnabled="true" \
+               clientAuth="false" \
+               executor="tomcatThreadPool" \
+               maxThreads="150" \
+               port="8443" \
+               keystoreFile="/usr/share/tomcat5/webapps/glustermg/ssl/gmg-ssl.keystore" \
+               keystorePass="gluster" \
+               protocol="org.apache.coyote.http11.Http11Protocol" \
+               scheme="https" \
+               secure="true" \
+               sslProtocol="TLS" />' /etc/tomcat5/server.xml
 fi
+if ! grep -q "org.apache.catalina.authenticator.NonLoginAuthenticator" /etc/tomcat5/context.xml; then
+    sed '/<\/Context>/i \
+    <Valve className="org.apache.catalina.authenticator.NonLoginAuthenticator" \
+           disableProxyCaching="false" />' /etc/tomcat5/context.xml
+fi
+
 
 %post backend
 if [ -f /etc/sudoers ]; then
@@ -100,11 +108,11 @@ rm -rf $RPM_BUILD_ROOT
 %files backend
 %defattr(-,root,root,0755)
 /opt/glustermg/%{release_version}/backend
+/var/lib/rrd
 
 %files
 %defattr(-,root,root,0755)
 /opt/glustermg/%{release_version}/glustermg
-/usr/share/tomcat5/webapps
 
 %changelog
 * Mon Jul 25 2011 Bala.FA <bala@gluster.com> - 1.0.0
