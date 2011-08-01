@@ -16,32 +16,21 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.core.constants;
+package com.gluster.storage.management.gateway.utils;
 
-import java.util.List;
-
-import com.gluster.storage.management.core.utils.StringUtil;
+import org.springframework.stereotype.Component;
 
 /**
  *
  */
-public class GlusterConstants {
-	public enum VOLUME_LOG_LEVELS {
-		EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG, TRACE
-	};
+@Component
+public class CpuStatsFactory extends AbstractStatsFactory {
+	
+	private static final String CPU_STATS_SCRIPT = "get_rrd_cpu_details.py";
 
-	public static final List<String> VOLUME_LOG_LEVELS_ARR = StringUtil.enumToArray(VOLUME_LOG_LEVELS.values());
-	public static final String FSTYPE_DEFAULT = "default";
-	public static final String FSTYPE_EXT_3 = "ext3";
-	public static final String FSTYPE_EXT_4 = "ext4";
-	public static final String FSTYPE_XFS = "xfs";
+	@Override
+	public String getStatsScriptName() {
+		return CPU_STATS_SCRIPT;
+	}
 	
-	public static final String ON = "on";
-	public static final String OFF = "off";
-	public static final String NONE = "none";
-	
-	public static final String STATS_PERIOD_1DAY = "1d";
-	public static final String STATS_PERIOD_1WEEK = "1w";
-	public static final String STATS_PERIOD_1MONTH = "1m";
-	public static final String STATS_PERIOD_1YEAR = "1y";
 }
