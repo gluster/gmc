@@ -120,9 +120,13 @@ public class InitializeDiskTask extends Task {
 	private void startInitializeDisk(String serverName) {
 		String fsTypeCommand = (getFsType().equals(GlusterConstants.FSTYPE_DEFAULT)) ? "" : " -t " + getFsType();
 		
-		String output = (String) serverUtil.executeScriptOnServer(true, serverName, INITIALIZE_DISK_SCRIPT
+		Object output = serverUtil.executeScriptOnServer(true, serverName, INITIALIZE_DISK_SCRIPT
 				+ fsTypeCommand + " " + getDiskName(), String.class);
-		TaskStatus taskStatus = new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, output));
+		if(output instanceof Status) {
+			// Status object will be returned only in case of failure
+			throw new GlusterRuntimeException(((Status)output).toString()); 
+		}
+		TaskStatus taskStatus = new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, (String)output));
 		taskStatus.setPercentageSupported((getFsType().equals(GlusterConstants.FSTYPE_XFS)) ? false : true);
 		getTaskInfo().setStatus(taskStatus);
 	}
