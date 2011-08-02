@@ -44,7 +44,6 @@ import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Partition;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
-import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.utils.NumberUtil;
@@ -466,10 +465,10 @@ public class VolumeSummaryView extends ViewPart {
 	private double getTotalDiskSpace() {
 		double diskSize = 0;
 		for (Brick brick : volume.getBricks()) {
-			diskSize += getDiskSize(brick.getServerName(), brick.getDeviceName());
+			diskSize += getDiskSize(brick.getServerName(),
+					GlusterDataModelManager.getInstance().getDeviceForBrickDir(brick).getName());
 		}
 		return diskSize;
-
 	}
 
 	private void createDiskSpaceField(Composite section) {
