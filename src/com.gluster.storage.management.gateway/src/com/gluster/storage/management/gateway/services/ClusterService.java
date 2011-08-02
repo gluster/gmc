@@ -31,9 +31,7 @@ import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.GlusterServer;
-import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.utils.LRUCache;
-import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.gateway.data.ClusterInfo;
 import com.gluster.storage.management.gateway.data.PersistenceDao;
 import com.gluster.storage.management.gateway.data.ServerInfo;
@@ -76,7 +74,7 @@ public class ClusterService {
 	// uses cache
 	public GlusterServer getOnlineServer(String clusterName, String exceptServerName) {
 		GlusterServer server = onlineServerCache.get(clusterName);
-		if (server != null && !server.getName().equals(exceptServerName)) {
+		if (server != null && !server.getName().equalsIgnoreCase(exceptServerName)) {
 			return server;
 		}
 
@@ -103,7 +101,7 @@ public class ClusterService {
 			try {
 				serverUtil.fetchServerDetails(server); // Online status come with server details
 				// server is online. add it to cache and return
-				if (server.isOnline() && !server.getName().equals(exceptServerName)) {
+				if (server.isOnline() && !server.getName().equalsIgnoreCase(exceptServerName)) {
 					addOnlineServer(clusterName, server);
 					return server;
 				}
@@ -251,7 +249,7 @@ public class ClusterService {
 		ClusterInfo cluster = getCluster(clusterName);
 		List<ServerInfo> servers = cluster.getServers();
 		for(ServerInfo server : servers) {
-			if(server.getName().equals(serverName)) {
+			if(server.getName().equalsIgnoreCase(serverName)) {
 				servers.remove(server);
 				clusterDao.delete(server);
 				break;

@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -113,7 +112,7 @@ public class GlusterUtil {
 	public GlusterServer getGlusterServer(GlusterServer onlineServer, String serverName) {
 		List<GlusterServer> servers = getGlusterServers(onlineServer);
 		for (GlusterServer server : servers) {
-			if (server.getName().equals(serverName)) {
+			if (server.getName().equalsIgnoreCase(serverName)) {
 				return server;
 			}
 		}
@@ -412,11 +411,11 @@ public class GlusterUtil {
 
 	private void addBrickToVolume(Volume volume, String serverName, String brickDir, BRICK_STATUS status) {
 		//If brick directory has standard path, find and assign device name otherwise null
-		String stdBrickDirPattern = "^/export/.*/.*"; // e.g: /export/sdb/test
+//		String stdBrickDirPattern = "^/export/.*/.*"; // e.g: /export/sdb/test
 		String deviceName = null;
-		if (Pattern.matches(stdBrickDirPattern, brickDir) ) {
-			deviceName = brickDir.split("/")[2].trim();
-		}
+//		if (Pattern.matches(stdBrickDirPattern, brickDir) ) {
+//			deviceName = brickDir.split("/")[2].trim();
+//		}
 		volume.addBrick(new Brick(serverName, status, deviceName, brickDir));
 	}
 	
@@ -561,6 +560,7 @@ public class GlusterUtil {
 				+ "] doesn't start with prefix [" + VOLUME_LOG_LOCATION_PFX + "]");
 	}
 
+	//TODO File.separator should be changed if gateway runs on windows/mac
 	public String getLogFileNameForBrickDir(String brickDir) {
 		String logFileName = brickDir;
 		if (logFileName.startsWith(File.separator)) {
