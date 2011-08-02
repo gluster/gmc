@@ -54,7 +54,7 @@ public class Brick extends Entity {
 		this.status = status;
 	}
 
-	public Brick(String serverName, BRICK_STATUS brickStatus, String deviceName, String brickDirectory) {
+	public Brick(String serverName, BRICK_STATUS brickStatus, String brickDirectory) {
 		setServerName(serverName);
 		setStatus(brickStatus);
 		// setDeviceName(deviceName);

@@ -593,7 +593,7 @@ public class GlusterDataModelManager {
 	public Device getDeviceForBrickDir(Brick brick) {
 		Device brickDevice = null;
 		for (Device device :   getReadyDevicesOfServer(brick.getServerName(), new ArrayList<Device>())) {
-			if (brick.getBrickDirectory().matches("^" + device.getMountPoint() + ".*")) {
+			if (brick.getBrickDirectory().startsWith( device.getMountPoint() )) {
 				if (brickDevice == null || device.getMountPoint().length() > brickDevice.getMountPoint().length()) {
 					brickDevice = device;
 				}
