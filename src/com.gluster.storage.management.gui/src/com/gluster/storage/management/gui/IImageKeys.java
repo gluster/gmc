@@ -82,6 +82,7 @@ public interface IImageKeys {
 	public static final String RESUME_TASK_16x16 = "icons/tango/16x16/start.png";
 	public static final String STOP_TASK_16x16 = "icons/tango/16x16/stop.png";
 	public static final String CLEAR_TASK_16x16 = "icons/tango/16x16/close_task.png";
+	public static final String COMPLETED_TASK_16x16 = "icons/tango/16x16/task-completed.png";
 	
 	public static final String OVERLAY_OFFLINE_8x8 = "icons/tango/8x8/offline.png";
 	public static final String OVERLAY_ONLINE_8x8 = "icons/tango/8x8/online.png";
