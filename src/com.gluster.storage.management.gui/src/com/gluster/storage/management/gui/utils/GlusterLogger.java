@@ -19,7 +19,6 @@
 package com.gluster.storage.management.gui.utils;
 
 import org.eclipse.core.runtime.ILog;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
 import com.gluster.storage.management.gui.Activator;

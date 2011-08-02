@@ -48,7 +48,6 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Hyperlink;
 
 import com.gluster.storage.management.core.model.ClusterListener;
-import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.gui.GlusterDataModelManager;
 import com.gluster.storage.management.gui.utils.GUIHelper;
 

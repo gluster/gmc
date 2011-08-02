@@ -24,8 +24,6 @@ import static com.gluster.storage.management.core.constants.RESTConstants.RESOUR
 
 import java.util.List;
 
-import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
-import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.response.ClusterNameListResponse;
 import com.sun.jersey.api.representation.Form;
 

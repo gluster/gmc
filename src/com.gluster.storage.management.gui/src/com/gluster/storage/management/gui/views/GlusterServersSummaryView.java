@@ -22,7 +22,6 @@ package com.gluster.storage.management.gui.views;
 
 import java.util.List;
 
-import org.eclipse.core.internal.resources.projectvariables.ParentVariableResolver;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.graphics.Image;

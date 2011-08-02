@@ -3,6 +3,7 @@ package com.gluster.storage.management.gui.views;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -64,8 +65,11 @@ public class VolumeSummaryView extends ViewPart {
 	private CLabel lblStatusValue;
 	private DefaultClusterListener volumeChangedListener;
 	private Hyperlink changeLink;
+	private Hyperlink CifsChangeLink;
 	private Text accessControlText;
+	private Text cifsUsersText;
 	private ControlDecoration errDecoration;
+	private ControlDecoration errCifsDecoration;
 	private Composite parent;
 	private static final String COURIER_FONT = "Courier";
 	private Cluster cluster = GlusterDataModelManager.getInstance().getModel().getCluster();
@@ -78,6 +82,9 @@ public class VolumeSummaryView extends ViewPart {
 	private Label numberOfBricks;
 	private Label totalDiskSpace;
 	private Composite alertsSection;
+	private Button cifsCheckbox;
+	private Label cifsLabel;
+	private Composite cifsUpdateLinkComposite;
 
 	@Override
 	public void createPartControl(Composite parent) {
@@ -250,6 +257,7 @@ public class VolumeSummaryView extends ViewPart {
 		createDiskSpaceField(section);
 		// createTransportTypeField(section);
 		createNASProtocolField(section);
+		createCifsField(section);
 		createAccessControlField(section);
 		createStatusField(section);
 	}
@@ -260,10 +268,38 @@ public class VolumeSummaryView extends ViewPart {
 		layoutData.widthHint = 300;
 		return layoutData;
 	}
+	
+	private void createCifsField(Composite section) {
+		GridData data = new GridData();
+		data.heightHint = 0;
+		
+		cifsLabel = toolkit.createLabel(section, "CIFS: ", SWT.NONE);
+		cifsLabel.setLayoutData(data);
+		cifsLabel.setVisible(false);
+		
+		cifsUsersText = toolkit.createText(section, volume.getAccessControlList(), SWT.BORDER);
+		populateCifsUsersText();
+		addKeyListenerForCifsUser();
+		cifsUsersText.setLayoutData(createDefaultLayoutData());
+		cifsUsersText.setEnabled(true);
+		cifsUsersText.setLayoutData(data);
+		cifsUsersText.setVisible(false);
+		
+		cifsUpdateLinkComposite = toolkit.createComposite(section, SWT.NONE);
+		cifsUpdateLinkComposite.setVisible(false);
+		cifsUpdateLinkComposite.setLayoutData(data);
+		cifsUpdateLinkComposite.setLayout(new FillLayout());
+		
+		createChangeLinkForCifs(cifsUpdateLinkComposite);
+		
+		// error decoration used while validating the cifs users text
+		errCifsDecoration = guiHelper.createErrorDecoration(cifsUsersText);
+		errCifsDecoration.hide();
+	}
 
 	private void createAccessControlField(Composite section) {
 		toolkit.createLabel(section, "Access Control: ", SWT.NONE);
-		accessControlText = toolkit.createText(section, volume.getAccessControlList());
+		accessControlText = toolkit.createText(section, volume.getAccessControlList(), SWT.BORDER);
 
 		populateAccessControlText();
 		addKeyListenerForAccessControl();
@@ -344,6 +380,75 @@ public class VolumeSummaryView extends ViewPart {
 		parent.update();
 	}
 	
+	private void createChangeLinkForCifs(Composite section) {
+		CifsChangeLink = toolkit.createHyperlink(section, "Update", SWT.NONE);
+		CifsChangeLink.addHyperlinkListener(new HyperlinkAdapter() {
+
+			private void finishEdit() {
+				saveCifsConfiguration();
+			}
+
+			private void startEdit() {
+				cifsUsersText.setEnabled(true);
+				cifsUsersText.setFocus();
+				cifsUsersText.selectAll();
+				CifsChangeLink.setText("update");
+			}
+
+			@Override
+			public void linkActivated(HyperlinkEvent e) {
+				if (cifsUsersText.isEnabled()) {
+					// we were already in edit mode.
+					finishEdit();
+				} else {
+					// Get in to edit mode
+					startEdit();
+				}
+			}
+		});
+	}
+	
+	private void saveCifsConfiguration() {
+		final String cifsUsers = cifsUsersText.getText();
+
+		guiHelper.setStatusMessage("Setting Cifs Configuration...");
+		parent.update();
+		
+		List<String> userList = volume.getCifsUsers();
+		String configuredUsers = "";
+		if (userList != null) {			
+			configuredUsers = StringUtil.collectionToString(userList, ",");
+		}
+
+		if (cifsUsersText.equals(configuredUsers)) {
+			cifsUsersText.setEnabled(false);
+			CifsChangeLink.setText("change");
+			// There is no change in the users list
+		} else  if(isvalidCifsUser()) {
+			BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
+				@Override
+				public void run() {
+					try {
+						new VolumesClient().setCifsConfig(volume.getName(), cifsCheckbox.getSelection(), cifsUsers);
+						cifsUsersText.setEnabled(false);
+						CifsChangeLink.setText("change");
+
+						GlusterDataModelManager.getInstance().setCifsConfig(volume, cifsCheckbox.getSelection(),
+								Arrays.asList(cifsUsers.split(",")));
+					} catch (Exception e) {
+						MessageDialog.openError(Display.getDefault().getActiveShell(), "Cifs Configuration", e.getMessage());
+						populateCifsUsersText();
+					}
+				}
+			});
+		} else {
+			MessageDialog.openError(Display.getDefault().getActiveShell(), "Cifs Configuration", "Please enter cifs user name ");
+			cifsUsersText.setFocus();
+		}
+		guiHelper.clearStatusMessage();
+		parent.update();
+	}
+	
 	private void saveNFSOption() {
 		guiHelper.setStatusMessage("Setting NFS option...");
 		parent.update();
@@ -395,8 +500,36 @@ public class VolumeSummaryView extends ViewPart {
 		}
 		accessControlText.setText(accessControlList);
 	}
+	
+	private void addKeyListenerForCifsUser() {
+		cifsUsersText.addKeyListener(new KeyAdapter() {
+			public void keyReleased(KeyEvent key) {
+				switch (key.keyCode) {
+				case SWT.ESC:
+					// Reset to default
+					populateCifsUsersText();
+					break;
+				case 13:
+					// User has pressed enter. Save the new value
+					saveCifsConfiguration();
+					break;
+				}
+				validateCifsUsers();
+			}
+		});
+	}
+	
+	private void populateCifsUsersText() {
+		List<String> userList = volume.getCifsUsers();
+		if (userList == null) {
+			cifsUsersText.setText("");			
+		} else {
+			String users = StringUtil.collectionToString(userList, ",");
+			cifsUsersText.setText(users);
+		}
+	}
 
-	private void createNASProtocolField(Composite section) {
+	private void createNASProtocolField(final Composite section) {
 		toolkit.createLabel(section, "Access Protocols: ", SWT.NONE);
 
 		Composite nasProtocolsComposite = toolkit.createComposite(section);
@@ -414,10 +547,53 @@ public class VolumeSummaryView extends ViewPart {
 		});
 		
 		// CIFS checkbox
-		createCheckbox(nasProtocolsComposite, "CIFS", false, true);
-
+		cifsCheckbox = createCheckbox(nasProtocolsComposite, "CIFS", false, true);
+		cifsCheckboxListner(cifsCheckbox);
+		
 		toolkit.createLabel(section, "", SWT.NONE); // dummy
-		// createChangeLinkForNASProtocol(section, nfsCheckBox);
+	}
+	
+	private void cifsCheckboxListner(final Button cifsCheckbox) {
+		cifsCheckbox.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if (cifsCheckbox.getSelection()) {
+					GridData data = new GridData();
+					data.heightHint = 20;
+					data.widthHint = 100;
+
+					cifsLabel.setVisible(true);
+					cifsLabel.setLayoutData(data);
+					
+					GridData data1 = new GridData();
+					data1.heightHint = 20;
+					data1.widthHint = 300;
+					cifsUsersText.setVisible(true);
+					cifsUsersText.setLayoutData(data1);
+					
+					GridData data2 = new GridData();
+					data2.heightHint = 25;
+					data2.widthHint = 75;
+					cifsUpdateLinkComposite.setVisible(true);
+					cifsUpdateLinkComposite.setLayoutData(data2);
+					form.reflow(true);
+				} else {
+					GridData data = new GridData();
+					data.heightHint = 0;
+
+					cifsUsersText.setVisible(false);
+					cifsUsersText.setLayoutData(data);
+					
+					cifsLabel.setVisible(false);
+					cifsLabel.setLayoutData(data);
+					
+					cifsUpdateLinkComposite.setVisible(false);
+					cifsUpdateLinkComposite.setLayoutData(data);
+					
+					form.reflow(true);
+				}
+			}
+		});
 	}
 
 	private Button createCheckbox(Composite parent, String label, boolean checked, boolean enabled) {
@@ -546,5 +722,29 @@ public class VolumeSummaryView extends ViewPart {
 					.setDescriptionText("Access control list must be a comma separated list of IP addresses/Host names. Please enter a valid value!");
 			errDecoration.show();
 		}
+	}
+	
+	private void validateCifsUsers() {
+		if (cifsCheckbox.getSelection()) {
+			String cifsUserList = cifsUsersText.getText().trim();
+			if (cifsUserList.length() == 0) {
+				errCifsDecoration.setDescriptionText("Please enter cifs user name");
+				errCifsDecoration.show();
+			} else {
+				errCifsDecoration.hide();
+			}
+		}
+	}
+	
+	private boolean isvalidCifsUser() {
+		if (cifsCheckbox.getSelection()) {
+			String cifsUserList = cifsUsersText.getText().trim();
+			if (cifsUserList.length() == 0) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+		return true;
 	}
 }
