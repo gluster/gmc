@@ -46,10 +46,6 @@ public class PasswordManager {
 			userAuthDao.changePassword(username, encodedPassword);
 			System.out.println("Password for user [" + username + "] reset successsfully to default value of ["
 					+ CoreConstants.DEFAULT_PASSWORD + "].\n");
-			
-			Connection connection = userAuthDao.getDataSource().getConnection(); 
-			connection.commit();
-			connection.close();
 		} catch (Exception e) {
 			System.err
 					.println("\n\nPassword reset for user ["
