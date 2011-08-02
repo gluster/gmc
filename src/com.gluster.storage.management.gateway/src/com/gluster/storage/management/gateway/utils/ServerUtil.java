@@ -149,6 +149,9 @@ public class ServerUtil {
 			Class expectedClass) {
 		try {
 			String output = executeOnServer(serverName, commandWithArgs);
+			if(expectedClass == String.class) {
+				return output;
+			}
 
 			// In case the script execution exits ungracefully, the agent would return a GenericResponse.
 			// hence pass last argument as true to try GenericResponse unmarshalling in such cases.
