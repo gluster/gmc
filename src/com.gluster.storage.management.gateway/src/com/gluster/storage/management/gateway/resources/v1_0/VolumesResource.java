@@ -23,6 +23,8 @@ package com.gluster.storage.management.gateway.resources.v1_0;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_ACCESS_PROTOCOLS;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_AUTO_COMMIT;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_BRICKS;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_CIFS_ENABLE;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_CIFS_USERS;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_FIX_LAYOUT;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_FORCED_DATA_MIGRATE;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_MIGRATE_DATA;
@@ -59,6 +61,8 @@ import static com.gluster.storage.management.core.constants.RESTConstants.TASK_S
 import static com.gluster.storage.management.core.constants.RESTConstants.TASK_STOP;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -89,6 +93,7 @@ import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.model.VolumeLogMessage;
 import com.gluster.storage.management.core.response.GenericResponse;
@@ -97,6 +102,7 @@ import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 import com.gluster.storage.management.core.utils.DateUtil;
 import com.gluster.storage.management.core.utils.FileUtil;
+import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.gluster.storage.management.gateway.constants.VolumeOptionsDefaults;
 import com.gluster.storage.management.gateway.data.ClusterInfo;
@@ -112,6 +118,15 @@ import com.sun.jersey.spi.resource.Singleton;
 @Path(RESOURCE_PATH_CLUSTERS + "/{" + PATH_PARAM_CLUSTER_NAME + "}/" + RESOURCE_VOLUMES)
 public class VolumesResource extends AbstractResource {
 	private static final String VOLUME_DIRECTORY_CLEANUP_SCRIPT = "clear_volume_directory.py";
+	
+	private static final String VOLUME_CIFS_GRUN_SCRIPT = "grun.py";
+	private static final String VOLUME_CREATE_CIFS_SCRIPT = "create_volume_cifs.py";
+	private static final String VOLUME_START_CIFS_SCRIPT = "start_volume_cifs.py";
+	private static final String VOLUME_STOP_CIFS_SCRIPT = "stop_volume_cifs.py";
+	private static final String VOLUME_DELETE_CIFS_SCRIPT = "delete_volume_cifs.py";
+	private static final String VOLUME_MODIFY_CIFS_SCRIPT = "modify_volume_cifs.py";
+	private static final String ALL_SERVERS_FILE_NAME = "servers";
+	
 	private static final String VOLUME_BRICK_LOG_SCRIPT = "get_volume_brick_log.py";
 	private static final Logger logger = Logger.getLogger(VolumesResource.class);
 
@@ -129,6 +144,8 @@ public class VolumesResource extends AbstractResource {
 
 	@InjectParam
 	private TasksResource taskResource;
+	
+	private ProcessUtil processUtil = new ProcessUtil();
 	
 	@GET
 	@Produces({MediaType.APPLICATION_XML})
@@ -185,13 +202,14 @@ public class VolumesResource extends AbstractResource {
 			@FormParam(FORM_PARAM_VOLUME_TYPE) String volumeType, @FormParam(FORM_PARAM_TRANSPORT_TYPE) String transportType,
 			@FormParam(FORM_PARAM_REPLICA_COUNT) Integer replicaCount, @FormParam(FORM_PARAM_STRIPE_COUNT) Integer stripeCount,
 			@FormParam(FORM_PARAM_BRICKS) String bricks, @FormParam(FORM_PARAM_ACCESS_PROTOCOLS) String accessProtocols,
-			@FormParam(FORM_PARAM_VOLUME_OPTIONS) String options) {
+			@FormParam(FORM_PARAM_VOLUME_OPTIONS) String options, @FormParam(FORM_PARAM_CIFS_USERS) String cifsUsers) {
 		if(clusterName == null || clusterName.isEmpty()) {
 			return badRequestResponse("Cluster name must not be empty!");
 		}
 		
-		String missingParam = checkMissingParamsForCreateVolume(volumeName, volumeType, transportType, replicaCount, stripeCount, bricks, accessProtocols, options);
-		if(missingParam != null) {
+		String missingParam = checkMissingParamsForCreateVolume(volumeName, volumeType, transportType, replicaCount,
+				stripeCount, bricks, accessProtocols, options);
+		if (missingParam != null) {
 			return badRequestResponse("Parameter [" + missingParam + "] is missing in request!");
 		}
 
@@ -209,7 +227,7 @@ public class VolumesResource extends AbstractResource {
 
 		try {
 			performCreateVolume(clusterName, volumeName, volumeType, transportType, replicaCount, stripeCount, bricks, accessProtocols,
-					options);
+					options, cifsUsers);
 			return createdResponse(volumeName);
 		} catch (Exception e) {
 			return errorResponse(e.getMessage());
@@ -217,25 +235,37 @@ public class VolumesResource extends AbstractResource {
 	}
 
 	public void performCreateVolume(String clusterName, String volumeName, String volumeType, String transportType, Integer replicaCount,
-			Integer stripeCount, String bricks, String accessProtocols, String options) {
+			Integer stripeCount, String bricks, String accessProtocols, String options, String cifsUsers) {
 		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
 		if (onlineServer == null) {
 			throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 		}
 
 		try  {
-			glusterUtil.createVolume(onlineServer.getName(), volumeName, volumeType, transportType, replicaCount, stripeCount, bricks, accessProtocols, options);
+			glusterUtil.createVolume(onlineServer.getName(), volumeName, volumeType, transportType, replicaCount,
+					stripeCount, bricks, accessProtocols, options);
 		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
 			onlineServer = clusterService.getNewOnlineServer(clusterName);
 			if (onlineServer == null) {
 				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 			}
-			
-			glusterUtil.createVolume(onlineServer.getName(), volumeName, volumeType, transportType, replicaCount, stripeCount, bricks, accessProtocols, options);
+
+			glusterUtil.createVolume(onlineServer.getName(), volumeName, volumeType, transportType, replicaCount,
+					stripeCount, bricks, accessProtocols, options);
+		}
+		
+		List<String> nasProtocols = Arrays.asList(accessProtocols.split(","));
+		// only if cifs enabled
+		if (nasProtocols.contains(NAS_PROTOCOL.CIFS.toString())) {
+			try {
+				createCIFSUsers(clusterName, volumeName, Arrays.asList(cifsUsers.split(",")));
+			} catch (Exception e) {
+				throw new GlusterRuntimeException(CoreConstants.NEWLINE + e.getMessage());
+			}
 		}
 	}
-
+	
 	/**
 	 * Returns name of the missing parameter if any. If all parameters are present, 
 	 * @param volumeName
@@ -325,7 +355,8 @@ public class VolumesResource extends AbstractResource {
 			@PathParam(PATH_PARAM_VOLUME_NAME) String volumeName, @FormParam(FORM_PARAM_OPERATION) String operation,
 			@FormParam(FORM_PARAM_FIX_LAYOUT) Boolean isFixLayout,
 			@FormParam(FORM_PARAM_MIGRATE_DATA) Boolean isMigrateData,
-			@FormParam(FORM_PARAM_FORCED_DATA_MIGRATE) Boolean isForcedDataMigrate) {
+			@FormParam(FORM_PARAM_FORCED_DATA_MIGRATE) Boolean isForcedDataMigrate,
+			@FormParam(FORM_PARAM_CIFS_ENABLE) Boolean enableCifs, @FormParam(FORM_PARAM_CIFS_USERS) String cifsUsers) {
 		if (clusterName == null || clusterName.isEmpty()) {
 			return badRequestResponse("Cluster name must not be empty!");
 		}
@@ -345,6 +376,12 @@ public class VolumesResource extends AbstractResource {
 						+ "/" + taskId);
 			} else if (operation.equals(RESTConstants.TASK_REBALANCE_STOP)) {
 				rebalanceStop(clusterName, volumeName);
+			} else if (operation.equals(RESTConstants.TASK_CIFS_CONFIG)) {
+				if (enableCifs) {
+					modifyCIFSUsers(clusterName, volumeName, Arrays.asList(cifsUsers.split(",")));
+				} else {
+					stopCifsReexport(clusterName, volumeName);
+				}
 			} else {
 				performVolumeOperation(clusterName, volumeName, operation);
 			}
@@ -361,22 +398,150 @@ public class VolumesResource extends AbstractResource {
 				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 			}
 
-			performOperation(volumeName, operation, onlineServer);
+			performOperation(clusterName, volumeName, operation, onlineServer);
 		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
 			onlineServer = clusterService.getNewOnlineServer(clusterName);
-			performOperation(volumeName, operation, onlineServer);
+			performOperation(clusterName, volumeName, operation, onlineServer);
 		}
 	}
 
-	private void performOperation(String volumeName, String operation, GlusterServer onlineServer) {
+	private Status performOperation(String clusterName, String volumeName, String operation, GlusterServer onlineServer) {
+		Status result;
+		Volume volume = null;
+		try {
+			volume = getVolume(clusterName, volumeName);
+		} catch (Exception e) {
+			throw new GlusterRuntimeException("Could not fetch volume info for volume [" + volumeName + "]"
+					+ e.getMessage());
+		}
+
 		if (operation.equals(TASK_START)) {
-			glusterUtil.startVolume(volumeName, onlineServer.getName());
+			result = glusterUtil.startVolume(volumeName, onlineServer.getName());
+
+			// call the start_volume_cifs.py script only if the volume is cifs enabled
+			if (volume.getNASProtocols().contains(NAS_PROTOCOL.CIFS)) {
+				if (result.isSuccess()) {
+					startCifsReexport(onlineServer.getName(), volumeName);
+				}
+			}
+			return result;
 		} else if (operation.equals(TASK_STOP)) {
-			glusterUtil.stopVolume(volumeName, onlineServer.getName());
+			result = glusterUtil.stopVolume(volumeName, onlineServer.getName());
+
+			// call the stop_volume_cifs.py script only if the volume is cifs enabled
+			if (volume.getNASProtocols().contains(NAS_PROTOCOL.CIFS)) {
+				if (result.isSuccess()) {
+					stopCifsReexport(onlineServer.getName(), volumeName);
+				}
+			}
+			return result;
 		} else {
 			throw new GlusterValidationException("Invalid operation code [" + operation + "]");
 		}
+	}
+	
+	private void startCifsReexport(String clusterName, String volumeName) {
+		File file;
+		try {
+			file = createOnlineServerList(clusterName);
+		} catch (IOException e) {
+			throw new GlusterRuntimeException("Error in CIFS configuration after stop volume [" + volumeName + "]: " + e.getMessage());
+		}
+
+		ProcessResult result = processUtil.executeCommand(VOLUME_CIFS_GRUN_SCRIPT + " " + file.getAbsolutePath() + " " +
+				VOLUME_START_CIFS_SCRIPT + " " + volumeName);
+		file.delete();
+		if (!result.isSuccess()) {
+			throw new GlusterRuntimeException("Error in cifs configuration after start volume [" + volumeName + "]: "
+					+ result);
+		}
+	}
+
+	private void stopCifsReexport(String clusterName, String volumeName) {
+		File file;
+		try {
+			file = createOnlineServerList(clusterName);
+		} catch (IOException e) {
+			throw new GlusterRuntimeException("Error in CIFS configuration after stop volume [" + volumeName + "]: " + e.getMessage());
+		}
+
+		ProcessResult result = processUtil.executeCommand(VOLUME_CIFS_GRUN_SCRIPT + " " + file.getAbsolutePath() + " " +
+				VOLUME_STOP_CIFS_SCRIPT + " " + volumeName);
+		file.delete();
+		if (!result.isSuccess()) {
+			throw new GlusterRuntimeException("Error in cifs configuration after stop volume [" + volumeName + "]: "
+					+ result);
+		}
+	}
+	
+	private void deleteCifsUsers(String clusterName, String volumeName) {
+		File file;
+		try {
+			file = createOnlineServerList(clusterName);
+		} catch (IOException e) {
+			throw new GlusterRuntimeException("Error in deleting CIFS configuration [" + volumeName + "]: " + e.getMessage());
+		}
+
+		ProcessResult result = processUtil.executeCommand(VOLUME_CIFS_GRUN_SCRIPT + " " + file.getAbsolutePath() + " " +
+				VOLUME_DELETE_CIFS_SCRIPT + " " + volumeName);
+		file.delete();
+		if (!result.isSuccess()) {
+			throw new GlusterRuntimeException("Error in cifs configuration after delete volume [" + volumeName + "]: "
+					+ result);
+		}
+	}
+
+	private void createCIFSUsers(String clusterName, String volumeName, List<String> cifsUsers) {
+		File file;
+		try {
+			file = createOnlineServerList(clusterName);
+		} catch (IOException e) {
+			throw new GlusterRuntimeException("Error in CIFS configuration [" + volumeName + "]: " + e.getMessage());
+		}
+		String users = "";
+		for (String user : cifsUsers) {
+			users += " " + user;
+		}
+		ProcessResult result = processUtil.executeCommand(VOLUME_CIFS_GRUN_SCRIPT + " " +  file.getAbsolutePath() + " " +
+				VOLUME_CREATE_CIFS_SCRIPT + " " + volumeName + users);
+		file.delete();
+		if (!result.isSuccess()) {
+			throw new GlusterRuntimeException("Error in CIFS configuration [" + volumeName + "]: " + result);
+		}
+	}
+	
+	private void modifyCIFSUsers(String clusterName, String volumeName, List<String> cifsUsers) {
+		File file;
+		try {
+			file = createOnlineServerList(clusterName);
+		} catch (IOException e) {
+			throw new GlusterRuntimeException("Error in CIFS configuration [" + volumeName + "]: " + e.getMessage());
+		}
+		String users = "";
+		for (String user : cifsUsers) {
+			users += " " + user;
+		}
+		ProcessResult result = processUtil.executeCommand(VOLUME_CIFS_GRUN_SCRIPT + " " + file.getAbsolutePath() + " " +
+				VOLUME_MODIFY_CIFS_SCRIPT + " " + volumeName + users);
+		file.delete();
+		if (!result.isSuccess()) {
+			throw new GlusterRuntimeException("Error in CIFS configuration [" + volumeName + "]: " + result);
+		}
+	}
+	
+	public File createOnlineServerList(String clusterName) throws IOException {
+		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
+		String clusterServersListFile = FileUtil.getTempDirName() + CoreConstants.FILE_SEPARATOR + ALL_SERVERS_FILE_NAME;
+		List<GlusterServer> glusterServers = glusterUtil.getGlusterServers(onlineServer);
+		File serversFile = new File(clusterServersListFile);
+		FileOutputStream fos = new FileOutputStream(serversFile);
+		for (GlusterServer server : glusterServers) {
+			fos.write((server.getName() +  CoreConstants.NEWLINE).getBytes());
+		}
+		fos.close();
+		return serversFile;
+		
 	}
 
 	@DELETE
@@ -421,6 +586,15 @@ public class VolumesResource extends AbstractResource {
 			return errorResponse("Volume [" + volumeName
 					+ "] deleted from cluster, however following errors happened: " + CoreConstants.NEWLINE
 					+ e.getMessage());
+		}
+		
+		// call the delete_volume_cifs.py script only if the volume is cifs enabled
+		if (volume.getNASProtocols().contains(NAS_PROTOCOL.CIFS)) {
+			try {
+				deleteCifsUsers(clusterName, volumeName);
+			} catch (Exception e) {
+				return errorResponse(CoreConstants.NEWLINE + e.getMessage());
+			}
 		}
 		
 		return noContentResponse();
@@ -500,17 +674,18 @@ public class VolumesResource extends AbstractResource {
 			String serverName = brickInfo[0];
 			String brickDirectory = brickInfo[1];
 
+			// String mountPoint = brickDirectory.substring(0,
+			// brickDirectory.lastIndexOf("/"));
 			Object response = serverUtil.executeScriptOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
-					+ brickDirectory + " " + volumeName + " " + (deleteFlag ? "-d" : ""), GenericResponse.class);
+					+ brickDirectory + " " + (deleteFlag ? "-d" : ""), GenericResponse.class);
 			if (response instanceof GenericResponse) {
 				result = ((GenericResponse) response).getStatus();
 				if (!result.isSuccess()) {
-					errors += "[" + brickDirectory + "][" + volumeName + "] => " + result
-							+ CoreConstants.NEWLINE;
+					errors += "[" + brickDirectory + "] => " + result + CoreConstants.NEWLINE;
 				}
 			} else {
 				Status errStatus = (Status) response;
-				errors += "[" + brickDirectory + "][" + volumeName + "] => " + errStatus + CoreConstants.NEWLINE;
+				errors += "[" + brickDirectory + "] => " + errStatus + CoreConstants.NEWLINE;
 			}
 		}
 		if(!errors.trim().isEmpty()) {
@@ -522,10 +697,11 @@ public class VolumesResource extends AbstractResource {
 		Status result;
 		for (Brick brick : bricks) {
 			String brickDirectory = brick.getBrickDirectory();
+			// String mountPoint = brickDirectory.substring(0, brickDirectory.lastIndexOf("/"));
 
 			result = (Status) serverUtil.executeScriptOnServer(true, brick.getServerName(),
-					VOLUME_DIRECTORY_CLEANUP_SCRIPT + " " + brickDirectory + " " + volumeName
-							+ (deleteFlag ? " -d" : ""), Status.class);
+					VOLUME_DIRECTORY_CLEANUP_SCRIPT + " " + brickDirectory + " " + (deleteFlag ? "-d" : ""),
+					Status.class);
 			if (!result.isSuccess()) {
 				throw new GlusterRuntimeException("Error in post-delete operation of volume [" + volumeName + "]: "
 						+ result);

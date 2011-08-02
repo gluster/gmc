@@ -22,6 +22,8 @@ package com.gluster.storage.management.client;
 
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_ACCESS_PROTOCOLS;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_BRICKS;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_CIFS_ENABLE;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_CIFS_USERS;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_REPLICA_COUNT;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_STRIPE_COUNT;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_TRANSPORT_TYPE;
@@ -40,7 +42,6 @@ import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.Brick;
-import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.VolumeLogMessage;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
@@ -81,6 +82,7 @@ public class VolumesClient extends AbstractClient {
 		form.add(FORM_PARAM_BRICKS, StringUtil.collectionToString(volume.getBricks(), ","));
 		form.add(FORM_PARAM_ACCESS_PROTOCOLS, StringUtil.collectionToString(volume.getNASProtocols(), ","));
 		form.add(FORM_PARAM_VOLUME_OPTIONS, StringUtil.collectionToString(volume.getOptions().getOptions(), ","));
+		form.add(FORM_PARAM_CIFS_USERS, StringUtil.collectionToString(volume.getCifsUsers(), ","));
 		postRequest(form);
 	}
 
@@ -97,6 +99,14 @@ public class VolumesClient extends AbstractClient {
 
 	public void stopVolume(String volumeName) {
 		performOperation(volumeName, RESTConstants.TASK_STOP);
+	}
+	
+	public void setCifsConfig(String volumeName, Boolean isCifsEnabled, String cifsUsers) {
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_CIFS_CONFIG);
+		form.add(RESTConstants.FORM_PARAM_CIFS_ENABLE, isCifsEnabled);
+		form.add(RESTConstants.FORM_PARAM_CIFS_USERS, cifsUsers);
+		putRequest(volumeName, form);
 	}
 	
 	public boolean volumeExists(String volumeName) {

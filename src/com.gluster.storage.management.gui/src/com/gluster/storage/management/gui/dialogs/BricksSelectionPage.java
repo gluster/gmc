@@ -323,9 +323,8 @@ public class BricksSelectionPage extends Composite {
 		if (bricksArr != null) {
 			Set<Brick> bricks = new HashSet<Brick>();
 			for (Object device : bricksArr) {
-				bricks.add(new Brick(((Device) device).getServerName(), BRICK_STATUS.ONLINE, ((Device) device).getName(),
-						((Device) device).getMountPoint() + "/" + volumeName)); // Assumption mount point is not having
-																			// trailing "/"
+				bricks.add(new Brick(((Device) device).getServerName(), BRICK_STATUS.ONLINE, ((Device) device)
+						.getMountPoint() + "/" + volumeName)); // Assumption mount point is not having trailing "/" 
 			}
 			return bricks;
 		}

@@ -52,7 +52,7 @@ public class Volume extends Entity {
 	};
 
 	public enum NAS_PROTOCOL {
-		GLUSTERFS, NFS
+		GLUSTERFS, NFS, CIFS
 	};
 
 	
@@ -66,7 +66,7 @@ public class Volume extends Entity {
 			"Distributed Stripe" };
 	private static final String[] TRANSPORT_TYPE_STR = new String[] { "Ethernet", "Infiniband" };
 	private static final String[] STATUS_STR = new String[] { "Online", "Offline" };
-	private static final String[] NAS_PROTOCOL_STR = new String[] { "Gluster", "NFS" };
+	private static final String[] NAS_PROTOCOL_STR = new String[] { "Gluster", "NFS", "CIFS" };
 
 	private VOLUME_TYPE volumeType;
 	private TRANSPORT_TYPE transportType;
@@ -75,6 +75,7 @@ public class Volume extends Entity {
 	private int stripeCount;
 	private VolumeOptions options = new VolumeOptions();
 	private List<Brick> bricks = new ArrayList<Brick>();
+	private List<String> cifsUsers;
 
 	public Volume() {
 	}
@@ -253,6 +254,31 @@ public class Volume extends Entity {
 		nasProtocols.remove(NAS_PROTOCOL.NFS);
 		setOption(OPTION_NFS_DISABLE, GlusterConstants.ON);
 	}
+	
+	public void enableCifs() {
+		nasProtocols.add(NAS_PROTOCOL.CIFS);
+	}
+	
+	public void disableCifs() {
+		nasProtocols.remove(NAS_PROTOCOL.CIFS);
+	}
+	
+	public boolean isCifsEnable() {
+		if (nasProtocols.contains(NAS_PROTOCOL.CIFS)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public void setCifsUsers(List<String> cifsUsers) {
+		this.cifsUsers = cifsUsers;
+	}
+
+	public List<String> getCifsUsers() {
+		return cifsUsers;
+	}
+
 
 	public Volume(String name, Entity parent, VOLUME_TYPE volumeType, TRANSPORT_TYPE transportType, VOLUME_STATUS status) {
 		super(name, parent);

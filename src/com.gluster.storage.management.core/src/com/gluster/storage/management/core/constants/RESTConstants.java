@@ -54,6 +54,7 @@ public class RESTConstants {
 	public static final String TASK_REBALANCE_START = "rebalanceStart";
 	public static final String TASK_REBALANCE_STATUS = "rebalanceStatus";
 	public static final String TASK_REBALANCE_STOP = "rebalanceStop";
+	public static final String TASK_CIFS_CONFIG = "cifsConfig";
 
 	public static final String FORM_PARAM_VOLUME_NAME = "name";
 	public static final String FORM_PARAM_VOLUME_TYPE = "volumeType";
@@ -64,6 +65,8 @@ public class RESTConstants {
 	public static final String FORM_PARAM_ACCESS_PROTOCOLS = "accessProtocols";
 	public static final String FORM_PARAM_VOLUME_OPTIONS = "options";
 	public static final String FORM_PARAM_FSTYPE = "fsType";
+	public static final String FORM_PARAM_CIFS_ENABLE = "enableCifs";
+	public static final String FORM_PARAM_CIFS_USERS = "cifsUsers";
 
 	public static final String FORM_PARAM_CLUSTER_NAME = "clusterName";
 	public static final String FORM_PARAM_SERVER_NAME = "serverName";

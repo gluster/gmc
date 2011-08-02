@@ -180,7 +180,7 @@ public class Device extends Entity {
 	}
 	
 	public String getQualifiedBrickName(String volumeName) {
-		return getServerName() + ":" + getMountPoint() + File.separator + volumeName;
+		return getServerName() + ":" + getMountPoint() + "/" + volumeName;
 	}
 	
 	@Override

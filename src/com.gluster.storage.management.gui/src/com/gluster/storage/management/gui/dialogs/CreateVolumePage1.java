@@ -20,6 +20,7 @@ package com.gluster.storage.management.gui.dialogs;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,6 +36,8 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -48,10 +51,10 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import com.gluster.storage.management.core.model.Brick;
+import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
@@ -63,6 +66,7 @@ public class CreateVolumePage1 extends WizardPage {
 	private Text txtName;
 	private ComboViewer typeComboViewer;
 	private Text txtAccessControl;
+	private Text txtCifsUsers;
 	private Volume volume = new Volume();
 	private Button btnNfs;
 	private Button btnCIFS;
@@ -120,6 +124,9 @@ public class CreateVolumePage1 extends WizardPage {
 		createCifsUserLabel(container);
 		createCifsUserText(container);
 		
+		createEmptyLabel(container);
+		createCifsUserInfoLabel(container);
+		
 		createAccessControlLabel(container);
 		createAccessControlText(container);
 
@@ -139,6 +146,12 @@ public class CreateVolumePage1 extends WizardPage {
 		Label lblStartVolume = new Label(container, SWT.NONE);
 		lblStartVolume.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblStartVolume.setText("Start Volume: ");
+	}
+	
+	private void createCifsUserInfoLabel(Composite container) {
+		Label lblCifsUserInfo = new Label(container, SWT.TOP);
+		lblCifsUserInfo.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
+		lblCifsUserInfo.setText("(Comma separated list user names)");
 	}
 
 	private void createAccessControlInfoLabel(Composite container) {
@@ -178,11 +191,18 @@ public class CreateVolumePage1 extends WizardPage {
 	}
 	
 	private void createCifsUserText(Composite container) {
-		txtAccessControl = new Text(container, SWT.BORDER);
-		txtAccessControl.setText("testuser1,testuser2,testuser3");
-		GridData accessControlData = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
-		accessControlData.widthHint = 300;
-		txtAccessControl.setLayoutData(accessControlData);		
+		txtCifsUsers = new Text(container, SWT.BORDER);
+//		txtCifsUsers.setText("testuser1,testuser2,testuser3");
+		GridData cifsControlData = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
+		cifsControlData.widthHint = 300;
+		txtCifsUsers.setLayoutData(cifsControlData);	
+		txtCifsUsers.addModifyListener(new ModifyListener() {
+			
+			@Override
+			public void modifyText(ModifyEvent e) {
+				validateForm();				
+			}
+		});
 	}
 
 	private void createNasProtocolCheckboxes(Composite container) {
@@ -202,6 +222,17 @@ public class CreateVolumePage1 extends WizardPage {
 		btnCIFS.setEnabled(true);
 		btnCIFS.setSelection(true);
 		btnCIFS.setText("CIFS");
+		btnCIFS.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				validateForm();
+			}
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				validateForm();				
+			}
+		});
 	}
 
 	private void createNasProtocolLabel(Composite container) {
@@ -337,9 +368,16 @@ public class CreateVolumePage1 extends WizardPage {
 			volume.disableNFS();
 		}
 		
+		if (btnCIFS.getSelection()) {
+			volume.enableCifs();
+			volume.setCifsUsers(Arrays.asList(txtCifsUsers.getText().split(",")));
+		} else {
+			volume.disableCifs();
+		}
+		
 		for (Device device : selectedDevices) {
-			Brick brick = new Brick(device.getServerName(), BRICK_STATUS.ONLINE, device.getName(),
-					device.getMountPoint() + File.separator + volume.getName());
+			Brick brick = new Brick(device.getServerName(), BRICK_STATUS.ONLINE, device.getMountPoint() + "/"
+					+ volume.getName());
 			volume.addBrick(brick);
 		}
 		
@@ -364,6 +402,7 @@ public class CreateVolumePage1 extends WizardPage {
 	private void validateForm() {
 		clearErrors();
 		validateVolumeName();
+		validateCifsUsers();
 		validateAccessControl();
 		validateDisks();
 	}
@@ -393,6 +432,16 @@ public class CreateVolumePage1 extends WizardPage {
 		
 		if (!ValidationUtil.isValidAccessControl(accessControl)) {
 			setError("Access control list must be a comma separated list of IP addresses/Host names. Please enter a valid value!");
+		}
+	}
+	
+	private void validateCifsUsers() {
+		if (btnCIFS.getSelection()) {
+			String cifsUserList = txtCifsUsers.getText().trim();
+			if (cifsUserList.length() == 0) {
+				setError("Please enter cifs user name");
+				return;
+			}
 		}
 	}
 
