@@ -44,7 +44,6 @@ Requires:       crontabs
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/opt/glustermg/%{release_version}
 mkdir -p $RPM_BUILD_ROOT/opt/glustermg/keys
-mkdir -p $RPM_BUILD_ROOT/opt/glustermg/data
 mkdir -p $RPM_BUILD_ROOT/var/log/glustermg
 wget -P $RPM_BUILD_ROOT %{glustermg_war_url}
 tar -C $RPM_BUILD_ROOT/opt/glustermg/%{release_version} -zxf $RPM_BUILD_ROOT/glustermg.war.tar.gz
@@ -55,7 +54,7 @@ mkdir -p $RPM_BUILD_ROOT/var/lib/rrd
 cp -pa gmg-scripts/* $RPM_BUILD_ROOT/opt/glustermg/%{release_version}/backend
 
 %post
-chown -R tomcat:tomcat /opt/glustermg/data /var/log/glustermg
+chown -R tomcat:tomcat /opt/glustermg /var/log/glustermg
 ln -fs /opt/glustermg/%{release_version}/glustermg /usr/share/tomcat5/webapps/glustermg
 if [ ! -f /opt/glustermg/keys/id_rsa ]; then
     ssh-keygen -r rsa -f /opt/glustermg/keys/id_rsa -N gluster
@@ -69,7 +68,7 @@ if ! grep -q '# Added by Gluster: JAVA_OPTS="${JAVA_OPTS} -Xms1024m -Xmx1024m -X
     echo 'JAVA_OPTS="${JAVA_OPTS} -Xms1024m -Xmx1024m -XX:PermSize=256m -XX:MaxPermSize=256m"' >> /etc/sysconfig/tomcat5
 fi
 if ! grep -q /usr/share/tomcat5/webapps/glustermg/ssl/gmg-ssl.keystore /etc/tomcat5/server.xml; then
-    sed '/<\/Service>/i \
+    sed -i '/<\/Service>/i \
     <Connector SSLEnabled="true" \
                clientAuth="false" \
                executor="tomcatThreadPool" \
@@ -83,7 +82,7 @@ if ! grep -q /usr/share/tomcat5/webapps/glustermg/ssl/gmg-ssl.keystore /etc/tomc
                sslProtocol="TLS" />' /etc/tomcat5/server.xml
 fi
 if ! grep -q "org.apache.catalina.authenticator.NonLoginAuthenticator" /etc/tomcat5/context.xml; then
-    sed '/<\/Context>/i \
+    sed -i '/<\/Context>/i \
     <Valve className="org.apache.catalina.authenticator.NonLoginAuthenticator" \
            disableProxyCaching="false" />' /etc/tomcat5/context.xml
 fi
@@ -123,7 +122,6 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,0755)
 /opt/glustermg/%{release_version}/glustermg
 /opt/glustermg/keys
-/opt/glustermg/data
 /var/log/glustermg
 
 %changelog
