@@ -23,7 +23,6 @@ package com.gluster.storage.management.gateway.security;
 import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
 
 /**
- * @author root
  * 
  */
 public class UserAuthDao extends JdbcDaoImpl implements GlusterUserDetailsService {

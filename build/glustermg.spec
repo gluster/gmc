@@ -43,6 +43,8 @@ Requires:       crontabs
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/opt/glustermg/%{release_version}
 mkdir -p $RPM_BUILD_ROOT/opt/glustermg/keys
+mkdir -p $RPM_BUILD_ROOT/opt/glustermg/data
+mkdir -p $RPM_BUILD_ROOT/var/log/glustermg
 wget -P $RPM_BUILD_ROOT %{glustermg_war_url}
 tar -C $RPM_BUILD_ROOT/opt/glustermg/%{release_version} -zxf $RPM_BUILD_ROOT/glustermg.war.tar.gz
 rm -f $RPM_BUILD_ROOT/glustermg.war.tar.gz
@@ -52,6 +54,7 @@ mkdir -p $RPM_BUILD_ROOT/var/lib/rrd
 cp -pa gmg-scripts/* $RPM_BUILD_ROOT/opt/glustermg/%{release_version}/backend
 
 %post
+chown -R tomcat:tomcat /opt/glustermg/data /var/log/glustermg
 ln -fs /opt/glustermg/%{release_version}/glustermg /usr/share/tomcat5/webapps/glustermg
 if [ ! -f /opt/glustermg/keys/id_rsa ]; then
     ssh-keygen -r rsa -f /opt/glustermg/keys/id_rsa -N gluster
@@ -113,6 +116,9 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,0755)
 /opt/glustermg/%{release_version}/glustermg
+/opt/glustermg/keys
+/opt/glustermg/data
+/var/log/glustermg
 
 %changelog
 * Mon Jul 25 2011 Bala.FA <bala@gluster.com> - 1.0.0

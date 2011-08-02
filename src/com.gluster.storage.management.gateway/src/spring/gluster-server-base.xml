@@ -23,7 +23,7 @@
 		<task:scheduled ref="brickMigrationStatusTask" method="checkMigrationStatus" fixed-delay="60000" />
 	</task:scheduled-tasks-->
 
-	<!-- Cluster environment. Valid values: vmware, aws, baremetal -->
+	<!-- Discovery mechanism. Valid values: multicast, none -->
 	<bean id="discoveryMechanism" class="java.lang.String">
 		<constructor-arg value="multicast" />
 	</bean>
@@ -52,7 +52,7 @@
 		<property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver" />
 		<property name="url" value="jdbc:derby:/opt/glustermg/data;create=true" />
 		<property name="username" value="gluster" />
-		<property name="password" value="gluster" />
+		<property name="password" value="syst3m" />
 	</bean>
 
 	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
