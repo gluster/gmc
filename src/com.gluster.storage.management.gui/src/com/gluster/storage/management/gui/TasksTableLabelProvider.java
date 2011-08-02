@@ -44,7 +44,7 @@ public class TasksTableLabelProvider extends TableLabelProviderAdapter {
 			
 			switch (statusCode) {
 			case Status.STATUS_CODE_SUCCESS:
-				return guiHelper.getImage(IImageKeys.STATUS_ONLINE_16x16);
+				return guiHelper.getImage(IImageKeys.COMPLETED_TASK_16x16);
 			case Status.STATUS_CODE_PAUSE:
 				return guiHelper.getImage(IImageKeys.PAUSE_TASK_16x16);
 			case Status.STATUS_CODE_RUNNING:

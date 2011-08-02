@@ -93,7 +93,7 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 
 		// Display the success or failure info
 		if (deletedVolumes.size() == 0) { // No volume(s) deleted successfully
-			showErrorDialog(actionDesc, "Following colume(s) [" + StringUtil.collectionToString(failedVolumes, ", ")
+			showErrorDialog(actionDesc, "Following volume(s) [" + StringUtil.collectionToString(failedVolumes, ", ")
 					+ "] could not be delete! " + "\nError: [" + errorMessage + "]");
 		} else {
 			String info = "Following volumes [" + StringUtil.collectionToString(deletedVolumes, ", ")

@@ -82,7 +82,9 @@ public class VolumesClient extends AbstractClient {
 		form.add(FORM_PARAM_BRICKS, StringUtil.collectionToString(volume.getBricks(), ","));
 		form.add(FORM_PARAM_ACCESS_PROTOCOLS, StringUtil.collectionToString(volume.getNASProtocols(), ","));
 		form.add(FORM_PARAM_VOLUME_OPTIONS, StringUtil.collectionToString(volume.getOptions().getOptions(), ","));
-		form.add(FORM_PARAM_CIFS_USERS, StringUtil.collectionToString(volume.getCifsUsers(), ","));
+		if (volume.isCifsEnable()) {
+			form.add(FORM_PARAM_CIFS_USERS, StringUtil.collectionToString(volume.getCifsUsers(), ","));
+		}
 		postRequest(form);
 	}
 
