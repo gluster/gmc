@@ -500,18 +500,17 @@ public class VolumesResource extends AbstractResource {
 			String serverName = brickInfo[0];
 			String brickDirectory = brickInfo[1];
 
-			String mountPoint = brickDirectory.substring(0, brickDirectory.lastIndexOf("/"));
 			Object response = serverUtil.executeScriptOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
-					+ mountPoint + " " + volumeName + " " + (deleteFlag ? "-d" : ""), GenericResponse.class);
+					+ brickDirectory + " " + volumeName + " " + (deleteFlag ? "-d" : ""), GenericResponse.class);
 			if (response instanceof GenericResponse) {
 				result = ((GenericResponse) response).getStatus();
 				if (!result.isSuccess()) {
-					errors += "[" + mountPoint + "][" + volumeName + "] => " + result
+					errors += "[" + brickDirectory + "][" + volumeName + "] => " + result
 							+ CoreConstants.NEWLINE;
 				}
 			} else {
 				Status errStatus = (Status) response;
-				errors += "[" + mountPoint + "][" + volumeName + "] => " + errStatus + CoreConstants.NEWLINE;
+				errors += "[" + brickDirectory + "][" + volumeName + "] => " + errStatus + CoreConstants.NEWLINE;
 			}
 		}
 		if(!errors.trim().isEmpty()) {
@@ -523,10 +522,10 @@ public class VolumesResource extends AbstractResource {
 		Status result;
 		for (Brick brick : bricks) {
 			String brickDirectory = brick.getBrickDirectory();
-			String mountPoint = brickDirectory.substring(0, brickDirectory.lastIndexOf("/"));
 
-			result = (Status) serverUtil.executeScriptOnServer(true, brick.getServerName(), VOLUME_DIRECTORY_CLEANUP_SCRIPT
-					+ " " + mountPoint + " " + volumeName + (deleteFlag ? " -d" : ""), Status.class);
+			result = (Status) serverUtil.executeScriptOnServer(true, brick.getServerName(),
+					VOLUME_DIRECTORY_CLEANUP_SCRIPT + " " + brickDirectory + " " + volumeName
+							+ (deleteFlag ? " -d" : ""), Status.class);
 			if (!result.isSuccess()) {
 				throw new GlusterRuntimeException("Error in post-delete operation of volume [" + volumeName + "]: "
 						+ result);

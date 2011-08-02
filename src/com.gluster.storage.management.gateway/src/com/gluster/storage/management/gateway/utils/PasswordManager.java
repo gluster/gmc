@@ -18,6 +18,8 @@
  *******************************************************************************/
 package com.gluster.storage.management.gateway.utils;
 
+import java.sql.Connection;
+
 import org.apache.derby.jdbc.EmbeddedDriver;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.security.authentication.dao.ReflectionSaltSource;
@@ -44,6 +46,10 @@ public class PasswordManager {
 			userAuthDao.changePassword(username, encodedPassword);
 			System.out.println("Password for user [" + username + "] reset successsfully to default value of ["
 					+ CoreConstants.DEFAULT_PASSWORD + "].\n");
+			
+			Connection connection = userAuthDao.getDataSource().getConnection(); 
+			connection.commit();
+			connection.close();
 		} catch (Exception e) {
 			System.err
 					.println("\n\nPassword reset for user ["
