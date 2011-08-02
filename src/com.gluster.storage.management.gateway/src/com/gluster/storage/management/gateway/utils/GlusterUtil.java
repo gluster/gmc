@@ -416,7 +416,7 @@ public class GlusterUtil {
 //		if (Pattern.matches(stdBrickDirPattern, brickDir) ) {
 //			deviceName = brickDir.split("/")[2].trim();
 //		}
-		volume.addBrick(new Brick(serverName, status, deviceName, brickDir));
+		volume.addBrick(new Brick(serverName, status, brickDir));
 	}
 	
 	// Do not throw exception, Gracefully handle as Offline brick. 

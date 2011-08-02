@@ -593,7 +593,7 @@ public class GlusterDataModelManager {
 	public Device getDeviceForBrickDir(Brick brick) {
 		Device brickDevice = null;
 		for (Device device :   getReadyDevicesOfServer(brick.getServerName(), new ArrayList<Device>())) {
-			if (brick.getBrickDirectory().matches("^" + device.getMountPoint() + ".*")) {
+			if (brick.getBrickDirectory().startsWith( device.getMountPoint() )) {
 				if (brickDevice == null || device.getMountPoint().length() > brickDevice.getMountPoint().length()) {
 					brickDevice = device;
 				}
@@ -631,7 +631,11 @@ public class GlusterDataModelManager {
 	public List<Device> getReadyDevicesOfServer(String serverName, List<Device> excludeDevices) {
 		List<Device> devices = new ArrayList<Device>();
 		GlusterServer server = model.getCluster().getServer(serverName);
+<<<<<<< HEAD
 		if (!server.isOnline()) {
+=======
+		if (server == null || !server.isOnline()) {
+>>>>>>> volumes
 			return devices;
 		}
 		for (Disk disk : server.getDisks()) {

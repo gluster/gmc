@@ -338,8 +338,8 @@ public class CreateVolumePage1 extends WizardPage {
 		}
 		
 		for (Device device : selectedDevices) {
-			Brick brick = new Brick(device.getServerName(), BRICK_STATUS.ONLINE, device.getName(),
-					device.getMountPoint() + "/" + volume.getName()); 
+			Brick brick = new Brick(device.getServerName(), BRICK_STATUS.ONLINE, device.getMountPoint() + "/"
+					+ volume.getName());
 			volume.addBrick(brick);
 		}
 		

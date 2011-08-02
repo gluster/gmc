@@ -76,7 +76,6 @@ public class BrickTableLabelProvider extends TableLabelProviderAdapter {
 
 		Brick brick = (Brick) element;
 		Device device = GlusterDataModelManager.getInstance().getDeviceForBrickDir(brick);
-System.out.println(device.getServerName() + device.getName());
 		return (columnIndex == BRICK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? brick.getServerName()
 				: columnIndex == BRICK_TABLE_COLUMN_INDICES.BRICK.ordinal() ? brick.getBrickDirectory()
 				: columnIndex == BRICK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? getDeviceFreeSpace(device)
