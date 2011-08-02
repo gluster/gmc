@@ -220,7 +220,7 @@ public class CreateVolumePage1 extends WizardPage {
 		
 		btnCIFS = new Button(container, SWT.CHECK);
 		btnCIFS.setEnabled(true);
-		btnCIFS.setSelection(true);
+		btnCIFS.setSelection(false);
 		btnCIFS.setText("CIFS");
 		btnCIFS.addSelectionListener(new SelectionListener() {
 			
