@@ -162,7 +162,7 @@ public class Cluster extends Entity {
 	
 	public GlusterServer getServer(String serverName) {
 		for(GlusterServer server : servers) {
-			if (server.getName().equalsIgnoreCase(serverName)) {
+			if (server.getName().equalsIgnoreCase(serverName) || server.getIpAddressesAsString().contains(serverName)) {
 				return server;
 			}
 		}
