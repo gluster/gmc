@@ -547,7 +547,7 @@ public class VolumeSummaryView extends ViewPart {
 		});
 		
 		// CIFS checkbox
-		cifsCheckbox = createCheckbox(nasProtocolsComposite, "CIFS", false, true);
+		cifsCheckbox = createCheckbox(nasProtocolsComposite, "CIFS", volume.isCifsEnable(), true);
 		cifsCheckboxListner(cifsCheckbox);
 		
 		toolkit.createLabel(section, "", SWT.NONE); // dummy
