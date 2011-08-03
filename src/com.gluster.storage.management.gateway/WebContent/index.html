@@ -1,8 +1,112 @@
 <html>
 <head>
-<title>Gluster Management Console</title>
+	<title>Gluster Management Console</title>
+
+	<script type="text/javascript">
+
+	// Try to identify operating system (os), windowing system (ws) and CPU architecture (arch)
+	// If found, automatically redirect to appropriate JNLP url.
+	// If not, provide hyperlinks for all available options
+	function startGMC()
+	{
+		var OSName="Unknown OS";
+		if (navigator.appVersion.indexOf("Win")!=-1) OSName="Windows";
+		if (navigator.appVersion.indexOf("Mac")!=-1) OSName="MacOS";
+		if (navigator.appVersion.indexOf("X11")!=-1) OSName="UNIX";
+		if (navigator.appVersion.indexOf("Linux")!=-1) OSName="Linux";
+	
+		var os = "unknown";
+		var ws = "unknown";
+		var arch = "unknown";
+
+		if ( navigator.platform != null ) {
+			platform = navigator.platform.toLowerCase();
+        	if ( platform.indexOf( "win32" ) != -1 || platform.indexOf( "win64" ) != -1 ) {
+            	os = "win32";
+				ws = "win32";
+				arch = "x86";
+				if ( platform.indexOf( "win64" ) != -1 ) {
+					arch = "x86_64";
+				}
+        	} else if ( platform.indexOf( "linux" ) != -1 ) {
+				os = "linux";
+				ws = "gtk";
+				arch = "x86";
+				if ( platform.indexOf ("x86_64") != -1 || platform.indexOf ( "i686" ) != -1 ) {
+					arch = "x86_64";
+				}
+			} else if ( platform.indexOf( "mac" ) != -1 ) {
+            	os = "macosx";
+				ws = "cocoa";
+				// There is no known way of finding CPU architecture in Mac as of now!
+        	}
+    	}
+	
+		// In windows, cpuClass can indicate the CPU architecture, though not always!
+		if ( navigator.cpuClass != null ) {
+			var cpuClass = navigator.cpuClass.toLowerCase();
+			if ( cpuClass.indexOf ( "x64" ) != -1 || cpuClass.indexOf ( "x86_64" ) != -1 ) {
+				arch = "x86_64";
+			}
+		}
+	
+		// 32 bit IE running in compatibility mode in 64 bit windows may return arch as x86.
+		// following code verifies this by looking at text WOW64/Win64 in userAgent
+		if ( navigator.userAgent != null ) {
+			var userAgent = navigator.userAgent.toLowerCase();
+			if( userAgent.indexOf ( "wow64" ) != -1 || userAgent.indexOf ( "win64" ) != -1 || userAgent.indexOf ( "x64" ) != -1 ) {
+				arch = "x86_64";
+			}
+		}
+
+		// hide the "loading" message
+		var element = document.getElementById('loading');
+		element.style.display = "none";
+
+		// show the links for various os-arch combinations
+		element = document.getElementById('always_on');
+		element.style.display = "block";
+
+		if ( os == null ) {
+			var element = document.getElementById('unknown_os');
+			element.style.display = "block";
+		}
+
+		if ( os == "macosx" && arch == null ) {
+			var element = document.getElementById('unknown_arch');
+			element.style.display = "block";
+		}
+
+		if ( os != null && ws != null && arch != null ) {
+			// os-ws-arch detected. redirect to appropriate jnlp
+			var element = document.getElementById('all_ok');
+			element.style.display = "block";
+			url = os + "." + ws + "." + arch + "/gluster-management-console.jnlp";
+			document.location.href = url;
+		}
+	}
+	</script>
 </head>
-<body>
-TODO: Identify the client's platform-browser and invoke appropriate JNLP URL.
+
+<body onload="startGMC()">
+	<h3>Gluster Management Console</h3>
+	<DIV ID="loading" style="display: block">
+		Identifying your Operating System and CPU architecture...
+	</DIV>
+	<DIV ID="all_ok" style="display: none">
+		Gluster Management Console will download and start automatically. If it doesn't, click on an appropriate link below to manually start the same: <br><br>
+	</DIV>
+	<DIV ID="unknown_os" style="display: none">
+		Could not identify your Operating System. Please click on the appropriate link below to invoke Gluster Management Console!
+	</DIV>
+	<DIV ID="unknown_arch" style="display: none">
+		Could not identify your CPU architecture. Please click on the appropriate link below to invoke Gluster Management Console!
+	</DIV>
+	<DIV ID="always_on" style="display: none">
+		Linux - <a href="linux.gtk.x86/gluster-management-console.jnlp">32 bit</a> <a href="linux.gtk.x86_64/gluster-management-console.jnlp">64 bit</a><br>
+		Mac OS X - <a href="macosx.cocoa.x86/gluster-management-console.jnlp">32 bit</a> <a href="macosx.cocoa.x86_64/gluster-management-console.jnlp">64 bit</a><br>
+		Windows - <a href="win32.win32.x86/gluster-management-console.jnlp">32 bit</a> <a href="win32.win32.x86_64/gluster-management-console.jnlp">64 bit</a><br>
+	</DIV>
 </body>
+
 </html>
