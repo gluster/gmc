@@ -25,6 +25,8 @@ Requires:       wget
 %package        backend
 Summary:        %{product_family} server side backend tools
 Group:          System Environment/Base
+Requires(post):  /sbin/chkconfig
+Requires(preun): /sbin/chkconfig
 Requires:       python >= 2.4.3
 Requires:       perl >= 5.8.8
 Requires:       rrdtool-perl >= 1.2.27
@@ -52,6 +54,10 @@ rm -f $RPM_BUILD_ROOT/glustermg.war.tar.gz
 mkdir -p $RPM_BUILD_ROOT/opt/glustermg/%{release_version}/backend
 mkdir -p $RPM_BUILD_ROOT/var/lib/rrd
 cp -pa gmg-scripts/* $RPM_BUILD_ROOT/opt/glustermg/%{release_version}/backend
+%{__install} -d -m0755 %{buildroot}%{_sbindir}
+%{__install} -d -m0755 %{buildroot}%{_initrddir}
+ln -sf /opt/glustermg/%{release_version}/backend/multicast-discoverd.py %{buildroot}%{_sbindir}/multicast-discoverd
+%{__install} -p -m0755 gmg-scripts/multicast-discoverd.init.d %{buildroot}%{_initrddir}/multicast-discoverd
 
 %post
 chown -R tomcat:tomcat /opt/glustermg /var/log/glustermg
@@ -105,6 +111,13 @@ fi
 if ! grep -q rrd_net.pl /etc/crontab; then
     echo '*/5 * * * * root /opt/glustermg/%{release_version}/backend/rrd_net.pl' >> /etc/crontab
 fi
+/sbin/chkconfig --add multicast-discoverd
+/sbin/chkconfig --level 345 multicast-discoverd on
+
+%preun backend
+if [ "$1" = 0 ] ; then
+    /sbin/chkconfig --del multicast-discoverd
+fi
 
 
 %clean
@@ -114,6 +127,8 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,0755)
 /opt/glustermg/%{release_version}/backend
 /var/lib/rrd
+%{_sbindir}/multicast-discoverd
+%{_initrddir}/multicast-discoverd
 
 %files
 %defattr(-,root,root,0755)

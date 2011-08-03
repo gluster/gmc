@@ -1,20 +1,7 @@
 #!/usr/bin/python
-#  Copyright (C) 2009 Gluster, Inc. <http://www.gluster.com>
-#  This file is part of Gluster Storage Platform.
-#
-#  Gluster Storage Platform is free software; you can redistribute it
-#  and/or modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 3 of
-#  the License, or (at your option) any later version.
-#
-#  Gluster Storage Platform is distributed in the hope that it will be
-#  useful, but WITHOUT ANY WARRANTY; without even the implied warranty
-#  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program.  If not, see
-#  <http://www.gnu.org/licenses/>.
+#  Copyright (C) 2011 Gluster, Inc. <http://www.gluster.com>
+#  This file is part of Gluster Management Gateway.
+# 
 
 import os
 import sys
@@ -25,73 +12,92 @@ if not p1 in sys.path:
 if not p2 in sys.path:
     sys.path.append(p2)
 import socket
+import select
 import signal
-import struct
-import syslog
-import Globals
-import time
+import random
+import string
 import Utils
-from XmlHandler import *
+import Globals
 
-class TimeoutException(Exception):
-    pass
+running = True
 
-def timeoutSignal(signum, frame):
-    raise TimeoutException, "Timed out"
 
-def serverDiscoveryRequest(multiCastGroup, port):
-    servers = []
-    # Sending request to all the servers
-    socketSend = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-    socketSend.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
-    socketSend.sendto("ServerDiscovery", (multiCastGroup, port))
+def exitHandler(signum, frame):
+    running = False
 
-    # Waiting for the response
-    socketReceive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-    socketReceive.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    socketReceive.bind(('', port))
-    mreq = struct.pack("4sl", socket.inet_aton(multiCastGroup), socket.INADDR_ANY)
 
-    socketReceive.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-    sendtime = time.time()
-    socketSend.sendto("<request><name>ServerDiscovery</name><time>%s</time></request>" % (sendtime), (multiCastGroup, port))
+def sendMulticastRequest(idString):
+    multicastSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    multicastSocket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
+    multicastSocket.sendto("%s,%s,%s\n" % (Globals.GLUSTER_PROBE_STRING, Globals.GLUSTER_PROBE_VERSION, idString),
+                           (Globals.MULTICAST_GROUP, Globals.MULTICAST_PORT))
+    return multicastSocket
 
-    try:
-        while True:
-            response = socketReceive.recvfrom(200)
-            if not response:
-                continue
-            dom = XDOM()
-            dom.parseString(response[0])
-            if not dom:
-                continue
-            if dom.getTextByTagRoute("request.name"):
-                continue
-            responsetime = dom.getTextByTagRoute("response.time")
-            servername = dom.getTextByTagRoute("response.servername")
-            if responsetime == str(sendtime):
-                servers.append(servername)
-            signal.signal(signal.SIGALRM, timeoutSignal)
-            signal.alarm(3)
-    except TimeoutException:
-        return servers
-    return None
+
+def openServerSocket():
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind(('', Globals.SERVER_PORT))
+    server.listen(Globals.DEFAULT_BACKLOG)
+    return server
+
 
 def main():
-    syslog.openlog("discovery server request")
-    servers = serverDiscoveryRequest(Globals.MULTICAST_GROUP, Globals.MULTICAST_PORT)
-    if not servers:
-        Utils.log(syslog.LOG_ERR, "Failed to discover new servers")
-        sys.exit(-1)
+    signal.signal(signal.SIGINT, exitHandler)
+    signal.signal(signal.SIGTERM, exitHandler)
+    signal.signal(signal.SIGALRM, exitHandler)
 
-    servers = set(servers)
-    try:
-        for server in servers:
-            print server
-    except IOError:
-        Utils.log(syslog.LOG_ERR, "Unable to open file %s" % Globals.DISCOVERED_SERVER_LIST_FILENAME)
-        sys.exit(-1)
+    idString = ''.join(random.choice(string.ascii_lowercase +
+                                     string.ascii_uppercase +
+                                     string.digits) for x in range(Globals.DEFAULT_ID_LENGTH))
+
+    multicastSocket = sendMulticastRequest(idString)
+
+    serverInfoDict = {}
+    serverSocket = openServerSocket()
+    rlist = [serverSocket]
+    signal.alarm(Globals.DEFAULT_TIMEOUT)
+    while running:
+        try:
+            ilist,olist,elist = select.select(rlist, [], [], 0.25)
+        except select.error, e:
+            break
+        for sock in ilist:
+            # handle new connection
+            if sock == serverSocket:
+                clientSocket, address = serverSocket.accept()
+                #print "connection from %s on %s" % (address, clientSocket)
+                rlist.append(clientSocket)
+                continue
+
+            # handle all other sockets
+            data = sock.recv(Globals.DEFAULT_BUFSIZE)
+            if not data:
+                #print "closing socket %s" % sock
+                sock.close()
+                rlist.remove(sock)
+            tokens =  data.strip().split(",")
+            if len(tokens) != 6:
+                continue
+            if not (tokens[0] == Globals.GLUSTER_PROBE_STRING and \
+                    tokens[1] == Globals.GLUSTER_PROBE_VERSION and \
+                    tokens[2] == idString):
+                continue
+            serverInfoDict[tokens[3]] = [tokens[4], tokens[5]]
+            #print "closing socket %s" % sock
+            sock.close()
+            rlist.remove(sock)
+
+    for sock in rlist:
+        sock.close()
+
+    for k, v in serverInfoDict.iteritems():
+        if v[0]:
+            print v[0]
+        else:
+            print k
+
     sys.exit(0)
+
 
 if __name__ == "__main__":
     main()
