@@ -229,7 +229,7 @@ public class ClusterSummaryView extends ViewPart {
 
 		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
 		data.widthHint = 400;
-		data.heightHint = 150;
+		data.heightHint = 170;
 		data.verticalAlignment = SWT.CENTER;
 		chartViewerComposite.setLayoutData(data);
 	}

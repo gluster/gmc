@@ -528,6 +528,11 @@ public class GlusterUtil {
 			}
 		}
 		
+		// add the last read volume
+		if (volume != null) {
+			volumes.add(volume);
+		}
+		
 		updateCifsInfo(volumes);
 
 		return volumes;
