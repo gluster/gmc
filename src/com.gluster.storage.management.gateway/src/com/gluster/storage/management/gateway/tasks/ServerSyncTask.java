@@ -23,6 +23,7 @@ package com.gluster.storage.management.gateway.tasks;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -66,6 +67,8 @@ public class ServerSyncTask {
 	
 	@Autowired
 	private PersistenceDao<ClusterInfo> clusterDao;
+	
+	private static final Logger logger = Logger.getLogger(ServerSyncTask.class);
 
 	public void perform() {
 		discoverServers();
@@ -75,10 +78,16 @@ public class ServerSyncTask {
 	private void syncClusterServerMapping() {
 		List<ClusterInfo> clusters = clusterService.getAllClusters();
 		for(ClusterInfo cluster : clusters) {
-			List<ServerInfo> servers = cluster.getServers();
-			List<GlusterServer> actualServers = glusterServerService.getGlusterServers(cluster.getName(), false);
-			updateRemovedServers(cluster, servers, actualServers);
-			updateAddedServers(cluster, servers, actualServers);
+			try {
+				List<ServerInfo> servers = cluster.getServers();
+				List<GlusterServer> actualServers = glusterServerService.getGlusterServers(cluster.getName(), false);
+				updateRemovedServers(cluster, servers, actualServers);
+				updateAddedServers(cluster, servers, actualServers);
+			} catch(Exception e) {
+				// log error and continue with next cluster
+				logger.error("Couldn't sync cluster-server mapping for cluster [" + cluster + "]!", e);
+				continue;
+			}
 		}
 	}
 
