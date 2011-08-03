@@ -262,9 +262,9 @@ public abstract class AbstractClient {
 		return fetchResource(resource.path(subResourceName), queryParams, responseClass);
 	}
 
-	private void postRequest(WebResource resource, Form form) {
+	private ClientResponse postRequest(WebResource resource, Form form) {
 		try {
-			prepareFormRequestBuilder(resource).post(form);
+			return prepareFormRequestBuilder(resource).post(ClientResponse.class, form);
 		} catch (UniformInterfaceException e) {
 			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
 		}
@@ -290,8 +290,8 @@ public abstract class AbstractClient {
 	 * @param form
 	 *            Form to be submitted
 	 */
-	protected void postRequest(Form form) {
-		postRequest(resource, form);
+	protected URI postRequest(Form form) {
+		return postRequest(resource, form).getLocation();
 	}
 
 	/**

@@ -211,7 +211,7 @@ public class GlusterServersResource extends AbstractResource {
 				throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
 			}
 
-			glusterUtil.addServer(serverName, onlineServer.getName());
+			glusterUtil.addServer(onlineServer.getName(), serverName);
 		}
 	}
 
@@ -244,11 +244,7 @@ public class GlusterServersResource extends AbstractResource {
 		List<ServerInfo> servers = cluster.getServers();
 		if (servers != null && !servers.isEmpty()) {
 			// cluster has at least one existing server, so that peer probe can be performed
-			try {
-				performAddServer(clusterName, hostName);
-			} catch (Exception e) {
-				return errorResponse(e.getMessage());
-			}
+			performAddServer(clusterName, hostName);
 		} else {
 			// this is the first server to be added to the cluster, which means no
 			// gluster CLI operation required. just add it to the cluster-server mapping
@@ -256,26 +252,26 @@ public class GlusterServersResource extends AbstractResource {
 
 		try {
 			// add the cluster-server mapping
-			clusterService.mapServerToCluster(clusterName, serverName);
+			clusterService.mapServerToCluster(clusterName, hostName);
 		} catch (Exception e) {
 			return errorResponse(e.getMessage());
 		}
 
 		// since the server is added to a cluster, it should not more be considered as a
 		// discovered server available to other clusters
-		discoveredServersResource.removeDiscoveredServer(serverName);
+		discoveredServersResource.removeDiscoveredServer(hostName);
 
 		if (!publicKeyInstalled) {
 			try {
 				// install public key (this will also disable password based ssh login)
-				sshUtil.installPublicKey(serverName);
+				sshUtil.installPublicKey(hostName);
 			} catch (Exception e) {
-				return errorResponse("Public key could not be installed on [" + serverName + "]! Error: ["
+				return errorResponse("Public key could not be installed on [" + hostName + "]! Error: ["
 						+ e.getMessage() + "]");
 			}
 		}
 
-		return createdResponse(serverName);
+		return createdResponse(hostName);
 	}
 
 	@DELETE
