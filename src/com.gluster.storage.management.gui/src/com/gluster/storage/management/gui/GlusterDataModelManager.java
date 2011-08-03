@@ -748,6 +748,9 @@ public class GlusterDataModelManager {
 			for(Brick brick : volume.getBricks()) {
 				brick.setStatus(BRICK_STATUS.OFFLINE);
 			}
+		} else {
+			Volume newVolume = new VolumesClient().getVolume(volume.getName()); //Getting latest brick info
+			updateBricks(volume, volume.getBricks(), newVolume.getBricks());
 		}
 		
 		for (ClusterListener listener : listeners) {

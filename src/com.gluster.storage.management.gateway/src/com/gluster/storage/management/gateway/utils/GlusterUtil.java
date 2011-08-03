@@ -74,6 +74,7 @@ public class GlusterUtil {
 	private static final GlusterCoreUtil glusterCoreUtil = new GlusterCoreUtil();
 	
 	private static final String INITIALIZE_DISK_STATUS_SCRIPT = "get_format_device_status.py";
+	private static final String BRICK_STATUS_SCRIPT = "get_brick_status.py";
 
 	@Autowired
 	private SshUtil sshUtil;
@@ -422,9 +423,12 @@ public class GlusterUtil {
 	// Do not throw exception, Gracefully handle as Offline brick. 
 	private BRICK_STATUS getBrickStatus(String serverName, String volumeName, String brick){
 		try {
-			ProcessResult output = getSshUtil().executeRemote(serverName, "get_brick_status.py" + " " + volumeName + " " + brick);
-
-			if (output.isSuccess() && output.getOutput().equals(CoreConstants.ONLINE)) {
+			Object output = serverUtil.executeScriptOnServer(true, serverName, BRICK_STATUS_SCRIPT + " " + volumeName + " " + brick, String.class);
+			if(output instanceof Status) {
+				// script failed. throw exception.
+				throw new GlusterRuntimeException(((Status)output).toString());
+			}
+			if (((String)output).equals(CoreConstants.ONLINE)) {
 				return BRICK_STATUS.ONLINE;
 			} else {
 				return BRICK_STATUS.OFFLINE;
@@ -522,6 +526,16 @@ public class GlusterUtil {
 					isOptionReconfigFound = false;
 				}
 			}
+		}
+		
+		// TODO: Execute the python script to find whether the volume is cifs enabled or not 
+		boolean isCifsEnabled = false;
+		List<String> cifsUsers = new ArrayList<String>();
+		if(isCifsEnabled) {
+			volume.enableCifs();
+			volume.setCifsUsers(cifsUsers);
+		} else {
+			volume.disableCifs();
 		}
 
 		if (volume != null) {// Adding the last volume parsed
