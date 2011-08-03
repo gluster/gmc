@@ -87,11 +87,8 @@ if ! grep -q "org.apache.catalina.authenticator.NonLoginAuthenticator" /etc/tomc
            disableProxyCaching="false" />' /etc/tomcat5/context.xml
 fi
 if wget -q -O /dev/null http://169.254.169.254/latest; then
-    sed -i '/<constructor-arg/c <constructor-arg value="none" \/>' /opt/glustermg/%{release_version}/glustermg/WEB-INF/classes/spring/gluster-server-base.xml
-else
-    sed -i '/<constructor-arg/c <constructor-arg value="multicast" \/>' /opt/glustermg/%{release_version}/glustermg/WEB-INF/classes/spring/gluster-server-base.xml
+    sed -i '/<constructor-arg value="multicast"/c <constructor-arg value="none" \/>' /opt/glustermg/%{release_version}/glustermg/WEB-INF/classes/spring/gluster-server-base.xml
 fi
-
 
 %post backend
 if [ -f /etc/sudoers ]; then
