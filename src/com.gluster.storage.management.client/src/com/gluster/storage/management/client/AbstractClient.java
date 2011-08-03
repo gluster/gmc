@@ -167,9 +167,7 @@ public abstract class AbstractClient {
 		try {
 			response = res.header(HTTP_HEADER_AUTH, authHeader).accept(MediaType.APPLICATION_OCTET_STREAM)
 				.get(ClientResponse.class);
-			if (response.getStatus() >= 300) {
-				throw new GlusterRuntimeException(response.getEntity(String.class));
-			}
+			checkResponseStatus(response);
 		} catch (Exception e1) {
 			throw createGlusterException(e1);
 		}
@@ -264,7 +262,9 @@ public abstract class AbstractClient {
 
 	private ClientResponse postRequest(WebResource resource, Form form) {
 		try {
-			return prepareFormRequestBuilder(resource).post(ClientResponse.class, form);
+			ClientResponse response = prepareFormRequestBuilder(resource).post(ClientResponse.class, form);
+			checkResponseStatus(response);
+			return response;
 		} catch (UniformInterfaceException e) {
 			throw new GlusterRuntimeException(e.getResponse().getEntity(String.class));
 		}
@@ -309,17 +309,21 @@ public abstract class AbstractClient {
 	private ClientResponse putRequest(WebResource resource, Form form) {
 		try {
 			ClientResponse response = prepareFormRequestBuilder(resource).put(ClientResponse.class, form);
-			if ((response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode())) {
-				// authentication failed. clear security token.
-				setSecurityToken(null);
-				throw new GlusterRuntimeException("Invalid credentials!");
-			}
-			if (response.getStatus() >= 300) {
-				throw new GlusterRuntimeException(response.getEntity(String.class));
-			}
+			checkResponseStatus(response);
 			return response;
 		} catch (Exception e) {
 			throw createGlusterException(e);
+		}
+	}
+
+	private void checkResponseStatus(ClientResponse response) {
+		if ((response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode())) {
+			// authentication failed. clear security token.
+			setSecurityToken(null);
+			throw new GlusterRuntimeException("Invalid credentials!");
+		}
+		if (response.getStatus() >= 300) {
+			throw new GlusterRuntimeException(response.getEntity(String.class));
 		}
 	}
 
