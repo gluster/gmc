@@ -694,17 +694,16 @@ public class VolumesResource extends AbstractResource {
 	}
 
 	private void postDelete(String volumeName, List<Brick> bricks, boolean deleteFlag) {
-		Status result;
 		for (Brick brick : bricks) {
 			String brickDirectory = brick.getBrickDirectory();
 			// String mountPoint = brickDirectory.substring(0, brickDirectory.lastIndexOf("/"));
 
-			result = (Status) serverUtil.executeScriptOnServer(true, brick.getServerName(),
+			Object output = serverUtil.executeScriptOnServer(true, brick.getServerName(),
 					VOLUME_DIRECTORY_CLEANUP_SCRIPT + " " + brickDirectory + " " + (deleteFlag ? "-d" : ""),
-					Status.class);
-			if (!result.isSuccess()) {
+					String.class);
+			if (output instanceof Status) {
 				throw new GlusterRuntimeException("Error in post-delete operation of volume [" + volumeName + "]: "
-						+ result);
+						+ output);
 			}
 		}
 	}
