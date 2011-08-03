@@ -808,7 +808,7 @@ public class VolumesResource extends AbstractResource {
 	public VolumeOptionInfoListResponse getDefaultOptionsXML(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
 		// TODO: Fetch all volume options with their default values from GlusterFS
 		// whenever such a CLI command is made available in GlusterFS
-		return new VolumeOptionInfoListResponse(Status.STATUS_SUCCESS, volumeOptionsDefaults.getDefaults());
+		return new VolumeOptionInfoListResponse(Status.STATUS_SUCCESS, volumeOptionsDefaults.getDefaults(clusterName));
 	}
 
 	@GET
@@ -817,7 +817,7 @@ public class VolumesResource extends AbstractResource {
 	public VolumeOptionInfoListResponse getDefaultOptionsJSON(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
 		// TODO: Fetch all volume options with their default values from GlusterFS
 		// whenever such a CLI command is made available in GlusterFS
-		return new VolumeOptionInfoListResponse(Status.STATUS_SUCCESS, volumeOptionsDefaults.getDefaults());
+		return new VolumeOptionInfoListResponse(Status.STATUS_SUCCESS, volumeOptionsDefaults.getDefaults(clusterName));
 	}
 
 	private List<VolumeLogMessage> getBrickLogs(Volume volume, Brick brick, Integer lineCount)

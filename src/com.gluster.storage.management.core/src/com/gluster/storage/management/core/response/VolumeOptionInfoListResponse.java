@@ -27,7 +27,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
 
-@XmlRootElement(name = "options")
+@XmlRootElement(name = "volumeOptionsDefaults")
 public class VolumeOptionInfoListResponse {
 	private List<VolumeOptionInfo> options = new ArrayList<VolumeOptionInfo>();
 
@@ -38,7 +38,7 @@ public class VolumeOptionInfoListResponse {
 		setOptions(options);
 	}
 
-	@XmlElement(name = "option", type=VolumeOptionInfo.class)
+	@XmlElement(name = "volumeOption", type=VolumeOptionInfo.class)
 	public List<VolumeOptionInfo> getOptions() {
 		return options;
 	}
