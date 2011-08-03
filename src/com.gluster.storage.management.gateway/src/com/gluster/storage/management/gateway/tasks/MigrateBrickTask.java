@@ -186,37 +186,35 @@ public class MigrateBrickTask extends Task {
 	}
 	
 	private TaskStatus checkMigrationStatus(String serverName) {
-		if (getTaskInfo().getStatus().getCode() == Status.STATUS_CODE_PAUSE) {
-			return getTaskInfo().getStatus();
-		}
 		// For committed task, status command (CLI) is invalid, just return current status
 		if (getTaskInfo().getStatus().getCode() == Status.STATUS_CODE_SUCCESS) {
 			return getTaskInfo().getStatus();
 		}
-		
 
 		TaskStatus taskStatus = new TaskStatus();
 		try {
 			ProcessResult processResult = glusterUtil.executeBrickMigration(serverName, getTaskInfo().getReference(),
 					getFromBrick(), getToBrick(), "status");
-			if (processResult.getOutput().trim().matches("^Number of files migrated.*Migration complete$")
-					|| processResult.getOutput().trim().matches("^Number of files migrated = 0 .*Current file=")) {
-				// Note: Workaround - if no file in the volume brick to migrate, Gluster CLI is not giving proper
-				// (complete) status
+			String output = processResult.getOutput().trim();
+			if (output.matches("^Number of files migrated.*Migration complete$")
+					|| output.matches("^Number of files migrated = 0 .*Current file=")) {
+				// Note: Workaround - if no file in the volume brick to migrate,
+				// Gluster CLI is not giving proper (complete) status
 				taskStatus.setCode(Status.STATUS_CODE_COMMIT_PENDING);
 				if (autoCommit) {
 					commitMigration(serverName);
 					return getTaskInfo().getStatus(); // return the committed status
 				} else {
-					taskStatus.setMessage(processResult.getOutput().trim()
-							.replaceAll("Migration complete", "Commit pending"));
+					taskStatus.setMessage(output.replaceAll("Migration complete", "Commit pending"));
 				}
-			} else if (processResult.getOutput().trim().matches("^Number of files migrated.*Current file=.*")) {
+			} else if (output.matches("^Number of files migrated.*Current file=.*")) {
 				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
+			} else if (output.matches("^replace brick has been paused.*")) {
+				taskStatus.setCode(Status.STATUS_CODE_PAUSE);
 			} else {
 				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
 			}
-			taskStatus.setMessage(processResult.getOutput());
+			taskStatus.setMessage(output);
 		} catch (Exception e) {
 			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
 			taskStatus.setMessage(e.getMessage());
