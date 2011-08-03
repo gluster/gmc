@@ -18,6 +18,12 @@
 
 import os
 import sys
+p1 = os.path.abspath(os.path.dirname(sys.argv[0]))
+p2 = "%s/common" % os.path.dirname(p1)
+if not p1 in sys.path:
+    sys.path.append(p1)
+if not p2 in sys.path:
+    sys.path.append(p2)
 import Globals
 import Utils
 import DiskUtils
@@ -69,9 +75,9 @@ def main():
         sys.exit(5)
 
     if options.fstype:
-        command = ["gluster_provision_block_wrapper.py", "-t", "%s" % (options.fstype), "%s" % (device)]
+        command = ["%s/gluster_provision_block_wrapper.py" % p1, "-t", "%s" % (options.fstype), "%s" % (device)]
     else:
-        command = ["gluster_provision_block_wrapper.py", "%s" % (device)]
+        command = ["%s/gluster_provision_block_wrapper.py" % p1, "%s" % (device)]
 
     try:
         pid = os.fork()
@@ -79,7 +85,7 @@ def main():
         Utils.log("failed to fork a child process: %s" % str(e))
         sys.exit(6)
     if pid == 0:
-        os.execv("/usr/sbin/gluster_provision_block_wrapper.py", command)
+        os.execv(command[0], command)
     sys.exit(0)
 
 
