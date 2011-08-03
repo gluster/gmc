@@ -20,6 +20,7 @@
  */
 package com.gluster.storage.management.gui.dialogs;
 
+import java.net.URI;
 import java.util.List;
 
 import org.eclipse.jface.dialogs.Dialog;
@@ -181,9 +182,9 @@ public class ServerAdditionDialog extends Dialog {
 
 		try {
 			String serverNameText = serverName.getText();
-			serversClient.addServer(serverNameText);
+			URI newServerURI = serversClient.addServer(serverNameText);
 
-			modelManager.addGlusterServer(serversClient.getGlusterServer(serverNameText));
+			modelManager.addGlusterServer(serversClient.getServer(newServerURI));
 
 			MessageDialog
 					.openInformation(getShell(), "Add Server", "Server " + serverNameText + " added successfully!");

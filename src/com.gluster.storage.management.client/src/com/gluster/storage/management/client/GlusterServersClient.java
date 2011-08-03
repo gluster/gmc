@@ -29,6 +29,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.ServerStats;
+import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.sun.jersey.api.representation.Form;
@@ -67,10 +68,10 @@ public class GlusterServersClient extends AbstractClient {
 		return server;
 	}
 
-	public void addServer(String serverName) {
+	public URI addServer(String serverName) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_SERVER_NAME, serverName);
-		postRequest(form);
+		return postRequest(form);
 	}
 	
 	public URI initializeDisk(String serverName, String diskName, String fsType) {
@@ -117,5 +118,9 @@ public class GlusterServersClient extends AbstractClient {
 		queryParams.add(RESTConstants.QUERY_PARAM_TYPE, RESTConstants.STATISTICS_TYPE_NETWORK);
 		queryParams.add(RESTConstants.QUERY_PARAM_PERIOD, period);
 		return fetchSubResource(RESTConstants.RESOURCE_STATISTICS, queryParams, ServerStats.class);
+	}
+	
+	public GlusterServer getServer(URI uri) {
+		return fetchResource(uri, GlusterServer.class);
 	}
 }

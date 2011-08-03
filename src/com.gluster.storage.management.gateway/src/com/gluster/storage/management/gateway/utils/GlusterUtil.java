@@ -528,21 +528,25 @@ public class GlusterUtil {
 			}
 		}
 		
-		// TODO: Execute the python script to find whether the volume is cifs enabled or not 
-		boolean isCifsEnabled = false;
-		List<String> cifsUsers = new ArrayList<String>();
-		if(isCifsEnabled) {
-			volume.enableCifs();
-			volume.setCifsUsers(cifsUsers);
-		} else {
-			volume.disableCifs();
-		}
-
-		if (volume != null) {// Adding the last volume parsed
-			volumes.add(volume);
-		}
+		updateCifsInfo(volumes);
 
 		return volumes;
+	}
+
+	private void updateCifsInfo(List<Volume> volumes) {
+		for (Volume volume : volumes) {
+			boolean isCifsEnabled = false;
+			
+			// TODO: Call python script to check if CIFS is enabled on the volume
+			
+			List<String> cifsUsers = new ArrayList<String>();
+			if (isCifsEnabled) {
+				volume.enableCifs();
+				volume.setCifsUsers(cifsUsers);
+			} else {
+				volume.disableCifs();
+			}
+		}
 	}
 
 	public void addBricks(String volumeName, List<String> bricks, String knownServer) {
