@@ -676,16 +676,10 @@ public class VolumesResource extends AbstractResource {
 
 			// String mountPoint = brickDirectory.substring(0,
 			// brickDirectory.lastIndexOf("/"));
-			Object response = serverUtil.executeScriptOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
-					+ brickDirectory + " " + (deleteFlag ? "-d" : ""), GenericResponse.class);
-			if (response instanceof GenericResponse) {
-				result = ((GenericResponse) response).getStatus();
-				if (!result.isSuccess()) {
-					errors += "[" + brickDirectory + "] => " + result + CoreConstants.NEWLINE;
-				}
-			} else {
-				Status errStatus = (Status) response;
-				errors += "[" + brickDirectory + "] => " + errStatus + CoreConstants.NEWLINE;
+			Object output = serverUtil.executeScriptOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
+					+ brickDirectory + " " + (deleteFlag ? "-d" : ""), String.class);
+			if (output instanceof Status) {
+				errors += "[" + brickDirectory + "] => " + output + CoreConstants.NEWLINE;
 			}
 		}
 		if(!errors.trim().isEmpty()) {
