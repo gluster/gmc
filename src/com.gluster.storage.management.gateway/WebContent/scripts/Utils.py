@@ -15,8 +15,14 @@
 #  along with this program.  If not, see
 #  <http://www.gnu.org/licenses/>.
 
-import sys
 import os
+import sys
+p1 = os.path.abspath(os.path.dirname(sys.argv[0]))
+p2 = "%s/common" % os.path.dirname(p1)
+if not p1 in sys.path:
+    sys.path.append(p1)
+if not p2 in sys.path:
+    sys.path.append(p2)
 import re
 import socket
 import struct
