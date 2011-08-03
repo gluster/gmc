@@ -59,7 +59,7 @@ ln -fs /opt/glustermg/%{release_version}/glustermg /usr/share/tomcat5/webapps/gl
 if [ ! -f /opt/glustermg/keys/id_rsa ]; then
     ssh-keygen -t rsa -f /opt/glustermg/keys/id_rsa -N gluster
 fi
-if ! grep -q '^JAVA_HOME="/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64"' /etc/sysconfig/tomcat5; then
+if ! grep -q '^JAVA_HOME="/usr/lib/jvm/jre-1.6.0-openjdk.x86_64"' /etc/sysconfig/tomcat5; then
     sed -i 's/^JAVA_HOME=/# JAVA_HOME=/g' /etc/sysconfig/tomcat5
     echo 'JAVA_HOME="/usr/lib/jvm/jre-1.6.0-openjdk.x86_64"' >> /etc/sysconfig/tomcat5
 fi
