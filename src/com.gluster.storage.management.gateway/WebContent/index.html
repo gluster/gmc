@@ -67,17 +67,17 @@
 		element = document.getElementById('always_on');
 		element.style.display = "block";
 
-		if ( os == null ) {
+		if ( os == "unknown" ) {
 			var element = document.getElementById('unknown_os');
 			element.style.display = "block";
 		}
 
-		if ( os == "macosx" && arch == null ) {
+		if ( os == "macosx" && arch == "unknown" ) {
 			var element = document.getElementById('unknown_arch');
 			element.style.display = "block";
 		}
 
-		if ( os != null && ws != null && arch != null ) {
+		if ( os != "unknown" && ws != "unknown" && arch != "unknown" ) {
 			// os-ws-arch detected. redirect to appropriate jnlp
 			var element = document.getElementById('all_ok');
 			element.style.display = "block";
