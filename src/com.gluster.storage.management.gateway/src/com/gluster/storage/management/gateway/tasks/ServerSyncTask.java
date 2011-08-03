@@ -85,7 +85,7 @@ public class ServerSyncTask {
 				updateAddedServers(cluster, servers, actualServers);
 			} catch(Exception e) {
 				// log error and continue with next cluster
-				logger.error("Couldn't sync cluster-server mapping for cluster [" + cluster + "]!", e);
+				logger.error("Couldn't sync cluster-server mapping for cluster [" + cluster.getName() + "]!", e);
 				continue;
 			}
 		}
