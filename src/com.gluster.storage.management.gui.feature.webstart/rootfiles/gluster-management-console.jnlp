@@ -33,11 +33,12 @@
 		<property
 			name="gluster.server.url"
 			value="$$codebase"/>
+		<property 
+			name="javaws.cfg.jauthenticator" 
+			value="true"/>
 	</resources>
 	<resources os="Linux">
         <property name="osgi.ws" value="gtk"/>
   	</resources>	
-	<application-desc main-class="org.eclipse.equinox.launcher.WebStartMain">
-		<argument>-nosplash</argument>
-	</application-desc>
+	<application-desc main-class="org.eclipse.equinox.launcher.WebStartMain" />
 </jnlp>

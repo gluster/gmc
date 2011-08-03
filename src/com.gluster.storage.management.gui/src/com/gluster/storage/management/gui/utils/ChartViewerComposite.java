@@ -252,7 +252,7 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 		yAxisPrimary.getMajorGrid().setTickStyle(TickStyle.LEFT_LITERAL);
 		yAxisPrimary.getMajorGrid().setLineAttributes(LineAttributesImpl.create(ColorDefinitionImpl.GREY(), LineStyle.SOLID_LITERAL, 1));
 		yAxisPrimary.getLabel().setVisible(true);
-		yAxisPrimary.getLabel().getCaption().setFont(createChartFont());
+		yAxisPrimary.getLabel().getCaption().getFont().setSize(8);
 		yAxisPrimary.setFormatSpecifier(new NumberFormatSpecifierImpl() {
 			@Override
 			public String getSuffix() {
@@ -281,10 +281,6 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 		xAxisPrimary.getLabel( ).getCaption( ).getFont( ).setRotation( 75 );
 		xAxisPrimary.setFormatSpecifier( JavaDateFormatSpecifierImpl.create( timestampFormat ) );
 		return xAxisPrimary;
-	}
-
-	public static FontDefinition createChartFont() {
-		return FontDefinitionImpl.create("Serif", 8, false, false, false, false, false, 0d, TextAlignmentImpl.create());
 	}
 
 	/**
