@@ -238,7 +238,7 @@ public class ServerUtil {
 	 * @return Object of given expected class, or a status object in case first unmarshalling fails.
 	 */
 	@SuppressWarnings("rawtypes")
-	private Object unmarshal(Class expectedClass, String input, boolean tryGenericResponseOnFailure) {
+	public Object unmarshal(Class expectedClass, String input, boolean tryGenericResponseOnFailure) {
 		try {
 			// create JAXB context and instantiate marshaller
 			JAXBContext context = JAXBContext.newInstance(expectedClass);

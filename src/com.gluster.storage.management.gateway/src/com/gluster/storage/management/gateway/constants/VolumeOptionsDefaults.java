@@ -23,25 +23,42 @@ package com.gluster.storage.management.gateway.constants;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.exceptions.ConnectionException;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
+import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
+import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
+import com.gluster.storage.management.gateway.services.ClusterService;
+import com.gluster.storage.management.gateway.utils.ServerUtil;
+import com.sun.jersey.api.core.InjectParam;
 
 @Component
 public class VolumeOptionsDefaults {
-	public List<VolumeOptionInfo> options;
+	@Autowired
+	private ServerUtil serverUtil;
+	
+	@InjectParam
+	private ClusterService clusterService;
 
+	public List<VolumeOptionInfo> options;
+	
+	
 	public VolumeOptionsDefaults() {
 	}
 
 	/**
 	 * @return list of volume option information objects
 	 */
-	public List<VolumeOptionInfo> getDefaults() {
+	public List<VolumeOptionInfo> getDefaults(String clusterName) {
+		// return getVolumeOptionsInfo(clusterName);
 		return getVolumeOptionsInfo();
 	}
-
+	
+	
 	/**
 	 * Fetches the list of all volume options with their information from GlusterFS and returns the same
 	 * 
@@ -114,5 +131,55 @@ public class VolumeOptionsDefaults {
 		volumeOptionsInfo.add(new VolumeOptionInfo("transport.keepalive", "transport.keepalive", "on"));
 
 		return volumeOptionsInfo;
+	}
+	
+	
+	public List<VolumeOptionInfo> getVolumeOptionsInfo(String clusterName) {
+		String command = "gluster volume set help-xml";
+		VolumeOptionInfoListResponse options = new VolumeOptionInfoListResponse();
+		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
+
+		try {
+			options = runDefaultVolumeOptions(onlineServer.getName(), command);
+			return options.getOptions();
+		} catch (ConnectionException e) {
+			onlineServer = clusterService.getNewOnlineServer(clusterName);
+			options =  runDefaultVolumeOptions(onlineServer.getName(), command);
+			return options.getOptions();
+		} catch (Exception e) {
+			throw new GlusterRuntimeException("Fetching volume options default failed! [" + e.getMessage() + "]"); 
+		}
+	}
+	
+	private VolumeOptionInfoListResponse runDefaultVolumeOptions(String serverName, String command) {
+		return (VolumeOptionInfoListResponse) serverUtil.executeOnServer(true, serverName, command,
+				VolumeOptionInfoListResponse.class);
+	}
+	
+	
+	public static void main(String[] args) {
+//		String command = "gluster volume set help-xml";
+//		String output = "";
+//		ServerUtil serverUtil = new ServerUtil();
+//		try {
+//			Process p = Runtime.getRuntime().exec(command);
+//			p.waitFor();
+//			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+//			String line = reader.readLine();
+//			while (line != null) {
+//				output += line;
+//				line = reader.readLine();
+//			}
+//		} catch (Exception e) {
+//			System.out.println("Error in executing command ...." + e.getMessage());
+//		}
+//		Object response = serverUtil.unmarshal(VolumeOptionInfoListResponse.class, output, false);
+//		if (response instanceof Status) {
+//			System.out.println("Error: " + response.toString());
+//			return;
+//		}
+//		for (VolumeOptionInfo option : ((VolumeOptionInfoListResponse) response).getOptions()) {
+//			System.out.println(option.getName() + " : " + option.getDefaultValue() );
+//		}
 	}
 }
