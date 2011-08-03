@@ -22,10 +22,10 @@ def main():
         sys.exit(-1)
     serverFile = sys.argv[1]
     try:
-        command = ["/opt/glustermg/%s/backend/%s" % (os.environ['GMC_VERSION'], sys.argv[2])]
+        command = ["/opt/glustermg/%s/backend/%s" % (os.environ['GMG_VERSION'], sys.argv[2])]
     except KeyError, e:
         command = ["/opt/glustermg/1.0.0/backend/%s" % sys.argv[2]]
-    command.append(sys.argv[3:])
+    command += sys.argv[3:]
 
     try:
         fp = open(serverFile)
