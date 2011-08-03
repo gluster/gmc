@@ -108,7 +108,8 @@ public class VolumesSummaryView extends ViewPart {
 			private void updateSummarySection() {
 				guiHelper.clearSection(summarySection);
 				populateSummarySection();
-				summarySection.layout();	
+				summarySection.layout();
+				form.reflow(true);
 			}
 
 			@Override
