@@ -1,0 +1,38 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+	<title>Main Topic</title>
+</head>
+
+<body>
+<h1>Creating Volumes to Simplify Administration</h1>
+A volume is a logical collection of bricks where each brick is an export directory on a server in the trusted storage pool. Most of the gluster management operations happen on the volume.
+
+You can create new volumes in your storage environment, as needed. When creating a new volume, you must specify the bricks that comprise the volume.
+<p><b>Assigning Volume Names</b></p>
+
+<p>You can name your volumes anything you choose, subject to a few restrictions: 
+<ul>
+<li>Volume names can be up to ?? characters in length. The maximum length for volume names is 32 characters.
+	<p>It is best to assign volume names that indicate the type of data they contain, and to use similar names for volumes with similar contents. It is also helpful if the volume name is similar to (or at least has elements in common with) the name of the directory at which it is mounted. Understanding the pattern then enables you accurately to guess what a volume contains and where it is mounted.</p>
+</ul>
+<p><b>Types of Volumes</b></p>
+<p>Volumes of the following types can be created in your storage environment:</p>
+<ul>
+<li>Plain Distributed - Distributes files throughout the bricks in the volume.
+<li>Distributed Striped - Distributes data across striped bricks in the volume.
+<li>Distributed Mirror - Creates a mirrored volume with all files replicated. <p><b>Note:</b> You must have at least two servers to activate this feature.</p></ul>
+<p>This section describes the various talks enabling you to manage your volumes on the storage cluster:
+<ul>
+<li>Create a new volume (featuring a single global namespace)
+<li>Start a volume that is currently stopped
+<li>Stop a volume that is currently running
+<li>Delete a volume from your storage environment
+
+</ul>
+ 
+
+</body>
+</html>

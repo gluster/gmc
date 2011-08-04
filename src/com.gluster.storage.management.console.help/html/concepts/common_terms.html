@@ -1,0 +1,27 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+	<title>Sub Topic 2</title>
+</head>
+
+<body>
+<h1>Common Cluster Terminologies</h1>
+<p><b>Network</b></p>
+<p>A network is a collection of interconnected computers able to communicate with each other and transfer information back and forth.</p>
+<p><b>Distributed File Systems</b></p>
+<p>A file system is a collection of files and the facilities (programs and commands) that enable users to access the information in the files. All computing environments have file systems.  A distributed file system takes advantage of the interconnected nature of the network by storing files on more than one computer in the network and making them accessible to all of them. In other words, the responsibility for file storage and delivery is "distributed" among multiple machines instead of relying on only one.</p>
+<p><b>File Server Machines</b></p>
+<p>File server machines store the files in the distributed file system, and a server process running on the file server machine delivers and receives files.</p>
+ <p><b>Volumes</b></p>
+ <p>A volume is a conceptual container for a set of related files that keeps them all together on one file server machine partition. Volumes can vary in size, but are (by definition) smaller than a partition.
+
+You can maintain maximum system efficiency by moving volumes to keep the load balanced evenly among the different machines. If a partition becomes full, the small size of individual volumes makes it easy to find enough room on other machines for them.
+Each volume corresponds logically to a directory in the file tree and keeps together, on a single partition, all the data that makes up the files in the directory (including possible subdirectories). By maintaining (for example) a separate volume for each user's home directory, you keep all of the user's files together, but separate from those of other users. This is an administrative convenience that is impossible if the partition is the smallest unit of storage.</p>
+ <p><b>Mount Points</b></p>
+ <p> The previous section discussed how each volume corresponds logically to a directory in the file system: the volume keeps together on one partition all the data in the files residing in the directory. The directory that corresponds to a volume is called its root directory, and the mechanism that associates the directory and volume is called a mount point. A mount point is similar to a symbolic link in the file tree that specifies which volume contains the files kept in a directory. A mount point is not an actual symbolic link; its internal structure is different. 
+
+
+</body>
+</html>

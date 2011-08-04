@@ -1,0 +1,31 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+	<title>Creating Volumes</title>
+</head>
+
+<body>
+<h1>Creating a Volume</h1>
+You can use the Management Console to create and start new volumes featuring a single global namespace. When creating a new volume, you can select the servers that will comprise the volume and, optionally, specify whether the volume is to be distributed, distributed mirrored, or distributed stripedPlease enter your text here.<p>To create a volume, perform the following steps:
+<ol>
+<li>Choose from the menu, toolbar, or right click and select the Volume and select Create Volume.
+
+<p>The Create Volume window is displayed.
+<p><img src="../images/GMC_1.0_Create_Vol.jpg"alt="Volume Created Successfuly"/></p>
+<li>Enter the name of the volume in the Name field.
+<li>Select the type of the volume from the Type drop-down list. You can choose the type as either Plain Distribute, Distributed Mirror, or Distributed Stripe.
+<li>Bricks will be created on all the disks of the cluster when you create a volume, by default. Click Customize, to select and add specific bricks to your volume.
+<li>Select the Access Protocol for the new volume. You can select GlusterFS, NFS, or CIFS checkbox.
+<li>If you choose CIFS, specify the user name and password to use from Windows clients to connect to the volume.
+<p>You need to use user-based authentication for CIFS exports, hence you must specify the user&rsquo;s who can access the volume as a comma-separated list in the Users field. 
+<li>Specify the volume access control as a comma-separated list of IP addresses or hostnames in the Access Control field.
+	<p>You can use wildcard to specify ranges of addresses. Typing an asterisk (*) specifies all IP addresses. You need to use IP-based authentication for Gluster Filesystem and NFS exports.</p>
+<li> Select the Start Volume check box to automatically start the volume once created.
+<li>Click Create Volume. The console displays Create Volume window to indicate that the volume was successfully created.
+	<p><img src="../images/GMC_1.0_vol_success.jpg"alt="Volume Created Successfuly"/></p>
+ <li>Click OK.
+</ol>
+  </body>
+</html>

@@ -2,10 +2,31 @@
 <?NLS TYPE="org.eclipse.help.toc"?>
 
 <toc label="Tasks" link_to="toc.xml#tasks"> 
-	<topic label="Main Topic"  href="html/tasks/maintopic.html"> 
-		<topic label="Sub Topic" href="html/tasks/subtopic.html" /> 
+	<topic label="Server" href="html/tasks/servers.html">
+	<topic label="Adding a Server" href="html/tasks/subtopic2.html" />
+ <topic label="Removing a Server">
+ </topic>
+	<topic label="Format Disk" href="html/tasks/subtopic5.html"/>
+		</topic>
+	<topic label="Volume"  href="html/tasks/volumes.html"> 
+	<topic label="Creating a Volume" href="html/tasks/create_volume.html" /> 
+	<topic label="Starting a Volume" href="html/tasks/start_vol.html" />
+ <topic label="Tuning Volume Options">
+ </topic>
+ <topic label="Reblancing a Volume">
+ </topic> 
+	<topic href="html/tasks/stop_vol.html" label="Stopping a Volume">
+ </topic>
+ <topic label="Deleting a Volume">
+ </topic>
+	<topic label="Adding a Brick" href="html/tasks/add_brick.html" /> 
+	<topic href="html/tasks/delete_brick.html" label="Deleting a Brick">
+ </topic>
+ <topic label="Migrating a Brick">
+ </topic> 
 	</topic>
-	<topic label="Main Topic 2">
-		<topic label="Sub Topic 2" href="html/tasks/subtopic2.html" /> 
+	<topic label="Logs"  href="html/tasks/logs.html"> 
+	<topic label="Displaying a Log Based on a Search Criteria" href="html/tasks/display_log.html" /> 
+	<topic label="Downloading Logs" href="html/tasks/download_log.html" /> 
 	</topic> 
 </toc>

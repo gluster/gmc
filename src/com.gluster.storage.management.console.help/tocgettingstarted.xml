@@ -2,10 +2,18 @@
 <?NLS TYPE="org.eclipse.help.toc"?>
 
 <toc label="Getting Started" link_to="toc.xml#gettingstarted"> 
-	<topic label="Main Topic"  href="html/gettingstarted/maintopic.html"> 
-		<topic label="Sub Topic" href="html/gettingstarted/subtopic.html" /> 
-	</topic>
-	<topic label="Main Topic 2">
-		<topic label="Sub Topic 2" href="html/gettingstarted/subtopic2.html" />
-	</topic> 
+	<topic label="Exploring GMC" href="html/gettingstarted/explore_gmc.html" />
+	<topic label="Monitoring Resources" href="html/gettingstarted/monitor_resources.html" />
+	<topic label="Change Administrator's Password" href="html/gettingstarted/change_password.html" />
+ <topic href="html/gettingstarted/manage_cluster.html" label="Managing Clusters">
+ </topic>
+ <topic href="html/gettingstarted/manage_servers.html" label="Managing Servers">
+ </topic>
+ <topic href="html/gettingstarted/manage_volumes.html" label="Managing Volumes">
+    <topic href="html/gettingstarted/manage_bricks.html" label="Managing Bricks">
+    </topic>
+ </topic> 
 </toc>
+
+
+
