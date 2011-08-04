@@ -409,7 +409,11 @@ def getCpuUsageAvg():
     if not (st1 and st2):
         return None
     delta = [st2[i] - st1[i] for i in range(len(st1))]
-    cpuPercent = sum(delta[:3]) / delta[3] * 100.0
+    try:
+        cpuPercent = sum(delta[:3]) / delta[3] * 100.0
+    except ZeroDivisionError, e:
+        log("failed to find cpu percentage:%s" % str(e))
+        return None
     return str('%.4f' % cpuPercent)
 
 def getLoadavg():
