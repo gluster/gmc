@@ -80,7 +80,8 @@ public class ServerSyncTask {
 		for(ClusterInfo cluster : clusters) {
 			try {
 				List<ServerInfo> servers = cluster.getServers();
-				List<GlusterServer> actualServers = glusterServerService.getGlusterServers(cluster.getName(), false);
+				List<GlusterServer> actualServers = glusterServerService.getGlusterServers(cluster.getName(), false,
+						null, null);
 				updateRemovedServers(cluster, servers, actualServers);
 				updateAddedServers(cluster, servers, actualServers);
 			} catch(Exception e) {

@@ -27,6 +27,8 @@ import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_INTERFACE;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_PERIOD;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_TYPE;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_MAX_COUNT;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_NEXT_TO;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_DISKS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_SERVERS;
@@ -118,18 +120,21 @@ public class GlusterServersResource extends AbstractResource {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getGlusterServersJSON(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
-			@QueryParam(QUERY_PARAM_DETAILS) Boolean details) {
-		return getGlusterServers(clusterName, MediaType.APPLICATION_JSON, details);
+			@QueryParam(QUERY_PARAM_DETAILS) Boolean details, @QueryParam(QUERY_PARAM_MAX_COUNT) Integer maxCount,
+			@QueryParam(QUERY_PARAM_NEXT_TO) String previousServerName) {
+		return getGlusterServers(clusterName, MediaType.APPLICATION_JSON, details, maxCount, previousServerName);
 	}
 
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
 	public Response getGlusterServersXML(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
-			@QueryParam(QUERY_PARAM_DETAILS) Boolean details) {
-		return getGlusterServers(clusterName, MediaType.APPLICATION_XML, details);
+			@QueryParam(QUERY_PARAM_DETAILS) Boolean details, @QueryParam(QUERY_PARAM_MAX_COUNT) Integer maxCount,
+			@QueryParam(QUERY_PARAM_NEXT_TO) String previousServerName) {
+		return getGlusterServers(clusterName, MediaType.APPLICATION_XML, details, maxCount, previousServerName);
 	}
 	
-	private Response getGlusterServers(String clusterName, String mediaType, Boolean fetchDetails) {
+	private Response getGlusterServers(String clusterName, String mediaType, Boolean fetchDetails, Integer maxCount,
+			String previousServerName) {
 		if(fetchDetails == null) {
 			// by default, fetch the server details
 			fetchDetails = true;
@@ -151,7 +156,7 @@ public class GlusterServersResource extends AbstractResource {
 		}
 
 		try {
-			glusterServers = glusterServerService.getGlusterServers(clusterName, fetchDetails);
+			glusterServers = glusterServerService.getGlusterServers(clusterName, fetchDetails, maxCount, previousServerName);
 		} catch (Exception e) {
 			return errorResponse(e.getMessage());
 		}
@@ -444,7 +449,7 @@ public class GlusterServersResource extends AbstractResource {
 			return okResponse(new ServerStats(), mediaType);
 		}
 
-		List<String> serverNames = getServerNames(glusterServerService.getGlusterServers(clusterName, false));
+		List<String> serverNames = getServerNames(glusterServerService.getGlusterServers(clusterName, false, null, null));
 		return okResponse(getStatsFactory(type).fetchAggregatedStats(serverNames, period), mediaType);
 	}
 
