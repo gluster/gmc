@@ -378,7 +378,7 @@ public class GlusterServersResource extends AbstractResource {
 			// Check the initialize disk status
 			TaskStatus taskStatus = initializeTask.checkStatus();
 			initializeTask.getTaskInfo().setStatus(taskStatus);			
-			taskResource.addTask(initializeTask);
+			taskResource.addTask(clusterName, initializeTask);
 
 			return acceptedResponse(RESTConstants.RESOURCE_PATH_CLUSTERS + "/" + clusterName + "/" + RESOURCE_TASKS + "/"
 					+ initializeTask.getId());

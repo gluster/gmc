@@ -32,6 +32,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.ViewPart;
 
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Alert.ALERT_TYPES;
 import com.gluster.storage.management.core.model.ClusterListener;
@@ -156,8 +157,8 @@ public class GlusterServersSummaryView extends ViewPart {
 
 	private void populateAvailabilitySection() {
 		if (servers.getEntities().size() == 0) {
-			toolkit.createLabel(serversAvailabilitySection,
-					"This section will be populated after at least\none server is added to the storage cloud.");
+			toolkit.createLabel(serversAvailabilitySection, "This section will be populated after at least"
+					+ CoreConstants.NEWLINE + "one server is added to the storage cloud.");
 			return;
 		}
 

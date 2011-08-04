@@ -22,6 +22,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.wizard.Wizard;
 
 import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.gui.GlusterDataModelManager;
@@ -92,9 +93,9 @@ public class CreateVolumeWizard extends Wizard {
 		boolean error = false;
 		String message1 = null;
 		if (page.startVolumeAfterCreation()) {
-			if (MessageDialog.openConfirm(getShell(), title,
-					"Volume created, but following error(s) occured: " + errMsg
-							+ "\n\nDo you still want to start the volume [" + newVolume.getName()  + "]?")) {
+			if (MessageDialog.openConfirm(getShell(), title, "Volume created, but following error(s) occured: "
+					+ errMsg + CoreConstants.NEWLINE + CoreConstants.NEWLINE
+					+ "Do you still want to start the volume [" + newVolume.getName() + "]?")) {
 				try {
 					volumesClient.startVolume(newVolume.getName());
 					newVolume.setStatus(VOLUME_STATUS.ONLINE);

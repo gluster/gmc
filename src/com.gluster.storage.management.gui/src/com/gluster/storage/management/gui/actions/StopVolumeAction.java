@@ -27,6 +27,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 
 import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.utils.StringUtil;
@@ -61,9 +62,9 @@ public class StopVolumeAction extends AbstractActionDelegate {
 		}
 
 		Integer userAction = new MessageDialog(getShell(), "Stop Volume", GUIHelper.getInstance().getImage(
-				IImageKeys.VOLUME_16x16), "Are you sure you want to stop the following volume(s)?\n" + "["
-				+ StringUtil.collectionToString(onlineVolumeNames, ", ") + "]", MessageDialog.QUESTION, new String[] {
-				"No", "Yes" }, -1).open();
+				IImageKeys.VOLUME_16x16), "Are you sure you want to stop the following volume(s)?"
+				+ CoreConstants.NEWLINE + "[" + StringUtil.collectionToString(onlineVolumeNames, ", ") + "]",
+				MessageDialog.QUESTION, new String[] { "No", "Yes" }, -1).open();
 
 		if (userAction <= 0) { // user select cancel or pressed escape key
 			return;
@@ -90,13 +91,14 @@ public class StopVolumeAction extends AbstractActionDelegate {
 		// Display the success or failure info
 		if (stoppedVolumes.size() == 0) { // No volume(s) stopped successfully
 			showErrorDialog(actionDesc, "Following volume(s) [" + StringUtil.collectionToString(failedVolumes, ", ")
-					+ "] could not be stopped! " + "\nError: [" + errorMessage + "]");
+					+ "] could not be stopped! " + CoreConstants.NEWLINE + "Error: [" + errorMessage + "]");
 		} else {
 			String info = "Following volume(s) [" + StringUtil.collectionToString(stoppedVolumes, ", ")
 					+ "] are stopped successfully!";
 			if (errorMessage != "") {
-				info += "\n\nFollowing volume(s) [" + StringUtil.collectionToString(failedVolumes, ", ")
-						+ "] are failed to stop! [" + errorMessage + "]";
+				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Following volume(s) ["
+						+ StringUtil.collectionToString(failedVolumes, ", ") + "] are failed to stop! [" + errorMessage
+						+ "]";
 			}
 			showInfoDialog(actionDesc, info);
 		}

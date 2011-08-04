@@ -35,6 +35,7 @@ import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Hyperlink;
 
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.NetworkInterface;
@@ -83,9 +84,9 @@ public class ChartUtil {
 		extractChartData(stats, timestamps, data, dataColumnIndex);
 
 		if (timestamps.size() == 0) {
-			toolkit.createLabel(
-					section,
-					"Server statistics not available!\nCheck if all services are running properly \non the cluster servers, or try after some time!");
+			toolkit.createLabel(section, "Server statistics not available!" + CoreConstants.NEWLINE
+					+ "Check if all services are running properly " + CoreConstants.NEWLINE
+					+ "on the cluster servers, or try after some time!");
 			return null;
 		}
 

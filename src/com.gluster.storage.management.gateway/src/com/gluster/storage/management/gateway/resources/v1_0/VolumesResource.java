@@ -63,6 +63,7 @@ import static com.gluster.storage.management.core.constants.RESTConstants.TASK_S
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -531,8 +532,11 @@ public class VolumesResource extends AbstractResource {
 	}
 	
 	public File createOnlineServerList(String clusterName) throws IOException {
+		String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+		
 		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
-		String clusterServersListFile = FileUtil.getTempDirName() + CoreConstants.FILE_SEPARATOR + ALL_SERVERS_FILE_NAME;
+		String clusterServersListFile = FileUtil.getTempDirName() + CoreConstants.FILE_SEPARATOR
+				+ ALL_SERVERS_FILE_NAME + "_" + timestamp;
 		List<GlusterServer> glusterServers = glusterUtil.getGlusterServers(onlineServer);
 		File serversFile = new File(clusterServersListFile);
 		FileOutputStream fos = new FileOutputStream(serversFile);
@@ -1122,7 +1126,7 @@ public class VolumesResource extends AbstractResource {
 				toBrick);
 		migrateDiskTask.setAutoCommit(autoCommit);
 		migrateDiskTask.start();
-		taskResource.addTask(migrateDiskTask);
+		taskResource.addTask(clusterName, migrateDiskTask);
 		return migrateDiskTask.getTaskInfo().getName(); // Return Task ID
 	}
 	
@@ -1144,7 +1148,7 @@ public class VolumesResource extends AbstractResource {
 		RebalanceVolumeTask rebalanceTask = new RebalanceVolumeTask(clusterService, clusterName, volumeName, getLayout(
 				isFixLayout, isMigrateData, isForcedDataMigrate));
 		rebalanceTask.start();
-		taskResource.addTask(rebalanceTask);
+		taskResource.addTask(clusterName, rebalanceTask);
 		return rebalanceTask.getId();
 	}
 	
@@ -1152,6 +1156,6 @@ public class VolumesResource extends AbstractResource {
 		// TODO: arrive at the task id and fetch it
 		String taskId = "";
 		
-		taskResource.getTask(taskId).stop();
+		taskResource.getTask(clusterName, taskId).stop();
 	}
 }

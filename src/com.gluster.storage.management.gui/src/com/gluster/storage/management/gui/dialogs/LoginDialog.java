@@ -224,7 +224,7 @@ public class LoginDialog extends Dialog {
 
 			if (dialog.open() == Dialog.CANCEL) {
 				MessageDialog.openError(getShell(), "Change password Cancelled",
-						"Password must be changed on first login!" + "\n" + "Application will close.");
+						"Password must be changed on first login!" + CoreConstants.NEWLINE + "Application will close.");
 				cancelPressed();
 				return;
 			}
