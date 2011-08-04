@@ -132,6 +132,74 @@ public class GlusterCoreUtil {
 				}
 			}
 		}
-		// TODO: do the same for raid disks and/or partitions whenever we start supporting them
+	}
+
+	/**
+	 * Skips (removes) the entities from given list till (including) the given {@code tillServer}, upto a maximum of
+	 * {@code maxCount} entities<br>
+	 * 
+	 * @param entities
+	 *            List of entities to be pruned
+	 * @param maxCount
+	 *            Maximum number of entities to be returned
+	 * @param tillEntity
+	 *            A list of entities after skipping the ones appearing before, and including {@code tillEntity}. If the
+	 *            resulting list is bigger than {@code maxCount}, then the first {@code maxCount} number of entities
+	 *            will be returned.
+	 */
+	public static <T extends Entity> List<T> skipEntities(List<T> entities, Integer maxCount, String tillEntity) {
+		List<T> servers = skipEntitiesTill(entities, tillEntity);
+		return skipEntitiesByMaxCount(servers, maxCount);
+	}
+
+	/**
+	 * Removes extra entities from given list to return the first (or maximum of) {@code maxCount} entities<br>
+	 * 
+	 * @param entities
+	 *            List of entities to be pruned
+	 * @param maxCount
+	 *            Maximum number of entities to be returned
+	 * @param tillEntity
+	 *            the first (or a maximum of) {@code maxCount} entities from the given list
+	 */
+	public static <T extends Entity> List<T> skipEntitiesByMaxCount(List<T> entities, Integer maxCount) {
+		if(maxCount == null || maxCount <= 0 || maxCount > entities.size()) {
+			return entities;
+		}
+		
+		return entities.subList(0, maxCount - 1);
+	}
+
+	/**
+	 * Skips (removes) the entities from given list till (including) the given entity. <br>
+	 * 
+	 * @param entities
+	 *            List of entities to be pruned
+	 * @param tillEntity
+	 *            A list of entities after skipping the ones appearing before, and including {@code tillEntity}
+	 */
+	public static <T extends Entity> List<T> skipEntitiesTill(List<T> entities, String tillEntity) {
+		if(tillEntity == null) {
+			return entities;
+		}
+		
+		int index = indexOfEntity(entities, tillEntity);
+		if(index != -1) {
+			return entities.subList(index + 1, entities.size()-1);
+		}
+		
+		// given entity not found. return the input list as it is.
+		return entities;
+	}
+
+	public static <T extends Entity> int indexOfEntity(List<T> entities, String entityName) {
+		int index = -1;
+		for(int i = 0; i < entities.size(); i++) {
+			if(entities.get(i).getName().equalsIgnoreCase(entityName)) {
+				index = i;
+				break;
+			}
+		}
+		return index;
 	}
 }

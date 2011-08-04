@@ -115,8 +115,8 @@ public class ServerUtil {
 	 *            as it will be automatically identified by the method.
 	 * @param expectedClass
 	 *            Class of the object expected from script execution
-	 * @return Object of the expected class from remote execution of the command. In case the remote execution fails
-	 *         ungracefully, an object of class {@link Status} will be returned.
+	 * @return Object of the expected class from remote execution of the command.
+	 * @throws GlusterRuntimeException in case the remote execution fails.
 	 */
 	public <T> T executeScriptOnServer(boolean runInForeground, String serverName, String scriptWithArgs,
 			Class<T> expectedClass) {

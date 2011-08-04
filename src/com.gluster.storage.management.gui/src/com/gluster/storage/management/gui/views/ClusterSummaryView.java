@@ -312,6 +312,14 @@ public class ClusterSummaryView extends ViewPart {
 	private void createSections(Composite parent) {
 		form = guiHelper.setupForm(parent, toolkit, "Cluster Summary");
 
+		if (cluster.getServers().size() > 0
+				&& (cluster.getAggregatedCpuStats().getRows() == null || cluster.getAggregatedNetworkStats().getRows() == null)) {
+			// cluster has servers, but stats are null. Happens when user logs in to a new cluster, '
+			// and then adds the first server.
+			GlusterDataModelManager.getInstance().initializeAggregatedCpuStats(cluster);
+			GlusterDataModelManager.getInstance().initializeAggregatedNetworkStats(cluster);
+		}		
+
 		createServersSection();
 		createDiskSpaceSection();
 		createCPUUsageSection();
@@ -332,16 +340,6 @@ public class ClusterSummaryView extends ViewPart {
 		}
 		
 		ChartUtil.getInstance().createAreaChart(toolkit, section, stats, dataColumnIndex, unit, timestampFormat, listener, maxValue, chartLinkColumnCount);
-
-//		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
-//				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
-//				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
-//				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
-//				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
-//				new CDateTime(1000l*1310473800) };
-//		
-//		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 89.31d, 57.39d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 21.43d, 16.45d, 14.86d, 15.27d };
-//		createLineChart(section, timestamps, values, "%");
 		return section;
 	}
 

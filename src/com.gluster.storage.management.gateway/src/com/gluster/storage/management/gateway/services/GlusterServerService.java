@@ -27,8 +27,10 @@ import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.exceptions.GlusterValidationException;
+import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
+import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.gateway.data.ClusterInfo;
 import com.gluster.storage.management.gateway.utils.GlusterUtil;
 import com.gluster.storage.management.gateway.utils.ServerUtil;
@@ -66,22 +68,24 @@ public class GlusterServerService {
 		}
 
 		try {
-			glusterServers = getGlusterServers(clusterName, onlineServer, fetchDetails);
+			glusterServers = getGlusterServers(clusterName, onlineServer, fetchDetails, maxCount, previousServerName);
 		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
 			onlineServer = clusterService.getNewOnlineServer(clusterName);
 			if (onlineServer == null) {
 				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 			}
-			glusterServers = getGlusterServers(clusterName, onlineServer, fetchDetails);
+			glusterServers = getGlusterServers(clusterName, onlineServer, fetchDetails, maxCount, previousServerName);
 		}
 		return glusterServers;
 	}
 	
-	private List<GlusterServer> getGlusterServers(String clusterName, GlusterServer onlineServer, boolean fetchDetails) {
+	private List<GlusterServer> getGlusterServers(String clusterName, GlusterServer onlineServer, boolean fetchDetails,
+			Integer maxCount, String previousServerName) {
 		List<GlusterServer> glusterServers;
 		try {
 			glusterServers = glusterUtil.getGlusterServers(onlineServer);
+			return GlusterCoreUtil.skipEntities(glusterServers, maxCount, previousServerName);
 		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
 			onlineServer = clusterService.getNewOnlineServer(clusterName);
@@ -100,7 +104,7 @@ public class GlusterServerService {
 		}
 		return glusterServers;
 	}
-	
+
 	private String fetchDetailsOfServers(List<GlusterServer> glusterServers, GlusterServer onlineServer) {
 		String errMsg = "";
 
