@@ -41,6 +41,7 @@ import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Cluster;
@@ -212,7 +213,8 @@ public class ClusterSummaryView extends ViewPart {
 	private void createDiskSpaceSection() {
 		Composite section = guiHelper.createSection(form, toolkit, "Disk Space", null, 3, false);
 		if (cluster.getServers().size() == 0) {
-			toolkit.createLabel(section, "This section will be populated after at least\none server is added to the storage cloud.");
+			toolkit.createLabel(section, "This section will be populated after at least" + CoreConstants.NEWLINE
+					+ "one server is added to the storage cloud.");
 			return;
 		}
 		
@@ -324,7 +326,8 @@ public class ClusterSummaryView extends ViewPart {
 	private Composite createAreaChartSection(ServerStats stats, String sectionTitle, int dataColumnIndex, String unit, String timestampFormat, ChartPeriodLinkListener listener, double maxValue, int chartLinkColumnCount) {
 		Composite section = guiHelper.createSection(form, toolkit, sectionTitle, null, 1, false);
 		if (cluster.getServers().size() == 0) {
-			toolkit.createLabel(section, "This section will be populated after at least\none server is added to the storage cloud.");
+			toolkit.createLabel(section, "This section will be populated after at least" + CoreConstants.NEWLINE
+					+ "one server is added to the storage cloud.");
 			return null;
 		}
 		

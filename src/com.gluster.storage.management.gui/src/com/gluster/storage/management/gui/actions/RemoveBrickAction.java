@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchPart;
 
 import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.utils.StringUtil;
@@ -33,7 +34,7 @@ public class RemoveBrickAction extends AbstractActionDelegate {
 		List<String> brickList = getBrickList(bricks);
 		Integer deleteOption = new MessageDialog(getShell(), "Remove Bricks(s)", GUIHelper.getInstance().getImage(
 				IImageKeys.VOLUME_16x16), "Are you sure you want to remove following bricks from volume [" + volume.getName()
-				+ "] ? \n" + StringUtil.collectionToString(brickList, ", "), MessageDialog.QUESTION, new String[] {
+				+ "] ? " + CoreConstants.NEWLINE + StringUtil.collectionToString(brickList, ", "), MessageDialog.QUESTION, new String[] {
 				"Cancel", "Remove bricks, delete data", "Remove bricks, keep data" }, -1).open();
 		if (deleteOption <= 0) { // By Cancel button(0) or Escape key(-1)
 			return;

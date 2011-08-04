@@ -27,6 +27,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 
 import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.utils.StringUtil;
@@ -50,7 +51,7 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 		if (onlineVolumeNames.size() > 0) { // There are some online volumes, get confirmation to stop and delete all
 											// the volumes
 			warningMessage = "Following volume(s) [" + StringUtil.collectionToString(onlineVolumeNames, ", ")
-					+ "] are online, \nAre you sure to continue?";
+					+ "] are online, " + CoreConstants.NEWLINE + "Are you sure to continue?";
 		} else {
 			warningMessage = "Are you sure to delete the following volume(s) ["
 					+ StringUtil.collectionToString(selectedVolumeNames, ", ") + "] ?";
@@ -80,11 +81,12 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 				// there is a possibility that the error was in post-delete operation, which means
 				// volume was deleted, but some other error happened. check if this is the case.
 				if (vc.volumeExists(volume.getName())) {
-					errorMessage += "\nVolume [" + volume.getName() + "] could not be deleted! Error: ["
-							+ e.getMessage() + "]";
+					errorMessage += CoreConstants.NEWLINE + "Volume [" + volume.getName()
+							+ "] could not be deleted! Error: [" + e.getMessage() + "]";
 					failedVolumes.add(volume.getName());
 				} else {
-					errorMessage += "\nVolume deleted, but following error(s) occured: [" + e.getMessage() + "]";
+					errorMessage += CoreConstants.NEWLINE + "Volume deleted, but following error(s) occured: ["
+							+ e.getMessage() + "]";
 					modelManager.deleteVolume(volume);
 					deletedVolumes.add(volume.getName());
 				}
@@ -94,13 +96,14 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 		// Display the success or failure info
 		if (deletedVolumes.size() == 0) { // No volume(s) deleted successfully
 			showErrorDialog(actionDesc, "Following volume(s) [" + StringUtil.collectionToString(failedVolumes, ", ")
-					+ "] could not be delete! " + "\nError: [" + errorMessage + "]");
+					+ "] could not be delete! " + CoreConstants.NEWLINE + "Error: [" + errorMessage + "]");
 		} else {
 			String info = "Following volumes [" + StringUtil.collectionToString(deletedVolumes, ", ")
 					+ "] are deleted successfully!";
 			if (errorMessage != "") {
-				info += "\n\nFollowing volumes [" + StringUtil.collectionToString(failedVolumes, ", ")
-						+ "] are failed to delete! [" + errorMessage + "]";
+				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Following volumes ["
+						+ StringUtil.collectionToString(failedVolumes, ", ") + "] are failed to delete! ["
+						+ errorMessage + "]";
 			}
 			showInfoDialog(actionDesc, info);
 		}

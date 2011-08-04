@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.IWorkbenchSite;
 
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.EntityGroup;
@@ -46,7 +47,7 @@ public class VolumesPage extends AbstractTableViewerPage<Volume> {
 	};
 
 	private static final String[] VOLUME_TABLE_COLUMN_NAMES = new String[] { "Name", "Volume Type",
-			"Number of\nBricks", "Transport Type", "Status" };
+			"Number of" + CoreConstants.NEWLINE + "Bricks", "Transport Type", "Status" };
 
 	public VolumesPage(final Composite parent, IWorkbenchSite site, EntityGroup<Volume> volumes) {
 		super(site, parent, SWT.NONE, true, true, volumes);

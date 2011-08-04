@@ -31,6 +31,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.ViewPart;
 
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.ClusterListener;
@@ -220,7 +221,7 @@ public class VolumesSummaryView extends ViewPart {
 	private void populateSummarySection() {
 		if(volumes.getEntities().size() == 0) {
 			toolkit.createLabel(summarySection,
-					"This section will be populated after at least\none volume is created the storage cloud.");
+					"This section will be populated after at least" + CoreConstants.NEWLINE +"one volume is created the storage cloud.");
 			return;
 		}
 

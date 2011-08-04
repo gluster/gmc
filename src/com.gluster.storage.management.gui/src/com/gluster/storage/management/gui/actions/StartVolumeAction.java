@@ -26,6 +26,7 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 
 import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.utils.StringUtil;
@@ -78,13 +79,14 @@ public class StartVolumeAction extends AbstractActionDelegate {
 		// Display the success or failure info
 		if (startedVolumes.size() == 0) { // No volume(s) started successfully
 			showErrorDialog(actionDesc, "Following volume(s) [" + StringUtil.collectionToString(failedVolumes, ", ")
-					+ "] could not be start! " + "\nError: [" + errorMessage + "]");
+					+ "] could not be start! " + CoreConstants.NEWLINE + "Error: [" + errorMessage + "]");
 		} else {
 			String info = "Following volume(s) [" + StringUtil.collectionToString(startedVolumes, ", ")
 					+ "] are started successfully!";
 			if (errorMessage != "") {
-				info += "\n\nFollowing volume(s) [" + StringUtil.collectionToString(failedVolumes, ", ")
-						+ "] are failed to start! [" + errorMessage + "]";
+				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Following volume(s) ["
+						+ StringUtil.collectionToString(failedVolumes, ", ") + "] are failed to start! ["
+						+ errorMessage + "]";
 			}
 			showInfoDialog(actionDesc, info);
 		}

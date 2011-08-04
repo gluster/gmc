@@ -45,12 +45,12 @@ public class PasswordManager {
 			
 			userAuthDao.changePassword(username, encodedPassword);
 			System.out.println("Password for user [" + username + "] reset successsfully to default value of ["
-					+ CoreConstants.DEFAULT_PASSWORD + "].\n");
+					+ CoreConstants.DEFAULT_PASSWORD + "]." + CoreConstants.NEWLINE);
 		} catch (Exception e) {
-			System.err
-					.println("\n\nPassword reset for user ["
-							+ username
-							+ "] failed! \nMake sure that the Management Gateway is not running while performing password reset.\n");
+			System.err.println(CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Password reset for user [" + username
+					+ "] failed! " + CoreConstants.NEWLINE
+					+ "Make sure that the Management Gateway is not running while performing password reset."
+					+ CoreConstants.NEWLINE);
 			System.exit(SQL_ERR);
 		}
 	}

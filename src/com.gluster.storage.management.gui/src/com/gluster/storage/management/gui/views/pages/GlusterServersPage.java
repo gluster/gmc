@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.IWorkbenchSite;
 
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.EntityGroup;
@@ -45,8 +46,9 @@ public class GlusterServersPage extends AbstractTableViewerPage<GlusterServer> {
 		NAME, IP_ADDRESSES, NUM_OF_CPUS, TOTAL_MEMORY, TOTAL_FREE_SPACE, TOTAL_DISK_SPACE, STATUS // Removed PREFERRED_NETWORK 
 	};
 
-	private static final String[] GLUSTER_SERVER_TABLE_COLUMN_NAMES = new String[] { "Name", 
-			"IP Address(es)", "Number\nof CPUs", "Total\nMemory (GB)", "Free Space (GB)", "Total \n Space (GB)", "Status" }; // Removed "Preferred\nNetwork", 
+	private static final String[] GLUSTER_SERVER_TABLE_COLUMN_NAMES = new String[] { "Name", "IP Address(es)",
+			"Number" + CoreConstants.NEWLINE + "of CPUs", "Total" + CoreConstants.NEWLINE + "Memory (GB)",
+			"Free Space (GB)", "Total " + CoreConstants.NEWLINE + " Space (GB)", "Status" }; // Removed "Preferred\nNetwork",
 
 	public GlusterServersPage(IWorkbenchSite site, final Composite parent, int style, final EntityGroup<GlusterServer> servers) {
 		super(site, parent, style, true, true, servers);
