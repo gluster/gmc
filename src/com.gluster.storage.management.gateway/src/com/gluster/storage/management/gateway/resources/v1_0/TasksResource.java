@@ -57,30 +57,41 @@ import com.sun.jersey.spi.resource.Singleton;
 @Singleton
 @Component
 public class TasksResource extends AbstractResource {
-	private Map<String, Task> tasksMap = new HashMap<String, Task>();
+	private Map<String, Map<String, Task>> tasksMap = new HashMap<String, Map<String, Task>>();
 
 	public TasksResource() {
 	}
 
-	public void addTask(Task task) {
-		tasksMap.put(task.getId(), task);
+	@SuppressWarnings("unchecked")
+	public void addTask(String clusterName, Task task) {
+		Map clusterTaskMap = tasksMap.get(clusterName);
+		if(clusterTaskMap == null) {
+			clusterTaskMap = new HashMap<String, Task>();
+			tasksMap.put(clusterName, clusterTaskMap);
+		}
+		clusterTaskMap.put(task.getId(), task);
 	}
 
 	public void removeTask(Task task) {
 		tasksMap.remove(task.getId());
 	}
 
-	public List<TaskInfo> getAllTasksInfo() {
+	public List<TaskInfo> getAllTasksInfo(String clusterName) {
+		Map<String, Task> clusterTasksMap = tasksMap.get(clusterName);
 		List<TaskInfo> allTasksInfo = new ArrayList<TaskInfo>();
-		for (Map.Entry<String, Task> entry : tasksMap.entrySet()) {
-			checkTaskStatus(entry.getKey());
+		if ( clusterTasksMap == null) {
+			return allTasksInfo;
+		}
+		for (Map.Entry<String, Task> entry : clusterTasksMap.entrySet()) {
+			checkTaskStatus(clusterName, entry.getKey());
 			allTasksInfo.add(entry.getValue().getTaskInfo()); // TaskInfo with latest status 
 		}
 		return allTasksInfo;
 	}
 
-	public Task getTask(String taskId) {
-		for (Map.Entry<String, Task> entry : tasksMap.entrySet()) {
+	public Task getTask(String clusterName, String taskId) {
+		Map<String, Task> clusterTasksMap = tasksMap.get(clusterName);
+		for (Map.Entry<String, Task> entry : clusterTasksMap.entrySet()) {
 			if (entry.getValue().getId().equals(taskId)) {
 				return entry.getValue();
 			}
@@ -88,10 +99,11 @@ public class TasksResource extends AbstractResource {
 		return null;
 	}
 	
-	public List<Task> getAllTasks() {
+	public List<Task> getAllTasks(String clusterName) {
+		Map<String, Task> clusterTasksMap = tasksMap.get(clusterName);
 		List<Task> tasks = new ArrayList<Task>();
-		for (Map.Entry<String, Task> entry : tasksMap.entrySet()) {
-			checkTaskStatus(entry.getKey());
+		for (Map.Entry<String, Task> entry : clusterTasksMap.entrySet()) {
+			checkTaskStatus(clusterName, entry.getKey());
 			tasks.add( (Task) entry.getValue());
 		}
 		return tasks;
@@ -99,9 +111,9 @@ public class TasksResource extends AbstractResource {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-	public Response getTasks() {
+	public Response getTasks(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
 		try {
-			return okResponse(new TaskInfoListResponse(getAllTasksInfo()), MediaType.APPLICATION_XML);
+			return okResponse(new TaskInfoListResponse(getAllTasksInfo(clusterName)), MediaType.APPLICATION_XML);
 		} catch (GlusterRuntimeException e) {
 			return errorResponse(e.getMessage());
 		}
@@ -110,17 +122,18 @@ public class TasksResource extends AbstractResource {
 	@GET
 	@Path("/{" + PATH_PARAM_TASK_ID + "}")
 	@Produces(MediaType.APPLICATION_XML)
-	public Response getTaskStatus( @PathParam(PATH_PARAM_TASK_ID) String taskId) {
+	public Response getTaskStatus(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@PathParam(PATH_PARAM_TASK_ID) String taskId) {
 		try {
-			Task task = checkTaskStatus(taskId);
+			Task task = checkTaskStatus(clusterName, taskId);
 			return okResponse(task.getTaskInfo(), MediaType.APPLICATION_XML);
 		} catch (GlusterRuntimeException e) {
 			return errorResponse(e.getMessage());
 		}
 	}
 
-	private Task checkTaskStatus(String taskId) {
-		Task task = getTask(taskId);
+	private Task checkTaskStatus(String clusterName, String taskId) {
+		Task task = getTask(clusterName, taskId);
 		// No status check required if the task already complete or failure
 		if (task.getTaskInfo().getStatus().getCode() == Status.STATUS_CODE_FAILURE
 				|| task.getTaskInfo().getStatus().getCode() == Status.STATUS_CODE_SUCCESS) {
@@ -135,7 +148,7 @@ public class TasksResource extends AbstractResource {
 	@Produces(MediaType.APPLICATION_XML)
 	public Response performTask(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_TASK_ID) String taskId, @FormParam(FORM_PARAM_OPERATION) String taskOperation) {
-		Task task = getTask(taskId);
+		Task task = getTask(clusterName, taskId);
 		
 		try {
 			if (taskOperation.equals(RESTConstants.TASK_RESUME)) {
@@ -144,7 +157,7 @@ public class TasksResource extends AbstractResource {
 				task.pause();
 			} else if (taskOperation.equals(RESTConstants.TASK_STOP)) {
 				// task.stop();
-				clearTask(taskId, taskOperation); // Stop and remove from the task list
+				clearTask(clusterName, taskId, taskOperation); // Stop and remove from the task list
 			} else if (taskOperation.equals(RESTConstants.TASK_COMMIT)) {
 				task.commit();
 			}
@@ -159,9 +172,9 @@ public class TasksResource extends AbstractResource {
 	@DELETE
 	@Path("/{" + PATH_PARAM_TASK_ID + "}")
 	@Produces(MediaType.APPLICATION_XML)
-	public Response clearTask(@PathParam(PATH_PARAM_TASK_ID) String taskId,
-			@QueryParam(FORM_PARAM_OPERATION) String taskOperation) {
-		Task task = getTask(taskId);
+	public Response clearTask(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
+			@PathParam(PATH_PARAM_TASK_ID) String taskId, @QueryParam(FORM_PARAM_OPERATION) String taskOperation) {
+		Task task = getTask(clusterName, taskId);
 		if (task == null) {
 			return notFoundResponse("Task [" + taskId + "] not found!");
 		}

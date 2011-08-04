@@ -1122,7 +1122,7 @@ public class VolumesResource extends AbstractResource {
 				toBrick);
 		migrateDiskTask.setAutoCommit(autoCommit);
 		migrateDiskTask.start();
-		taskResource.addTask(migrateDiskTask);
+		taskResource.addTask(clusterName, migrateDiskTask);
 		return migrateDiskTask.getTaskInfo().getName(); // Return Task ID
 	}
 	
@@ -1144,7 +1144,7 @@ public class VolumesResource extends AbstractResource {
 		RebalanceVolumeTask rebalanceTask = new RebalanceVolumeTask(clusterService, clusterName, volumeName, getLayout(
 				isFixLayout, isMigrateData, isForcedDataMigrate));
 		rebalanceTask.start();
-		taskResource.addTask(rebalanceTask);
+		taskResource.addTask(clusterName, rebalanceTask);
 		return rebalanceTask.getId();
 	}
 	
@@ -1152,6 +1152,6 @@ public class VolumesResource extends AbstractResource {
 		// TODO: arrive at the task id and fetch it
 		String taskId = "";
 		
-		taskResource.getTask(taskId).stop();
+		taskResource.getTask(clusterName, taskId).stop();
 	}
 }
