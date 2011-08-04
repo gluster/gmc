@@ -15,7 +15,7 @@ import Utils
 
 
 defaultUid = 1024000
-cifsUserFile = "/etc/glustermg/.users.cifs"
+cifsUserFile = "/opt/glustermg/etc/users.cifs"
 
 
 def getLastUid():

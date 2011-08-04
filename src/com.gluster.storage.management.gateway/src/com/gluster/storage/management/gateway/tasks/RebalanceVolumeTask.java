@@ -75,12 +75,8 @@ public class RebalanceVolumeTask extends Task {
 
 	private void startRebalance(String serverName) {
 		String command = "gluster volume rebalance " + getTaskInfo().getReference() + " " + getLayout() + " start";
-		Object output = serverUtil.executeOnServer(true, serverName, command, String.class);
-		if(output instanceof Status) {
-			// Status object will be returned only in case of failure
-			throw new GlusterRuntimeException(((Status)output).toString()); 
-		}
-		getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, (String)output)));
+		String output = serverUtil.executeOnServer(true, serverName, command, String.class);
+		getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, output)));
 	}
 
 	@Override

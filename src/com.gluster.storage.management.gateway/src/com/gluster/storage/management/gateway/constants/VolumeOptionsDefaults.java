@@ -140,18 +140,18 @@ public class VolumeOptionsDefaults {
 		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
 
 		try {
-			options = runDefaultVolumeOptions(onlineServer.getName(), command);
+			options = getVolumeOptionsInfo(onlineServer.getName(), command);
 			return options.getOptions();
 		} catch (ConnectionException e) {
 			onlineServer = clusterService.getNewOnlineServer(clusterName);
-			options =  runDefaultVolumeOptions(onlineServer.getName(), command);
+			options =  getVolumeOptionsInfo(onlineServer.getName(), command);
 			return options.getOptions();
 		} catch (Exception e) {
 			throw new GlusterRuntimeException("Fetching volume options default failed! [" + e.getMessage() + "]"); 
 		}
 	}
 	
-	private VolumeOptionInfoListResponse runDefaultVolumeOptions(String serverName, String command) {
+	private VolumeOptionInfoListResponse getVolumeOptionsInfo(String serverName, String command) {
 		return (VolumeOptionInfoListResponse) serverUtil.executeOnServer(true, serverName, command,
 				VolumeOptionInfoListResponse.class);
 	}

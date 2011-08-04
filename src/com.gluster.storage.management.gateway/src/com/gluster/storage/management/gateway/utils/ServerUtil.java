@@ -105,13 +105,9 @@ public class ServerUtil {
 		return ((Server) response).getName();
 	}
 
-	private Object fetchServerDetails(String serverName) {
+	private Server fetchServerDetails(String serverName) {
 		// fetch standard server details like cpu, disk, memory details
-		Object response = executeScriptOnServer(true, serverName, REMOTE_SCRIPT_GET_SERVER_DETAILS, Server.class);
-		if (response instanceof Status) {
-			throw new GlusterRuntimeException(((Status) response).getMessage());
-		}
-		return response;
+		return executeScriptOnServer(true, serverName, REMOTE_SCRIPT_GET_SERVER_DETAILS, Server.class);
 	}
 
 	/**
@@ -128,9 +124,10 @@ public class ServerUtil {
 	 * @return Object of the expected class from remote execution of the command. In case the remote execution fails
 	 *         ungracefully, an object of class {@link Status} will be returned.
 	 */
-	public Object executeScriptOnServer(boolean runInForeground, String serverName, String scriptWithArgs,
-			@SuppressWarnings("rawtypes") Class expectedClass) {
-		return executeOnServer(runInForeground, serverName, getRemoteScriptDir() + File.separator + scriptWithArgs, expectedClass);
+	public <T> T executeScriptOnServer(boolean runInForeground, String serverName, String scriptWithArgs,
+			Class<T> expectedClass) {
+		return executeOnServer(runInForeground, serverName, getRemoteScriptDir() + File.separator + scriptWithArgs,
+				expectedClass);
 	}
 	
 	/**
@@ -144,33 +141,15 @@ public class ServerUtil {
 	 * @return Object of the expected class from remote execution of the command. In case the remote execution fails
 	 *         ungracefully, an object of class {@link Status} will be returned.
 	 */
-	@SuppressWarnings("rawtypes")
-	public Object executeOnServer(boolean runInForeground, String serverName, String commandWithArgs,
-			Class expectedClass) {
-		try {
-			String output = executeOnServer(serverName, commandWithArgs);
-			if(expectedClass == String.class) {
-				return output;
-			}
-
-			// In case the script execution exits ungracefully, the agent would return a GenericResponse.
-			// hence pass last argument as true to try GenericResponse unmarshalling in such cases.
-			Object response = unmarshal(expectedClass, output, expectedClass != GenericResponse.class);
-			if (expectedClass != GenericResponse.class && response instanceof GenericResponse) {
-				// expected class was not GenericResponse, but that's what we got. This means the
-				// script failed ungracefully. Extract and return the status object from the response
-				return ((GenericResponse) response).getStatus();
-			}
-			return response;
-		} catch (RuntimeException e) {
-			// Except for connection exception, wrap any other exception in the a object and return it.
-			if (e instanceof ConnectionException) {
-				throw e;
-			} else {
-				// error during unmarshalling. return status with error from exception.
-				return new Status(e);
-			}
+	@SuppressWarnings("unchecked")
+	public <T> T executeOnServer(boolean runInForeground, String serverName, String commandWithArgs,
+			Class<T> expectedClass) {
+		String output = executeOnServer(serverName, commandWithArgs);
+		if (expectedClass == String.class) {
+			return (T) output;
 		}
+
+		return unmarshal(expectedClass, output);
 	}
 
 	private String executeOnServer(String serverName, String commandWithArgs) {
@@ -231,27 +210,20 @@ public class ServerUtil {
 	 *            Class whose object is expected
 	 * @param input
 	 *            Input string
-	 * @param tryGenericResponseOnFailure
-	 *            If true, and if the unmarshalling fails for given class, another unmarshalling will be attempted with
-	 *            class {@link GenericResponse}. If this also fails, a status object with exception message is created
-	 *            and returned.
-	 * @return Object of given expected class, or a status object in case first unmarshalling fails.
+	 * @return Object of given expected class
 	 */
-	@SuppressWarnings("rawtypes")
-	public Object unmarshal(Class expectedClass, String input, boolean tryGenericResponseOnFailure) {
+	@SuppressWarnings("unchecked")
+	public <T> T unmarshal(Class<T> expectedClass, String input) {
 		try {
 			// create JAXB context and instantiate marshaller
 			JAXBContext context = JAXBContext.newInstance(expectedClass);
 			Unmarshaller um = context.createUnmarshaller();
-			return um.unmarshal(new ByteArrayInputStream(input.getBytes()));
+			return (T)um.unmarshal(new ByteArrayInputStream(input.getBytes()));
 		} catch (JAXBException e) {
-			if (tryGenericResponseOnFailure) {
-				// unmarshalling failed. try to unmarshal a GenericResponse object
-				return unmarshal(GenericResponse.class, input, false);
-
-			}
-			return new Status(Status.STATUS_CODE_FAILURE, "Error during unmarshalling string [" + input
-					+ "] for class [" + expectedClass.getName() + ": [" + e.getMessage() + "]");
+			String errMsg = "Error during unmarshalling string [" + input + "] for class [" + expectedClass.getName()
+					+ ": [" + e.getMessage() + "]";
+			logger.error(errMsg, e);
+			throw new GlusterRuntimeException(errMsg, e);
 		}
 	}
 
@@ -263,7 +235,7 @@ public class ServerUtil {
 	 * @return Status object containing the disk name, or error message in case the remote script fails.
 	 */
 	public Status getDiskForDir(String serverName, String brickDir) {
-		return (Status) executeScriptOnServer(true, serverName, REMOTE_SCRIPT_GET_DISK_FOR_DIR + " " + brickDir, Status.class);
+		return executeScriptOnServer(true, serverName, REMOTE_SCRIPT_GET_DISK_FOR_DIR + " " + brickDir, Status.class);
 	}
 
 	public static void main(String[] args) {
@@ -282,7 +254,6 @@ public class ServerUtil {
 //				System.out.println(row.getUsageData().get(2));
 //			}
 //		} catch (JAXBException e) {
-//			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
 	}

@@ -678,12 +678,13 @@ public class VolumesResource extends AbstractResource {
 			String serverName = brickInfo[0];
 			String brickDirectory = brickInfo[1];
 
-			// String mountPoint = brickDirectory.substring(0,
-			// brickDirectory.lastIndexOf("/"));
-			Object output = serverUtil.executeScriptOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
+			try {
+			String output = serverUtil.executeScriptOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
 					+ brickDirectory + " " + (deleteFlag ? "-d" : ""), String.class);
-			if (output instanceof Status) {
-				errors += "[" + brickDirectory + "] => " + output + CoreConstants.NEWLINE;
+			} catch(Exception e) {
+				logger.error("Error while cleaning brick [" + serverName + ":" + brickDirectory + "] of volume ["
+						+ volumeName + "] : " + e.getMessage(), e);
+				errors += "[" + brickDirectory + "] => " + e.getMessage() + CoreConstants.NEWLINE;
 			}
 		}
 		if(!errors.trim().isEmpty()) {
@@ -696,13 +697,9 @@ public class VolumesResource extends AbstractResource {
 			String brickDirectory = brick.getBrickDirectory();
 			// String mountPoint = brickDirectory.substring(0, brickDirectory.lastIndexOf("/"));
 
-			Object output = serverUtil.executeScriptOnServer(true, brick.getServerName(),
+			serverUtil.executeScriptOnServer(true, brick.getServerName(),
 					VOLUME_DIRECTORY_CLEANUP_SCRIPT + " " + brickDirectory + " " + (deleteFlag ? "-d" : ""),
 					String.class);
-			if (output instanceof Status) {
-				throw new GlusterRuntimeException("Error in post-delete operation of volume [" + volumeName + "]: "
-						+ output);
-			}
 		}
 	}
 
@@ -825,22 +822,15 @@ public class VolumesResource extends AbstractResource {
 		String logFilePath = logDir + CoreConstants.FILE_SEPARATOR + logFileName;
 
 		// Usage: get_volume_disk_log.py <volumeName> <diskName> <lineCount>
-		Object responseObj = serverUtil.executeScriptOnServer(true, brick.getServerName(), VOLUME_BRICK_LOG_SCRIPT
+		LogMessageListResponse response = serverUtil.executeScriptOnServer(true, brick.getServerName(), VOLUME_BRICK_LOG_SCRIPT
 				+ " " + logFilePath + " " + lineCount, LogMessageListResponse.class);
 
-		LogMessageListResponse response = null;
-		if (responseObj instanceof LogMessageListResponse) {
-			response = (LogMessageListResponse) responseObj;
-			// populate disk and trim other fields
-			List<VolumeLogMessage> logMessages = response.getLogMessages();
-			for (VolumeLogMessage logMessage : logMessages) {
-				logMessage.setBrickDirectory(brick.getBrickDirectory());
-			}
-			return logMessages;
-		} else {
-			Status status = (Status) responseObj;
-			throw new GlusterRuntimeException(status.toString());
+		// populate disk and trim other fields
+		List<VolumeLogMessage> logMessages = response.getLogMessages();
+		for (VolumeLogMessage logMessage : logMessages) {
+			logMessage.setBrickDirectory(brick.getBrickDirectory());
 		}
+		return logMessages;
 	}
 
 	@GET
