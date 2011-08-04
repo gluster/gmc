@@ -411,24 +411,15 @@ public class GlusterUtil {
 	}
 
 	private void addBrickToVolume(Volume volume, String serverName, String brickDir, BRICK_STATUS status) {
-		//If brick directory has standard path, find and assign device name otherwise null
-//		String stdBrickDirPattern = "^/export/.*/.*"; // e.g: /export/sdb/test
-		String deviceName = null;
-//		if (Pattern.matches(stdBrickDirPattern, brickDir) ) {
-//			deviceName = brickDir.split("/")[2].trim();
-//		}
 		volume.addBrick(new Brick(serverName, status, brickDir));
 	}
 	
 	// Do not throw exception, Gracefully handle as Offline brick. 
 	private BRICK_STATUS getBrickStatus(String serverName, String volumeName, String brick){
 		try {
-			Object output = serverUtil.executeScriptOnServer(true, serverName, BRICK_STATUS_SCRIPT + " " + volumeName + " " + brick, String.class);
-			if(output instanceof Status) {
-				// script failed. throw exception.
-				throw new GlusterRuntimeException(((Status)output).toString());
-			}
-			if (((String)output).equals(CoreConstants.ONLINE)) {
+			String output = serverUtil.executeScriptOnServer(true, serverName, BRICK_STATUS_SCRIPT + " " + volumeName
+					+ " " + brick, String.class);
+			if (output.equals(CoreConstants.ONLINE)) {
 				return BRICK_STATUS.ONLINE;
 			} else {
 				return BRICK_STATUS.OFFLINE;
@@ -638,17 +629,17 @@ public class GlusterUtil {
 	}
 	
 	public TaskStatus getInitializingDeviceStatus(String serverName, String diskName) {
-		Object response = serverUtil.executeScriptOnServer(true, serverName, INITIALIZE_DISK_STATUS_SCRIPT + " "
-				+ diskName, InitDiskStatusResponse.class);
-
+		InitDiskStatusResponse initDiskStatusResponse;
 		TaskStatus taskStatus = new TaskStatus();
-		if (response instanceof Status) {
+		
+		try {
+			initDiskStatusResponse = serverUtil.executeScriptOnServer(true, serverName, INITIALIZE_DISK_STATUS_SCRIPT + " "
+				+ diskName, InitDiskStatusResponse.class);
+		} catch(RuntimeException e) {
 			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
-			taskStatus.setMessage(((Status) response).getMessage());
-			throw new GlusterRuntimeException(((Status) response).getMessage());
+			taskStatus.setMessage(e.getMessage());
+			throw e;
 		}
-
-		InitDiskStatusResponse initDiskStatusResponse = (InitDiskStatusResponse) response;
 
 		if (initDiskStatusResponse.getFormatStatus() == FORMAT_STATUS.COMPLETED) {
 			taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
