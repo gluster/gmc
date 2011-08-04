@@ -113,6 +113,7 @@ if ! grep -q rrd_net.pl /etc/crontab; then
 fi
 /sbin/chkconfig --add multicast-discoverd
 /sbin/chkconfig --level 345 multicast-discoverd on
+/etc/init.d/multicast-discoverd start
 
 %preun backend
 if [ "$1" = 0 ] ; then

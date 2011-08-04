@@ -36,6 +36,7 @@ def sendMulticastRequest(idString):
 
 def openServerSocket():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind(('', Globals.SERVER_PORT))
     server.listen(Globals.DEFAULT_BACKLOG)
     return server
