@@ -46,15 +46,19 @@ Requires:       crontabs
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/opt/glustermg/%{release_version}
 mkdir -p $RPM_BUILD_ROOT/opt/glustermg/keys
+mkdir -p $RPM_BUILD_ROOT/opt/glustermg/etc
 mkdir -p $RPM_BUILD_ROOT/var/log/glustermg
 wget -P $RPM_BUILD_ROOT %{glustermg_war_url}
 tar -C $RPM_BUILD_ROOT/opt/glustermg/%{release_version} -zxf $RPM_BUILD_ROOT/glustermg.war.tar.gz
 rm -f $RPM_BUILD_ROOT/glustermg.war.tar.gz
+%{__install} -d -m0755 %{buildroot}%{_sbindir}
+ln -sf /opt/glustermg/%{release_version}/glustermg/scripts/grun.py %{buildroot}%{_sbindir}/grun.py
+ln -sf /opt/glustermg/%{release_version}/glustermg/scripts/add_user_cifs_all.py %{buildroot}%{_sbindir}/add_user_cifs_all.py
+ln -sf /opt/glustermg/%{release_version}/glustermg/scripts/delete_user_cifs_all.py %{buildroot}%{_sbindir}/delete_user_cifs_all.py
 
 mkdir -p $RPM_BUILD_ROOT/opt/glustermg/%{release_version}/backend
 mkdir -p $RPM_BUILD_ROOT/var/lib/rrd
 cp -pa gmg-scripts/* $RPM_BUILD_ROOT/opt/glustermg/%{release_version}/backend
-%{__install} -d -m0755 %{buildroot}%{_sbindir}
 %{__install} -d -m0755 %{buildroot}%{_initrddir}
 ln -sf /opt/glustermg/%{release_version}/backend/multicast-discoverd.py %{buildroot}%{_sbindir}/multicast-discoverd
 %{__install} -p -m0755 gmg-scripts/multicast-discoverd.init.d %{buildroot}%{_initrddir}/multicast-discoverd
@@ -119,7 +123,12 @@ if ! grep -q rrd_net.pl /etc/crontab; then
 fi
 /sbin/chkconfig --add multicast-discoverd
 /sbin/chkconfig --level 345 multicast-discoverd on
-/etc/init.d/multicast-discoverd start
+if /etc/init.d/multicast-discoverd status >/dev/null; then
+    /etc/init.d/multicast-discoverd restart
+else
+    /etc/init.d/multicast-discoverd start
+fi
+/etc/init.d/crond reload
 
 %preun backend
 if [ "$1" = 0 ] ; then
@@ -141,8 +150,13 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,0755)
 /opt/glustermg/%{release_version}/glustermg
 /opt/glustermg/keys
+/opt/glustermg/etc
 /var/log/glustermg
+%{_sbindir}/grun.py
+%{_sbindir}/add_user_cifs_all.py
+%{_sbindir}/delete_user_cifs_all.py
+
 
 %changelog
-* Mon Jul 25 2011 Bala.FA <bala@gluster.com> - 1.0.0
+* Thu Aug  4 2011 Bala.FA <bala@gluster.com> - 1.0.0
 - Initial release

@@ -35,11 +35,17 @@ def main():
         Utils.log("Failed to read server file %s: %s\n" % (serverFile, str(e)))
         sys.exit(1)
 
+    status = True
     for serverName in serverNameList:
         rv = Utils.runCommand(sshCommandPrefix + [serverName.strip()] + command)
-        print rv
+        print "%s: %s" % (serverName, rv)
+        if rv != 0:
+            status = False
 
-    sys.exit(0)
+    if status:
+        sys.exit(0)
+    else:
+        sys.exit(2)
 
 
 if __name__ == "__main__":

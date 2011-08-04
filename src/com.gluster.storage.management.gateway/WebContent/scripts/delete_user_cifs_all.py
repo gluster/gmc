@@ -14,7 +14,7 @@ if not p2 in sys.path:
 import Utils
 
 
-cifsUserFile = "/etc/glustermg/.users.cifs"
+cifsUserFile = "/opt/glustermg/etc/users.cifs"
 
 
 def removeUser(userName):
