@@ -57,6 +57,7 @@ public class CreateVolumeWizard extends Wizard {
 				handlePartSuccess(newVolume, volumesClient, errMsg);
 			} else {
 				MessageDialog.openError(getShell(), title, "Volume creation failed! Error: " + errMsg);
+				return false;
 			}
 		}
 		
