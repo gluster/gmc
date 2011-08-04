@@ -256,7 +256,17 @@ def getDiskInfo(diskDeviceList=None):
         disk["FsVersion"] = None
         disk["MountPoint"] = None
         disk["ReadOnlyAccess"] = None
-        disk["SpaceInUse"] = None
+
+        spaceInUse = None
+        rv = Utils.runCommand("df %s" % (disk["Device"]), output=True, root=True)
+        if rv["Status"] == 0:
+            try:
+                spaceInUse = long(rv["Stdout"].split("\n")[1].split()[2]) / 1024
+            except IndexError:
+                pass
+            except ValueError:
+                pass
+        disk["SpaceInUse"] = spaceInUse
 
         partitionUdiList = halManager.FindDeviceStringMatch("info.parent", udi)
         if isDiskInFormatting(disk["Device"]):
@@ -315,7 +325,7 @@ def getDiskInfo(diskDeviceList=None):
                 disk["ReadOnlyAccess"] = str(partitionHalDevice.GetProperty('volume.is_mounted_read_only'))
                 if not disk["Size"]:
                     disk["Size"] = long(partitionHalDevice.GetProperty('volume.size')) / 1024**2
-                disk["SpaceInUse"] = used
+                #disk["SpaceInUse"] = used
                 continue
             
             partition = {}
