@@ -94,10 +94,13 @@ def main():
             continue
 
         time.sleep(0.2)
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((request[1][0], Globals.SERVER_PORT))
-        sock.send("%s,%s,%s,%s,%s,%s\n" % (tokens[0], tokens[1], tokens[2], socket.gethostname(), socket.getfqdn(), GLUSTERD_UUID))
-        sock.close()
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.connect((request[1][0], Globals.SERVER_PORT))
+            sock.send("%s,%s,%s,%s,%s,%s\n" % (tokens[0], tokens[1], tokens[2], socket.gethostname(), socket.getfqdn(), GLUSTERD_UUID))
+            sock.close()
+        except socket.error, e:
+            Utils.log("failed to send reply to [%s:%s]: %s" % (request[1][0], Globals.SERVER_PORT, str(e)))
     sys.exit(0)
 
 
