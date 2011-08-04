@@ -61,6 +61,9 @@ ln -sf /opt/glustermg/%{release_version}/backend/multicast-discoverd.py %{buildr
 
 %post
 chown -R tomcat:tomcat /opt/glustermg /var/log/glustermg
+if [ -f /usr/share/tomcat5/webapps/glustermg ]; then
+    rm -f /usr/share/tomcat5/webapps/glustermg
+fi
 ln -fs /opt/glustermg/%{release_version}/glustermg /usr/share/tomcat5/webapps/glustermg
 if [ ! -f /opt/glustermg/keys/id_rsa ]; then
     ssh-keygen -t rsa -f /opt/glustermg/keys/id_rsa -N gluster
@@ -95,6 +98,9 @@ fi
 if wget -q -O /dev/null http://169.254.169.254/latest; then
     sed -i '/<constructor-arg value="multicast"/c <constructor-arg value="none" \/>' /opt/glustermg/%{release_version}/glustermg/WEB-INF/classes/spring/gluster-server-base.xml
 fi
+
+%preun
+rm -f /usr/share/tomcat5/webapps/glustermg
 
 %post backend
 if [ -f /etc/sudoers ]; then
