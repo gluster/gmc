@@ -25,7 +25,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 /**
  * Class to hold information about a volume option
  */
-@XmlRootElement(name = "volumeOption")
+@XmlRootElement(name = "option")
 public class VolumeOptionInfo {
 	private String name;
 	private String description;
