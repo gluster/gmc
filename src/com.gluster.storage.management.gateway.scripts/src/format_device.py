@@ -31,7 +31,7 @@ from optparse import OptionParser
 
 
 def main():
-    if Utils.runCommand("wget -q -O /dev/null %s" % Globals.AWS_WEB_SERVICE_URL) == 0:
+    if Utils.runCommand("wget -t 1 -T 1 -q -O /dev/null %s" % Globals.AWS_WEB_SERVICE_URL) == 0:
         sys.stderr.write("format device unsupported")
         sys.exit(1)
 
