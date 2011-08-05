@@ -167,7 +167,7 @@ public class GlusterCoreUtil {
 			return entities;
 		}
 		
-		return entities.subList(0, maxCount - 1);
+		return entities.subList(0, maxCount);
 	}
 
 	/**
@@ -184,12 +184,12 @@ public class GlusterCoreUtil {
 		}
 		
 		int index = indexOfEntity(entities, tillEntity);
-		if(index != -1) {
-			return entities.subList(index + 1, entities.size()-1);
+		if(index == -1) {
+			// given entity not found. return an empty list.
+			return new ArrayList<T>();
+		} else {
+			return entities.subList(index + 1, entities.size());
 		}
-		
-		// given entity not found. return the input list as it is.
-		return entities;
 	}
 
 	public static <T extends Entity> int indexOfEntity(List<T> entities, String entityName) {
