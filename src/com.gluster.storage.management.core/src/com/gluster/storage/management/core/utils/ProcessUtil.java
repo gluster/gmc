@@ -24,6 +24,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
@@ -64,7 +65,6 @@ public class ProcessUtil {
         StringBuilder output = new StringBuilder();
         try {
             Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
-
             if (runInForeground) {
                 process.waitFor();      // Wait for process to finish
 
@@ -85,7 +85,8 @@ public class ProcessUtil {
 
             return new ProcessResult(process.exitValue(), output.toString());
         } catch (Throwable e) {
-            throw new GlusterRuntimeException("Exception while executing command [" + command + "]", e);
+			throw new GlusterRuntimeException("Exception while executing command [" + command + "] : ["
+					+ e.getMessage() + "]", e);
         }
     }
 

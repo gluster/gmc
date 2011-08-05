@@ -22,7 +22,6 @@ package com.gluster.storage.management.client;
 
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_ACCESS_PROTOCOLS;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_BRICKS;
-import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_CIFS_ENABLE;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_CIFS_USERS;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_REPLICA_COUNT;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_STRIPE_COUNT;
@@ -105,7 +104,7 @@ public class VolumesClient extends AbstractClient {
 	
 	public void setCifsConfig(String volumeName, Boolean isCifsEnabled, String cifsUsers) {
 		Form form = new Form();
-		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.TASK_CIFS_CONFIG);
+		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_CIFS_CONFIG);
 		form.add(RESTConstants.FORM_PARAM_CIFS_ENABLE, isCifsEnabled);
 		form.add(RESTConstants.FORM_PARAM_CIFS_USERS, cifsUsers);
 		putRequest(volumeName, form);

@@ -23,6 +23,7 @@ package com.gluster.storage.management.gateway.utils;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.ServletContext;
@@ -65,6 +66,10 @@ public class ServerUtil {
 		this.sshUtil = sshUtil;
 	}
 
+	public ProcessResult executeGlusterScript(boolean runInForeground, String scriptName, String...arguments) {
+		return executeGlusterScript(runInForeground, scriptName, Arrays.asList(arguments));
+	}
+	
 	public ProcessResult executeGlusterScript(boolean runInForeground, String scriptName, List<String> arguments) {
 		List<String> command = new ArrayList<String>();
 

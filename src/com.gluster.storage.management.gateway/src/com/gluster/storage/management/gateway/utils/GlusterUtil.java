@@ -264,6 +264,7 @@ public class GlusterUtil {
 
 		String command = prepareVolumeCreateCommand(volumeName, StringUtil.extractList(bricks, ","), count,
 				volTypeArg, transportTypeArg);
+
 		ProcessResult result = sshUtil.executeRemote(knownServer, command);
 		if (!result.isSuccess()) {
 			throw new GlusterRuntimeException("Error in creating volume [" + volumeName + "]: " + result);
