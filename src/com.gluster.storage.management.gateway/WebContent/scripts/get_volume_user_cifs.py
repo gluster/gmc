@@ -22,7 +22,7 @@ def main():
         sys.stderr.write("usage: %s VOLUME_NAME\n" % os.path.basename(sys.argv[0]))
         sys.exit(-1)
 
-    volumeName = sys.argv[2]
+    volumeName = sys.argv[1]
 
     try:
         fp = open(cifsVolumeFile)
