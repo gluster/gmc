@@ -58,7 +58,6 @@ public class GlusterServerService {
 		}
 	}
 	
-	// TODO: Introduce logic to fetch records based on maxCount and previousServerName
 	public List<GlusterServer> getGlusterServers(String clusterName, boolean fetchDetails, Integer maxCount,
 			String previousServerName) {
 		List<GlusterServer> glusterServers;

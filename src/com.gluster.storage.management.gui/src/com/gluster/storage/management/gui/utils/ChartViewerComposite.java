@@ -18,6 +18,8 @@
  *******************************************************************************/
 package com.gluster.storage.management.gui.utils;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,17 +35,14 @@ import org.eclipse.birt.chart.model.attribute.Anchor;
 import org.eclipse.birt.chart.model.attribute.AxisType;
 import org.eclipse.birt.chart.model.attribute.Bounds;
 import org.eclipse.birt.chart.model.attribute.ChartDimension;
-import org.eclipse.birt.chart.model.attribute.FontDefinition;
 import org.eclipse.birt.chart.model.attribute.LineAttributes;
 import org.eclipse.birt.chart.model.attribute.LineStyle;
 import org.eclipse.birt.chart.model.attribute.TickStyle;
 import org.eclipse.birt.chart.model.attribute.impl.BoundsImpl;
 import org.eclipse.birt.chart.model.attribute.impl.ColorDefinitionImpl;
-import org.eclipse.birt.chart.model.attribute.impl.FontDefinitionImpl;
 import org.eclipse.birt.chart.model.attribute.impl.JavaDateFormatSpecifierImpl;
 import org.eclipse.birt.chart.model.attribute.impl.LineAttributesImpl;
 import org.eclipse.birt.chart.model.attribute.impl.NumberFormatSpecifierImpl;
-import org.eclipse.birt.chart.model.attribute.impl.TextAlignmentImpl;
 import org.eclipse.birt.chart.model.component.Axis;
 import org.eclipse.birt.chart.model.component.Series;
 import org.eclipse.birt.chart.model.component.impl.SeriesImpl;
@@ -198,9 +197,24 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 
 	private void updateDataSet(Calendar[] timestamps, Double[][] values, final String unit, final String timestampFormat, double maxValue) {
 		Axis xAxisPrimary = setupXAxis(timestamps, timestampFormat);
+		
+		if(maxValue <= 0) {
+			maxValue = getMaxValue(values);
+		}
 		Axis yAxisPrimary = setupYAxis(unit, xAxisPrimary, maxValue);
 		configureXSeries(timestamps, xAxisPrimary);
 		configureYSeries(values, yAxisPrimary);
+	}
+
+	private double getMaxValue(Double[][] values) {
+		double maxValue = -1;
+		for(Double[] seriesValues : values) {
+			double seriesMaxVal = Collections.max(Arrays.asList(seriesValues));
+			if(seriesMaxVal > maxValue) {
+				maxValue = Math.round(seriesMaxVal) + 5 - (Math.round(seriesMaxVal) % 5);
+			}
+		}
+		return maxValue;
 	}
 
 	private void configureYSeries(Double[][] values, Axis yAxisPrimary) {
@@ -244,10 +258,10 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 		Axis yAxisPrimary = ((ChartWithAxesImpl)chart).getPrimaryOrthogonalAxis(xAxisPrimary);
 		if(maxValue > 0) {
 			yAxisPrimary.getScale().setMax(NumberDataElementImpl.create(maxValue));
+			yAxisPrimary.getScale().setStep(maxValue / 5);
 		}
 		yAxisPrimary.getScale().setMin(NumberDataElementImpl.create(0));
 		yAxisPrimary.setGapWidth(0);
-		yAxisPrimary.getScale().setStep(20);
 		yAxisPrimary.getScale().setMajorGridsStepNumber(1);
 		yAxisPrimary.getMajorGrid().setTickStyle(TickStyle.LEFT_LITERAL);
 		yAxisPrimary.getMajorGrid().setLineAttributes(LineAttributesImpl.create(ColorDefinitionImpl.GREY(), LineStyle.SOLID_LITERAL, 1));
@@ -278,7 +292,8 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 		xAxisPrimary.getLabel().getInsets().set(1, 1, 1, 1);
 		//xAxisPrimary.getLabel().getCaption().setFont(createChartFont());
 		xAxisPrimary.getLabel( ).getCaption( ).getFont( ).setSize(8);
-		xAxisPrimary.getLabel( ).getCaption( ).getFont( ).setRotation( 75 );
+		//commenting to check whether this is causing the problem on windows
+		//xAxisPrimary.getLabel( ).getCaption( ).getFont( ).setRotation( 75 );
 		xAxisPrimary.setFormatSpecifier( JavaDateFormatSpecifierImpl.create( timestampFormat ) );
 		return xAxisPrimary;
 	}
