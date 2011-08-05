@@ -22,7 +22,7 @@ def main():
         sys.stderr.write("usage: %s VOLUME_NAME\n" % os.path.basename(sys.argv[0]))
         sys.exit(-1)
 
-    volumeName = sys.argv[2]
+    volumeName = sys.argv[1]
 
     try:
         fp = open(cifsVolumeFile)
@@ -33,7 +33,8 @@ def main():
             if tokens[0] == volumeName:
                 print "\n".join(tokens[1:])
                 sys.exit(0)
-        sys.exit(1)
+        # given volume is not configured for cifs export
+        sys.exit(0)
     except IOError, e:
         Utils.log("failed to read file %s: %s" % (cifsVolumeFile, str(e)))
         sys.exit(2)

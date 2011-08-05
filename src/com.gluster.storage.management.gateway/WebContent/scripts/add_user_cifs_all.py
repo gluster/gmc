@@ -18,6 +18,22 @@ defaultUid = 1024000
 cifsUserFile = "/opt/glustermg/etc/users.cifs"
 
 
+def getUid(userName):
+    try:
+        fp = open(cifsUserFile)
+        content = fp.read()
+        fp.close()
+    except IOError, e:
+        Utils.log("failed to read file %s: %s" % (cifsUserFile, str(e)))
+        return False
+
+    for line in content.strip().split():
+        tokens = line.split(":")
+        if tokens[1] == UserName:
+            return int(tokens[0])
+    return None
+
+
 def getLastUid():
     if not os.path.exists(cifsUserFile):
         return defaultUid
@@ -55,13 +71,20 @@ def main():
     userName = sys.argv[2]
     password = sys.argv[3]
 
-    uid = getLastUid()
+    existingUser = False
+    uid = getUid(userName)
     if not uid:
-        sys.exit(10)
-
-    uid += 1
+        uid = getLastUid()
+        if not uid:
+            sys.exit(10)
+        uid += 1
+    else:
+        existingUser = True
 
     rv = Utils.runCommand("grun.py %s add_user_cifs.py %s %s %s" % (serverFile, uid, userName, password))
+    if existingUser:
+        sys.exit(rv)
+
     if rv == 0:
         if not setUid(uid, userName):
             sys.exit(11)
