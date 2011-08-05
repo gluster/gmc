@@ -33,7 +33,8 @@ def main():
             if tokens[0] == volumeName:
                 print "\n".join(tokens[1:])
                 sys.exit(0)
-        sys.exit(1)
+        # given volume is not configured for cifs export
+        sys.exit(0)
     except IOError, e:
         Utils.log("failed to read file %s: %s" % (cifsVolumeFile, str(e)))
         sys.exit(2)
