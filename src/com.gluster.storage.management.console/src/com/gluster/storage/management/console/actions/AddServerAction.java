@@ -18,6 +18,7 @@
  *******************************************************************************/
 package com.gluster.storage.management.console.actions;
 
+import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -56,8 +57,8 @@ public class AddServerAction extends AbstractActionDelegate {
 						guiHelper.setStatusMessage("Adding server [" + server.getName() + "]...");
 
 						try {
-							glusterServersClient.addServer(server.getName());
-							modelManager.addGlusterServer(glusterServersClient.getGlusterServer(server.getName()));
+							URI newServerURI = glusterServersClient.addServer(server.getName());
+							modelManager.addGlusterServer(glusterServersClient.getGlusterServer(newServerURI));
 							successServers.add(server);
 						} catch (Exception e) {
 							if (!errMsg.isEmpty()) {

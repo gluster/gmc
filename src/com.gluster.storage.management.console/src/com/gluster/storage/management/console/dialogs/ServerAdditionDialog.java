@@ -184,7 +184,7 @@ public class ServerAdditionDialog extends Dialog {
 			String serverNameText = serverName.getText();
 			URI newServerURI = serversClient.addServer(serverNameText);
 
-			modelManager.addGlusterServer(serversClient.getServer(newServerURI));
+			modelManager.addGlusterServer(serversClient.getGlusterServer(newServerURI));
 
 			MessageDialog
 					.openInformation(getShell(), "Add Server", "Server " + serverNameText + " added successfully!");

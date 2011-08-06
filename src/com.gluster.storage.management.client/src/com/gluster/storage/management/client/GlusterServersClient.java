@@ -120,7 +120,9 @@ public class GlusterServersClient extends AbstractClient {
 		return fetchSubResource(RESTConstants.RESOURCE_STATISTICS, queryParams, ServerStats.class);
 	}
 	
-	public GlusterServer getServer(URI uri) {
-		return fetchResource(uri, GlusterServer.class);
+	public GlusterServer getGlusterServer(URI uri) {
+		GlusterServer server = fetchResource(uri, GlusterServer.class);
+		GlusterCoreUtil.updateServerNameOnDevices(server);
+		return server;
 	}
 }
