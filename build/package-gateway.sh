@@ -22,6 +22,24 @@ get-server-war()
 	cd -
 }
 
+# On some platforms like Mac and Windows 7, the entries for other architectures are causing problem
+# e.g. The "x86" entries cause errors in a 64 bit Mac client. Hence we remove the unnecessary entries
+# from the JNLP files i.e. Remove all "x86_64" related tags from the JNLP file of "x86" architecture,
+# and vice versa
+update-jnlp()
+{
+	CPU_ARCH=${1}
+	JNLP_FILE=${2}
+	if [ "${CPU_ARCH}" == "x86" ]; then
+		TAG_START_EXPR="<resources.*arch=\"x86_64.*,.*amd64\""
+	else
+		TAG_START_EXPR="<resources.*arch=\"x86\""
+	fi
+	TAG_END_EXPR="<\/resources.*"
+
+	sed -i "/${TAG_START_EXPR}/,/${TAG_END_EXPR}/d" ${JNLP_FILE} || exit 1
+}
+
 get-dist()
 {
 	ARCH=${1}
@@ -31,6 +49,8 @@ get-dist()
 	OUT_DIR="${WORKSPACE}/../../glustermc/workspace/arch/${ARCH}/os/${OS}/ws/${WS}/buckminster.output/com.gluster.storage.management.console.feature.webstart*.feature/glustermc"
 	NEW_DIR=${WAR_NAME}/${OS}.${WS}.${ARCH}
 	cp -R ${OUT_DIR} ${NEW_DIR}
+
+	update-jnlp ${ARCH} ${NEW_DIR}/com.gluster.storage.management.gui.feature_*.jnlp
 }
 
 get-console-dists()
