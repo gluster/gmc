@@ -50,7 +50,7 @@ get-dist()
 	NEW_DIR=${WAR_NAME}/${OS}.${WS}.${ARCH}
 	cp -R ${OUT_DIR} ${NEW_DIR}
 
-	update-jnlp ${ARCH} ${NEW_DIR}/com.gluster.storage.management.gui.feature_*.jnlp
+	update-jnlp ${ARCH} ${NEW_DIR}/com.gluster.storage.management.console.feature_*.jnlp
 }
 
 get-console-dists()
