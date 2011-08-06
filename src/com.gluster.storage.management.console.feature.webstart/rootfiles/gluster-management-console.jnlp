@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jnlp spec="1.0+" codebase="$$codebase" href="gluster-management-console.jnlp">
+	<information>
+		<title>Gluster Management Console</title>
+		<vendor>Gluster Inc.</vendor>
+		<homepage href="$$codebase" />
+		<description>Gluster Management Console</description>
+		<icon kind="splash" href="splash.jpg"/>
+
+		<shortcut  online="true">
+    		<desktop/>
+    		<menu submenu="Gluster"/>
+		</shortcut> 
+	</information>
+	<security>
+		<all-permissions/>
+	</security>
+	<resources>
+		<j2se java-vm-args="-XstartOnFirstThread" version="1.5+" />
+		<jar href="plugins/org.eclipse.equinox.launcher_1.1.0.v20100507.jar" main="true"/>
+		<extension
+			name="Gluster Management Console"
+			href="com.gluster.storage.management.console.feature_1.0.0.jnlp"/>
+		<property
+			name="osgi.instance.area"
+			value="@user.home/Application Data/glustermc"/>
+		<property
+			name="osgi.configuration.area"
+			value="@user.home/Application Data/glustermc"/>
+		<property
+			name="eclipse.product"
+			value="com.gluster.storage.management.console.product"/>
+		<property
+			name="gluster.server.url"
+			value="$$codebase"/>
+		<property 
+			name="javaws.cfg.jauthenticator" 
+			value="true"/>
+	</resources>
+	<resources os="Linux">
+        <property name="osgi.ws" value="gtk"/>
+  	</resources>	
+	<application-desc main-class="org.eclipse.equinox.launcher.WebStartMain" />
+</jnlp>

@@ -6,7 +6,7 @@ TARGET_PLATFORM_URL=/data/private/gmc-target.git
 SRC_URL=/data/private/gmc-src.git
 
 BUCKMINSTER_PRODUCT_NAME=org.eclipse.buckminster.cmdline.product
-MAIN_FEATURE=com.gluster.storage.management.gui.feature.webstart
+MAIN_FEATURE=com.gluster.storage.management.console.feature.webstart
 
 TYPE_ALL="a"
 TYPE_SETUP="s"
@@ -61,7 +61,7 @@ configure_workspace()
 	echo "Importing target platform..."
 	../buckminster importtarget --active gmc-src/com.gluster.storage.management.releng/gluster-management-console.target
 	echo "Importing component query for glustermc..."
-	../buckminster import gmc-src/com.gluster.storage.management.releng/com.gluster.storage.management.gui.feature.webstart.cquery
+	../buckminster import gmc-src/com.gluster.storage.management.releng/com.gluster.storage.management.console.feature.webstart.cquery
 	cd -
 }
 

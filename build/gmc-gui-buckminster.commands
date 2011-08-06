@@ -2,8 +2,8 @@
 
 importtarget --active src/com.gluster.storage.management.releng/gluster-management-console.target
 
-import src/com.gluster.storage.management.releng/com.gluster.storage.management.gui.feature.webstart.cquery
-perform com.gluster.storage.management.gui.feature.webstart#create.eclipse.jnlp.product
-perform com.gluster.storage.management.gui.feature.webstart#copy.root.files
-perform com.gluster.storage.management.gui.feature.webstart#unsign.jars
-perform com.gluster.storage.management.gui.feature.webstart#sign.jars
+import src/com.gluster.storage.management.releng/com.gluster.storage.management.console.feature.webstart.cquery
+perform com.gluster.storage.management.console.feature.webstart#create.eclipse.jnlp.product
+perform com.gluster.storage.management.console.feature.webstart#copy.root.files
+perform com.gluster.storage.management.console.feature.webstart#unsign.jars
+perform com.gluster.storage.management.console.feature.webstart#sign.jars
