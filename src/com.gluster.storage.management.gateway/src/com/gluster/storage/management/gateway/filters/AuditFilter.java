@@ -3,8 +3,6 @@
  */
 package com.gluster.storage.management.gateway.filters;
 
-import java.util.Date;
-
 import org.apache.log4j.Logger;
 
 import com.sun.jersey.spi.container.ContainerRequest;

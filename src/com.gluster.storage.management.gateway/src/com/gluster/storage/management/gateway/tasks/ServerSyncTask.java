@@ -80,6 +80,10 @@ public class ServerSyncTask {
 		for(ClusterInfo cluster : clusters) {
 			try {
 				List<ServerInfo> servers = cluster.getServers();
+				if(servers.isEmpty()) {
+					logger.info("Cluster [" + cluster.getName() + "] is empty, nothing to sync!");
+					continue;
+				}
 				List<GlusterServer> actualServers = glusterServerService.getGlusterServers(cluster.getName(), false,
 						null, null);
 				updateRemovedServers(cluster, servers, actualServers);

@@ -18,8 +18,6 @@
  *******************************************************************************/
 package com.gluster.storage.management.console.dialogs;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -54,7 +52,6 @@ import com.gluster.storage.management.console.GlusterDataModelManager;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import com.gluster.storage.management.core.model.Device;
-import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
@@ -88,14 +85,6 @@ public class CreateVolumePage1 extends WizardPage {
 		selectedDevices = allDevices; // volume.setDisks(allDisks);
 	}
 	
-	private List<String> getBricks(List<Disk> allDisks) {
-		List<String> disks = new ArrayList<String>();
-		for(Disk disk: allDisks) {
-			disks.add(disk.getServerName() + ":" + disk.getName());
-		}
-		return disks;
-	}
-
 	/**
 	 * Create contents of the wizard.
 	 * @param parent
@@ -272,16 +261,6 @@ public class CreateVolumePage1 extends WizardPage {
 		lblDisks.setText("Bricks: ");
 	}
 
-	private void createTransportTypeValueLabel(Composite container) {
-		Label lblEthernet = new Label(container, SWT.NONE);
-		lblEthernet.setText("Ethernet");
-	}
-
-	private void createTransportTypeLabel(Composite container) {
-		Label lblTransportType = new Label(container, SWT.NONE);
-		lblTransportType.setText("Transport Type: ");
-	}
-
 	private void createTypeCombo(Composite container) {
 		typeComboViewer = new ComboViewer(container, SWT.READ_ONLY);
 		Combo typeCombo = typeComboViewer.getCombo();
@@ -375,13 +354,22 @@ public class CreateVolumePage1 extends WizardPage {
 			volume.disableCifs();
 		}
 		
+		addVolumeBricks();
+		
+		return volume;
+	}
+
+	private void addVolumeBricks() {
+		// first clear existing bricks, if any
+		for(Brick brick : volume.getBricks()) {
+			volume.removeBrick(brick);
+		}
+		
 		for (Device device : selectedDevices) {
 			Brick brick = new Brick(device.getServerName(), BRICK_STATUS.ONLINE, device.getMountPoint() + "/"
 					+ volume.getName());
 			volume.addBrick(brick);
 		}
-		
-		return volume;
 	}
 	
 	public Boolean startVolumeAfterCreation() {
