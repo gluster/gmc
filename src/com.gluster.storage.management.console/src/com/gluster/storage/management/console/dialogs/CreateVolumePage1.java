@@ -361,9 +361,7 @@ public class CreateVolumePage1 extends WizardPage {
 
 	private void addVolumeBricks() {
 		// first clear existing bricks, if any
-		for(Brick brick : volume.getBricks()) {
-			volume.removeBrick(brick);
-		}
+		volume.getBricks().clear();
 		
 		for (Device device : selectedDevices) {
 			Brick brick = new Brick(device.getServerName(), BRICK_STATUS.ONLINE, device.getMountPoint() + "/"

@@ -24,10 +24,13 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
+import org.apache.log4j.Logger;
+
 import com.gluster.storage.management.core.exceptions.GlusterValidationException;
 
 @Provider
 public class GenericExceptionMapper implements ExceptionMapper<Exception> {
+	private static final Logger logger = Logger.getLogger(GenericExceptionMapper.class);
 
 	/* (non-Javadoc)
 	 * @see javax.ws.rs.ext.ExceptionMapper#toResponse(java.lang.Throwable)
@@ -49,6 +52,9 @@ public class GenericExceptionMapper implements ExceptionMapper<Exception> {
 				errMsg += " at [" + stackTrace[0].getClassName() + "][" + stackTrace[0].getLineNumber() + "]";
 			}
 		}
+		
+		logger.error(errMsg, exception);
+		
 		return builder.entity(errMsg).type(MediaType.TEXT_PLAIN).build();
 	}
 }
