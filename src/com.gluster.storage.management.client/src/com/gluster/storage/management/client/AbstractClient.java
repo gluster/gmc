@@ -195,7 +195,7 @@ public abstract class AbstractClient {
 		try {
 			res.header(HTTP_HEADER_AUTH, authHeader).type(MediaType.MULTIPART_FORM_DATA_TYPE).post(String.class, form);
 		} catch (Exception e) {
-			throw new GlusterRuntimeException("Error while importing resource [" + e.getMessage() + "]", e);
+			throw createGlusterException(e);
 		}
 	}
 
