@@ -72,6 +72,10 @@ public class StartVolumeAction extends AbstractActionDelegate {
 				startedVolumes.add(volume.getName());
 			}catch (Exception e) {
 				failedVolumes.add(volume.getName());
+				// If any post volume start activity failed, update the volume status
+				if (vc.getVolume(volume.getName()).getStatus() == VOLUME_STATUS.ONLINE) {
+					modelManager.updateVolumeStatus(volume, VOLUME_STATUS.ONLINE);
+				}
 				errorMessage += e.getMessage(); 
 			}
 		}

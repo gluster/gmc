@@ -84,6 +84,10 @@ public class StopVolumeAction extends AbstractActionDelegate {
 				stoppedVolumes.add(volume.getName());
 			} catch (Exception e) {
 				failedVolumes.add(volume.getName());
+				// If any post volume stop activity failed, update the volume status
+				if (vc.getVolume(volume.getName()).getStatus() == VOLUME_STATUS.OFFLINE) {
+					modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
+				}
 				errorMessage += e.getMessage();
 			}
 		}

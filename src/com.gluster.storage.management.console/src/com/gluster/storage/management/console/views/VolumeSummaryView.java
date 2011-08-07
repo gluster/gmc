@@ -65,7 +65,7 @@ public class VolumeSummaryView extends ViewPart {
 	private CLabel lblStatusValue;
 	private DefaultClusterListener volumeChangedListener;
 	private Hyperlink changeLink;
-	private Hyperlink CifsChangeLink;
+	private Hyperlink cifsChangeLink;
 	private Text accessControlText;
 	private Text cifsUsersText;
 	private ControlDecoration errDecoration;
@@ -270,29 +270,17 @@ public class VolumeSummaryView extends ViewPart {
 	}
 	
 	private void createCifsField(Composite section) {
-		GridData data = new GridData();
-		data.heightHint = 0;
-		
 		cifsLabel = toolkit.createLabel(section, "CIFS: ", SWT.NONE);
-		cifsLabel.setLayoutData(data);
-		cifsLabel.setVisible(false);
-		
 		cifsUsersText = toolkit.createText(section, volume.getAccessControlList(), SWT.BORDER);
 		populateCifsUsersText();
 		addKeyListenerForCifsUser();
-		cifsUsersText.setLayoutData(createDefaultLayoutData());
-		cifsUsersText.setEnabled(true);
-		cifsUsersText.setLayoutData(data);
-		cifsUsersText.setVisible(false);
 		
 		cifsUpdateLinkComposite = toolkit.createComposite(section, SWT.NONE);
-		cifsUpdateLinkComposite.setVisible(false);
-		cifsUpdateLinkComposite.setLayoutData(data);
 		cifsUpdateLinkComposite.setLayout(new FillLayout());
+		cifsUpdateLinkComposite.setVisible(volume.isCifsEnable());
 		
 		createChangeLinkForCifs(cifsUpdateLinkComposite);
-		
-		// error decoration used while validating the cifs users text
+		renderCifsUsers(cifsCheckbox.getSelection());
 		errCifsDecoration = guiHelper.createErrorDecoration(cifsUsersText);
 		errCifsDecoration.hide();
 	}
@@ -381,18 +369,16 @@ public class VolumeSummaryView extends ViewPart {
 	}
 	
 	private void createChangeLinkForCifs(Composite section) {
-		CifsChangeLink = toolkit.createHyperlink(section, "Update", SWT.NONE);
-		CifsChangeLink.addHyperlinkListener(new HyperlinkAdapter() {
+		cifsChangeLink = toolkit.createHyperlink(section, "change", SWT.NONE);
+		cifsChangeLink.addHyperlinkListener(new HyperlinkAdapter() {
 
 			private void finishEdit() {
 				saveCifsConfiguration();
 			}
 
 			private void startEdit() {
-				cifsUsersText.setEnabled(true);
-				cifsUsersText.setFocus();
+				enableCifsUsersControls(true);
 				cifsUsersText.selectAll();
-				CifsChangeLink.setText("update");
 			}
 
 			@Override
@@ -408,46 +394,46 @@ public class VolumeSummaryView extends ViewPart {
 		});
 	}
 	
+	
 	private void saveCifsConfiguration() {
-		final String cifsUsers = cifsUsersText.getText();
-
 		guiHelper.setStatusMessage("Setting Cifs Configuration...");
 		parent.update();
-		
-		List<String> userList = volume.getCifsUsers();
-		String configuredUsers = "";
-		if (userList != null) {			
-			configuredUsers = StringUtil.collectionToString(userList, ",");
-		}
 
-		if (cifsUsersText.equals(configuredUsers)) {
-			cifsUsersText.setEnabled(false);
-			CifsChangeLink.setText("change");
-			// There is no change in the users list
-		} else  if(isvalidCifsUser()) {
+		final String cifsUsers = cifsUsersText.getText().trim();
+		List<String> userList = volume.getCifsUsers();
+		String configuredUsers = (userList != null) ? StringUtil.collectionToString(userList, ",") : "";
+
+		// To check if no changes in the users list
+		if (! isvalidCifsUser()) {
+			MessageDialog.openError(Display.getDefault().getActiveShell(), "Cifs Configuration",
+					"Please enter cifs user name ");
+			enableCifsUsersControls(true);
+			validateCifsUsers();
+		} else if (cifsUsers.equals(configuredUsers)) { // Nothing to do.
+			enableCifsUsersControls(false);
+		} else {
 			BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
 				@Override
 				public void run() {
 					try {
 						new VolumesClient().setCifsConfig(volume.getName(), cifsCheckbox.getSelection(), cifsUsers);
-						cifsUsersText.setEnabled(false);
-						CifsChangeLink.setText("change");
-
+						enableCifsUsersControls(false);
 						GlusterDataModelManager.getInstance().setCifsConfig(volume, cifsCheckbox.getSelection(),
 								Arrays.asList(cifsUsers.split(",")));
 					} catch (Exception e) {
-						MessageDialog.openError(Display.getDefault().getActiveShell(), "Cifs Configuration", e.getMessage());
+						MessageDialog.openError(Display.getDefault().getActiveShell(), "Cifs Configuration",
+								e.getMessage());
+						cifsCheckbox.setSelection(volume.isCifsEnable());
 						populateCifsUsersText();
 					}
 				}
 			});
-		} else {
-			MessageDialog.openError(Display.getDefault().getActiveShell(), "Cifs Configuration", "Please enter cifs user name ");
-			cifsUsersText.setFocus();
-		}
+		} 
 		guiHelper.clearStatusMessage();
 		parent.update();
 	}
+	
+	
 	
 	private void saveNFSOption() {
 		guiHelper.setStatusMessage("Setting NFS option...");
@@ -508,24 +494,25 @@ public class VolumeSummaryView extends ViewPart {
 				case SWT.ESC:
 					// Reset to default
 					populateCifsUsersText();
+					enableCifsUsersControls(false);
+					form.reflow(true);
 					break;
 				case 13:
 					// User has pressed enter. Save the new value
 					saveCifsConfiguration();
 					break;
 				}
-				validateCifsUsers();
+				// validateCifsUsers();
 			}
 		});
 	}
 	
 	private void populateCifsUsersText() {
 		List<String> userList = volume.getCifsUsers();
-		if (userList == null) {
-			cifsUsersText.setText("");			
+		if (volume.isCifsEnable() && userList != null) {
+			cifsUsersText.setText(StringUtil.collectionToString(userList, ","));
 		} else {
-			String users = StringUtil.collectionToString(userList, ",");
-			cifsUsersText.setText(users);
+			cifsUsersText.setText("");
 		}
 	}
 
@@ -548,54 +535,92 @@ public class VolumeSummaryView extends ViewPart {
 		
 		// CIFS checkbox
 		cifsCheckbox = createCheckbox(nasProtocolsComposite, "CIFS", volume.isCifsEnable(), true);
-		cifsCheckboxListner(cifsCheckbox);
-		
+		createCifsCheckboxListner(cifsCheckbox);
+	
 		toolkit.createLabel(section, "", SWT.NONE); // dummy
 	}
 	
-	private void cifsCheckboxListner(final Button cifsCheckbox) {
+	private void createCifsCheckboxListner(final Button cifsCheckbox) {
 		cifsCheckbox.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (cifsCheckbox.getSelection()) {
-					GridData data = new GridData();
-					data.heightHint = 20;
-					data.widthHint = 100;
-
-					cifsLabel.setVisible(true);
-					cifsLabel.setLayoutData(data);
-					
-					GridData data1 = new GridData();
-					data1.heightHint = 20;
-					data1.widthHint = 300;
-					cifsUsersText.setVisible(true);
-					cifsUsersText.setLayoutData(data1);
-					
-					GridData data2 = new GridData();
-					data2.heightHint = 25;
-					data2.widthHint = 75;
-					cifsUpdateLinkComposite.setVisible(true);
-					cifsUpdateLinkComposite.setLayoutData(data2);
-					form.reflow(true);
+					// need to enable cifs
+					// TODO: Open the text box (empty and enabled),
+					// the hyperlink next to the textbox should have label "update"
+					// when user clicks on that hyperlink, 
+					// saveCifsConfiguration should be called
+					// Also, if user presses the "ESC" key, 
+					// return to the previous state of checkbox and hide the textbox + hyperlink
+					showCifsUsersControls(true);
+					enableCifsUsersControls(true);
+					// saveCifsConfiguration();
 				} else {
-					GridData data = new GridData();
-					data.heightHint = 0;
-
-					cifsUsersText.setVisible(false);
-					cifsUsersText.setLayoutData(data);
-					
-					cifsLabel.setVisible(false);
-					cifsLabel.setLayoutData(data);
-					
-					cifsUpdateLinkComposite.setVisible(false);
-					cifsUpdateLinkComposite.setLayoutData(data);
-					
-					form.reflow(true);
+					// need to disable cifs
+					// TODO: hide the textbox and the link AFTER disabling cifs
+					showCifsUsersControls(false);
+					enableCifsUsersControls(false);
 				}
+				populateCifsUsersText();
+				form.reflow(true);
 			}
 		});
 	}
+	
+	private void renderCifsUsers(Boolean cifsSelection) {
+		if (cifsSelection) {
+			enableCifsUsersControls(false);
+			showCifsUsersControls(true);
+		} else {
+			showCifsUsersControls(false);
+		}
+	}
 
+	private void showCifsUsersControls(Boolean visible) {
+		if ( visible) {
+			GridData data = new GridData();
+			data.heightHint = 20;
+			data.widthHint = 100;
+			cifsLabel.setLayoutData(data);
+			
+			GridData data1 = new GridData();
+			data1.heightHint = 20;
+			data1.widthHint = 300;
+			
+			cifsUsersText.setLayoutData(data1);
+			
+			GridData data2 = new GridData();
+			data2.heightHint = 25;
+			data2.widthHint = 75;
+			cifsUpdateLinkComposite.setLayoutData(data2);
+		} else {
+			GridData data = new GridData();
+			data.heightHint = 0;
+
+			cifsLabel.setLayoutData(data);
+			cifsUsersText.setLayoutData(data);
+			cifsUpdateLinkComposite.setLayoutData(data);
+		}
+		
+		cifsLabel.setVisible(visible);
+		cifsUsersText.setVisible(visible);
+		cifsUpdateLinkComposite.setVisible(visible);
+		form.reflow(true);
+	}
+	
+	private void enableCifsUsersControls(Boolean enable) {
+		cifsUsersText.setEnabled(enable);
+		cifsChangeLink.setText((enable) ? "update" : "change");
+		if (enable) {
+			cifsUsersText.setFocus();
+			validateCifsUsers();
+		} else {
+			if (errCifsDecoration != null) {
+				errCifsDecoration.hide();
+			}
+		}
+	}
+	
 	private Button createCheckbox(Composite parent, String label, boolean checked, boolean enabled) {
 		final Button checkBox = toolkit.createButton(parent, label, SWT.CHECK);
 		checkBox.setSelection(checked);
@@ -608,7 +633,6 @@ public class VolumeSummaryView extends ViewPart {
 		nfsLabel.setVisible(isNFSExported);
 		nfsCheckBox.setSelection(isNFSExported);
 	}
-	
 	
 	private void updateBrickChanges(Volume volume) {
 		numberOfBricks.setText("" + volume.getNumOfBricks());
@@ -745,6 +769,7 @@ public class VolumeSummaryView extends ViewPart {
 				return true;
 			}
 		}
+		validateCifsUsers();
 		return true;
 	}
 }

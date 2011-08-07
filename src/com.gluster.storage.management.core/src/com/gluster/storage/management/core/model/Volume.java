@@ -256,7 +256,9 @@ public class Volume extends Entity {
 	}
 	
 	public void enableCifs() {
-		nasProtocols.add(NAS_PROTOCOL.CIFS);
+		if (!nasProtocols.contains(NAS_PROTOCOL.CIFS)) {
+			nasProtocols.add(NAS_PROTOCOL.CIFS);
+		}
 	}
 	
 	public void disableCifs() {
@@ -264,11 +266,7 @@ public class Volume extends Entity {
 	}
 	
 	public boolean isCifsEnable() {
-		if (nasProtocols.contains(NAS_PROTOCOL.CIFS)) {
-			return true;
-		} else {
-			return false;
-		}
+		return nasProtocols.contains(NAS_PROTOCOL.CIFS);
 	}
 	
 	public void setCifsUsers(List<String> cifsUsers) {
