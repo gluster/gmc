@@ -62,6 +62,7 @@ import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.ServerStats;
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.utils.NumberUtil;
 
@@ -326,7 +327,7 @@ public class ClusterSummaryView extends ViewPart {
 		createNetworkUsageSection();
 		createActionsSection();
 		createAlertsSection();
-		createRunningTasksSection();
+		createTasksSection();
 
 		parent.layout(); // IMP: lays out the form properly
 	}
@@ -373,14 +374,16 @@ public class ClusterSummaryView extends ViewPart {
 				chartUtil.new NetworkChartPeriodLinkListener(null, networkStatsPeriod, toolkit), -1, 4);
 	}
 
-	private void createRunningTasksSection() {
-		tasksSection = guiHelper.createSection(form, toolkit, "Running Tasks", null, 1, false);
+	private void createTasksSection() {
+		tasksSection = guiHelper.createSection(form, toolkit, CoreConstants.RUNNING_TASKS, null, 1, false);
 		populateTasksSection();
 	}
 
 	private void populateTasksSection() {
 		for (TaskInfo taskInfo : cluster.getTaskInfoList()) {
-			addTaskLabel(tasksSection, taskInfo);
+			if (taskInfo.getStatus().getCode() != Status.STATUS_CODE_SUCCESS) {
+				addTaskLabel(tasksSection, taskInfo);
+			}
 		}
 		tasksSection.layout();
 		form.reflow(true);
@@ -389,7 +392,6 @@ public class ClusterSummaryView extends ViewPart {
 	private void addTaskLabel(Composite section, TaskInfo taskInfo) {
 		//TODO: create link and open the task progress view
 		CLabel lblAlert = new CLabel(section, SWT.NONE);
-		lblAlert.setText(taskInfo.getDescription());
 		
 		Image taskImage = null;
 		switch(taskInfo.getType()) {
@@ -403,6 +405,20 @@ public class ClusterSummaryView extends ViewPart {
 			taskImage = guiHelper.getImage(IImageKeys.VOLUME_REBALANCE_22x22);
 			break;
 		}
+		
+		String description = taskInfo.getDescription();
+		switch (taskInfo.getStatus().getCode()) {
+		case Status.STATUS_CODE_PAUSE:
+			description += " (paused)";
+			break;
+		case Status.STATUS_CODE_COMMIT_PENDING:
+			description += " (commit pending)";
+			break;
+		case Status.STATUS_CODE_FAILURE:
+			description += " (failed)";
+			break;
+		}
+		lblAlert.setText(description);
 		lblAlert.setImage(taskImage);
 		lblAlert.redraw();
 	}

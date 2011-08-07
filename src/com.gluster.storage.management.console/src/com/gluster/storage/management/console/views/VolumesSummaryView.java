@@ -42,6 +42,7 @@ import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.Event;
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.core.model.Volume;
@@ -60,7 +61,6 @@ public class VolumesSummaryView extends ViewPart {
 	private ClusterListener clusterListener;
 
 	private static final String ALERTS = "Alerts";
-	private static final String RUNNING_TASKS = "Running Tasks";
 	private static final String VOLUMES_SUMMARY = "Volumes - Summary";
 	private static final String AVAILABILITY = "Availability";
 	private Composite alertsSection;
@@ -155,7 +155,7 @@ public class VolumesSummaryView extends ViewPart {
 	private void createSections(Composite parent) {
 		form = guiHelper.setupForm(parent, toolkit, VOLUMES_SUMMARY);
 		createSummarySection();
-		createRunningTasksSection();
+		createTasksSection();
 		createAlertsSection();
 
 		parent.layout(); // IMP: lays out the form properly
@@ -184,14 +184,15 @@ public class VolumesSummaryView extends ViewPart {
 		lblAlert.redraw();
 	}
 
-	private void createRunningTasksSection() {
-		tasksSection = guiHelper.createSection(form, toolkit, RUNNING_TASKS, null, 1, false);
+	private void createTasksSection() {
+		tasksSection = guiHelper.createSection(form, toolkit, CoreConstants.RUNNING_TASKS, null, 1, false);
 		populateTasks();
 	}
 
 	private void populateTasks() {
 		for (TaskInfo taskInfo : cluster.getTaskInfoList()) {
-			if (taskInfo.getType() == TASK_TYPE.BRICK_MIGRATE || taskInfo.getType() == TASK_TYPE.VOLUME_REBALANCE)
+			if ((taskInfo.getType() == TASK_TYPE.BRICK_MIGRATE || taskInfo.getType() == TASK_TYPE.VOLUME_REBALANCE)
+					&& taskInfo.getStatus().getCode() != Status.STATUS_CODE_SUCCESS)
 				addTaskLabel(tasksSection, taskInfo);
 		}
 		tasksSection.pack(true);
@@ -200,17 +201,27 @@ public class VolumesSummaryView extends ViewPart {
 
 	private void addTaskLabel(Composite section, TaskInfo taskInfo) {
 		// Task related to Volumes context
-		if (taskInfo.getType() == TASK_TYPE.BRICK_MIGRATE
-				|| taskInfo.getType() == TASK_TYPE.VOLUME_REBALANCE) {
-			if (taskInfo.getStatus().isPercentageSupported()) {
-				// TODO Progress bar or link to progress view
-			}
-			CLabel lblAlert = new CLabel(section, SWT.NONE);
-			lblAlert.setText(taskInfo.getDescription());
-			lblAlert.setImage((taskInfo.getType() == TASK_TYPE.BRICK_MIGRATE) ? guiHelper
-					.getImage(IImageKeys.BRICK_MIGRATE_32x32) : guiHelper.getImage(IImageKeys.VOLUME_REBALANCE_32x32));
-			lblAlert.redraw();
+		if (taskInfo.getStatus().isPercentageSupported()) {
+			// TODO Progress bar or link to progress view
 		}
+		
+		CLabel lblTask = new CLabel(section, SWT.NONE);
+		String description = taskInfo.getDescription();
+		switch (taskInfo.getStatus().getCode()) {
+		case Status.STATUS_CODE_PAUSE:
+			description += " (paused)";
+			break;
+		case Status.STATUS_CODE_COMMIT_PENDING:
+			description += " (commit pending)";
+			break;
+		case Status.STATUS_CODE_FAILURE:
+			description += " (failed)";
+			break;
+		}
+		lblTask.setText(description);
+		lblTask.setImage((taskInfo.getType() == TASK_TYPE.BRICK_MIGRATE) ? guiHelper
+				.getImage(IImageKeys.BRICK_MIGRATE_32x32) : guiHelper.getImage(IImageKeys.VOLUME_REBALANCE_32x32));
+		lblTask.redraw();
 	}
 
 	private void createSummarySection() {
