@@ -444,7 +444,7 @@ public class GlusterDataModelManager {
 	}
 
 	private void initializeAutoDiscoveredServers(Cluster cluster) {
-		cluster.setAutoDiscoveredServers(new DiscoveredServersClient(securityToken).getDiscoveredServerDetails());
+		cluster.setAutoDiscoveredServers(new DiscoveredServersClient(cluster.getName()).getDiscoveredServerDetails());
 	}
 
 	private void initializeVolumes(Cluster cluster) {

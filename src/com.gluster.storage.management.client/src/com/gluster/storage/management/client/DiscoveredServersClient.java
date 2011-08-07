@@ -46,8 +46,7 @@ public class DiscoveredServersClient extends AbstractClient {
 		return RESOURCE_PATH_DISCOVERED_SERVERS;
 	}
 
-	@SuppressWarnings("rawtypes")
-	private Object getDiscoveredServers(Boolean details, Class responseClass) {
+	private <T> T getDiscoveredServers(Boolean details, Class<T> responseClass) {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
 		queryParams.putSingle(QUERY_PARAM_DETAILS, details.toString());
 		return fetchResource(queryParams, responseClass);

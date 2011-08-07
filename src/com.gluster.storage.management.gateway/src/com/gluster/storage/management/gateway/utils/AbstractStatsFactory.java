@@ -27,7 +27,6 @@ import org.springframework.stereotype.Component;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.ServerStats;
 import com.gluster.storage.management.core.model.ServerStatsRow;
-import com.gluster.storage.management.core.model.Status;
 
 /**
  *
@@ -93,8 +92,8 @@ public abstract class AbstractStatsFactory implements StatsFactory {
 	 */
 	protected List<ServerStatsRow> addServerStats(ServerStats statsToBeAdded, ServerStats targetStats, int[][] dataCount) {
 		List<ServerStatsRow> serverStatsRows = statsToBeAdded.getRows();
-		for (int rowNum = 0; rowNum < serverStatsRows.size()
-				&& rowNum < targetStats.getMetadata().getRowCount(); rowNum++) {
+		for (int rowNum = 0; rowNum < serverStatsRows.size() && rowNum < targetStats.getMetadata().getRowCount()
+				&& rowNum < dataCount.length; rowNum++) {
 			ServerStatsRow row = serverStatsRows.get(rowNum);
 			List<Double> rowData = row.getUsageData();
 			
