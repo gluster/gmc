@@ -54,7 +54,12 @@
 		// following code verifies this by looking at text WOW64/Win64 in userAgent
 		if ( navigator.userAgent != null ) {
 			var userAgent = navigator.userAgent.toLowerCase();
-			if( userAgent.indexOf ( "wow64" ) != -1 || userAgent.indexOf ( "win64" ) != -1 || userAgent.indexOf ( "x64" ) != -1 ) {
+			if( userAgent.indexOf ( "wow64" ) != -1 ) {
+				// browser running in compatibility mode (32 bit) inside a 64 bit Windows OS
+				// In such cases, we should re-direct to the 32 bit URL as the java webstart
+				// plug-in in the browser will also be 32 bit. 
+				arch = "x86";
+			} else if ( userAgent.indexOf ( "win64" ) != -1 || userAgent.indexOf ( "x64" ) != -1 ) {
 				arch = "x86_64";
 			}
 		}

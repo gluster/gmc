@@ -102,10 +102,10 @@ public class GlusterDataModelManager {
 	public void initializeModel(String clusterName, IProgressMonitor monitor) {
 		setClusterName(clusterName);
 
-		model = fetchData(clusterName, monitor);
+		model = fetchData(monitor);
 	}
 
-	private GlusterDataModel fetchData(String clusterName, IProgressMonitor monitor) {
+	private GlusterDataModel fetchData(IProgressMonitor monitor) {
 		GlusterDataModel model = fetchModel(monitor);
 		
 		initializeAlerts(model.getCluster());
