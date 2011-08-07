@@ -84,7 +84,6 @@ public class GlusterServerService {
 		List<GlusterServer> glusterServers;
 		try {
 			glusterServers = glusterUtil.getGlusterServers(onlineServer);
-			glusterServers = GlusterCoreUtil.skipEntities(glusterServers, maxCount, previousServerName);
 		} catch (ConnectionException e) {
 			// online server has gone offline! try with a different one.
 			onlineServer = clusterService.getNewOnlineServer(clusterName);
@@ -94,6 +93,9 @@ public class GlusterServerService {
 
 			glusterServers = glusterUtil.getGlusterServers(onlineServer);
 		}
+		
+		// skip the servers by maxCount / previousServerName
+		glusterServers = GlusterCoreUtil.skipEntities(glusterServers, maxCount, previousServerName);
 		
 		if (fetchDetails) {
 			String errMsg = fetchDetailsOfServers(glusterServers, onlineServer);
