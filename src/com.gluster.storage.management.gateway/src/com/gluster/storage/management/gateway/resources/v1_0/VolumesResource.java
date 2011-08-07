@@ -109,8 +109,8 @@ public class VolumesResource extends AbstractResource {
 	@Produces({ MediaType.APPLICATION_XML })
 	public Response getVolumesXML(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@QueryParam(QUERY_PARAM_MAX_COUNT) Integer maxCount,
-			@QueryParam(QUERY_PARAM_NEXT_TO) String previousServerName) {
-		return okResponse(new VolumeListResponse(volumeService.getVolumes(clusterName, maxCount, previousServerName)),
+			@QueryParam(QUERY_PARAM_NEXT_TO) String previousVolumeName) {
+		return okResponse(new VolumeListResponse(volumeService.getVolumes(clusterName, maxCount, previousVolumeName)),
 				MediaType.APPLICATION_XML);
 	}
 
@@ -118,8 +118,8 @@ public class VolumesResource extends AbstractResource {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Response getVolumesJSON(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@QueryParam(QUERY_PARAM_MAX_COUNT) Integer maxCount,
-			@QueryParam(QUERY_PARAM_NEXT_TO) String previousServerName) {
-		return okResponse(new VolumeListResponse(volumeService.getVolumes(clusterName, maxCount, previousServerName)),
+			@QueryParam(QUERY_PARAM_NEXT_TO) String previousVolumeName) {
+		return okResponse(new VolumeListResponse(volumeService.getVolumes(clusterName, maxCount, previousVolumeName)),
 				MediaType.APPLICATION_JSON);
 	}
 
