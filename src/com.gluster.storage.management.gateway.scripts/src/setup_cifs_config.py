@@ -11,28 +11,35 @@ if not p1 in sys.path:
     sys.path.append(p1)
 if not p2 in sys.path:
     sys.path.append(p2)
+import time
 import Globals
 import Utils
 
 def main():
     try:
-        os.mkdir(Globals.GLUSTER_BASE_DIR)
-        os.mkdir(Globals.VOLUME_CONF_DIR)
-        os.mkdir(Globals.CIFS_EXPORT_DIR)
-        os.mkdir(Globals.REEXPORT_DIR)
+        if not os.path.exists(Globals.GLUSTER_BASE_DIR):
+            os.mkdir(Globals.GLUSTER_BASE_DIR)
+        if not os.path.exists(Globals.VOLUME_CONF_DIR):
+            os.mkdir(Globals.VOLUME_CONF_DIR)
+        if not os.path.exists(Globals.CIFS_EXPORT_DIR):
+            os.mkdir(Globals.CIFS_EXPORT_DIR)
+        if not os.path.exists(Globals.REEXPORT_DIR):
+            os.mkdir(Globals.REEXPORT_DIR)
     except OSError, e:
         Utils.log("failed to create directory: %s" % str(e))
         sys.exit(1)
     try:
-        fp = open(Globals.VOLUME_SMBCONF_FILE, "w")
-        fp.close()
+        if not os.path.exists(Globals.VOLUME_SMBCONF_FILE):
+            fp = open(Globals.VOLUME_SMBCONF_FILE, "w")
+            fp.close()
     except IOError, e:
         Utils.log("Failed to create file %s: %s" % (Globals.VOLUME_SMBCONF_FILE, str(e)))
         sys.exit(2)
     try:
-        os.rename(Globals.SAMBA_CONF_FILE, "%s.orig" % Globals.SAMBA_CONF_FILE)
+        backupFile = "%s.%s" % (Globals.SAMBA_CONF_FILE, time.time())
+        os.rename(Globals.SAMBA_CONF_FILE, backupFile)
     except IOError, e:
-        Utils.log("Ignoring rename %s to %s: %s" % (Globals.SAMBA_CONF_FILE, "%s.orig" % Globals.SAMBA_CONF_FILE, str(e)))
+        Utils.log("Ignoring rename %s to %s: %s" % (Globals.SAMBA_CONF_FILE, backupFile))
     try:
         fp = open(Globals.SAMBA_CONF_FILE, "w")
         fp.write("##\n")
@@ -48,38 +55,43 @@ def main():
         Utils.log("Failed to create samba configuration file %s: %s" % (Globals.SAMBA_CONF_FILE, str(e)))
         sys.exit(3)
     try:
-        fp = open(Globals.REAL_SAMBA_CONF_FILE, "w")
-        fp.write("[global]\n")
-   	fp.write("## CAUTION: DO NOT REMOVE BELOW INCLUDE LINE.  REMOVAL OF THE LINE\n")
-   	fp.write("## DISABLES SERVER/CIFS HIGH AVAILABILITY\n")
-   	#fp.write("include = %s\n" % Globals.CTDB_SAMBA_CONF_FILE)
-   	fp.write("##\n")
-   	fp.write("socket options = TCP_NODELAY IPTOS_LOWDELAY SO_SNDBUF=131072 SO_RCVBUF=131072\n")
-   	fp.write("read raw = yes\n")
-   	fp.write("server string = %h\n")
-   	fp.write("write raw = yes\n")
-   	fp.write("oplocks = yes\n")
-   	fp.write("max xmit = 131072\n")
-   	fp.write("dead time = 15\n")
-   	fp.write("getwd cache = yes\n")
-   	fp.write("#read size = 131072\n")
-   	fp.write("use sendfile=yes\n")
-   	fp.write("block size = 131072\n")
-   	fp.write("printcap name = /etc/printcap\n")
-   	fp.write("load printers = no\n")
-        fp.close()
+        if not os.path.exists(Globals.REAL_SAMBA_CONF_FILE):
+            fp = open(Globals.REAL_SAMBA_CONF_FILE, "w")
+            fp.write("[global]\n")
+            fp.write("## CAUTION: DO NOT REMOVE BELOW INCLUDE LINE.  REMOVAL OF THE LINE\n")
+            fp.write("## DISABLES SERVER/CIFS HIGH AVAILABILITY\n")
+            #fp.write("include = %s\n" % Globals.CTDB_SAMBA_CONF_FILE)
+            fp.write("##\n")
+            fp.write("socket options = TCP_NODELAY IPTOS_LOWDELAY SO_SNDBUF=131072 SO_RCVBUF=131072\n")
+            fp.write("read raw = yes\n")
+            fp.write("server string = %h\n")
+            fp.write("write raw = yes\n")
+            fp.write("oplocks = yes\n")
+            fp.write("max xmit = 131072\n")
+            fp.write("dead time = 15\n")
+            fp.write("getwd cache = yes\n")
+            fp.write("#read size = 131072\n")
+            fp.write("use sendfile=yes\n")
+            fp.write("block size = 131072\n")
+            fp.write("printcap name = /etc/printcap\n")
+            fp.write("load printers = no\n")
+            fp.close()
     except IOError, e:
         Utils.log("Failed to create samba configuration file %s: %s" % (Globals.REAL_SAMBA_CONF_FILE, str(e)))
         sys.exit(4)
-
 
     if Utils.runCommand("setsebool -P samba_share_fusefs on") != 0:
         Utils.log("failed to set SELinux samba_share_fusefs")
         sys.exit(5)
 
-    if Utils.runCommand("service smb restart") != 0:
-        Utils.log("failed to restart smb service")
-        sys.exit(6)
+    if Utils.runCommand("service smb status") != 0:
+        if Utils.runCommand("service smb start") != 0:
+            Utils.log("failed to start smb service")
+            sys.exit(6)
+
+    if Utils.runCommand("service smb reload") != 0:
+        Utils.log("failed to reload smb configuration")
+        sys.exit(7)
     sys.exit(0)
 
 
