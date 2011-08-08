@@ -409,7 +409,11 @@ def getCpuUsageAvg():
     if not (st1 and st2):
         return None
     delta = [st2[i] - st1[i] for i in range(len(st1))]
-    cpuPercent = sum(delta[:3]) / delta[3] * 100.0
+    try:
+        cpuPercent = sum(delta[:3]) / delta[3] * 100.0
+    except ZeroDivisionError, e:
+        log("failed to find cpu percentage:%s" % str(e))
+        return None
     return str('%.4f' % cpuPercent)
 
 def getLoadavg():
@@ -447,6 +451,13 @@ def getInfinibandPortStatus():
         
     return portkeys
         
+
+def getServerFqdn():
+    rv = runCommand("hostname --fqdn", output=True, root=True)
+    if not rv["Stderr"]:
+        return stripEmptyLines(rv["Stdout"])
+    return socket.gethostname()
+
 
 def getServerCount():
     try:
@@ -1063,3 +1074,13 @@ def getDeviceFormatLockFile(device):
 
 def getDeviceFormatOutputFile(device):
     return "/var/tmp/format_%s.out" % device.replace('/', '_')
+
+def getGlusterVersion():
+    rv = runCommand("/usr/sbin/gluster --version", output=True)
+    if rv["Stderr"]:
+        return None
+    if rv["Status"] != 0:
+        return None
+    if not rv["Stdout"]:
+        return None
+    return rv["Stdout"].strip().split()[1]
