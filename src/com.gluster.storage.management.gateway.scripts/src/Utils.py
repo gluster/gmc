@@ -1074,3 +1074,13 @@ def getDeviceFormatLockFile(device):
 
 def getDeviceFormatOutputFile(device):
     return "/var/tmp/format_%s.out" % device.replace('/', '_')
+
+def getGlusterVersion():
+    rv = runCommand("/usr/sbin/gluster --version", output=True)
+    if rv["Stderr"]:
+        return None
+    if rv["Status"] != 0:
+        return None
+    if not rv["Stdout"]:
+        return None
+    return rv["Stdout"].strip().split()[1]

@@ -50,6 +50,7 @@ def getServerDetails(listall):
         serverTag.appendChild(responseDom.createTag("status", "ONLINE"))
     else:
         serverTag.appendChild(responseDom.createTag("status", "OFFLINE"))
+    serverTag.appendChild(responseDom.createTag("glusterFsVersion", Utils.getGlusterVersion()))
     serverTag.appendChild(responseDom.createTag("cpuUsage", str(cpu)))
     serverTag.appendChild(responseDom.createTag("totalMemory", str(convertKbToMb(meminfo['MemTotal']))))
     serverTag.appendChild(responseDom.createTag("memoryInUse", str(convertKbToMb(meminfo['MemUsed']))))
