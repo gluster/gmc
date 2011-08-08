@@ -284,6 +284,12 @@
             id="com.gluster.storage.management.console.commands.ChangePassword"
             name="Change Password">
       </command>
+      <command
+            categoryId="com.gluster.storage.management.console.category"
+            description="Refresh Data"
+            id="com.gluster.storage.management.console.commands.Refresh"
+            name="Refresh Data">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.bindings">
@@ -363,6 +369,11 @@
             commandId="com.gluster.storage.management.console.commands.ResetVolumeOptions"
             schemeId="com.gluster.storage.management.console.KeyConfig"
             sequence="CTRL+SHIFT+O">
+      </key>
+      <key
+            commandId="com.gluster.storage.management.console.commands.Refresh"
+            schemeId="com.gluster.storage.management.console.KeyConfig"
+            sequence="F5">
       </key>
    </extension>
    <extension
@@ -507,7 +518,7 @@
                tooltip="Migrate Brick">
                <enablement>
                    <objectClass
-                         name="com.gluster.storage.management.core.model.Disk">
+                         name="com.gluster.storage.management.core.model.Brick">
                    </objectClass>
                </enablement>
          </action>
@@ -1059,7 +1070,7 @@
          <action
                allowLabelUpdate="false"
                class="com.gluster.storage.management.console.actions.RefreshDataAction"
-               definitionId="org.eclipse.ui.window.preferences"
+               definitionId="com.gluster.storage.management.console.commands.Refresh"
                icon="icons/tango/32x32/view-refresh.png"
                id="com.gluster.storage.management.console.actions.RefreshDataAction"
                label="&amp;Refresh"
