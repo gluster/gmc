@@ -1,32 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?NLS TYPE="org.eclipse.help.toc"?>
 
-<toc label="Tasks" link_to="toc.xml#tasks"> 
-	<topic label="Server" href="html/tasks/servers.html">
-	<topic label="Adding a Server" href="html/tasks/subtopic2.html" />
- <topic label="Removing a Server">
+<toc label="Tasks" link_to="toc.xml#tasks">
+ <topic href="html/tasks/setting_the_gmc.html" label="Setting the Gluster Management Console">
+    <topic href="html/tasks/deploy_gmc_dedicated_host.html" label="Deploying Gluster Management Console on a Dedicated Host">
+    </topic>
+    <topic href="html/tasks/starting_gmc.html" label="Starting the Gluster Management Gateway">
+    </topic>
+    <topic href="html/tasks/access_gmc_jws.html" label="Accessing the Gluster Management Console Using Java Web Start">
+    </topic>
  </topic>
-	<topic label="Format Disk" href="html/tasks/subtopic5.html"/>
+ <topic label="Cluster">
+    <topic href="html/tasks/create_cluster.html" label="Create a Cluster">
+    </topic>
+    <topic href="html/tasks/select_cluster.html" label="Select a Cluster">
+    </topic>
+    <topic href="html/tasks/register_cluster.html" label="Register a Cluster">
+    </topic>
+ </topic> 
+	<topic label="Server">
+	<topic label="Adding Servers" href="html/tasks/add_servers.html" />
+ <topic href="html/tasks/remove_server.html" label="Removing a Server">
+ </topic>
+	<topic href="html/tasks/initialize_disk.html" label="Initializing a Disk"/>
 		</topic>
-	<topic label="Volume"  href="html/tasks/volumes.html"> 
+	<topic label="Volume"> 
 	<topic label="Creating a Volume" href="html/tasks/create_volume.html" /> 
 	<topic label="Starting a Volume" href="html/tasks/start_vol.html" />
- <topic label="Tuning Volume Options">
+ <topic href="html/tasks/tune_vol_opt.html" label="Tuning Volume Options">
  </topic>
- <topic label="Reblancing a Volume">
+ <topic href="html/tasks/rebalance_vol.html" label="Rebalancing Volumes">
  </topic> 
 	<topic href="html/tasks/stop_vol.html" label="Stopping a Volume">
  </topic>
- <topic label="Deleting a Volume">
+ <topic href="html/tasks/delete_volume.html" label="Deleting a Volume">
  </topic>
 	<topic label="Adding a Brick" href="html/tasks/add_brick.html" /> 
 	<topic href="html/tasks/delete_brick.html" label="Deleting a Brick">
  </topic>
- <topic label="Migrating a Brick">
+ <topic href="html/tasks/migrate_brick.html" label="Migrating a Brick">
  </topic> 
 	</topic>
-	<topic label="Logs"  href="html/tasks/logs.html"> 
+	<topic label="Logs"> 
 	<topic label="Displaying a Log Based on a Search Criteria" href="html/tasks/display_log.html" /> 
 	<topic label="Downloading Logs" href="html/tasks/download_log.html" /> 
 	</topic> 
-</toc>
+	</toc>

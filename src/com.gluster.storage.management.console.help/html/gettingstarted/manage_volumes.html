@@ -13,6 +13,25 @@
 </li><li>Start a volume that is currently stopped
  </li><li>Stop a volume that is currently running
  </li><li>Migrate a volume
- </li><li>Delete a volume from your storage environment </li></ul>
+ </li><li>Delete a volume from your storage environment </li>
+ </ul>
+ <p><b>Assigning Volume Names</b></p>
+
+<p>You can name your volumes anything you choose, subject to a few restrictions: 
+<ul>
+<li>Volume names can be up to <b>?? need info here</b> characters in length. The maximum length for volume names is 32 characters.
+	<p>It is best to assign volume names that indicate the type of data they contain, and to use similar names for volumes with similar contents. It is also helpful if the volume name is similar to (or at least has elements in common with) the name of the directory at which it is mounted. Understanding the pattern then enables you accurately to guess what a volume contains and where it is mounted.</p>
+</ul>
+<p><b>Types of Volumes</b></p>
+<p>Volumes of the following types can be created in your storage environment:</p>
+<ul>
+<li>Plain Distributed - Distributes files throughout the bricks in the volume.
+<li>Distributed Striped - Distributes data across striped bricks in the volume.
+<li>Distributed Mirror - Creates a mirrored volume with all files replicated. 
+<p><b>Note:</b> You must have at least two servers to activate this feature.</p>
+</ul>
+<h2>Volume Summary</h2>
+<p>The console also enables you to monitor the volumes in your cluster from the Summary tab. To display the summary of your volumes, click the Volume node from the left pane of the console window. The summary of the volumes is displayed in the right pane of the console window. It also displays Running Tasks and Alerts of all the volumes. 
+<p><img src="../images/GMC_Vol_summary.jpg"alt="Volume Summary"/>
 </body>
 </html>

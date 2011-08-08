@@ -18,7 +18,8 @@
             file="tocreference.xml">
       </toc>
       <toc
-            file="toctasks.xml">
+            file="toctasks.xml"
+            primary="true">
       </toc>
    </extension>
 

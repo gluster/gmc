@@ -2,11 +2,11 @@
 <?NLS TYPE="org.eclipse.help.toc"?>
 
 <toc label="Gluster Management Console - Help" topic="html/toc.html">
-   <topic label="Getting Started">
-      <anchor id="gettingstarted"/>
-   </topic>
    <topic label="Concepts">
       <anchor id="concepts"/>
+   </topic>
+   <topic label="Getting Started">
+      <anchor id="gettingstarted"/>
    </topic>
    <topic label="Tasks">
       <anchor id="tasks"/>

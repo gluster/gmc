@@ -12,6 +12,8 @@
  <topic href="html/gettingstarted/manage_volumes.html" label="Managing Volumes">
     <topic href="html/gettingstarted/manage_bricks.html" label="Managing Bricks">
     </topic>
+ </topic>
+ <topic href="html/gettingstarted/manage_logs.html" label="Managing Logs">
  </topic> 
 </toc>
 

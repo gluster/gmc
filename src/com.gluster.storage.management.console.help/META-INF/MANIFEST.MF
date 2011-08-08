@@ -5,4 +5,5 @@ Bundle-SymbolicName: com.gluster.storage.management.console.help; singleton:=tru
 Bundle-Version: 1.0.0
 Bundle-Vendor: GLUSTER
 Require-Bundle: org.eclipse.help.ui;bundle-version="3.5.2",
- org.eclipse.help.webapp;bundle-version="3.5.2"
+ org.eclipse.help.webapp;bundle-version="3.5.2",
+ org.eclipse.help
