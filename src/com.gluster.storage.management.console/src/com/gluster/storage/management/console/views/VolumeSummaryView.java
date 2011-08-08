@@ -202,18 +202,18 @@ public class VolumeSummaryView extends ViewPart {
 
 		// TODO: implement a logic to identify the corresponding glusterfs client download link
 		String message = "You can download gluster FS client from";
-		String glusterClientDownloadlinkText = "here.";
-		final String glusterClientDownloadlink = "http://www.gluster.com";
+		String glusterFSDownloadlinkText = "here.";
+		final String glusterFSDownloadlink = "http://download.gluster.com/pub/gluster/glusterfs/";
 
 		toolkit.createLabel(section, "");
 		toolkit.createLabel(section, message);
-		Hyperlink link = toolkit.createHyperlink(section, glusterClientDownloadlinkText, SWT.NORMAL);
+		Hyperlink link = toolkit.createHyperlink(section, glusterFSDownloadlinkText, SWT.NORMAL);
 		link.addHyperlinkListener(new HyperlinkAdapter() {
 			public void linkActivated(HyperlinkEvent e) {
 				try {
 					System.out.println(e.getLabel() + " [" + e.getHref() + "]");
 					PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser()
-							.openURL(new URL(glusterClientDownloadlink));
+							.openURL(new URL(glusterFSDownloadlink));
 				} catch (PartInitException e1) {
 					e1.printStackTrace();
 				} catch (MalformedURLException e1) {
