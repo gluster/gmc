@@ -37,7 +37,7 @@ import com.gluster.storage.management.core.model.Partition;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
-import com.gluster.storage.management.core.utils.StringUtil;
+import com.gluster.storage.management.core.utils.NumberUtil;
 
 public class AlertsManager {
 	private List<Alert> alerts = new ArrayList<Alert>();
@@ -118,8 +118,9 @@ public class AlertsManager {
 			// To check High CPU usage
 			if (server.getCpuUsage() >= CPU_USAGE_THRESHOLD) {
 				serverAlerts.add(new Alert(ALERT_TYPES.CPU_USAGE_ALERT, server.getName(),
-						Alert.ALERT_TYPE_STR[ALERT_TYPES.CPU_USAGE_ALERT.ordinal()] + " [" + server.getCpuUsage()
-								+ "] in server [" + server.getName() + "]"));
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.CPU_USAGE_ALERT.ordinal()] + " ["
+								+ NumberUtil.formatNumber(server.getCpuUsage()) + "] in server [" + server.getName()
+								+ "]"));
 			}
 
 			// To check High Memory usage
@@ -127,7 +128,7 @@ public class AlertsManager {
 			if (memoryUtilized >= MEMORY_USAGE_THRESHOLD) {
 				serverAlerts.add(new Alert(ALERT_TYPES.MEMORY_USAGE_ALERT, server.getName(),
 						Alert.ALERT_TYPE_STR[ALERT_TYPES.MEMORY_USAGE_ALERT.ordinal()] + " ["
-								+ StringUtil.formatNumber(memoryUtilized, 2) + "%] in server [" + server.getName()
+								+ NumberUtil.formatNumber(memoryUtilized) + "%] in server [" + server.getName()
 								+ "]"));
 			}
 
@@ -164,7 +165,7 @@ public class AlertsManager {
 				if (deviceSpaceUsed >= DISK_SPACE_USAGE_THRESHOLD) {
 					diskAlerts.add(new Alert(ALERT_TYPES.DISK_USAGE_ALERT, partition.getQualifiedName(),
 							Alert.ALERT_TYPE_STR[ALERT_TYPES.DISK_USAGE_ALERT.ordinal()] + " ["
-									+ StringUtil.formatNumber(deviceSpaceUsed, 2) + "% used] in disk ["
+									+ NumberUtil.formatNumber(deviceSpaceUsed) + "% used] in disk ["
 									+ partition.getQualifiedName() + "]"));
 				}
 			}
@@ -177,7 +178,7 @@ public class AlertsManager {
 			if (deviceSpaceUsed >= DISK_SPACE_USAGE_THRESHOLD) {
 				diskAlerts.add(new Alert(ALERT_TYPES.DISK_USAGE_ALERT, disk.getQualifiedName(),
 						Alert.ALERT_TYPE_STR[ALERT_TYPES.DISK_USAGE_ALERT.ordinal()] + " ["
-								+ StringUtil.formatNumber(deviceSpaceUsed, 2) + "% used] in ["
+								+ NumberUtil.formatNumber(deviceSpaceUsed) + "% used] in ["
 								+ disk.getQualifiedName() + "]"));
 			}
 		}

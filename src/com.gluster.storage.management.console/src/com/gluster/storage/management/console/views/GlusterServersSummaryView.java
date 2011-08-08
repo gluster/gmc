@@ -45,6 +45,7 @@ import com.gluster.storage.management.core.model.EntityGroup;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 
@@ -230,15 +231,16 @@ public class GlusterServersSummaryView extends ViewPart {
 	}
 	
 	private void createRunningTasksSection() {
-		tasksSection = guiHelper.createSection(form, toolkit, "Running Tasks", null, 1, false);
+		tasksSection = guiHelper.createSection(form, toolkit, CoreConstants.RUNNING_TASKS, null, 1, false);
 		populateTasksSection();
-
 	}
 
 	private void populateTasksSection() {
 		for (TaskInfo taskInfo : GlusterDataModelManager.getInstance().getModel().getCluster().getTaskInfoList()) {
 			// Exclude volume related tasks
-			if (taskInfo.getType() != TASK_TYPE.VOLUME_REBALANCE && taskInfo.getType() != TASK_TYPE.BRICK_MIGRATE) {
+			if (taskInfo.getStatus().getCode() != Status.STATUS_CODE_SUCCESS
+					&& taskInfo.getType() != TASK_TYPE.VOLUME_REBALANCE
+					&& taskInfo.getType() != TASK_TYPE.BRICK_MIGRATE) {
 				addTaskLabel(tasksSection, taskInfo);
 			}
 		}
@@ -247,9 +249,7 @@ public class GlusterServersSummaryView extends ViewPart {
 	}
 
 	private void addTaskLabel(Composite section, TaskInfo taskInfo) {
-		CLabel lblAlert = new CLabel(section, SWT.NONE);
-		lblAlert.setText(taskInfo.getDescription());
-		
+		CLabel lblTask = new CLabel(section, SWT.NONE);
 		Image taskImage = null;
 		switch(taskInfo.getType()) {
 		case DISK_FORMAT:
@@ -262,8 +262,23 @@ public class GlusterServersSummaryView extends ViewPart {
 			taskImage = guiHelper.getImage(IImageKeys.VOLUME_REBALANCE_22x22);
 			break;
 		}
-		lblAlert.setImage(taskImage);
-		lblAlert.redraw();
+		
+		String description = taskInfo.getDescription();
+		switch (taskInfo.getStatus().getCode()) {
+		case Status.STATUS_CODE_PAUSE:
+			description += " (paused)";
+			break;
+		case Status.STATUS_CODE_COMMIT_PENDING:
+			description += " (commit pending)";
+			break;
+		case Status.STATUS_CODE_FAILURE:
+			description += " (failed)";
+			break;
+		}
+		
+		lblTask.setText(description);
+		lblTask.setImage(taskImage);
+		lblTask.redraw();
 	}
 
 	/* (non-Javadoc)

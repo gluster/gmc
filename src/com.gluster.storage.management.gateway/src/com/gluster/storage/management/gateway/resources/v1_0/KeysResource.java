@@ -125,7 +125,7 @@ public class KeysResource extends AbstractResource {
 			}
 		}
 		// Extract SSH private and public key files.
-		ProcessResult output = processUtil.executeCommand("tar", "xvf", uploadedFile.getName(), "-C",
+		ProcessResult output = processUtil.executeCommand("tar", "xvf", uploadedFile.getAbsolutePath(), "-C",
 				SshUtil.SSH_AUTHORIZED_KEYS_DIR_LOCAL);
 		uploadedFile.delete();
 		if (!output.isSuccess()) {

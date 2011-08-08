@@ -810,10 +810,24 @@ public class GlusterDataModelManager {
 	
 	public void addTask(TaskInfo taskInfo) {
 		Cluster cluster = model.getCluster();
+		// To avoid duplicate task, Remove if already exist
+		TaskInfo existingTaskInfo = getTask(taskInfo.getName());
+		if (getTask(taskInfo.getName()) != null) {
+			removeTask(existingTaskInfo);
+		}
 		cluster.addTaskInfo(taskInfo);
 		for (ClusterListener listener : listeners) {
 			listener.taskAdded(taskInfo);
 		}
+	}
+	
+	public TaskInfo getTask(String taskId) {
+		for (TaskInfo taskInfo: model.getCluster().getTaskInfoList()) {
+			if (taskInfo.getName().equals(taskId)) {
+				return taskInfo;
+			}
+		}
+		return null;
 	}
 	
 	// Updating the Task
