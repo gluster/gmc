@@ -29,7 +29,7 @@ public class AuditFilter implements ResourceFilter, ContainerRequestFilter, Cont
 
 	@Override
 	public ContainerRequest filter(ContainerRequest req) {
-		logger.info("REQUEST: [" + req.getMethod() + "][" + req.getPath() + "]");
+		logger.info("REQUEST from [" +  req.getUserPrincipal().getName() + "] : [" + req.getMethod() + "][" + req.getPath() + "]");
 		return req;
 	}
 
