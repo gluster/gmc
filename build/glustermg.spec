@@ -55,6 +55,7 @@ rm -f $RPM_BUILD_ROOT/glustermg.war.tar.gz
 ln -sf /opt/glustermg/%{release_version}/glustermg/scripts/grun.py %{buildroot}%{_sbindir}/grun.py
 ln -sf /opt/glustermg/%{release_version}/glustermg/scripts/add_user_cifs_all.py %{buildroot}%{_sbindir}/add_user_cifs_all.py
 ln -sf /opt/glustermg/%{release_version}/glustermg/scripts/delete_user_cifs_all.py %{buildroot}%{_sbindir}/delete_user_cifs_all.py
+ln -sf /opt/glustermg/%{release_version}/glustermg/scripts/setup_cifs_config_all.py %{buildroot}%{_sbindir}/setup_cifs_config_all.py
 
 mkdir -p $RPM_BUILD_ROOT/opt/glustermg/%{release_version}/backend
 mkdir -p $RPM_BUILD_ROOT/var/lib/rrd
@@ -69,8 +70,9 @@ if [ -f /usr/share/tomcat5/webapps/glustermg ]; then
     rm -f /usr/share/tomcat5/webapps/glustermg
 fi
 ln -fs /opt/glustermg/%{release_version}/glustermg /usr/share/tomcat5/webapps/glustermg
-if [ ! -f /opt/glustermg/keys/id_rsa ]; then
-    ssh-keygen -t rsa -f /opt/glustermg/keys/id_rsa -N gluster
+if [ ! -f /opt/glustermg/keys/gluster.pem ]; then
+    ssh-keygen -t rsa -f /opt/glustermg/keys/gluster.pem -N ''
+    mv -f /opt/glustermg/keys/gluster.pem.pub /opt/glustermg/keys/gluster.pub
 fi
 if ! grep -q '^JAVA_HOME="/usr/lib/jvm/jre-1.6.0-openjdk.x86_64"' /etc/sysconfig/tomcat5; then
     sed -i 's/^JAVA_HOME=/# JAVA_HOME=/g' /etc/sysconfig/tomcat5
@@ -155,6 +157,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_sbindir}/grun.py
 %{_sbindir}/add_user_cifs_all.py
 %{_sbindir}/delete_user_cifs_all.py
+%{_sbindir}/setup_cifs_config_all.py
 
 
 %changelog
