@@ -395,26 +395,26 @@ def getCpuUsage():
 def _getCpuStatList():
     try:
         fp = open("/proc/stat")
-        cpuStatList = map(float, fp.readline().split()[1:])
+        line = fp.readline()
         fp.close()
-        return cpuStatList
+        return map(float, line.split()[1:5])
     except IOError, e:
         Utils.log("Failed to open /proc/stat: %s" % str(e))
     return None
 
 def getCpuUsageAvg():
     st1 = _getCpuStatList()
-    time.sleep(2)
+    #time1 = time.time()
+    time.sleep(1)
     st2 = _getCpuStatList()
+    #time2 = time.time()
     if not (st1 and st2):
         return None
-    delta = [st2[i] - st1[i] for i in range(len(st1))]
+    usageTime = (st2[0] - st1[0]) + (st2[1] - st1[1]) + (st2[2] - st1[2])
     try:
-        cpuPercent = sum(delta[:3]) / delta[3] * 100.0
+        return (100.0 * usageTime) / (usageTime + (st2[3] - st1[3]))
     except ZeroDivisionError, e:
-        log("failed to find cpu percentage:%s" % str(e))
-        return None
-    return str('%.4f' % cpuPercent)
+        return 0
 
 def getLoadavg():
     try:
