@@ -53,6 +53,7 @@ import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.Event.EVENT_TYPE;
+import com.gluster.storage.management.core.model.GlusterDataModel;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
@@ -242,6 +243,18 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 
 		@Override
 		public void linkActivated(HyperlinkEvent e) {
+			GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+			
+			// If the same task is already running return
+			String reference = device.getServerName() + ":" + device.getName();
+			TaskInfo existingTaskInfo = modelManager.getTaskByReference(reference);
+			if (existingTaskInfo != null && existingTaskInfo.getStatus().getCode() != Status.STATUS_CODE_SUCCESS
+					&& existingTaskInfo.getStatus().getCode() != Status.STATUS_CODE_FAILURE) {
+				MessageDialog.openInformation(getShell(), "Error: Initialize disk", "Initializing disk [" + reference
+						+ "] is already in progress! Try later.");
+				return;
+			}
+			
 			InitializeDiskTypeSelection formatDialog = new InitializeDiskTypeSelection(getShell());
 			int userAction = formatDialog.open();
 			if (userAction == Window.CANCEL) {
@@ -258,15 +271,21 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 				TaskInfo taskInfo = taskClient.getTaskInfo(uri);
 				
 				if (taskInfo != null && taskInfo instanceof TaskInfo) {
-					GlusterDataModelManager.getInstance().getModel().getCluster().addTaskInfo(taskInfo);
+					modelManager.addTask(taskInfo);
 				}
 
 				if (taskInfo.getStatus().getCode() == Status.STATUS_CODE_RUNNING) {
 					updateStatus(DEVICE_STATUS.INITIALIZING, true);
 				} else if (taskInfo.getStatus().getCode() == Status.STATUS_CODE_SUCCESS) {
-					updateStatus(DEVICE_STATUS.INITIALIZED, true);
-					GlusterDataModelManager.getInstance().updateDeviceStatus(device.getServerName(), device.getName(),
-							DEVICE_STATUS.INITIALIZED);
+					// If format completed (instantly), get the server details and update the server in the model   
+					GlusterServer oldServer = modelManager.getModel().getCluster().getServer(device.getServerName());  
+					GlusterServer newServer = serversClient.getGlusterServer(device.getServerName());
+					modelManager.glusterServerChanged(oldServer, newServer);
+					// updateStatus(DEVICE_STATUS.INITIALIZED, true);
+					// GlusterDataModelManager.getInstance().updateDeviceStatus(device.getServerName(), device.getName(),
+					//		DEVICE_STATUS.INITIALIZED);
+				} else {
+					MessageDialog.openError(getShell(), "Error: Initialize disk", taskInfo.getStatus().getMessage());
 				}
 				guiHelper.showTaskView();
 			} catch (Exception e1) {

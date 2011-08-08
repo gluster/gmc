@@ -29,6 +29,7 @@ import com.gluster.storage.management.console.GlusterDataModelManager;
 import com.gluster.storage.management.console.utils.GUIHelper;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Cluster;
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.model.Volume;
@@ -63,19 +64,28 @@ public class MigrateBrickWizard extends Wizard {
 		String dialogTitle = "Brick migration";
 
 		try {
+			String reference = volume.getName() + "-" + sourceDir + "-" + targetDir;
+			TaskInfo existingTaskInfo = GlusterDataModelManager.getInstance().getTaskByReference(reference);
+			if (existingTaskInfo != null && existingTaskInfo.getStatus().getCode() != Status.STATUS_CODE_SUCCESS
+					&& existingTaskInfo.getStatus().getCode() != Status.STATUS_CODE_FAILURE) {
+				MessageDialog.openInformation(getShell(), dialogTitle, "Volume brick [" + reference
+						+ "] migration is already in progress! Try later.");
+				return true;
+			}
+			
 			URI uri = volumesClient.startMigration(volume.getName(), sourceDir, targetDir, autoCommit);
 
 			// To get the object
 			TasksClient taskClient = new TasksClient();
 			TaskInfo taskInfo = taskClient.getTaskInfo(uri);
 			if (taskInfo != null && taskInfo instanceof TaskInfo) {
-				cluster.addTaskInfo(taskInfo);
-				modelManager.refreshVolumeData(cluster.getVolume(taskInfo.getReference()));
+				// cluster.addTaskInfo(taskInfo);
+				String volumeName = taskInfo.getReference().split("-")[0];
+				modelManager.addTask(taskInfo);
+				modelManager.refreshVolumeData(cluster.getVolume(volumeName));
 				
 				// If auto commit selected and migration operation complete immediately, 
 				if (taskInfo.getStatus().getCode() == TaskStatus.STATUS_CODE_SUCCESS) {
-					
-					String volumeName = taskInfo.getReference();
 					Volume oldVolume = cluster.getVolume(volumeName);
 					Volume newVolume = (new VolumesClient()).getVolume(volumeName);
 					

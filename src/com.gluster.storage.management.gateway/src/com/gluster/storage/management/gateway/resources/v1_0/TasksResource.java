@@ -56,24 +56,33 @@ import com.sun.jersey.spi.resource.Singleton;
 @Path(RESOURCE_PATH_CLUSTERS + "/{" + PATH_PARAM_CLUSTER_NAME + "}/" + RESOURCE_TASKS)
 @Singleton
 @Component
+
 public class TasksResource extends AbstractResource {
 	private Map<String, Map<String, Task>> tasksMap = new HashMap<String, Map<String, Task>>();
 
 	public TasksResource() {
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void addTask(String clusterName, Task task) {
 		Map clusterTaskMap = tasksMap.get(clusterName);
 		if(clusterTaskMap == null) {
 			clusterTaskMap = new HashMap<String, Task>();
 			tasksMap.put(clusterName, clusterTaskMap);
 		}
+		// Remove the task if already exist
+		if (clusterTaskMap.containsKey(task.getId())) {
+			 removeTask(clusterName, task);
+		}
 		clusterTaskMap.put(task.getId(), task);
 	}
 
-	public void removeTask(Task task) {
-		tasksMap.remove(task.getId());
+	@SuppressWarnings("rawtypes")
+	public void removeTask(String clusterName, Task task) {
+		Map clusterTaskMap = tasksMap.get(clusterName);
+		if (clusterTaskMap != null) {
+			clusterTaskMap.remove(task.getId());
+		}
 	}
 
 	public List<TaskInfo> getAllTasksInfo(String clusterName) {
@@ -176,7 +185,11 @@ public class TasksResource extends AbstractResource {
 			@PathParam(PATH_PARAM_TASK_ID) String taskId, @QueryParam(FORM_PARAM_OPERATION) String taskOperation) {
 		Task task = getTask(clusterName, taskId);
 		if (task == null) {
-			return notFoundResponse("Task [" + taskId + "] not found!");
+			return notFoundResponse("Requested task not found!");
+		}
+		
+		if(clusterName == null || clusterName.isEmpty()) {
+			return badRequestResponse("Parameter [" + PATH_PARAM_CLUSTER_NAME + "] is missing in request!");
 		}
 		
 		if(taskOperation == null || taskOperation.isEmpty()) {
@@ -191,12 +204,12 @@ public class TasksResource extends AbstractResource {
 		try {
 			if (taskOperation.equals(RESTConstants.TASK_STOP)) {
 				task.stop();
-				// On successfully stopping the task, we can delete (forget) it as it is no more useful
+				// On successful, intentionally stopped task can be removed from task list also
 				taskOperation = RESTConstants.TASK_DELETE;
 			}
 
 			if (taskOperation.equals(RESTConstants.TASK_DELETE)) {
-				removeTask(task);
+				removeTask(clusterName, task);
 			}
 			
 			return noContentResponse();

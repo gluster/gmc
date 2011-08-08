@@ -47,9 +47,11 @@ public class InitializeDiskTask extends Task {
 	private ServerUtil serverUtil;
 	private GlusterUtil glusterUtil;
 
-	public InitializeDiskTask(ClusterService clusterService, String clusterName, String serverName, String diskName, String fsType) {
-		super(clusterService, clusterName, TASK_TYPE.DISK_FORMAT, diskName, "Initialize disk " + serverName + ":"
-				+ diskName, false, false, false);
+	public InitializeDiskTask(ClusterService clusterService, String clusterName, String serverName, String diskName,
+			String fsType) {
+		// Reference contains "Server:disk"
+		super(clusterService, clusterName, TASK_TYPE.DISK_FORMAT, serverName + ":" + diskName, "Initialize disk "
+				+ serverName + ":" + diskName, false, false, false);
 
 		setServerName(serverName);
 		setDiskName(diskName);

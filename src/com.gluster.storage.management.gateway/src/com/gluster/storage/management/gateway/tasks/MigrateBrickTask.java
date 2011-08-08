@@ -65,8 +65,9 @@ public class MigrateBrickTask extends Task {
 
 	public MigrateBrickTask(ClusterService clusterService, String clusterName, String volumeName, String fromBrick,
 			String toBrick) {
-		super(clusterService, clusterName, TASK_TYPE.BRICK_MIGRATE, volumeName, "Brick Migration on volume ["
-				+ volumeName + "] from [" + fromBrick + "] to [" + toBrick + "]", true, true, true);
+		super(clusterService, clusterName, TASK_TYPE.BRICK_MIGRATE, volumeName + "-" + fromBrick + "-" + toBrick,
+				"Brick Migration on volume [" + volumeName + "] from [" + fromBrick + "] to [" + toBrick + "]", true,
+				true, true);
 		setFromBrick(fromBrick);
 		setToBrick(toBrick);
 		taskInfo.setName(getId());
@@ -95,7 +96,8 @@ public class MigrateBrickTask extends Task {
 	}
 
 	private void startMigration(String onlineServerName) {
-		ProcessResult processResult = glusterUtil.executeBrickMigration(onlineServerName, getTaskInfo().getReference(),
+		String volumeName = getTaskInfo().getReference().split("-")[0];
+		ProcessResult processResult = glusterUtil.executeBrickMigration(onlineServerName, volumeName,
 				getFromBrick(), getToBrick(), "start");
 		if (processResult.getOutput().trim().matches(".*started successfully$")) {
 			getTaskInfo().setStatus(
@@ -115,7 +117,8 @@ public class MigrateBrickTask extends Task {
 	}
 
 	private void pauseMigration(String onlineServer) {
-		ProcessResult processResult = glusterUtil.executeBrickMigration(onlineServer, taskInfo.getReference(),
+		String volumeName = getTaskInfo().getReference().split("-")[0];
+		ProcessResult processResult = glusterUtil.executeBrickMigration(onlineServer, volumeName,
 				getFromBrick(), getToBrick(), "pause");
 		TaskStatus taskStatus = new TaskStatus();
 		if (processResult.getOutput().trim().matches(".*paused successfully$")) { 
@@ -142,7 +145,8 @@ public class MigrateBrickTask extends Task {
 	}
 	
 	private void commitMigration(String serverName) {
-		ProcessResult processResult = glusterUtil.executeBrickMigration(serverName, getTaskInfo().getReference(),
+		String volumeName = getTaskInfo().getReference().split("-")[0];
+		ProcessResult processResult = glusterUtil.executeBrickMigration(serverName, volumeName,
 				getFromBrick(), getToBrick(), "commit");
 		TaskStatus taskStatus = new TaskStatus();
 		if (processResult.isSuccess()) {
@@ -165,7 +169,8 @@ public class MigrateBrickTask extends Task {
 	}
 
 	private void stopMigration(String serverName) {
-		ProcessResult processResult = glusterUtil.executeBrickMigration(serverName, taskInfo.getReference(), getFromBrick(),
+		String volumeName = getTaskInfo().getReference().split("-")[0];
+		ProcessResult processResult = glusterUtil.executeBrickMigration(serverName, volumeName, getFromBrick(),
 				getToBrick(), "abort");
 		TaskStatus taskStatus = new TaskStatus();
 		if (processResult.getOutput().trim().matches(".*aborted successfully$")) {
@@ -193,7 +198,8 @@ public class MigrateBrickTask extends Task {
 
 		TaskStatus taskStatus = new TaskStatus();
 		try {
-			ProcessResult processResult = glusterUtil.executeBrickMigration(serverName, getTaskInfo().getReference(),
+			String volumeName = getTaskInfo().getReference().split("-")[0];
+			ProcessResult processResult = glusterUtil.executeBrickMigration(serverName, volumeName,
 					getFromBrick(), getToBrick(), "status");
 			String output = processResult.getOutput().trim();
 			if (output.matches("^Number of files migrated.*Migration complete$")

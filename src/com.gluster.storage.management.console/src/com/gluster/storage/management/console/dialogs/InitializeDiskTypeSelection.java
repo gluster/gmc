@@ -45,7 +45,7 @@ public class InitializeDiskTypeSelection extends Dialog  {
 	private final GUIHelper guiHelper = GUIHelper.getInstance();
 	private Composite initializeDiskTypeComposite;
 	private Composite composite;
-	private String fsType; 
+	private String fsType;
 
 	public InitializeDiskTypeSelection(Shell parentShell) {
 		super(parentShell);
