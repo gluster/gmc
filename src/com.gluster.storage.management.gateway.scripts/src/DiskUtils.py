@@ -178,6 +178,9 @@ def getRaidDisk():
         raid['MountPoint'] = getDeviceMountPoint(device)
         if raid['MountPoint']:
             raid['Type'] = "DATA"
+            raid['SpaceInUse'] = getDeviceUsedSpace(device)
+        else:
+            raid['SpaceInUse'] = None
         rv = Utils.runCommand("blkid -c /dev/null %s" % (device), output=True, root=True)
         raid['Uuid'] = None
         raid['FsType'] = None
@@ -191,17 +194,6 @@ def getRaidDisk():
             if len(words) > 2:
                 raid['Uuid']  = words[1].split("UUID=")[-1].split('"')[1]
                 raid['FsType'] = words[2].split("TYPE=")[-1].split('"')[1]
-
-        used = 0
-        rv = Utils.runCommand("df %s" % (device), output=True, root=True)
-        if rv["Status"] == 0:
-            try:
-                used = long(rv["Stdout"].split("\n")[1].split()[2]) / 1024
-            except IndexError:
-                pass
-            except ValueError:
-                pass
-        raid['SpaceInUse'] = used
         raid['Disks'] = [x.split('[')[0] for x in tokens[4:]]
         raid['Size'] = float(array[1].split()[0]) / 1024.0
         raidList[tokens[0]] = raid
@@ -257,17 +249,6 @@ def getDiskInfo(diskDeviceList=None):
         disk["MountPoint"] = None
         disk["ReadOnlyAccess"] = None
 
-        spaceInUse = None
-        rv = Utils.runCommand("df %s" % (disk["Device"]), output=True, root=True)
-        if rv["Status"] == 0:
-            try:
-                spaceInUse = long(rv["Stdout"].split("\n")[1].split()[2]) / 1024
-            except IndexError:
-                pass
-            except ValueError:
-                pass
-        disk["SpaceInUse"] = spaceInUse
-
         partitionUdiList = halManager.FindDeviceStringMatch("info.parent", udi)
         if isDiskInFormatting(disk["Device"]):
             disk["Status"] = "INITIALIZING"
@@ -284,6 +265,11 @@ def getDiskInfo(diskDeviceList=None):
             disk["Status"] = mounts[disk["Device"]]["Status"]
             disk["FsType"] = mounts[disk["Device"]]["FsType"]
             disk["MountPoint"] = mounts[disk["Device"]]["MountPoint"]
+            
+        if disk["MountPoint"]:
+            disk["SpaceInUse"] = getDeviceUsedSpace(disk["Device"])
+        else:
+            disk["SpaceInUse"] = None
             
         partitionList = []
         diskSpaceInUse = 0
@@ -463,6 +449,15 @@ def getMountPointByUuid(partitionUuid):
             return entry.split()[1]
     return None
 
+def getDeviceUsedSpace(device):
+    rv = Utils.runCommand("df -kl %s" % (device), output=True, root=True)
+    if rv["Status"] == 0:
+        try:
+            return long(rv["Stdout"].split("\n")[1].split()[2]) / 1024
+        except IndexError:
+            pass
+        except ValueError:
+            pass
 
 def getDiskSizeInfo(partition):
     # get values from df output
