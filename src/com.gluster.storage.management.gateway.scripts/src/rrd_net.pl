@@ -42,8 +42,9 @@ sub updatenetdata {
 	/:.+/ or next;        # if input line contains ':' else continue
 	next if /^lo:\s/;     # continue if input line starts with 'lo:'
 
-        @tokens1 = split /:/;
-        @tokens2 = split(/\s+/, $tokens1[1]);
+        @tokens1 = split /:/;                 # split with ':'
+	$tokens1[1]=~s/^\s+//;                # remove left side whitespaces
+        @tokens2 = split(/\s+/, $tokens1[1]); # split with space
 
         $device = $tokens1[0];
         $received = $tokens2[0];
