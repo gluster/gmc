@@ -15,7 +15,7 @@ import Utils
 
 
 def main():
-    sshCommandPrefix = "ssh -q -o BatchMode=yes -o GSSAPIAuthentication=no -o PasswordAuthentication=no -o StrictHostKeyChecking=no".split()
+    sshCommandPrefix = "ssh -q -i /opt/glustermg/keys/gluster.pem -o BatchMode=yes -o GSSAPIAuthentication=no -o PasswordAuthentication=no -o StrictHostKeyChecking=no".split()
 
     if len(sys.argv) < 3:
         sys.stderr.write("usage: %s SERVER_FILE COMMAND [ARGUMENTS]\n" % os.path.basename(sys.argv[0]))
