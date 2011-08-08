@@ -52,10 +52,9 @@ public class SshUtil {
 	public static final String SSH_AUTHORIZED_KEYS_DIR_REMOTE = "/root/.ssh/";
 	private static final String SSH_AUTHORIZED_KEYS_FILE = "authorized_keys";
 	private static final String SSH_AUTHORIZED_KEYS_PATH_REMOTE = SSH_AUTHORIZED_KEYS_DIR_REMOTE + SSH_AUTHORIZED_KEYS_FILE;
-	public static final File PRIVATE_KEY_FILE = new File(SSH_AUTHORIZED_KEYS_DIR_LOCAL + "id_rsa");
-	public static final File PUBLIC_KEY_FILE = new File(SSH_AUTHORIZED_KEYS_DIR_LOCAL + "id_rsa.pub");
+	public static final File PRIVATE_KEY_FILE = new File(SSH_AUTHORIZED_KEYS_DIR_LOCAL + "gluster.pem");
+	public static final File PUBLIC_KEY_FILE = new File(SSH_AUTHORIZED_KEYS_DIR_LOCAL + "gluster.pub");
 //	private static final String SCRIPT_DISABLE_SSH_PASSWORD_AUTH = "disable-ssh-password-auth.sh";
-	private static final String PRIVATE_KEY_PASSPHRASE = "gluster";
 	private LRUCache<String, Connection> sshConnCache = new LRUCache<String, Connection>(10);
 
 	// TODO: Make user name configurable
@@ -177,7 +176,7 @@ public class SshUtil {
 						+ "]");
 			}
 
-			if (!conn.authenticateWithPublicKey(USER_NAME, PRIVATE_KEY_FILE, PRIVATE_KEY_PASSPHRASE)) {
+			if (!conn.authenticateWithPublicKey(USER_NAME, PRIVATE_KEY_FILE, null)) {
 				throw new ConnectionException("SSH Authentication (public key) failed for server ["
 						+ conn.getHostname() + "]");
 			}
