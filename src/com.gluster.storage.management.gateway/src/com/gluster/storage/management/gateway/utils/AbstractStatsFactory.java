@@ -114,7 +114,7 @@ public abstract class AbstractStatsFactory implements StatsFactory {
 
 	protected void averageAggregatedStats(ServerStats aggregatedStats, int[][] dataCount) {
 		List<ServerStatsRow> rows = aggregatedStats.getRows();
-		for(int rowNum = 0; rowNum < rows.size(); rowNum++) {
+		for(int rowNum = 0; rowNum < rows.size() && rowNum < dataCount.length; rowNum++) {
 			List<Double> data = rows.get(rowNum).getUsageData();
 			for(int columnNum = 0; columnNum < data.size(); columnNum++) {
 				data.set(columnNum, data.get(columnNum) / dataCount[rowNum][columnNum]);
