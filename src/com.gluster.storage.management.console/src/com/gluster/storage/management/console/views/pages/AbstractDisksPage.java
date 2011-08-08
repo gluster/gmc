@@ -268,7 +268,7 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 					GlusterDataModelManager.getInstance().updateDeviceStatus(device.getServerName(), device.getName(),
 							DEVICE_STATUS.INITIALIZED);
 				}
-
+				guiHelper.showTaskView();
 			} catch (Exception e1) {
 				MessageDialog.openError(getShell(), "Error: Initialize disk", e1.getMessage());
 			}

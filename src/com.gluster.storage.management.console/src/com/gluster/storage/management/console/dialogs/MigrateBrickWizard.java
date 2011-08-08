@@ -26,6 +26,7 @@ import org.eclipse.jface.wizard.Wizard;
 import com.gluster.storage.management.client.TasksClient;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.console.GlusterDataModelManager;
+import com.gluster.storage.management.console.utils.GUIHelper;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.TaskInfo;
@@ -85,6 +86,7 @@ public class MigrateBrickWizard extends Wizard {
 				}
 			} 
 			MessageDialog.openInformation(getShell(), dialogTitle, "Brick migration started successfully");
+			GUIHelper.getInstance().showTaskView();
 			
 		} catch (Exception e) {
 			MessageDialog.openError(getShell(), dialogTitle, "Brick Migration failed! [" + e.getMessage() + "]");

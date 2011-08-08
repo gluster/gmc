@@ -161,14 +161,8 @@ public class VolumeOptionsDefaults {
 	}
 	
 	public VolumeOptionInfoListResponse parseXML(String xml) {
-		xml = xml.replaceAll("<volumeOptionsDefaults>", "<options>")
-		.replaceAll("</volumeOptionsDefaults>", "</options>").replaceAll("<volumeOption>", "<option>")
-		.replaceAll("</volumeOption>", "</option>");
-		Object response = serverUtil.unmarshal(VolumeOptionInfoListResponse.class, xml);
-		if (response instanceof Status) {
-			throw new GlusterRuntimeException(((Status) response).getMessage());
-		}
-		return (VolumeOptionInfoListResponse) response;
+		xml = xml.replaceAll("<Description>", "<description>").replaceAll("</Description>", "</description>");
+		return serverUtil.unmarshal(VolumeOptionInfoListResponse.class, xml);
 	}
 	
 	

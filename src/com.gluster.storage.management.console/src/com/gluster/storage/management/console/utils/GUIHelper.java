@@ -80,6 +80,7 @@ import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.progress.IProgressConstants;
 
 import com.gluster.storage.management.console.Application;
+import com.gluster.storage.management.console.GlusterDataModelManager;
 import com.gluster.storage.management.console.IImageKeys;
 import com.gluster.storage.management.console.views.NavigationView;
 import com.gluster.storage.management.console.views.TasksView;
@@ -458,6 +459,9 @@ public class GUIHelper {
 	
 	public void showTaskView() {
 		try {
+			NavigationView navigationView = (NavigationView) getView(NavigationView.ID);
+			navigationView.selectEntity(GlusterDataModelManager.getInstance().getModel().getCluster());
+
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
 					.showView( TasksView.ID );
 		} catch (PartInitException e) {
