@@ -71,7 +71,7 @@ if [ -f /usr/share/tomcat5/webapps/glustermg ]; then
 fi
 ln -fs /opt/glustermg/%{release_version}/glustermg /usr/share/tomcat5/webapps/glustermg
 if [ ! -f /opt/glustermg/keys/gluster.pem ]; then
-    ssh-keygen -t rsa -f /opt/glustermg/keys/gluster.pem -N gluster
+    ssh-keygen -t rsa -f /opt/glustermg/keys/gluster.pem -N ''
     mv -f /opt/glustermg/keys/gluster.pem.pub /opt/glustermg/keys/gluster.pub
 fi
 if ! grep -q '^JAVA_HOME="/usr/lib/jvm/jre-1.6.0-openjdk.x86_64"' /etc/sysconfig/tomcat5; then
