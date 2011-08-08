@@ -129,7 +129,9 @@ public class KeysResource extends AbstractResource {
 				SshUtil.SSH_AUTHORIZED_KEYS_DIR_LOCAL);
 		uploadedFile.delete();
 		if (!output.isSuccess()) {
-			throw new GlusterRuntimeException(output.getOutput());
+			String errMsg = "Error in importing SSH keys: [" + output.toString() + "]";
+			logger.error(errMsg);
+			throw new GlusterRuntimeException(errMsg);
 		}
 		return createdResponse("SSH Key imported successfully");
 	}

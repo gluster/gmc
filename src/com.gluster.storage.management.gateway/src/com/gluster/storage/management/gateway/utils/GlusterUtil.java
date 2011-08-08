@@ -227,12 +227,18 @@ public class GlusterUtil {
 		}
 	}
 
-	public Status startVolume(String volumeName, String knownServer) {
-		return new Status(sshUtil.executeRemote(knownServer, "gluster volume start " + volumeName));
+	public void startVolume(String volumeName, String knownServer) {
+		ProcessResult result = sshUtil.executeRemote(knownServer, "gluster volume start " + volumeName);
+		if(!result.isSuccess()) {
+			throw new GlusterRuntimeException("Couldn't start volume [" + volumeName + "]! Error: " + result.toString());
+		}
 	}
 
-	public Status stopVolume(String volumeName, String knownServer) {
-		return new Status(sshUtil.executeRemote(knownServer, "gluster --mode=script volume stop " + volumeName));
+	public void stopVolume(String volumeName, String knownServer) {
+		ProcessResult result = sshUtil.executeRemote(knownServer, "gluster --mode=script volume stop " + volumeName);
+		if(!result.isSuccess()) {
+			throw new GlusterRuntimeException("Couldn't stop volume [" + volumeName + "]! Error: " + result.toString());
+		}
 	}
 
 	public void resetOptions(String volumeName, String knownServer) {
@@ -322,8 +328,11 @@ public class GlusterUtil {
 		}
 	}
 
-	public Status deleteVolume(String volumeName, String knownServer) {
-		return new Status(sshUtil.executeRemote(knownServer, "gluster --mode=script volume delete " + volumeName));
+	public void deleteVolume(String volumeName, String knownServer) {
+		ProcessResult result = sshUtil.executeRemote(knownServer, "gluster --mode=script volume delete " + volumeName);
+		if (!result.isSuccess()) {
+			throw new GlusterRuntimeException("Couldn't delete volume [" + volumeName + "]! Error: " + result);
+		}
 	}
 
 	private String getVolumeInfo(String volumeName, String knownServer) {
@@ -585,12 +594,15 @@ public class GlusterUtil {
 		return logFileName;
 	}
 
-	public Status removeBricks(String volumeName, List<String> bricks, String knownServer) {
+	public void removeBricks(String volumeName, List<String> bricks, String knownServer) {
 		StringBuilder command = new StringBuilder("gluster --mode=script volume remove-brick " + volumeName);
 		for (String brickDir : bricks) {
 			command.append(" " + brickDir);
 		}
-		return new Status(sshUtil.executeRemote(knownServer, command.toString()));
+		ProcessResult result = sshUtil.executeRemote(knownServer, command.toString());
+		if(!result.isSuccess()) {
+			throw new GlusterRuntimeException(result.toString());
+		}
 	}
 
 	public void removeServer(String existingServer, String serverName) {

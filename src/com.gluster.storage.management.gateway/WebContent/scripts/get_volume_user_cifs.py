@@ -24,6 +24,9 @@ def main():
 
     volumeName = sys.argv[1]
 
+    if not os.path.exists(cifsVolumeFile):
+        sys.exit(0)
+
     try:
         fp = open(cifsVolumeFile)
         content = fp.read()
