@@ -830,6 +830,15 @@ public class GlusterDataModelManager {
 		return null;
 	}
 	
+	public TaskInfo getTaskByReference(String reference) {
+		for (TaskInfo taskInfo: model.getCluster().getTaskInfoList()) {
+			if (taskInfo.getReference().equals(reference)) {
+				return taskInfo;
+			}
+		}
+		return null;
+	}
+	
 	// Updating the Task
 	public void updateTask(TaskInfo taskInfo) {
 		for (ClusterListener listener : listeners) {

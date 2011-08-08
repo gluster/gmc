@@ -21,12 +21,14 @@ package com.gluster.storage.management.console.actions;
 import java.net.URI;
 
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 
 import com.gluster.storage.management.client.TasksClient;
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.console.GlusterDataModelManager;
 import com.gluster.storage.management.console.utils.GUIHelper;
+import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
 import com.gluster.storage.management.core.model.Volume;
 
@@ -38,12 +40,20 @@ public class RebalanceVolumeAction extends AbstractActionDelegate {
 	protected void performAction(final IAction action) {
 		final String actionDesc = action.getDescription();
 		try {
+			TaskInfo existingTaskInfo = GlusterDataModelManager.getInstance().getTaskByReference(volume.getName());
+			if (existingTaskInfo != null && existingTaskInfo.getStatus().getCode() != Status.STATUS_CODE_SUCCESS
+					&& existingTaskInfo.getStatus().getCode() != Status.STATUS_CODE_FAILURE) {
+				showInfoDialog(actionDesc, "Volume [" + volume.getName()
+						+ "] rebalance is already in progress! Try later.");
+				return;
+			}
+			
 			URI uri = new VolumesClient().rebalanceStart(volume.getName(), false, false, false);
 			// Add the task to model
 			TasksClient taskClient = new TasksClient();
 			TaskInfo taskInfo = taskClient.getTaskInfo(uri);
 			if (taskInfo != null && taskInfo instanceof TaskInfo) {
-				GlusterDataModelManager.getInstance().getModel().getCluster().addTaskInfo(taskInfo);
+				GlusterDataModelManager.getInstance().addTask(taskInfo);
 			}
 			showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] rebalance started successfully!");
 			guiHelper.showTaskView();
