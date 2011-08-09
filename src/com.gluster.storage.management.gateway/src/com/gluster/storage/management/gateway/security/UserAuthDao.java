@@ -20,15 +20,11 @@
  */
 package com.gluster.storage.management.gateway.security;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.PersistenceUnit;
-
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 
@@ -45,19 +41,17 @@ public class UserAuthDao extends JdbcDaoImpl implements GlusterUserDetailsServic
 	 */
 	@Override
 	public void changePassword(String username, String password) {
+		DataSourceTransactionManager txnManager = new DataSourceTransactionManager();
+		txnManager.setDataSource(getDataSource());
+
+		TransactionDefinition def = new DefaultTransactionDefinition();
+		TransactionStatus status = txnManager.getTransaction(def);
 		try {
 			getJdbcTemplate().update("UPDATE USERS SET PASSWORD = ? WHERE USERNAME = ?", password, username);
-			Connection connection = getDataSource().getConnection(); 
-			connection.commit();
-			connection.close();
+			txnManager.commit(status);
 		} catch(Exception e) {
-			String errMsg = "Exception while changing password of user [" + username + "]. Error: " + e.getMessage();
-			try {
-				getDataSource().getConnection().rollback();
-			} catch (SQLException e1) {
-				throw new GlusterRuntimeException(errMsg + ", " + e1.getMessage());
-			}
-			throw new GlusterRuntimeException(errMsg);
+			txnManager.rollback(status);
+			throw new GlusterRuntimeException("Exception while changing password of user [" + username + "]. Error: " + e.getMessage());
 		}
 	}
 }
