@@ -509,7 +509,7 @@
                icon="icons/tango/32x32/replace-brick.png"
                id="com.gluster.storage.management.console.actions.MigrateDiskAction"
                label="&amp;Migrate Brick"
-               menubarPath="com.gluster.storage.management.console.menu.glusterserver/glusterserver"
+               menubarPath="com.gluster.storage.management.console.menu.volume/volume"
                pulldown="false"
                retarget="false"
                state="false"
