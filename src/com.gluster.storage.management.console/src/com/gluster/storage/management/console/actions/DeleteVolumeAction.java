@@ -33,11 +33,10 @@ import com.gluster.storage.management.console.utils.GUIHelper;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
-import com.gluster.storage.management.core.utils.StringUtil;
 
 public class DeleteVolumeAction extends AbstractActionDelegate {
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
-	private List<Volume> volumes = new ArrayList<Volume>();
+	private List<Volume> selectedVolumes = new ArrayList<Volume>();
 	private List<String> selectedVolumeNames = new ArrayList<String>();
 	private List<String> onlineVolumeNames = new ArrayList<String>();
 
@@ -48,13 +47,11 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 
 		collectVolumeNames();
 		String warningMessage;
-		if (onlineVolumeNames.size() > 0) { // There are some online volumes, get confirmation to stop and delete all
-											// the volumes
-			warningMessage = "Following volume(s) [" + StringUtil.collectionToString(onlineVolumeNames, ", ")
-					+ "] are online, " + CoreConstants.NEWLINE + "Are you sure to continue?";
+		if (onlineVolumeNames.size() > 0) { // Getting confirmation for stop and delete
+			warningMessage = "Following volume(s) " + onlineVolumeNames + " are online, " + CoreConstants.NEWLINE
+					+ "Are you sure to continue?" + CoreConstants.NEWLINE + selectedVolumeNames;
 		} else {
-			warningMessage = "Are you sure to delete the following volume(s) ["
-					+ StringUtil.collectionToString(selectedVolumeNames, ", ") + "] ?";
+			warningMessage = "Are you sure to delete the volumes " + selectedVolumeNames + " ?";
 		}
 
 		Integer deleteOption = new MessageDialog(getShell(), "Delete Volume", GUIHelper.getInstance().getImage(
@@ -65,44 +62,42 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 		}
 
 		boolean confirmDelete = (deleteOption == 1) ? true : false;
-		List<String> deletedVolumes = new ArrayList<String>();
+		List<String> deletedVolumeNames = new ArrayList<String>();
 		List<String> failedVolumes = new ArrayList<String>();
 		String errorMessage = "";
 
-		for (Volume volume : volumes) {
+		for (Volume volume : selectedVolumes.toArray(new Volume[0])) {
 			try {
 				if (volume.getStatus() == VOLUME_STATUS.ONLINE) { // stop if online volume
 					vc.stopVolume(volume.getName());
 				}
-				vc.deleteVolume(volume, confirmDelete);
+				vc.deleteVolume(volume.getName(), confirmDelete);
 				modelManager.deleteVolume(volume);
-				deletedVolumes.add(volume.getName());
+				deletedVolumeNames.add(volume.getName());
 			} catch (Exception e) {
 				// there is a possibility that the error was in post-delete operation, which means
 				// volume was deleted, but some other error happened. check if this is the case.
 				if (vc.volumeExists(volume.getName())) {
-					errorMessage += CoreConstants.NEWLINE + "Volume [" + volume.getName()
-							+ "] could not be deleted! Error: [" + e.getMessage() + "]";
+					errorMessage += CoreConstants.NEWLINE + "[" + volume.getName() + "] : [" + e.getMessage() + "]";
 					failedVolumes.add(volume.getName());
 				} else {
-					errorMessage += CoreConstants.NEWLINE + "Volume deleted, but following error(s) occured: ["
+					errorMessage += CoreConstants.NEWLINE + "Volume deleted, but following error occured: ["
 							+ e.getMessage() + "]";
 					modelManager.deleteVolume(volume);
-					deletedVolumes.add(volume.getName());
+					deletedVolumeNames.add(volume.getName());
 				}
 			}
 		}
 
 		// Display the success or failure info
-		if (deletedVolumes.size() == 0) { // No volume(s) deleted successfully
-			showErrorDialog(actionDesc, "Following volume(s) [" + StringUtil.collectionToString(failedVolumes, ", ")
-					+ "] could not be delete! " + CoreConstants.NEWLINE + "Error: [" + errorMessage + "]");
+		if (deletedVolumeNames.size() == 0) { // No volume(s) deleted successfully
+			showErrorDialog(actionDesc, "volumes " + failedVolumes + " could not be delete! " + CoreConstants.NEWLINE
+					+ "Error: [" + errorMessage + "]");
 		} else {
-			String info = "Following volumes [" + StringUtil.collectionToString(deletedVolumes, ", ")
-					+ "] are deleted successfully!";
+			String info = "Volumes " + deletedVolumeNames + " deleted successfully!";
 			if (errorMessage != "") {
-				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Following volumes ["
-						+ StringUtil.collectionToString(failedVolumes, ", ") + "] are failed to delete! ["
+				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes "
+						+ failedVolumes + " could not be deleted! ["
 						+ errorMessage + "]";
 			}
 			showInfoDialog(actionDesc, info);
@@ -112,7 +107,7 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 	private void collectVolumeNames() {
 		selectedVolumeNames.clear();
 		onlineVolumeNames.clear();
-		for (Volume volume : volumes) {
+		for (Volume volume : selectedVolumes) {
 			selectedVolumeNames.add(volume.getName());
 			if (volume.getStatus() == VOLUME_STATUS.ONLINE) {
 				onlineVolumeNames.add(volume.getName());
@@ -127,17 +122,17 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
-		Set<Volume> selectedVolumes = GUIHelper.getInstance().getSelectedEntities(getWindow(), Volume.class);
-		volumes.clear();
-		if (selectedVolumes == null || selectedVolumes.isEmpty()) {
+		Set<Volume> selectedVolumeSet = GUIHelper.getInstance().getSelectedEntities(getWindow(), Volume.class);
+		selectedVolumes.clear();
+		if (selectedVolumeSet == null || selectedVolumeSet.isEmpty()) {
 			super.selectionChanged(action, selection);
 			if (selectedEntity instanceof Volume) {
-				volumes.add((Volume) selectedEntity);
+				selectedVolumes.add((Volume) selectedEntity);
 			}
 		} else {
-			volumes.addAll(selectedVolumes); //TODO reverse the collection to maintain the selected order
+			selectedVolumes.addAll(selectedVolumeSet); //TODO reverse the collection to maintain the selected order
 		}
 
-		action.setEnabled( (volumes.size() > 0) );
+		action.setEnabled( (selectedVolumes.size() > 0) );
 	}
 }
