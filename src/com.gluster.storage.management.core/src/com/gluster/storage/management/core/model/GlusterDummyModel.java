@@ -117,17 +117,17 @@ public class GlusterDummyModel {
 	private void initializeVolumes(Cluster cluster) {
 		List<Volume> volumes = new ArrayList<Volume>();
 
-		volume1 = addVolume(volumes, "Volume1", cluster, VOLUME_TYPE.PLAIN_DISTRIBUTE, TRANSPORT_TYPE.ETHERNET,
+		volume1 = addVolume(volumes, "Volume1", cluster, VOLUME_TYPE.DISTRIBUTE, TRANSPORT_TYPE.ETHERNET,
 				VOLUME_STATUS.ONLINE);
 
-		volume2 = addVolume(volumes, "Volume2", cluster, VOLUME_TYPE.PLAIN_DISTRIBUTE, TRANSPORT_TYPE.ETHERNET,
+		volume2 = addVolume(volumes, "Volume2", cluster, VOLUME_TYPE.DISTRIBUTE, TRANSPORT_TYPE.ETHERNET,
 				VOLUME_STATUS.ONLINE);
 
-		volume3 = addVolume(volumes, "Volume3", cluster, VOLUME_TYPE.DISTRIBUTED_MIRROR, TRANSPORT_TYPE.ETHERNET,
+		volume3 = addVolume(volumes, "Volume3", cluster, VOLUME_TYPE.DISTRIBUTED_REPLICATE, TRANSPORT_TYPE.ETHERNET,
 				VOLUME_STATUS.OFFLINE);
 		volume3.setReplicaCount(2);
 
-		volume4 = addVolume(volumes, "Volume4", cluster, VOLUME_TYPE.PLAIN_DISTRIBUTE, TRANSPORT_TYPE.ETHERNET,
+		volume4 = addVolume(volumes, "Volume4", cluster, VOLUME_TYPE.DISTRIBUTE, TRANSPORT_TYPE.ETHERNET,
 				VOLUME_STATUS.ONLINE);
 
 		volume5 = addVolume(volumes, "Volume5", cluster, VOLUME_TYPE.DISTRIBUTED_STRIPE, TRANSPORT_TYPE.INFINIBAND,

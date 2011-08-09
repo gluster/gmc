@@ -170,7 +170,7 @@ public class CreateVolumePage1 extends WizardPage {
 	private void createAccessControlLabel(Composite container) {
 		Label lblAccessControl = new Label(container, SWT.NONE);
 		lblAccessControl.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblAccessControl.setText("Access Control: ");
+		lblAccessControl.setText("Allow Access From: ");
 	}
 	
 	private void createCifsUserLabel(Composite container) {
@@ -267,23 +267,28 @@ public class CreateVolumePage1 extends WizardPage {
 		GridData typeComboData = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
 		typeCombo.setLayoutData(typeComboData);
 		typeComboViewer.setContentProvider(new ArrayContentProvider());
-		typeComboViewer.setInput(Volume.VOLUME_TYPE.values());
-		typeCombo.select(VOLUME_TYPE.PLAIN_DISTRIBUTE.ordinal()); // default type = Plain Distribute
+		
+		VOLUME_TYPE[] volumeTypes = new VOLUME_TYPE[3];
+		volumeTypes[0] = VOLUME_TYPE.DISTRIBUTE;
+		volumeTypes[1] = VOLUME_TYPE.REPLICATE;
+		volumeTypes[2] = VOLUME_TYPE.STRIPE;
+		
+		typeComboViewer.setInput(volumeTypes);
+		typeCombo.select(0); // default type = Plain Distribute
 		typeComboViewer.setLabelProvider(new LabelProvider() {
 			@Override
 			public String getText(Object element) {
-				VOLUME_TYPE volumeType = (VOLUME_TYPE)element;
-				return Volume.getVolumeTypeStr(volumeType);
+				return Volume.getVolumeTypeStr((VOLUME_TYPE)element);
 			}
 		});
 		typeComboViewer.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
-				validateForm();				
+				validateForm();
 			}
 		});
 	}
-
+	
 	private void createTypeLabel(Composite container) {
 		Label lblType = new Label(container, SWT.NONE);
 		lblType.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -333,7 +338,9 @@ public class CreateVolumePage1 extends WizardPage {
 		
 		IStructuredSelection selection = (IStructuredSelection)typeComboViewer.getSelection();
 		volume.setVolumeType((VOLUME_TYPE)selection.getFirstElement());
-		
+		volume.setReplicaCount(Volume.DEFAULT_REPLICA_COUNT);
+		volume.setStripeCount(Volume.DEFAULT_STRIPE_COUNT);
+
 		volume.setTransportType(TRANSPORT_TYPE.ETHERNET); // Support only for Ethernet
 		Set<NAS_PROTOCOL> nasProtocols = new HashSet<Volume.NAS_PROTOCOL>();
 		nasProtocols.add(NAS_PROTOCOL.GLUSTERFS);
@@ -402,7 +409,7 @@ public class CreateVolumePage1 extends WizardPage {
 
 		VOLUME_TYPE volumeType = (VOLUME_TYPE) ((IStructuredSelection) typeComboViewer
 				.getSelection()).getFirstElement();
-		if (volumeType == VOLUME_TYPE.DISTRIBUTED_MIRROR && diskCount % 2 != 0) {
+		if (volumeType == VOLUME_TYPE.DISTRIBUTED_REPLICATE && diskCount % 2 != 0) {
 			setError("Mirror type volume requires bricks in multiples of two");
 		} else if (volumeType == VOLUME_TYPE.DISTRIBUTED_STRIPE && diskCount % 4 != 0) {
 			setError("Stripe type volume requires bricks in multiples of four");
@@ -417,9 +424,11 @@ public class CreateVolumePage1 extends WizardPage {
 		}
 		
 		if (!ValidationUtil.isValidAccessControl(accessControl)) {
-			setError("Access control list must be a comma separated list of IP addresses/Host names. Please enter a valid value!");
+			setError("Invalid IP address/Host name [" + ValidationUtil.getInvalidIpOrHostname(accessControl)
+					+ "]. Please enter a valid value!");
 		}
 	}
+	
 	
 	private void validateCifsUsers() {
 		if (btnCIFS.getSelection()) {

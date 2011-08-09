@@ -44,9 +44,9 @@ public class Volume extends Entity {
 	};
 
 	public enum VOLUME_TYPE {
-		PLAIN_DISTRIBUTE, DISTRIBUTED_MIRROR, DISTRIBUTED_STRIPE
+		DISTRIBUTE, REPLICATE, DISTRIBUTED_REPLICATE, STRIPE, DISTRIBUTED_STRIPE
 	};
-
+	
 	public enum TRANSPORT_TYPE {
 		ETHERNET, INFINIBAND
 	};
@@ -62,8 +62,9 @@ public class Volume extends Entity {
 	public static final String OPTION_AUTH_ALLOW = "auth.allow";
 	public static final String OPTION_NFS_DISABLE = "nfs.disable";
 
-	private static final String[] VOLUME_TYPE_STR = new String[] { "Plain Distribute", "Distributed Mirror",
-			"Distributed Stripe" };
+	private static final String[] VOLUME_TYPE_STR = new String[] { "Distribute", "Replicate", "Distributed Replicate",
+			"Stripe", "Distributed Stripe" };
+
 	private static final String[] TRANSPORT_TYPE_STR = new String[] { "Ethernet", "Infiniband" };
 	private static final String[] STATUS_STR = new String[] { "Online", "Offline" };
 	private static final String[] NAS_PROTOCOL_STR = new String[] { "Gluster", "NFS", "CIFS" };
@@ -87,7 +88,7 @@ public class Volume extends Entity {
 	public String getVolumeTypeStr() {
 		return getVolumeTypeStr(getVolumeType());
 	}
-
+	
 	public static String getVolumeTypeStr(VOLUME_TYPE volumeType) {
 		return VOLUME_TYPE_STR[volumeType.ordinal()];
 	}
@@ -122,7 +123,7 @@ public class Volume extends Entity {
 		if (volumeType == VOLUME_TYPE.DISTRIBUTED_STRIPE) {
 			setReplicaCount(0);
 			setStripeCount(DEFAULT_STRIPE_COUNT);
-		} else if (volumeType == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
+		} else if (volumeType == VOLUME_TYPE.DISTRIBUTED_REPLICATE) {
 			setReplicaCount(DEFAULT_REPLICA_COUNT);
 			setStripeCount(0);
 		} else {

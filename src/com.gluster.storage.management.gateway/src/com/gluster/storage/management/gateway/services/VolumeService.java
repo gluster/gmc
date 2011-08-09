@@ -333,7 +333,7 @@ public class VolumeService {
 			throw new GlusterValidationException("Cluster [" + clusterName + "] not found!");
 		}
 		
-		if (volumeType.equals(VOLUME_TYPE.DISTRIBUTED_MIRROR) && replicaCount <= 0) {
+		if (volumeType.equals(VOLUME_TYPE.DISTRIBUTED_REPLICATE) && replicaCount <= 0) {
 			throw new GlusterValidationException("Replica count must be a positive integer");
 		}
 

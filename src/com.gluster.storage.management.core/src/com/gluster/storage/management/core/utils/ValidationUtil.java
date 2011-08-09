@@ -7,13 +7,28 @@ public class ValidationUtil {
 	// Access control may contains IP with wild card(*), hostname and/or multiple ip/hostnames
 	public static boolean isValidAccessControl(String ac) {
 		String access[] = ac.split(",");
+		String ip;
 		boolean isValidAccessControl = true;
 		for (int i = 0; i < access.length && isValidAccessControl; i++) {
-			isValidAccessControl = (isValidIpWithWC(access[i]) || isValidHostName(access[i]));
+			ip = access[i].trim();
+			isValidAccessControl = (isValidIpWithWC(ip) || isValidHostName(ip));
 		}
 		return isValidAccessControl;
 	}
 
+	public static String getInvalidIpOrHostname(String ac) {
+		String access[] = ac.split(",");
+		String ip;
+		boolean isValidAccessControl = true;
+		for (int i = 0; i < access.length && isValidAccessControl; i++) {
+			ip = access[i].trim();
+			if (!(isValidIpWithWC(ip) || isValidHostName(ip))) {
+				return access[i];
+			}
+		}
+		return "";
+	}
+	
 	public static boolean isValidIpWithWC(String ip) {
 		String ipAddress[] = ip.split("\\.");
 		boolean isValid = true;
