@@ -385,7 +385,7 @@
             name="Gluster Management Console">
          <property
                name="aboutText"
-               value="GlusterFS is an open source clustered storage solution. The software is a powerful and flexible solution that simplifies the task of managing unstructured file data whether you have a few terabytes of storage or multiple petabytes. Gluster Management Console is a powerful GUI management interface for the GlusterFS.">
+               value="%aboutText">
          </property>
          <property
                name="windowImages"
@@ -393,7 +393,7 @@
          </property>
          <property
                name="aboutImage"
-               value="splash/gluster_about.jpg">
+               value="splash/gluster-about.png">
          </property>
          <property
                name="appName"
@@ -509,7 +509,7 @@
                icon="icons/tango/32x32/replace-brick.png"
                id="com.gluster.storage.management.console.actions.MigrateDiskAction"
                label="&amp;Migrate Brick"
-               menubarPath="com.gluster.storage.management.console.menu.glusterserver/glusterserver"
+               menubarPath="com.gluster.storage.management.console.menu.volume/volume"
                pulldown="false"
                retarget="false"
                state="false"
