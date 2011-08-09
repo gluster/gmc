@@ -87,6 +87,7 @@ def main():
 
     if rv == 0:
         if not setUid(uid, userName):
+            sys.stderr.write("Failed to add the user\n")
             sys.exit(11)
     sys.exit(rv)
 

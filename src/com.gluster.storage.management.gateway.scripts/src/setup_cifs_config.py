@@ -27,6 +27,7 @@ def main():
             os.mkdir(Globals.REEXPORT_DIR)
     except OSError, e:
         Utils.log("failed to create directory: %s" % str(e))
+        sys.stderr.write("Failed to create directory: %s\n" % str(e))
         sys.exit(1)
     try:
         if not os.path.exists(Globals.VOLUME_SMBCONF_FILE):
@@ -34,12 +35,14 @@ def main():
             fp.close()
     except IOError, e:
         Utils.log("Failed to create file %s: %s" % (Globals.VOLUME_SMBCONF_FILE, str(e)))
+        sys.stderr.write("Failed to create file %s: %s\n" % (Globals.VOLUME_SMBCONF_FILE, str(e)))
         sys.exit(2)
     try:
         backupFile = "%s.%s" % (Globals.SAMBA_CONF_FILE, time.time())
         os.rename(Globals.SAMBA_CONF_FILE, backupFile)
     except IOError, e:
         Utils.log("Ignoring rename %s to %s: %s" % (Globals.SAMBA_CONF_FILE, backupFile))
+        sys.stderr.write("Ignoring rename %s to %s: %s\n" % (Globals.SAMBA_CONF_FILE, backupFile))
     try:
         fp = open(Globals.SAMBA_CONF_FILE, "w")
         fp.write("##\n")
@@ -53,6 +56,7 @@ def main():
         fp.close()
     except IOError, e:
         Utils.log("Failed to create samba configuration file %s: %s" % (Globals.SAMBA_CONF_FILE, str(e)))
+        sys.stderr.write("Failed to create samba configuration file %s: %s\n" % (Globals.SAMBA_CONF_FILE, str(e)))
         sys.exit(3)
     try:
         if not os.path.exists(Globals.REAL_SAMBA_CONF_FILE):
@@ -78,19 +82,23 @@ def main():
             fp.close()
     except IOError, e:
         Utils.log("Failed to create samba configuration file %s: %s" % (Globals.REAL_SAMBA_CONF_FILE, str(e)))
+        sys.stderr.write("Failed to create samba configuration file %s: %s\n" % (Globals.REAL_SAMBA_CONF_FILE, str(e)))
         sys.exit(4)
 
     if Utils.runCommand("setsebool -P samba_share_fusefs on") != 0:
         Utils.log("failed to set SELinux samba_share_fusefs")
+        sys.stderr.write("failed to set SELinux samba_share_fusefs\n")
         sys.exit(5)
 
     if Utils.runCommand("service smb status") != 0:
         if Utils.runCommand("service smb start") != 0:
             Utils.log("failed to start smb service")
+            sys.stderr.write("Failed to start smb service\n")
             sys.exit(6)
 
     if Utils.runCommand("service smb reload") != 0:
         Utils.log("failed to reload smb configuration")
+        sys.stderr.write("Failed to reload smb configuration\n")
         sys.exit(7)
     sys.exit(0)
 
