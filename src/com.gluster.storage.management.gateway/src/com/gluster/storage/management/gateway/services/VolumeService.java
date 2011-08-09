@@ -205,10 +205,8 @@ public class VolumeService {
 	private void fetchVolumeCifsUsers(String clusterName, Volume volume) {
 		List<String> users = new ArrayList<String>();
 		try {
-			File file = createOnlineServerList(clusterName);
 			ProcessResult result = serverUtil
 					.executeGlusterScript(true, VOLUME_GET_CIFS_USERS_SCRIPT, volume.getName());
-			file.delete();
 			if (!result.isSuccess()) {
 				throw new GlusterRuntimeException(result.toString());
 			}
