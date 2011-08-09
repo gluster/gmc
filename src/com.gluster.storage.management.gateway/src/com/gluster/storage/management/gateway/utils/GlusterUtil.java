@@ -69,6 +69,10 @@ public class GlusterUtil {
 	private static final String VOLUME_LOG_LOCATION_PFX = "log file location:";
 	private static final String VOLUME_TYPE_DISTRIBUTE = "Distribute";
 	private static final String VOLUME_TYPE_REPLICATE = "Replicate";
+	private static final String VOLUME_TYPE_DISTRIBUTED_REPLICATTE = "Distributed-Replicate";
+	private static final String VOLUME_TYPE_STRIPE = "Stripe";
+	private static final String VOLUME_TYPE_DISTRIBUTED_STRIPE = "Distributed-Stripe";
+	
 	private static final String GLUSTERD_INFO_FILE = "/etc/glusterd/glusterd.info";
 	
 	private static final GlusterCoreUtil glusterCoreUtil = new GlusterCoreUtil();
@@ -251,15 +255,15 @@ public class GlusterUtil {
 
 	public void createVolume(String knownServer, String volumeName, String volumeTypeStr, String transportTypeStr,
 			Integer replicaCount, Integer stripeCount, String bricks, String accessProtocols, String options) {
-		
+
 		int count = 1; // replica or stripe count
 
 		VOLUME_TYPE volType = Volume.getVolumeTypeByStr(volumeTypeStr);
 		String volTypeArg = null;
-		if (volType == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
+		if (volType == VOLUME_TYPE.REPLICATE || volType == VOLUME_TYPE.DISTRIBUTED_REPLICATE) {
 			volTypeArg = "replica";
 			count = replicaCount;
-		} else if (volType == VOLUME_TYPE.DISTRIBUTED_STRIPE) {
+		} else if (volType == VOLUME_TYPE.STRIPE || volType == VOLUME_TYPE.DISTRIBUTED_STRIPE) {
 			volTypeArg = "stripe";
 			count = stripeCount;
 		}
@@ -357,13 +361,23 @@ public class GlusterUtil {
 		String volumeType = extractToken(line, VOLUME_TYPE_PFX);
 		if (volumeType != null) {
 			if (volumeType.equals(VOLUME_TYPE_DISTRIBUTE)) {
-				volume.setVolumeType(VOLUME_TYPE.PLAIN_DISTRIBUTE);
+				volume.setVolumeType(VOLUME_TYPE.DISTRIBUTE);
+
 			} else if (volumeType.equals(VOLUME_TYPE_REPLICATE)) {
-				volume.setVolumeType(VOLUME_TYPE.DISTRIBUTED_MIRROR);
+				volume.setVolumeType(VOLUME_TYPE.REPLICATE);
 				volume.setReplicaCount(Volume.DEFAULT_REPLICA_COUNT);
-			} else {
+			
+			} else if (	volumeType.equals(VOLUME_TYPE_DISTRIBUTED_REPLICATTE) ){
+				volume.setVolumeType(VOLUME_TYPE.DISTRIBUTED_REPLICATE);
+				volume.setReplicaCount(Volume.DEFAULT_REPLICA_COUNT);
+			
+			} else if (	volumeType.equals(VOLUME_TYPE_STRIPE) ){
+				volume.setVolumeType(VOLUME_TYPE.STRIPE);
+				volume.setReplicaCount(Volume.DEFAULT_REPLICA_COUNT);
+			
+			} else if (	volumeType.equals(VOLUME_TYPE_DISTRIBUTED_STRIPE) ){
 				volume.setVolumeType(VOLUME_TYPE.DISTRIBUTED_STRIPE);
-				volume.setStripeCount(Volume.DEFAULT_STRIPE_COUNT);
+				volume.setReplicaCount(Volume.DEFAULT_STRIPE_COUNT);
 			}
 			return true;
 		}
@@ -374,13 +388,14 @@ public class GlusterUtil {
 		if (extractToken(line, "x") != null) {
 			// expected formated of line is "Number of Bricks: 3 x 2 = 6"
 			int count = Integer.parseInt(line.split("x")[1].split("=")[0].trim());
-			if (volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_STRIPE) {
+			if (volume.getVolumeType() == VOLUME_TYPE.STRIPE
+					|| volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_STRIPE) {
 				volume.setStripeCount(count);
-			} else if (volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
+			} else if (volume.getVolumeType() == VOLUME_TYPE.REPLICATE
+					|| volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_REPLICATE) {
 				volume.setReplicaCount(count);
 				volume.setStripeCount(0);
 			}
-
 		}
 		return;
 	}

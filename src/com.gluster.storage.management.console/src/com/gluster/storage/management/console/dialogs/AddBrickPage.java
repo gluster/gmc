@@ -59,7 +59,7 @@ public class AddBrickPage extends WizardPage {
 		setTitle("Add Brick");
 
 		String description = "Add bricks to [" + volume.getName() + "] ";
-		if ( volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
+		if ( volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_REPLICATE) {
 			description += "(in multiples of " + volume.getReplicaCount() + ")";
 		} else if (volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_STRIPE) {
 			description += "(in multiples of " + volume.getStripeCount() + ")";
@@ -105,7 +105,7 @@ public class AddBrickPage extends WizardPage {
 			return false;
 		}
 		switch (volume.getVolumeType()) {
-		case DISTRIBUTED_MIRROR:
+		case DISTRIBUTED_REPLICATE:
 			return (diskCount % volume.getReplicaCount() == 0);
 		case DISTRIBUTED_STRIPE:
 			return (diskCount % volume.getStripeCount() == 0);
@@ -143,9 +143,9 @@ public class AddBrickPage extends WizardPage {
 
 	private void setError() {
 		String errorMessage = null;
-		if ( volume.getVolumeType() == VOLUME_TYPE.PLAIN_DISTRIBUTE) {
+		if ( volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTE) {
 			errorMessage = "Please select at least one brick!";
-		} else if( volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
+		} else if( volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_REPLICATE) {
 			errorMessage = "Please select bricks in multiples of " + volume.getReplicaCount();
 		} else {
 			errorMessage = "Please select bricks in multiples of " + volume.getStripeCount();

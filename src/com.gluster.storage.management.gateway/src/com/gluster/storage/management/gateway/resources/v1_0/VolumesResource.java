@@ -212,11 +212,8 @@ public class VolumesResource extends AbstractResource {
 				if (enableCifs) {
 					volumeService.modifyCIFSUsers(clusterName, volumeName, cifsUsers);
 				} else {
+					volumeService.stopCifsReExport(clusterName, volumeName);
 					volumeService.deleteCifsUsers(clusterName, volumeName);
-					//TODO: workaround - If samba service are not stopped by "deleteCifsUsers" script, 
-					// gateway needs to stop the services  
-					// modifyCIFSUsers(clusterName, volumeName, "");
-					// stopCifsReExport(clusterName, volumeName);
 				}
 			} else {
 				volumeService.performVolumeOperation(clusterName, volumeName, operation);

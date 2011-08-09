@@ -54,7 +54,7 @@ public class StopVolumeAction extends AbstractActionDelegate {
 
 		Integer userAction = new MessageDialog(getShell(), "Stop Volume", GUIHelper.getInstance().getImage(
 				IImageKeys.VOLUME_16x16), "Are you sure you want to stop the following volumes?"
-				+ CoreConstants.NEWLINE + "[" + onlineVolumeNames, MessageDialog.QUESTION,
+				+ CoreConstants.NEWLINE + onlineVolumeNames, MessageDialog.QUESTION,
 				new String[] { "No", "Yes" }, -1).open();
 
 		if (userAction <= 0) { // user select cancel or pressed escape key

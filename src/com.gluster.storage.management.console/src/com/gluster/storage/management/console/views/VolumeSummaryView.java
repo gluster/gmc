@@ -201,7 +201,7 @@ public class VolumeSummaryView extends ViewPart {
 		infoLabel.setLayoutData(new GridData(GridData.BEGINNING, GridData.VERTICAL_ALIGN_CENTER, false, false, 2, 0));
 
 		// TODO: implement a logic to identify the corresponding glusterfs client download link
-		String message = "You can download gluster FS client from";
+		String message = "You can download GlusterFS client from";
 		String glusterFSDownloadlinkText = "here.";
 		final String glusterFSDownloadlink = "http://download.gluster.com/pub/gluster/glusterfs/";
 
@@ -245,7 +245,7 @@ public class VolumeSummaryView extends ViewPart {
 		createVolumeTypeField(section);
 
 		VOLUME_TYPE volumeType = volume.getVolumeType();
-		if (volumeType == VOLUME_TYPE.DISTRIBUTED_MIRROR) {
+		if (volumeType == VOLUME_TYPE.DISTRIBUTED_REPLICATE) {
 			createReplicaCountField(section);
 		}
 
@@ -286,7 +286,7 @@ public class VolumeSummaryView extends ViewPart {
 	}
 
 	private void createAccessControlField(Composite section) {
-		toolkit.createLabel(section, "Access Control: ", SWT.NONE);
+		toolkit.createLabel(section, "Allow Access From: ", SWT.NONE);
 		accessControlText = toolkit.createText(section, volume.getAccessControlList(), SWT.BORDER);
 
 		populateAccessControlText();
@@ -636,7 +636,12 @@ public class VolumeSummaryView extends ViewPart {
 	
 	private void updateBrickChanges(Volume volume) {
 		numberOfBricks.setText("" + volume.getNumOfBricks());
-		totalDiskSpace.setText("" + NumberUtil.formatNumber((getTotalDiskSpace() / 1024)));
+		Double replicaCount = 1d;
+		if (volume.getVolumeType() == VOLUME_TYPE.REPLICATE
+				|| volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_REPLICATE) {
+			replicaCount = (double) volume.getReplicaCount();
+		}
+		totalDiskSpace.setText("" + NumberUtil.formatNumber((getTotalDiskSpace() / 1024) / replicaCount));
 	}
 
 	private double getDiskSize(String serverName, String deviceName) {
@@ -674,7 +679,12 @@ public class VolumeSummaryView extends ViewPart {
 	private void createDiskSpaceField(Composite section) {
 		Label diskSpaceLabel = toolkit.createLabel(section, "Total Disk Space (GB): ", SWT.NONE);
 		diskSpaceLabel.setToolTipText("<b>bold</b>normal");
-		totalDiskSpace = toolkit.createLabel(section, "" + NumberUtil.formatNumber((getTotalDiskSpace() / 1024)), SWT.NONE);
+		Double replicaCount = 1d;
+		if (volume.getVolumeType() == VOLUME_TYPE.REPLICATE
+				|| volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_REPLICATE) {
+			replicaCount = (double) volume.getReplicaCount();
+		}
+		totalDiskSpace = toolkit.createLabel(section, "" + NumberUtil.formatNumber((getTotalDiskSpace() / 1024)/ replicaCount ), SWT.NONE);
 		toolkit.createLabel(section, "", SWT.NONE); // dummy
 	}
 
@@ -742,8 +752,9 @@ public class VolumeSummaryView extends ViewPart {
 		}
 
 		if (!ValidationUtil.isValidAccessControl(accessControlText.getText())) {
-			errDecoration
-					.setDescriptionText("Access control list must be a comma separated list of IP addresses/Host names. Please enter a valid value!");
+			errDecoration.setDescriptionText("Invalid IP address/Host name ["
+					+ ValidationUtil.getInvalidIpOrHostname(accessControlText.getText())
+					+ "]. Please enter a valid value!");
 			errDecoration.show();
 		}
 	}
@@ -772,4 +783,5 @@ public class VolumeSummaryView extends ViewPart {
 		validateCifsUsers();
 		return true;
 	}
+	
 }

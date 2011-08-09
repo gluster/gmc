@@ -161,8 +161,8 @@ public class VolumeLogsPage extends Composite {
 	}
 
 	private void createSearchButton(Composite composite) {
-		Button btnGo = toolkit.createButton(composite, "&Go", SWT.NONE);
-		btnGo.setBounds(615, 55, 50, 30);
+		Button btnGo = toolkit.createButton(composite, "&Fetch Logs", SWT.NONE);
+		btnGo.setBounds  (615, 55, 75, 30);
 		btnGo.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
