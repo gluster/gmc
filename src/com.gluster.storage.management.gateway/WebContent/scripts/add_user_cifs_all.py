@@ -29,7 +29,7 @@ def getUid(userName):
 
     for line in content.strip().split():
         tokens = line.split(":")
-        if tokens[1] == UserName:
+        if tokens[1] == userName:
             return int(tokens[0])
     return None
 
