@@ -140,9 +140,9 @@ public class VolumesClient extends AbstractClient {
 		return (Volume)fetchSubResource(volumeName, Volume.class);
 	}
 
-	public void deleteVolume(Volume volume, boolean deleteOption) {
+	public void deleteVolume(String volumeName, boolean deleteOption) {
 		MultivaluedMap<String, String> queryParams = prepareDeleteVolumeQueryParams(deleteOption);
-		deleteSubResource(volume.getName(), queryParams);
+		deleteSubResource(volumeName, queryParams);
 	}
 
 	public List<VolumeOptionInfo> getVolumeOptionsDefaults() {
