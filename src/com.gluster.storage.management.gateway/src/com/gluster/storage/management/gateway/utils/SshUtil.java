@@ -73,7 +73,7 @@ public class SshUtil {
 
 	public boolean hasDefaultPassword(String serverName) {
 		try {
-			getConnectionWithPassword(serverName);
+			getConnectionWithPassword(serverName).close();
 			return true;
 		} catch(ConnectionException e) {
 			return false;
@@ -120,6 +120,7 @@ public class SshUtil {
 		try {
 			publicKeyData = FileUtil.readFileAsByteArray(PUBLIC_KEY_FILE);
 		} catch (Exception e) {
+			conn.close();
 			throw new GlusterRuntimeException("Couldn't load public key file [" + PUBLIC_KEY_FILE + "]", e);
 		}
 		
@@ -130,6 +131,7 @@ public class SshUtil {
 			outputStream.write(publicKeyData);
 			outputStream.close();
 		} catch (Exception e) {
+			conn.close();
 			throw new GlusterRuntimeException("Couldnt append file [" + localTempFile + "] with public key!", e);
 		} 
 		
@@ -138,6 +140,7 @@ public class SshUtil {
 		} catch (IOException e) {
 			throw new GlusterRuntimeException("Couldn't add public key to server [" + serverName + "]", e);
 		} finally {
+			conn.close();
 			localTempFile.delete();
 		}
 		
@@ -331,7 +334,11 @@ public class SshUtil {
 	 * @return Result of remote execution
 	 */
 	public ProcessResult executeRemoteWithPassword(String serverName, String command) {
-		return executeCommand(getConnectionWithPassword(serverName), command);
+		Connection conn = getConnectionWithPassword(serverName);
+		ProcessResult result = executeCommand(conn, command);
+		// we don't cache password based connections. hence the connection must be closed.
+		conn.close();
+		return result;
 	}
 	
 	private ProcessResult executeRemoteWithPubKey(String serverName, String command) {

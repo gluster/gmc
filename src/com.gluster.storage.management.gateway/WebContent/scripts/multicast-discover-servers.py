@@ -35,11 +35,16 @@ def sendMulticastRequest(idString):
 
 
 def openServerSocket():
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server.bind(('', Globals.SERVER_PORT))
-    server.listen(Globals.DEFAULT_BACKLOG)
-    return server
+    try:
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind(('', Globals.SERVER_PORT))
+        server.listen(Globals.DEFAULT_BACKLOG)
+        return server
+    except socket.error, e:
+        Utils.log("failed to open server socket on port %s: %s" % (Globals.SERVER_PORT, str(e)))
+        sys.stderr.write("failed to open server socket on port %s: %s\n" % (Globals.SERVER_PORT, str(e)))
+        sys.exit(1)
 
 
 def main():
@@ -61,6 +66,7 @@ def main():
         try:
             ilist,olist,elist = select.select(rlist, [], [], 0.25)
         except select.error, e:
+            Utils.log("failed to read from connections: %s" % str(e))
             break
         for sock in ilist:
             # handle new connection
