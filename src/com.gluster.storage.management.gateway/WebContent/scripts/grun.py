@@ -33,13 +33,17 @@ def main():
         fp.close()
     except IOError, e:
         Utils.log("Failed to read server file %s: %s\n" % (serverFile, str(e)))
+        sys.stderr.write("Failed to read server file %s: %s\n" % (serverFile, str(e)))
         sys.exit(1)
 
     status = True
     for serverName in serverNameList:
-        rv = Utils.runCommand(sshCommandPrefix + [serverName.strip()] + command)
-        print "%s: %s" % (serverName, rv)
-        if rv != 0:
+        rv = Utils.runCommand(sshCommandPrefix + [serverName.strip()] + command, output=True)
+        if rv["Status"] != 0:
+            sys.stderr.write("%s: %s\n" % (serverName, rv["Status"]))
+            sys.stderr.write("Stdout:\n%s\n" % rv["Stdout"]))
+            sys.stderr.write("Stderr:\n%s\n" % rv["Stderr"]))
+            sys.stderr.write("---\n")
             status = False
 
     if status:

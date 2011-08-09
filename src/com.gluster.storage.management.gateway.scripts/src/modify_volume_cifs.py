@@ -23,9 +23,11 @@ def main():
     userList = sys.argv[2:]
 
     if not VolumeUtils.writeVolumeCifsConfiguration(volumeName, userList):
+        sys.stderr.write("Unable to write cifs configuration\n")
         sys.exit(1)
     if Utils.runCommand("service smb reload") != 0:
         Utils.log("Failed to reload smb service")
+        sys.stderr.write("Failed to reload smb service\n")
         sys.exit(2)
     sys.exit(0)
 

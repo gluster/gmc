@@ -27,18 +27,23 @@ def main():
 
     if Utils.runCommand("mount -t glusterfs 127.0.0.1:%s %s" % (volumeName, volumeMountDirName)) != 0:
         Utils.log("Failed to mount volume %s" % (volumeName))
+        sys.stderr.write("Failed to mount volume %s\n" % (volumeName))
         sys.exit(1)
     if Utils.runCommand("ln -fTs %s %s" % (volumeMountDirName, cifsDirName)) != 0:
         Utils.log("Failed to create reexport link %s" % cifsDirName)
+        sys.stderr.write("Failed to create reexport link %s\n" % cifsDirName)
         sys.exit(2)
     if Utils.runCommand("chcon -t samba_share_t %s -h" % cifsDirName) != 0:
         Utils.log("Failed to change security context for the link %s" % cifsDirName)
+        sys.stderr.write("Failed to change security context for the link %s\n" % cifsDirName)
         sys.exit(2)
     if not VolumeUtils.includeVolume(volumeName):
         Utils.log("Failed to include volume for CIFS reexport")
+        sys.stderr.write("Failed to include volume for CIFS reexport\n")
         sys.exit(3)
     if Utils.runCommand("service smb reload") != 0:
         Utils.log("Failed to reload smb service")
+        sys.stderr.write("Failed to reload smb service\n")
         sys.exit(4)
     sys.exit(0)
 

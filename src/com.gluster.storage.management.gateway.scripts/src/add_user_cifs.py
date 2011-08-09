@@ -33,25 +33,30 @@ def main():
         groupInfo = grp.getgrnam(userName)
         if uid != groupInfo.gr_gid:
             Utils.log("group %s exists with different gid %s\n" % (userName, groupInfo.gr_gid))
+            sys.stderr.write("Group %s exists with different gid %s\n" % (userName, groupInfo.gr_gid))
             sys.exit(1)
     except KeyError, e:
         if Utils.runCommand("groupadd -g %s %s" % (uid, userName)) != 0:
             Utils.log("failed to add group %s gid %s\n" % (username, uid))
+            sys.stderr.write("Failed to add group %s gid %s\n" % (username, uid))
             sys.exit(2)
     try:
         userInfo = pwd.getpwnam(userName)
         if uid != userInfo.pw_uid:
             Utils.log("user %s exists with different uid %s\n" % (userName, userInfo.pw_uid))
+            sys.stderr.write("User %s exists with different uid %s\n" % (userName, userInfo.pw_uid))
             sys.exit(3)
     except KeyError, e:
         command = ["useradd", "-c", Globals.VOLUME_USER_DESCRIPTION, "-M", "-d", "/", "-s", "/sbin/nologin", "-u", str(uid), "-g", str(uid), userName]
         if Utils.runCommand(command) != 0:
             Utils.log("failed to add user %s uid %s\n" % (userName, uid))
+            sys.stderr.write("Failed to add user %s uid %s\n" % (userName, uid))
             sys.exit(4)
 
     if Utils.runCommand("smbpasswd -s -a %s" % userName,
                   input="%s\n%s\n" % (password, password)) != 0:
         Utils.log("failed to set smbpassword of user %s\n" %  userName)
+        sys.stderr.write("Failed to set smbpassword of user %s\n" %  userName)
         sys.exit(5)
     sys.exit(0)
 
