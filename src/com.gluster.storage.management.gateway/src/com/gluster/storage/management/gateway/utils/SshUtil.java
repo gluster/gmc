@@ -131,12 +131,14 @@ public class SshUtil {
 			outputStream.close();
 		} catch (Exception e) {
 			throw new GlusterRuntimeException("Couldnt append file [" + localTempFile + "] with public key!", e);
-		}
+		} 
 		
 		try {
 			scpClient.put(localTempFile.getAbsolutePath(), SSH_AUTHORIZED_KEYS_FILE, SSH_AUTHORIZED_KEYS_DIR_REMOTE, "0600");
 		} catch (IOException e) {
 			throw new GlusterRuntimeException("Couldn't add public key to server [" + serverName + "]", e);
+		} finally {
+			localTempFile.delete();
 		}
 		
 		// It was decided NOT to disable password login as this may not be acceptable in a bare-metal environment
