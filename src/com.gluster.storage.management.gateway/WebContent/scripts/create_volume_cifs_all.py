@@ -51,7 +51,6 @@ def main():
     rv = Utils.runCommand(["grun.py", serverFile, "create_volume_cifs.py", volumeName] + userList)
     if rv == 0:
         if not addVolumeCifsConf(volumeName, userList):
-            sys.stderr.write("Unable to update volume cifs configuration\n")
             sys.exit(11)
     sys.exit(rv)
 

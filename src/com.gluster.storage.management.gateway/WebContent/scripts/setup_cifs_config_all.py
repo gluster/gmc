@@ -21,11 +21,8 @@ def main():
 
     serverFile = sys.argv[1]
 
-    rv = Utils.runCommand(["grun.py", serverFile, "setup_cifs_config.py"], output=True)
-    if status["Status"] != 0:
-        sys.stderr.write("%s %s\n" % (Utils.stripEmptyLines(rv["Stderr"]), Utils.stripEmptyLines(rv["Stdout"])))
-        sys.exit(-1)
-    sys.exit(0)
+    rv = Utils.runCommand(["grun.py", serverFile, "setup_cifs_config.py"])
+    sys.exit(rv)
 
 
 if __name__ == "__main__":

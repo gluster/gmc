@@ -53,18 +53,26 @@ def createDirectory(disk, volumeName):
         rs.appendTagRoute("status.code", "-2")
         rs.appendTagRoute("status.message", "Volume directory already exists!")
         return rs.toprettyxml()
-
+    
     if not os.path.exists(volumeDirectory):
-        rv = Utils.runCommand("mkdir %s" % volumeDirectory, output=True, root=True)
-        if rv["Status"] != 0:
+        command = ["sudo", "mkdir", volumeDirectory]
+        rv = Utils.runCommandFG(command, stdout=True, root=True)
+        message = Utils.stripEmptyLines(rv["Stdout"])
+        if rv["Stderr"]:
+            error = Utils.stripEmptyLines(rv["Stderr"])
+            message += "Error: [%s]" % (error)
+            Utils.log("failed to create volume directory %s, %s" % (volumeDirectory, error))
             rs.appendTagRoute("status.code", rv["Status"])
-            rs.appendTagRoute("status.message", "%s %s\n" % (Utils.stripEmptyLines(rv["Stderr"]), Utils.stripEmptyLines(rv["Stdout"])))
+            rs.appendTagRoute("status.message", message)
             return rs.toprettyxml()
-
-        rs.appendTagRoute("status.code", 0)
-        rs.appendTagRoute("status.message", volumeDirectory)
+            
+        if not rv["Status"]:
+            rv["Status"] = "0"
+        if rv["Status"] == "0":
+            message = volumeDirectory
+        rs.appendTagRoute("status.code", rv["Status"])
+        rs.appendTagRoute("status.message", message)
         return rs.toprettyxml()
-    # return nothing if the path already exists
 
 def main():
     if len(sys.argv) != 3:

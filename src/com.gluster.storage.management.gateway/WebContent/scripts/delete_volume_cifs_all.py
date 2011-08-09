@@ -49,7 +49,6 @@ def main():
     rv = Utils.runCommand(["grun.py", serverFile, "delete_volume_cifs.py", volumeName])
     if rv == 0:
         if not removeVolumeCifsConf(volumeName):
-            sys.stderr.write("Failed to remove volume cifs config file\n")
             sys.exit(11)
     sys.exit(rv)
 

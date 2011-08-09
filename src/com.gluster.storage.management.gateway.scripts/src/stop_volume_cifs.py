@@ -27,19 +27,15 @@ def main():
 
     if not Utils.removeFile(cifsDirName):
         Utils.log("Failed to remove reexport link %s" % cifsDirName)
-        sys.stderr.write("Failed to remove reexport link %s\n" % cifsDirName)
         sys.exit(1)
     if not VolumeUtils.excludeVolume(volumeName):
         Utils.log("Failed to exclude volume for CIFS reexport")
-        sys.stderr.write("Failed to exclude volume for CIFS reexport\n")
         sys.exit(2)
     if Utils.runCommand("service smb reload") != 0:
         Utils.log("Failed to reload smb service")
-        sys.stderr.write("Failed to reload smb service\n")
         sys.exit(3)
     if Utils.runCommand("umount %s" % (volumeMountDirName)) != 0:
         Utils.log("Failed to unmount volume %s" % (volumeName))
-        sys.stderr.write("Failed to unmount volume %s\n" % (volumeName))
         sys.exit(4)
     sys.exit(0)
 

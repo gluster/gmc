@@ -43,10 +43,13 @@ def main():
                XPORT:transmitted:transmitted \
                XPORT:total:total" % (period, device, device)
     rv = Utils.runCommand(command, output=True, root=True)
-    if rv["Status"] != 0:
+    message = Utils.stripEmptyLines(rv["Stdout"])
+    if rv["Stderr"]:
+        error = Utils.stripEmptyLines(rv["Stderr"])
+        message += "Error: [%s]" % (error)
         Utils.log("failed to get RRD information of device %s" % file)
         rs.appendTagRoute("status.code", rv["Status"])
-        rs.appendTagRoute("status.message", "Error: [%s] %s" % (Utils.stripEmptyLines(rv["Stderr"]), Utils.stripEmptyLines(rv["Stdout"])))
+        rs.appendTagRoute("status.message", message)
         print rs.toxml()
     print rv["Stdout"]
     sys.exit(0)

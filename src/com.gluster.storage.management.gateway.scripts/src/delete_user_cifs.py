@@ -22,7 +22,6 @@ def main():
 
     if Utils.runCommand("userdel %s" % userName) != 0:
         Utils.log("failed to remove user name:%s\n" % userName)
-        sys.stderr.write("Failed to remove user name:%s\n" % userName)
         sys.exit(1)
     sys.exit(0)
 
