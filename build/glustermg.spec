@@ -65,7 +65,6 @@ ln -sf /opt/glustermg/%{release_version}/backend/multicast-discoverd.py %{buildr
 %{__install} -p -m0755 gmg-scripts/multicast-discoverd.init.d %{buildroot}%{_initrddir}/multicast-discoverd
 
 %post
-chown -R tomcat:tomcat /opt/glustermg /var/log/glustermg
 if [ -f /usr/share/tomcat5/webapps/glustermg ]; then
     rm -f /usr/share/tomcat5/webapps/glustermg
 fi
@@ -74,6 +73,7 @@ if [ ! -f /opt/glustermg/keys/gluster.pem ]; then
     ssh-keygen -t rsa -f /opt/glustermg/keys/gluster.pem -N ''
     mv -f /opt/glustermg/keys/gluster.pem.pub /opt/glustermg/keys/gluster.pub
 fi
+chown -R tomcat:tomcat /opt/glustermg /var/log/glustermg
 if ! grep -q '^JAVA_HOME="/usr/lib/jvm/jre-1.6.0-openjdk.x86_64"' /etc/sysconfig/tomcat5; then
     sed -i 's/^JAVA_HOME=/# JAVA_HOME=/g' /etc/sysconfig/tomcat5
     echo 'JAVA_HOME="/usr/lib/jvm/jre-1.6.0-openjdk.x86_64"' >> /etc/sysconfig/tomcat5
