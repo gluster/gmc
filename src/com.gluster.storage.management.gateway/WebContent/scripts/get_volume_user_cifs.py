@@ -40,6 +40,7 @@ def main():
         sys.exit(0)
     except IOError, e:
         Utils.log("failed to read file %s: %s" % (cifsVolumeFile, str(e)))
+        sys.stderr.write("Failed to read cifs-volume-file %s: %s\n" % (cifsVolumeFile, str(e)))
         sys.exit(2)
 
 

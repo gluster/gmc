@@ -102,7 +102,7 @@ def getServerDetails(listall):
 
     diskDom = DiskUtils.getDiskDom()
     if not diskDom:
-        sys.stderr.write("No disk found!")
+        sys.stderr.write("No disk found!\n")
         Utils.log("Failed to get disk details")
         sys.exit(1)
 

@@ -1059,6 +1059,8 @@ def log(priority, message=None):
 
 
 def stripEmptyLines(content):
+    if not content:
+        return ""
     ret = ""
     for line in content.split("\n"):
         if line.strip() != "":

@@ -40,13 +40,10 @@ def createMemData(file, step):
                "RRA:AVERAGE:0.5:144:1460"]
 
     rv = Utils.runCommand(command, output=True, root=True)
-    message = Utils.stripEmptyLines(rv["Stdout"])
-    if rv["Stderr"]:
-        error = Utils.stripEmptyLines(rv["Stderr"])
-        message += "Error: [%s]" % (error)
+    if rv["Status"] != 0:
         Utils.log("failed to create RRD file for memory usages %s" % file)
         rs.appendTagRoute("status.code", rv["Status"])
-        rs.appendTagRoute("status.message", message)
+        rs.appendTagRoute("status.message", "Error: [%s] %s" % (Utils.stripEmptyLines(rv["Stderr"]), Utils.stripEmptyLines(rv["Stdout"])))
         return rs.toxml()
     return None
 
@@ -54,24 +51,19 @@ def updateMemData(file):
     rs = ResponseXml()
     command = ["free", "-b", "-o"]
     rv = Utils.runCommand(command, output=True, root=True)
-    if rv["Stderr"]:
-        error = Utils.stripEmptyLines(rv["Stderr"])
-        message += "Error: [%s]" % (error)
+    if rv["Status"] != 0:
         Utils.log("failed to retrieve memory details")
         rs.appendTagRoute("status.code", rv["Status"])
-        rs.appendTagRoute("status.message", message)
+        rs.appendTagRoute("status.message", "Error: [%s] %s" % (Utils.stripEmptyLines(rv["Stderr"]), Utils.stripEmptyLines(rv["Stdout"])))
         return rs.toxml()
 
-    message = rv["Stdout"].split()
     command = ["rrdtool", "update", file, "-t", "memused:memfree:memcache:swapused:swapfree",
                "N:%s:%s:%s:%s:%s" % (message[8], message[9], message[12], message[14], message[15])]
     rv = Utils.runCommand(command, output=True, root=True)
-    if rv["Stderr"]:
-        error = Utils.stripEmptyLines(rv["Stderr"])
-        message += "Error: [%s]" % (error)
-        Utils.log(syslog.LOG_ERR, "failed to update memory usage into rrd file %s" % file)
+    if rv["Status"] != 0:
+        Utils.log("failed to update memory usage into rrd file %s" % file)
         rs.appendTagRoute("status.code", rv["Status"])
-        rs.appendTagRoute("status.message", message)
+        rs.appendTagRoute("status.message", "Error: [%s] %s" % (Utils.stripEmptyLines(rv["Stderr"]), Utils.stripEmptyLines(rv["Stdout"])))
         return rs.toxml()
     return None
 

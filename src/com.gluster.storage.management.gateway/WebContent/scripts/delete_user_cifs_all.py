@@ -51,6 +51,7 @@ def main():
     rv = Utils.runCommand("grun.py %s delete_user_cifs.py %s" % (serverList, userName))
     if rv == 0:
         if not removeUser(userName):
+            sys.stderr.write("Failed to remove user\n")
             sys.exit(10)
     sys.exit(rv)
 

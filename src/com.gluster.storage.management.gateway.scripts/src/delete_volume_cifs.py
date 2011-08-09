@@ -27,10 +27,12 @@ def main():
         os.rmdir(volumeMountDirName)
     except OSError, e:
         Utils.log("failed deleting %s: %s\n" % (volumeMountDirName, str(e)))
+        sys.stderr.write("Failed deleting %s: %s\n" % (volumeMountDirName, str(e)))
         sys.exit(1)
 
     if VolumeUtils.removeVolumeCifsConfiguration(volumeName):
         sys.exit(0)
+    sys.stderr.write("Unable to remove volume cifs configuration\n")
     sys.exit(2)
 
 

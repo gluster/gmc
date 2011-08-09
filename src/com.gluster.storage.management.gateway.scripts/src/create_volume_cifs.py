@@ -28,10 +28,12 @@ def main():
         os.mkdir(volumeMountDirName)
     except OSError, e:
         Utils.log("failed creating %s: %s\n" % (volumeMountDirName, str(e)))
+        sys.stderr.write("Failed creating %s: %s\n" % (volumeMountDirName, str(e)))
         sys.exit(1)
 
     if VolumeUtils.writeVolumeCifsConfiguration(volumeName, userList):
         sys.exit(0)
+    sys.stderr.write("Unable to update volume cifs configuration\n")
     sys.exit(2)
 
 
