@@ -5,7 +5,7 @@
 		<vendor>Gluster Inc.</vendor>
 		<homepage href="$$codebase" />
 		<description>Gluster Management Console</description>
-		<icon kind="splash" href="splash.jpg"/>
+		<icon kind="splash" href="splash.png"/>
 
 		<shortcut  online="true">
     		<desktop/>
