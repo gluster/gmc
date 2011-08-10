@@ -33,7 +33,7 @@ def getUid(userName):
 
 def getLastUid():
     if not os.path.exists(Globals.CIFS_USER_FILE):
-        return Globals.DEFAULTUID
+        return Globals.DEFAULT_UID
     try:
         fp = open(Globals.CIFS_USER_FILE)
         content = fp.read()
@@ -44,7 +44,7 @@ def getLastUid():
 
     lines = content.strip().split()
     if not lines:
-        return Globals.DEFAULTUID
+        return Globals.DEFAULT_UID
     return int(lines[-1].split(":")[0])
 
 
