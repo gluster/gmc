@@ -41,8 +41,8 @@ def main():
         rv = Utils.runCommand(sshCommandPrefix + [serverName.strip()] + command, output=True)
         if rv["Status"] != 0:
             sys.stderr.write("%s: %s\n" % (serverName, rv["Status"]))
-            sys.stderr.write("Stdout:\n%s\n" % rv["Stdout"]))
-            sys.stderr.write("Stderr:\n%s\n" % rv["Stderr"]))
+            sys.stderr.write("Stdout:\n%s\n" % rv["Stdout"])
+            sys.stderr.write("Stderr:\n%s\n" % rv["Stderr"])
             sys.stderr.write("---\n")
             status = False
 
