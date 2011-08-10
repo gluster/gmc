@@ -34,8 +34,8 @@ public interface IImageKeys {
 	public static final String REMOVE_VOLUME_32x32 = "icons/tango/32x32/remove-volume.png";
 	public static final String VOLUME_REBALANCE_32x32 = "icons/tango/32x32/volume-rebalance.png";
 	public static final String VOLUME_REBALANCE_22x22 = "icons/tango/22x22/volume-rebalance.png";
-	public static final String BRICK_MIGRATE_32x32 = "icons/tango/32x32/replace-brick.png";
-	public static final String BRICK_MIGRATE_22x22 = "icons/tango/22x22/replace-brick.png";
+	public static final String BRICK_MIGRATE_32x32 = "icons/tango/32x32/migrate-brick.png";
+	public static final String BRICK_MIGRATE_22x22 = "icons/tango/22x22/migrate-brick.png";
 	public static final String ADD_BRICK_32x32 = "icons/tango/32x32/add-brick.png";
 	public static final String REMOVE_BRICK_32x32 = "icons/tango/32x32/remove-brick.png";
 	public static final String BRICK_OFFLINE_22x22 = "icons/tango/22x22/offline-brick.png";

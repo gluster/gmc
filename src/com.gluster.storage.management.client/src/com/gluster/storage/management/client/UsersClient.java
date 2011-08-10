@@ -18,16 +18,17 @@
  *******************************************************************************/
 package com.gluster.storage.management.client;
 
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_NEW_PASSWORD;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_OLD_PASSWORD;
+
+import com.gluster.storage.management.core.constants.RESTConstants;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Status;
 import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.core.util.Base64;
 
 
 public class UsersClient extends AbstractClient {
-	private static final String RESOURCE_NAME = "users";
-	private static final String FORM_PARAM_OLD_PASSWORD = "oldpassword";
-	private static final String FORM_PARAM_NEW_PASSWORD = "newpassword";
-
 	private String generateSecurityToken(String user, String password) {
 		return new String(Base64.encode(user + ":" + password));
 	}
@@ -42,7 +43,11 @@ public class UsersClient extends AbstractClient {
 	}
 
 	public void changePassword(String user, String oldPassword, String newPassword) {
-		setSecurityToken(generateSecurityToken(user, oldPassword));
+		String oldSecurityToken = getSecurityToken();
+		String newSecurityToken = generateSecurityToken(user, oldPassword); 
+		if(!oldSecurityToken.equals(newSecurityToken)) {
+			throw new GlusterRuntimeException("Invalid old password!");
+		}
 
 		Form form = new Form();
 		form.add(FORM_PARAM_OLD_PASSWORD, oldPassword);
@@ -76,7 +81,7 @@ public class UsersClient extends AbstractClient {
 	 */
 	@Override
 	public String getResourcePath() {
-		return RESOURCE_NAME;
+		return RESTConstants.RESOURCE_USERS;
 	}
 
 	/*

@@ -129,3 +129,7 @@ VERSION_DICTONARY = {}
 
 AWS_WEB_SERVICE_URL = "http://169.254.169.254/latest"
 REAL_SAMBA_CONF_FILE = "/etc/samba/real.smb.conf"
+
+DEFAULT_UID = 1024000
+CIFS_USER_FILE = "/opt/glustermg/etc/users.cifs"
+CIFS_VOLUME_FILE  = "/opt/glustermg/etc/volumes.cifs"

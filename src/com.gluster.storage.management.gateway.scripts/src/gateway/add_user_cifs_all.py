@@ -11,20 +11,17 @@ if not p1 in sys.path:
     sys.path.append(p1)
 if not p2 in sys.path:
     sys.path.append(p2)
+import Globals
 import Utils
-
-
-defaultUid = 1024000
-cifsUserFile = "/opt/glustermg/etc/users.cifs"
 
 
 def getUid(userName):
     try:
-        fp = open(cifsUserFile)
+        fp = open(Globals.CIFS_USER_FILE)
         content = fp.read()
         fp.close()
     except IOError, e:
-        Utils.log("failed to read file %s: %s" % (cifsUserFile, str(e)))
+        Utils.log("failed to read file %s: %s" % (Globals.CIFS_USER_FILE, str(e)))
         return False
 
     for line in content.strip().split():
@@ -35,30 +32,30 @@ def getUid(userName):
 
 
 def getLastUid():
-    if not os.path.exists(cifsUserFile):
-        return defaultUid
+    if not os.path.exists(Globals.CIFS_USER_FILE):
+        return Globals.DEFAULT_UID
     try:
-        fp = open(cifsUserFile)
+        fp = open(Globals.CIFS_USER_FILE)
         content = fp.read()
         fp.close()
     except IOError, e:
-        Utils.log("failed to read file %s: %s" % (cifsUserFile, str(e)))
+        Utils.log("failed to read file %s: %s" % (Globals.CIFS_USER_FILE, str(e)))
         return False
 
     lines = content.strip().split()
     if not lines:
-        return defaultUid
+        return Globals.DEFAULT_UID
     return int(lines[-1].split(":")[0])
 
 
 def setUid(uid, userName):
     try:
-        fp = open(cifsUserFile, "a")
+        fp = open(Globals.CIFS_USER_FILE, "a")
         fp.write("%s:%s\n" % (uid, userName))
         fp.close()
         return True
     except IOError, e:
-        Utils.log("failed to write file %s: %s" % (cifsUserFile, str(e)))
+        Utils.log("failed to write file %s: %s" % (Globals.CIFS_USER_FILE, str(e)))
         return False
 
 
