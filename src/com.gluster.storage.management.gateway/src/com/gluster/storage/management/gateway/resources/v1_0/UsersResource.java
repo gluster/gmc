@@ -18,6 +18,8 @@
  *******************************************************************************/
 package com.gluster.storage.management.gateway.resources.v1_0;
 
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_NEW_PASSWORD;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_OLD_PASSWORD;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_USER;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_USERS;
 
@@ -89,8 +91,9 @@ public class UsersResource extends AbstractResource {
 
 	@Path("{" + PATH_PARAM_USER + "}")
 	@PUT
-	public Response changePassword(@PathParam("user") String username, @FormParam("oldpassword") String oldPassword,
-			@FormParam("newpassword") String newPassword) {
+	public Response changePassword(@PathParam(PATH_PARAM_USER) String username,
+			@FormParam(FORM_PARAM_OLD_PASSWORD) String oldPassword,
+			@FormParam(FORM_PARAM_NEW_PASSWORD) String newPassword) {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			String loggedInUser = ((UserDetails)auth.getPrincipal()).getUsername();
@@ -100,13 +103,16 @@ public class UsersResource extends AbstractResource {
 						+ "] is not allowed to change password of user [" + username + "]!");
 			}
 
-			String correctOldPassword = auth.getCredentials().toString();
-			if(!oldPassword.equals(correctOldPassword)) {
+			UserDetails user = userDetailsService.loadUserByUsername(username);
+			Object salt = saltSource.getSalt(user);
+
+			String actualOldPasswordEncoded = ((UserDetails)auth.getPrincipal()).getPassword();
+			String oldPasswordEncoded = passwordEncoder.encodePassword(oldPassword, salt);
+			if(!oldPasswordEncoded.equals(actualOldPasswordEncoded)) {
 				throw new GlusterValidationException("Invalid old password!");
 			}
 			
-			UserDetails user = userDetailsService.loadUserByUsername(username);
-			String encodedNewPassword = passwordEncoder.encodePassword(newPassword, saltSource.getSalt(user));
+			String encodedNewPassword = passwordEncoder.encodePassword(newPassword, salt);
 			jdbcUserService.changePassword(oldPassword, encodedNewPassword);
 		} catch (Exception ex) {
 			String errMsg = "Could not change password. Error: [" + ex.getMessage() + "]";
