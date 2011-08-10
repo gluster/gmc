@@ -25,16 +25,22 @@ def main():
 
     volumeMountDirName = "%s/%s" % (Globals.REEXPORT_DIR, volumeName)
     try:
-        os.mkdir(volumeMountDirName)
+        if not os.path.exists(volumeMountDirName):
+            os.mkdir(volumeMountDirName)
     except OSError, e:
         Utils.log("failed creating %s: %s\n" % (volumeMountDirName, str(e)))
         sys.stderr.write("Failed creating %s: %s\n" % (volumeMountDirName, str(e)))
         sys.exit(1)
 
-    if VolumeUtils.writeVolumeCifsConfiguration(volumeName, userList):
-        sys.exit(0)
-    sys.stderr.write("Unable to write volume cifs configuration\n")
-    sys.exit(2)
+    if not VolumeUtils.writeVolumeCifsConfiguration(volumeName, userList):
+        sys.stderr.write("Failed to write volume cifs configuration\n")
+        sys.exit(2)
+
+    if Utils.runCommand("service smb reload") != 0:
+        Utils.log("Failed to reload smb service")
+        sys.stderr.write("Failed to reload smb service\n")
+        sys.exit(3)
+    sys.exit(0)
 
 
 if __name__ == "__main__":
