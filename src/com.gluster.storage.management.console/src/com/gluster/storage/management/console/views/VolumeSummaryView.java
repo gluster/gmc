@@ -44,6 +44,7 @@ import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
+import com.gluster.storage.management.core.model.Device;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.model.Event;
 import com.gluster.storage.management.core.model.GlusterServer;
@@ -72,7 +73,8 @@ public class VolumeSummaryView extends ViewPart {
 	private ControlDecoration errCifsDecoration;
 	private Composite parent;
 	private static final String COURIER_FONT = "Courier";
-	private Cluster cluster = GlusterDataModelManager.getInstance().getModel().getCluster();
+	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+	private Cluster cluster = modelManager.getModel().getCluster();
 	private Button nfsCheckBox;
 	private FormText glusterNfsMountText;
 	private String nfsMountInfo;
@@ -116,13 +118,13 @@ public class VolumeSummaryView extends ViewPart {
 				alertsSection.layout();
 			}
 		};
-		GlusterDataModelManager.getInstance().addClusterListener(volumeChangedListener);
+		modelManager.addClusterListener(volumeChangedListener);
 	}
 
 	@Override
 	public void dispose() {
 		super.dispose();
-		GlusterDataModelManager.getInstance().removeClusterListener(volumeChangedListener);
+		modelManager.removeClusterListener(volumeChangedListener);
 	}
 
 	private void createSections() {
@@ -141,7 +143,7 @@ public class VolumeSummaryView extends ViewPart {
 	}
 	
 	private void populateAlertSection() {
-		List<Alert> alerts = GlusterDataModelManager.getInstance().getModel().getCluster().getAlerts();
+		List<Alert> alerts = cluster.getAlerts();
 
 		for (int i = 0; i < alerts.size(); i++) {
 			if (alerts.get(i).getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT
@@ -355,7 +357,7 @@ public class VolumeSummaryView extends ViewPart {
 						accessControlText.setEnabled(false);
 						changeLink.setText("change");
 
-						GlusterDataModelManager.getInstance().setAccessControlList(volume, newACL);
+						modelManager.setAccessControlList(volume, newACL);
 					} catch (Exception e) {
 						MessageDialog.openError(Display.getDefault().getActiveShell(), "Access control", e.getMessage());
 					}
@@ -418,7 +420,7 @@ public class VolumeSummaryView extends ViewPart {
 					try {
 						new VolumesClient().setCifsConfig(volume.getName(), cifsCheckbox.getSelection(), cifsUsers);
 						enableCifsUsersControls(false);
-						GlusterDataModelManager.getInstance().setCifsConfig(volume, cifsCheckbox.getSelection(),
+						modelManager.setCifsConfig(volume, cifsCheckbox.getSelection(),
 								Arrays.asList(cifsUsers.split(",")));
 					} catch (Exception e) {
 						MessageDialog.openError(Display.getDefault().getActiveShell(), "Cifs Configuration",
@@ -446,7 +448,7 @@ public class VolumeSummaryView extends ViewPart {
 					boolean enableNfs = nfsCheckBox.getSelection();
 					new VolumesClient().setVolumeOption(volume.getName(), Volume.OPTION_NFS_DISABLE,
 							(enableNfs) ? GlusterConstants.OFF : GlusterConstants.ON);
-					GlusterDataModelManager.getInstance().setNfsEnabled(volume, enableNfs);
+					modelManager.setNfsEnabled(volume, enableNfs);
 				} catch (Exception e) {
 					MessageDialog.openError(Display.getDefault().getActiveShell(), "NFS Option", e.getMessage());
 				}
@@ -481,8 +483,7 @@ public class VolumeSummaryView extends ViewPart {
 		String accessControlList = volume.getAccessControlList();
 		if (accessControlList == null) {
 			// if not set, show default value
-			accessControlList = GlusterDataModelManager.getInstance().getVolumeOptionDefaultValue(
-					Volume.OPTION_AUTH_ALLOW);
+			accessControlList = modelManager.getVolumeOptionDefaultValue(Volume.OPTION_AUTH_ALLOW);
 		}
 		accessControlText.setText(accessControlList);
 	}
@@ -668,10 +669,13 @@ public class VolumeSummaryView extends ViewPart {
 	}
 
 	private double getTotalDiskSpace() {
-		double diskSize = 0;
+		double diskSize = 0d;
+		Device device;
 		for (Brick brick : volume.getBricks()) {
-			diskSize += getDiskSize(brick.getServerName(),
-					GlusterDataModelManager.getInstance().getDeviceForBrickDir(brick).getName());
+			device = modelManager.getDeviceForBrickDir(brick);
+			if (device != null) { // In case of off line server, device becomes null
+				diskSize += getDiskSize(brick.getServerName(), device.getName());
+			}
 		}
 		return diskSize;
 	}
@@ -684,7 +688,8 @@ public class VolumeSummaryView extends ViewPart {
 				|| volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_REPLICATE) {
 			replicaCount = (double) volume.getReplicaCount();
 		}
-		totalDiskSpace = toolkit.createLabel(section, "" + NumberUtil.formatNumber((getTotalDiskSpace() / 1024)/ replicaCount ), SWT.NONE);
+		totalDiskSpace = toolkit.createLabel(section,
+				"" + NumberUtil.formatNumber((getTotalDiskSpace() / 1024) / replicaCount), SWT.NONE);
 		toolkit.createLabel(section, "", SWT.NONE); // dummy
 	}
 
