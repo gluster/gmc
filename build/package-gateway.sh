@@ -1,4 +1,5 @@
 WAR_NAME="glustermg.war"
+WAR_SCRIPTS_DIR=${WAR_NAME}/scripts
 NEW_WAR_NAME="glustermg"
 TAR_NAME=${WAR_NAME}.tar
 SERVER_DIST_DIR="${WORKSPACE}/../../glustermg/lastSuccessful"
@@ -8,7 +9,7 @@ prepare-dist-dir()
 	if [ -d ${WAR_NAME} ]; then
 		rm -rf ${WAR_NAME}
 	fi
-	mkdir ${WAR_NAME}
+	mkdir -p ${WAR_SCRIPTS_DIR}
 	if [ -d ${NEW_WAR_NAME} ]; then
 		rm -rf ${NEW_WAR_NAME}
 	fi
@@ -64,12 +65,19 @@ get-console-dists()
 	get-dist x86_64 macosx cocoa
 }
 
+get-scripts()
+{
+	cp src/com.gluster.storage.management.gateway.scripts/src/common/* ${WAR_SCRIPTS_DIR}
+	cp src/com.gluster.storage.management.gateway.scripts/src/gateway/* ${WAR_SCRIPTS_DIR}
+}
+
 #---------------------------------------------
 # Main Action Body
 #---------------------------------------------
 echo "Packaging Gluster Management Server..."
 
 prepare-dist-dir
+get-scripts
 get-server-war
 get-console-dists
 
