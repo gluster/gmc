@@ -374,7 +374,7 @@ def getMeminfo():
             continue # skip lines that don't parse
         key, value = match.groups(['key', 'value'])
         result[key] = int(value)
-    result['MemUsed'] = (result['MemTotal'] - result['MemFree'])
+    result['MemUsed'] = (result['MemTotal'] - result['MemFree'] - result['Buffers'] - result['Cached'])
     return result
 
 
