@@ -11,30 +11,28 @@ if not p1 in sys.path:
     sys.path.append(p1)
 if not p2 in sys.path:
     sys.path.append(p2)
+import Globals
 import Utils
-
-
-cifsVolumeFile = "/opt/glustermg/etc/volumes.cifs"
 
 
 def addVolumeCifsConf(volumeName, userList):
     try:
-        fp = open(cifsVolumeFile)
+        fp = open(Globals.CIFS_VOLUME_FILE)
         content = fp.read()
         fp.close()
     except IOError, e:
-        Utils.log("failed to read file %s: %s" % (cifsVolumeFile, str(e)))
+        Utils.log("failed to read file %s: %s" % (Globals.CIFS_VOLUME_FILE, str(e)))
         content = ""
 
     try:
-        fp = open(cifsVolumeFile, "w")
+        fp = open(Globals.CIFS_VOLUME_FILE, "w")
         for line in content.split():
             if line.split(":")[0] != volumeName:
                 fp.write("%s\n" % line)
         fp.write("%s:%s\n" % (volumeName, ":".join(userList)))
         fp.close()
     except IOError, e:
-        Utils.log("failed to write file %s: %s" % (cifsVolumeFile, str(e)))
+        Utils.log("failed to write file %s: %s" % (Globals.CIFS_VOLUME_FILE, str(e)))
         return False
     return True
 
@@ -47,6 +45,15 @@ def main():
     serverFile = sys.argv[1]
     volumeName = sys.argv[2]
     userList = sys.argv[3:]
+
+    missingUserList = []
+    for userName in userList:
+        if not Utils.getCifsUserUid(userName):
+            missingUserList.append(userName)
+
+    if missingUserList:
+        sys.stderr.write("User %s does not exists\n" % missingUserList)
+        sys.exit(1)
 
     rv = Utils.runCommand(["grun.py", serverFile, "create_volume_cifs.py", volumeName] + userList)
     if rv == 0:

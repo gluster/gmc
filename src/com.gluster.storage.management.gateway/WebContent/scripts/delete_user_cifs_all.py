@@ -11,23 +11,21 @@ if not p1 in sys.path:
     sys.path.append(p1)
 if not p2 in sys.path:
     sys.path.append(p2)
+import Globals
 import Utils
-
-
-cifsUserFile = "/opt/glustermg/etc/users.cifs"
 
 
 def removeUser(userName):
     try:
-        fp = open(cifsUserFile)
+        fp = open(Globals.CIFS_USER_FILE)
         content = fp.read()
         fp.close()
     except IOError, e:
-        Utils.log("failed to read file %s: %s" % (cifsUserFile, str(e)))
+        Utils.log("failed to read file %s: %s" % (Globals.CIFS_USER_FILE, str(e)))
         return False
 
     try:
-        fp = open(cifsUserFile, "w")
+        fp = open(Globals.CIFS_USER_FILE, "w")
         lines = content.strip().split()
         for line in lines:
             if line.split(":")[1] == userName:
@@ -35,7 +33,7 @@ def removeUser(userName):
             fp.write("%s\n" % line)
         fp.close()
     except IOError, e:
-        Utils.log("failed to write file %s: %s" % (cifsUserFile, str(e)))
+        Utils.log("failed to write file %s: %s" % (Globals.CIFS_USER_FILE, str(e)))
         return False
     return True
 
@@ -51,7 +49,7 @@ def main():
     rv = Utils.runCommand("grun.py %s delete_user_cifs.py %s" % (serverList, userName))
     if rv == 0:
         if not removeUser(userName):
-            Utils.log(("Failed to remove the user:%s on gateway server\n" % userName)
+            Utils.log("Failed to remove the user:%s on gateway server\n" % userName)
             sys.exit(0)
     sys.exit(rv)
 

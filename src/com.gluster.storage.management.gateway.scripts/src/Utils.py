@@ -1084,3 +1084,18 @@ def getGlusterVersion():
     if not rv["Stdout"]:
         return None
     return rv["Stdout"].strip().split()[1]
+
+def getCifsUserUid(userName):
+    try:
+        fp = open(Globals.CIFS_USER_FILE)
+        content = fp.read()
+        fp.close()
+    except IOError, e:
+        Utils.log("failed to read file %s: %s" % (Globals.CIFS_USER_FILE, str(e)))
+        return False
+
+    for line in content.strip().split():
+        tokens = line.split(":")
+        if tokens[1] == userName:
+            return int(tokens[0])
+    return None
