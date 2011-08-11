@@ -523,7 +523,7 @@ public class VolumeService {
 		// populate disk and trim other fields
 		List<VolumeLogMessage> logMessages = response.getLogMessages();
 		for (VolumeLogMessage logMessage : logMessages) {
-			logMessage.setBrickDirectory(brick.getBrickDirectory());
+			logMessage.setBrick(brick.getQualifiedName());
 		}
 		return logMessages;
 	}
