@@ -23,6 +23,8 @@ import org.eclipse.jface.wizard.Wizard;
 
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.console.GlusterDataModelManager;
+import com.gluster.storage.management.console.utils.GUIHelper;
+import com.gluster.storage.management.console.utils.GlusterLogger;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
@@ -116,6 +118,14 @@ public class CreateVolumeWizard extends Wizard {
 			MessageDialog.openWarning(getShell(), title,
 					"Volume created, but following error(s) occured: " + errMsg);
 		}
-		GlusterDataModelManager.getInstance().addVolume(newVolume);
+		
+		// Fetching actual volume info (because of partial success)
+		Volume volume = newVolume; 
+		try {
+			volume = volumesClient.getVolume(newVolume.getName());
+		}catch (Exception e) {
+			GlusterLogger.getInstance().error("Fetching volume details failed:" + e.getMessage());
+		}
+		GlusterDataModelManager.getInstance().addVolume(volume);
 	}
 }

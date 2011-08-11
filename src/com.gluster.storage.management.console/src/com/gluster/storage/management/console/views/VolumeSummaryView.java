@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.fieldassist.ControlDecoration;
+import org.eclipse.osgi.service.resolver.DisabledInfo;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.custom.CLabel;
@@ -39,7 +40,6 @@ import com.gluster.storage.management.console.GlusterDataModelManager;
 import com.gluster.storage.management.console.IImageKeys;
 import com.gluster.storage.management.console.toolbar.GlusterToolbarManager;
 import com.gluster.storage.management.console.utils.GUIHelper;
-import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Brick;
@@ -52,7 +52,6 @@ import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Partition;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Volume;
-import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.utils.NumberUtil;
 import com.gluster.storage.management.core.utils.StringUtil;
@@ -110,6 +109,9 @@ public class VolumeSummaryView extends ViewPart {
 				changeNFSStatus(volume.isNfsEnabled());
 				updateBrickChanges(volume);
 				toolbarManager.updateToolbar(volume);
+				cifsCheckbox.setSelection(volume.isCifsEnable());
+				populateCifsUsersText();
+				
 			}
 
 			@Override
@@ -381,8 +383,10 @@ public class VolumeSummaryView extends ViewPart {
 			}
 
 			private void startEdit() {
-				enableCifsUsersControls(true);
-				cifsUsersText.selectAll();
+				if (cifsCheckbox.getSelection()) {
+					enableCifsUsersControls(true);
+					cifsUsersText.selectAll();
+				}
 			}
 
 			@Override
@@ -403,8 +407,6 @@ public class VolumeSummaryView extends ViewPart {
 		parent.update();
 
 		final String cifsUsers = cifsUsersText.getText().trim();
-		List<String> existingCifsUserList = volume.getCifsUsers();
-		String configuredUsers = (existingCifsUserList != null) ? StringUtil.collectionToString(existingCifsUserList, ",") : "";
 
 		// To check if no changes in the users list
 		if (!isvalidCifsUser()) {
@@ -412,8 +414,8 @@ public class VolumeSummaryView extends ViewPart {
 					"Please enter cifs users name");
 			enableCifsUsersControls(true);
 			validateCifsUsers();
-		} else if (cifsUsers.equals(configuredUsers)) { // Nothing to do.
-			enableCifsUsersControls(false);
+			// } else if (cifsUsers.equals(configuredUsers)) { // Nothing to do.
+			// enableCifsUsersControls(false);
 		} else {
 			BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
 				@Override
@@ -427,6 +429,7 @@ public class VolumeSummaryView extends ViewPart {
 						MessageDialog.openError(Display.getDefault().getActiveShell(), "Cifs Configuration",
 								e.getMessage());
 						cifsCheckbox.setSelection(volume.isCifsEnable());
+						enableCifsUsersControls(cifsCheckbox.getSelection());
 						populateCifsUsersText();
 					}
 				}
@@ -505,7 +508,7 @@ public class VolumeSummaryView extends ViewPart {
 					saveCifsConfiguration();
 					break;
 				}
-				// validateCifsUsers();
+				validateCifsUsers();
 			}
 		});
 	}
@@ -787,13 +790,12 @@ public class VolumeSummaryView extends ViewPart {
 	}
 
 	private void validateCifsUsers() {
+		errCifsDecoration.hide();
 		if (cifsCheckbox.getSelection()) {
 			String cifsUserList = cifsUsersText.getText().trim();
 			if (cifsUserList.length() == 0) {
 				errCifsDecoration.setDescriptionText("Please enter cifs user name");
 				errCifsDecoration.show();
-			} else {
-				errCifsDecoration.hide();
 			}
 		}
 	}
