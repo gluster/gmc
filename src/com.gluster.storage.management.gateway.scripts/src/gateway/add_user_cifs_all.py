@@ -73,6 +73,7 @@ def main():
     if not uid:
         uid = getLastUid()
         if not uid:
+            sys.stderr.write("Unable to read file %s\n" % Globals.CIFS_USER_FILE)
             sys.exit(10)
         uid += 1
     else:
