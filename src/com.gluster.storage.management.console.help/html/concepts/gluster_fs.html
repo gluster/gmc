@@ -2,12 +2,16 @@
 
 <html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-	<title>Sub Topic</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Sub Topic</title>
 </head>
 
 <body>
 <h1>Introducing Gluster Filesystem (GlusterFS)</h1>
-GlusterFS is an open source, clustered file system capable of scaling to several petabytes and handling thousands of clients. GlusterFS can be flexibly combined with commodity physical, virtual, and cloud resources to deliver highly available and performant enterprise storage at a fraction of the cost of traditional solutions.
-<p>GlusterFS clusters together storage building blocks over Infiniband RDMA and/or TCP/IP interconnect, aggregating disk and memory resources and managing data in a single global namespace. GlusterFS is based on a stackable user space design, delivering exceptional performance for diverse workloads.</p><p>GlusterFS is designed for today's high-performance, virtualized cloud environments. Unlike traditional data centers, cloud environments require multi-tenancy along with the ability to grow or shrink resources on demand. Enterprises can scale capacity, performance, and availability on demand, with no vendor lock-in, across on-premise, public cloud, and hybrid environments.<p>GlusterFS is the heart of all of Glusters commercial offerings, and is in production at thousands of enterprises spanning media, healthcare, government, education, web 2.0, and financial services.</p></body>
+GlusterFS is an open source, scale-out file system capable of scaling to several petabytes and handling thousands of clients. GlusterFS assembles storage building blocks, aggregating disk and memory resources and managing data in a single global namespace. GlusterFS is based on a stackable user space design and can deliver exceptional performance for diverse workloads<p>The GlusterFS modular architecture allows administrators to stack modules to match user requirements, as needed. For example, administrators can use GlusterFS to quickly configure a standalone server system and later expand the system as their business needs grow.</p>
+<p><b>Virtualized Cloud Environments </b></p>
+<p>GlusterFS is designed for today's high-performance, virtualized cloud environments. Unlike traditional data centers, cloud environments require multi-tenancy along with the ability to grow or shrink resources on demand. GlusterFS incorporates cloud capabilities into the core architecture.
+<p>Every module in GlusterFS is treated as a volume. GlusterFS further adds an elastic volume manager (the glusterd daemon) and a console manager (the gluster command line interface). Using the console manager, administrators can dynamically expand, shrink, rebalance, and migrate volumes, among other operations. The command line interface additionally provides an interactive shell (with auto-completion) along with scripting capabilities suitable for automation.</p>
+<p><img src="../images/GlusterFS_3.2_Architecture.png" alt="GlusterFS Architecture" />
+</body>
 </html>

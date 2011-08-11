@@ -2,7 +2,7 @@
 <?NLS TYPE="org.eclipse.help.toc"?>
 
 <toc label="Tasks" link_to="toc.xml#tasks">
- <topic href="html/tasks/setting_the_gmc.html" label="Setting the Gluster Management Console">
+ <topic label="Setting the Gluster Management Console">
     <topic href="html/tasks/deploy_gmc_dedicated_host.html" label="Deploying Gluster Management Console on a Dedicated Host">
     </topic>
     <topic href="html/tasks/starting_gmc.html" label="Starting the Gluster Management Gateway">
@@ -11,11 +11,11 @@
     </topic>
  </topic>
  <topic label="Cluster">
-    <topic href="html/tasks/create_cluster.html" label="Create a Cluster">
+    <topic href="html/tasks/create_cluster.html" label="Create Cluster">
     </topic>
-    <topic href="html/tasks/select_cluster.html" label="Select a Cluster">
+    <topic href="html/tasks/select_cluster.html" label="Select Cluster">
     </topic>
-    <topic href="html/tasks/register_cluster.html" label="Register a Cluster">
+    <topic href="html/tasks/register_cluster.html" label="Register Cluster">
     </topic>
  </topic> 
 	<topic label="Server">
@@ -26,17 +26,17 @@
 		</topic>
 	<topic label="Volume"> 
 	<topic label="Creating a Volume" href="html/tasks/create_volume.html" /> 
-	<topic label="Starting a Volume" href="html/tasks/start_vol.html" />
+	<topic label="Starting Volumes" href="html/tasks/start_vol.html" />
  <topic href="html/tasks/tune_vol_opt.html" label="Tuning Volume Options">
  </topic>
  <topic href="html/tasks/rebalance_vol.html" label="Rebalancing Volumes">
  </topic> 
-	<topic href="html/tasks/stop_vol.html" label="Stopping a Volume">
+	<topic href="html/tasks/stop_vol.html" label="Stopping Volumes">
  </topic>
- <topic href="html/tasks/delete_volume.html" label="Deleting a Volume">
+ <topic href="html/tasks/delete_volume.html" label="Deleting Volumes">
  </topic>
 	<topic label="Adding a Brick" href="html/tasks/add_brick.html" /> 
-	<topic href="html/tasks/delete_brick.html" label="Deleting a Brick">
+	<topic href="html/tasks/delete_brick.html" label="Removing Bricks">
  </topic>
  <topic href="html/tasks/migrate_brick.html" label="Migrating a Brick">
  </topic> 

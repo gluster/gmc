@@ -2,7 +2,7 @@
 <?NLS TYPE="org.eclipse.help.toc"?>
 
 <toc label="Getting Started" link_to="toc.xml#gettingstarted"> 
-	<topic label="Exploring GMC" href="html/gettingstarted/explore_gmc.html" />
+	<topic label="Exploring Gluster Management Console" href="html/gettingstarted/explore_gmc.html" />
 	<topic label="Monitoring Resources" href="html/gettingstarted/monitor_resources.html" />
 	<topic label="Change Administrator's Password" href="html/gettingstarted/change_password.html" />
  <topic href="html/gettingstarted/manage_cluster.html" label="Managing Clusters">
