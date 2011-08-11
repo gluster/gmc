@@ -210,8 +210,11 @@ public class VolumesResource extends AbstractResource {
 				volumeService.rebalanceStop(clusterName, volumeName);
 			} else if (operation.equals(RESTConstants.FORM_PARAM_CIFS_CONFIG)) {
 				if (enableCifs) {
-					volumeService.modifyCIFSUsers(clusterName, volumeName, cifsUsers);
+					// After add/modify volume cifs users, start/restart the cifs service
+					volumeService.createCIFSUsers(clusterName, volumeName, cifsUsers);
+					volumeService.startCifsReExport(clusterName, volumeName);
 				} else {
+					// Stop the Cifs service and delete the users (!important)
 					volumeService.stopCifsReExport(clusterName, volumeName);
 					volumeService.deleteCifsUsers(clusterName, volumeName);
 				}

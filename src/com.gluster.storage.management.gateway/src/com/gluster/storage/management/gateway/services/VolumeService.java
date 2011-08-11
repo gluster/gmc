@@ -44,6 +44,7 @@ import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
+import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.model.VolumeLogMessage;
 import com.gluster.storage.management.core.response.LogMessageListResponse;
@@ -287,6 +288,8 @@ public class VolumeService {
 			ProcessResult result = serverUtil.executeGlusterScript(true, VOLUME_DELETE_CIFS_SCRIPT,
 					file.getAbsolutePath(), volumeName);
 			file.delete();
+			// All the CIFS users deleted, hence stop CIFS service for this volume
+			stopCifsReExport(clusterName, volumeName);
 			if (!result.isSuccess()) {
 				throw new GlusterRuntimeException(result.toString());
 			}
@@ -296,12 +299,20 @@ public class VolumeService {
 		}
 	}
 
-	private void createCIFSUsers(String clusterName, String volumeName, String cifsUsers) {
+	public void createCIFSUsers(String clusterName, String volumeName, String cifsUsers) {
 		try {
 			File file = createOnlineServerList(clusterName);
 			ProcessResult result = serverUtil.executeGlusterScript(true, VOLUME_CREATE_CIFS_SCRIPT,
 					file.getAbsolutePath(), volumeName, cifsUsers.replace(",", " "));
 			file.delete();
+			Volume volume = getVolume(clusterName, volumeName);
+			// If the volume service is already in running, create user may start CIFS re-export automatically.
+			if (volume.getStatus() == VOLUME_STATUS.ONLINE) {
+				startCifsReExport(clusterName, volumeName);
+			} 
+			/*
+			 * else { stopCifsReExport(clusterName, volumeName); }
+			 */
 			if (!result.isSuccess()) {
 				throw new GlusterRuntimeException(result.toString());
 			}
@@ -311,6 +322,7 @@ public class VolumeService {
 		}
 	}
 
+	@Deprecated
 	public void modifyCIFSUsers(String clusterName, String volumeName, String cifsUsers) {
 		try {
 			File file = createOnlineServerList(clusterName);
