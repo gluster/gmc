@@ -111,7 +111,7 @@ public class CreateVolumeWizard extends Wizard {
 			
 			if (error) {
 				MessageDialog.openWarning(getShell(), title, message1);
-			} else {
+			} else if (message1.trim().length() > 0) {
 				MessageDialog.openInformation(getShell(), title, message1);
 			}
 		} else { // Start volume is not checked

@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.hibernate.mapping.Array;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -302,8 +303,11 @@ public class VolumeService {
 	public void createCIFSUsers(String clusterName, String volumeName, String cifsUsers) {
 		try {
 			File file = createOnlineServerList(clusterName);
-			ProcessResult result = serverUtil.executeGlusterScript(true, VOLUME_CREATE_CIFS_SCRIPT,
-					file.getAbsolutePath(), volumeName, cifsUsers.replace(",", " "));
+			List<String> arguments = new ArrayList<String>(); 
+			arguments.add(file.getAbsolutePath());
+			arguments.add(volumeName);
+			arguments.addAll( Arrays.asList(cifsUsers.replaceAll(" ", "").split(",")));
+			ProcessResult result = serverUtil.executeGlusterScript(true, VOLUME_CREATE_CIFS_SCRIPT, arguments);
 			file.delete();
 			Volume volume = getVolume(clusterName, volumeName);
 			// If the volume service is already in running, create user may start CIFS re-export automatically.
@@ -326,8 +330,11 @@ public class VolumeService {
 	public void modifyCIFSUsers(String clusterName, String volumeName, String cifsUsers) {
 		try {
 			File file = createOnlineServerList(clusterName);
-			ProcessResult result = serverUtil.executeGlusterScript(true, VOLUME_MODIFY_CIFS_SCRIPT,
-					file.getAbsolutePath(), volumeName, cifsUsers.replace(",", " "));
+			List<String> arguments = new ArrayList<String>(); 
+			arguments.add(file.getAbsolutePath());
+			arguments.add(volumeName);
+			arguments.addAll( Arrays.asList(cifsUsers.split(",")));
+			ProcessResult result = serverUtil.executeGlusterScript(true, VOLUME_MODIFY_CIFS_SCRIPT, arguments);
 			file.delete();
 			if (!result.isSuccess()) {
 				throw new GlusterRuntimeException(result.toString());
