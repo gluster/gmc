@@ -433,6 +433,10 @@ public class VolumeService {
 		if (clusterService.getCluster(clusterName) == null) {
 			throw new GlusterValidationException("Cluster [" + clusterName + "] not found!");
 		}
+		
+		if (lineCount == null || lineCount == 0) {
+			lineCount = 100;
+		}
 
 		List<VolumeLogMessage> logMessages = null;
 		Volume volume = getVolume(clusterName, volumeName);
@@ -526,7 +530,7 @@ public class VolumeService {
 		// populate disk and trim other fields
 		List<VolumeLogMessage> logMessages = response.getLogMessages();
 		for (VolumeLogMessage logMessage : logMessages) {
-			logMessage.setBrickDirectory(brick.getBrickDirectory());
+			logMessage.setBrick(brick.getQualifiedName());
 		}
 		return logMessages;
 	}

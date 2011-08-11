@@ -89,7 +89,7 @@ public interface IImageKeys {
 	public static final String OVERLAY_STAR_8x8 = "icons/tango/8x8/star.png";
 
 	public static final String SPLASH_IMAGE = "splash.bmp";
-	public static final String DIALOG_SPLASH_IMAGE = "splash/splash-dialog.bmp";
+	public static final String DIALOG_SPLASH_IMAGE = "images/splash-dialog.bmp";
 
 	public static final String GAUGE_SMALL = "images/gauge_small.png";
 	

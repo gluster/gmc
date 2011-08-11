@@ -393,7 +393,7 @@
          </property>
          <property
                name="aboutImage"
-               value="splash/gluster-about.png">
+               value="images/gluster-about.png">
          </property>
          <property
                name="appName"

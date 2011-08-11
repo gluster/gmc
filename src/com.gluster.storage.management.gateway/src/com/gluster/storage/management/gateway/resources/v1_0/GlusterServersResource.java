@@ -56,6 +56,7 @@ import javax.ws.rs.core.Response;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
@@ -374,7 +375,8 @@ public class GlusterServersResource extends AbstractResource {
 		}
 		
 		if (fsType == null || fsType.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_FSTYPE + "] is missing in request!");
+			fsType = GlusterConstants.FSTYPE_DEFAULT;
+			// return badRequestResponse("Parameter [" + FORM_PARAM_FSTYPE + "] is missing in request!");
 		}
 
 		InitializeDiskTask initializeTask = new InitializeDiskTask(clusterService, clusterName, serverName, diskName, fsType);

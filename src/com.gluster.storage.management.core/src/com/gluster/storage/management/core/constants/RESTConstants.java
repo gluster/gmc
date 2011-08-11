@@ -32,7 +32,7 @@ public class RESTConstants {
 	
 	// REST Resource names
 	public static final String RESOURCE_VOLUMES = "volumes";
-	public static final String RESOURCE_DEFAULT_OPTIONS = "defaultoptions";
+	public static final String RESOURCE_DEFAULT_OPTIONS = "options";
 	public static final String RESOURCE_OPTIONS = "options";
 	public static final String RESOURCE_LOGS = "logs";
 	public static final String RESOURCE_DOWNLOAD = "download";

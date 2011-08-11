@@ -67,25 +67,25 @@ public class VolumeLogMessage implements Filterable {
 		this.message = message;
 	}
 	
-	public void setBrickDirectory(String brickDirectory) {
-		this.brick = brickDirectory;
+	public void setBrick(String brick) {
+		this.brick = brick;
 	}
 
-
-	public String getBrickDirectory() {
+	@XmlElement(name = "brick")
+	public String getBrick() {
 		return brick;
 	}
 
 	public VolumeLogMessage(Date timestamp, String brickDirectory, String severity, String message) {
 		setTimestamp(timestamp);
-		setBrickDirectory(brickDirectory);
+		setBrick(brickDirectory);
 		setSeverity(severity);
 		setMessage(message);
 	}
 	
 	@Override
 	public boolean filter(String filterString, boolean caseSensitive) {
-		return StringUtil.filterString(getSeverity() + getTimestamp() + getBrickDirectory() + getMessage(), filterString,
+		return StringUtil.filterString(getSeverity() + getTimestamp() + getBrick() + getMessage(), filterString,
 				caseSensitive);
 	}
 

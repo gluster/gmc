@@ -193,7 +193,13 @@ public class TasksResource extends AbstractResource {
 		}
 		
 		if(taskOperation == null || taskOperation.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_OPERATION + "] is missing in request!");
+			int taskStatus = task.getTaskInfo().getStatus().getCode();
+			if (taskStatus == Status.STATUS_CODE_SUCCESS || taskStatus == Status.STATUS_CODE_FAILURE) {
+				taskOperation = RESTConstants.TASK_DELETE;
+			} else {
+				taskOperation = RESTConstants.TASK_STOP;
+			}
+//			return badRequestResponse("Parameter [" + FORM_PARAM_OPERATION + "] is missing in request!");
 		}
 		
 		if(!taskOperation.equals(RESTConstants.TASK_STOP) && !taskOperation.equals(RESTConstants.TASK_DELETE)) {

@@ -106,9 +106,7 @@ public class LoginDialog extends Dialog {
 		userIdText.setText("gluster");
 		userIdText.setEnabled(false);
 
-		GridData layoutData = new GridData(SWT.FILL, GridData.FILL, true, false);
-		;
-		layoutData.widthHint = convertWidthInCharsToPixels(32);
+		GridData layoutData = new GridData(convertWidthInCharsToPixels(32), 15);
 		userIdText.setLayoutData(layoutData);
 	}
 
@@ -121,20 +119,28 @@ public class LoginDialog extends Dialog {
 	private void createPasswordText(Composite composite) {
 		passwordText = new Text(composite, SWT.BORDER | SWT.PASSWORD);
 
-		GridData layoutData = new GridData(SWT.FILL, GridData.FILL, true, false);
-		;
-		layoutData.widthHint = convertWidthInCharsToPixels(32);
+		GridData layoutData = new GridData(convertWidthInCharsToPixels(32), 15);
 		passwordText.setLayoutData(layoutData);
 	}
 
 	private void configureDialogLayout(Composite composite) {
 		GridLayout layout = (GridLayout) composite.getLayout();
 		layout.numColumns = 2;
+		layout.marginLeft = 10;
+		layout.marginRight = 10;
+		layout.marginTop = 30;
+		layout.marginBottom = 0;
+		layout.horizontalSpacing = 20;
+		layout.verticalSpacing = 10;
+	}
+	
+	private void configureButtonCompositeLayout(Composite composite) {
+		GridLayout layout = (GridLayout) composite.getLayout();
 		layout.marginLeft = 20;
 		layout.marginRight = 20;
-		layout.marginTop = 20;
-		layout.horizontalSpacing = 20;
-		layout.verticalSpacing = 20;
+		layout.marginTop = 0;
+		layout.horizontalSpacing = 10;
+		layout.verticalSpacing = 10;
 	}
 
 	/**
@@ -144,6 +150,7 @@ public class LoginDialog extends Dialog {
 	protected void initializeBounds() {
 		super.initializeBounds();
 
+		getShell().setSize(390, 240);
 		guiHelper.centerShellInScreen(getShell());
 	}
 
@@ -156,6 +163,8 @@ public class LoginDialog extends Dialog {
 
 		composite = (Composite) super.createDialogArea(parent);
 		configureDialogLayout(composite);
+		GridData layoutData = new GridData(390, 110);
+		composite.setLayoutData(layoutData);
 
 		createUserIdLabel(composite);
 		createUserIdText(composite);
@@ -168,8 +177,28 @@ public class LoginDialog extends Dialog {
 
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
+		configureButtonCompositeLayout(parent);
+		GridData layoutData = new GridData(390, 130);
+		layoutData.horizontalAlignment = SWT.CENTER;
+		layoutData.verticalAlignment = SWT.TOP;
+		layoutData.grabExcessHorizontalSpace = true;
+		parent.setLayoutData(layoutData);
+		
+		layoutData = new GridData();
+		layoutData.widthHint = 70;
+		layoutData.horizontalAlignment = SWT.LEFT;
+		layoutData.grabExcessHorizontalSpace = true;
+		
 		okButton = createButton(parent, IDialogConstants.OK_ID, "&Login", true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
+		okButton.setLayoutData(layoutData);		
+
+		layoutData = new GridData();
+		layoutData.widthHint = 70;
+		layoutData.horizontalAlignment = SWT.RIGHT;
+		layoutData.grabExcessHorizontalSpace = true;
+
+		Button cancelButton = createButton(parent, IDialogConstants.CANCEL_ID, "&Cancel", false);
+		cancelButton.setLayoutData(layoutData);
 
 		setupDataBinding();
 	}

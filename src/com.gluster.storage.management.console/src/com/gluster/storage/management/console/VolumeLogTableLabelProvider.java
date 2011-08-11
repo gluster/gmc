@@ -33,7 +33,7 @@ public class VolumeLogTableLabelProvider extends TableLabelProviderAdapter {
 		VolumeLogMessage logMessage = (VolumeLogMessage) element;
 		return (columnIndex == LOG_TABLE_COLUMN_INDICES.DATE.ordinal() ? DateUtil.formatDate(logMessage.getTimestamp()) 
 			: columnIndex == LOG_TABLE_COLUMN_INDICES.TIME.ordinal() ? DateUtil.formatTime(logMessage.getTimestamp())
-			: columnIndex == LOG_TABLE_COLUMN_INDICES.BRICK.ordinal() ? logMessage.getBrickDirectory()
+			: columnIndex == LOG_TABLE_COLUMN_INDICES.BRICK.ordinal() ? logMessage.getBrick()
 			: columnIndex == LOG_TABLE_COLUMN_INDICES.SEVERITY.ordinal() ? "" + logMessage.getSeverity()
 			: columnIndex == LOG_TABLE_COLUMN_INDICES.MESSAGE.ordinal() ? logMessage.getMessage() : "Invalid");
 	}
