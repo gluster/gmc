@@ -24,7 +24,7 @@ import java.util.Map;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 
-import com.gluster.storage.management.console.actions.IActionConstants;
+import com.gluster.storage.management.console.actions.ActionConstants;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.EntityGroup;
@@ -55,14 +55,14 @@ public class GlusterToolbarManager implements ToolbarManager {
 
 	private Map<ENTITY_TYPE, String> createActionSetMap() {
 		Map<ENTITY_TYPE, String> actionSetMap = new HashMap<GlusterToolbarManager.ENTITY_TYPE, String>();
-		actionSetMap.put(ENTITY_TYPE.CLUSTER, IActionConstants.ACTION_SET_CLUSTER);
-		actionSetMap.put(ENTITY_TYPE.VOLUMES, IActionConstants.ACTION_SET_VOLUMES);
-		actionSetMap.put(ENTITY_TYPE.VOLUME, IActionConstants.ACTION_SET_VOLUME);
-		actionSetMap.put(ENTITY_TYPE.GLUSTER_SERVERS, IActionConstants.ACTION_SET_GLUSTER_SERVERS);
-		actionSetMap.put(ENTITY_TYPE.GLUSTER_SERVER, IActionConstants.ACTION_SET_GLUSTER_SERVER);
-		actionSetMap.put(ENTITY_TYPE.DISCOVERED_SERVERS, IActionConstants.ACTION_SET_DISCOVERED_SERVERS);
-		actionSetMap.put(ENTITY_TYPE.DISCOVERED_SERVER, IActionConstants.ACTION_SET_DISCOVERED_SERVER);
-		actionSetMap.put(ENTITY_TYPE.TASK, IActionConstants.ACTION_SET_TASK);
+		actionSetMap.put(ENTITY_TYPE.CLUSTER, ActionConstants.ACTION_SET_CLUSTER);
+		actionSetMap.put(ENTITY_TYPE.VOLUMES, ActionConstants.ACTION_SET_VOLUMES);
+		actionSetMap.put(ENTITY_TYPE.VOLUME, ActionConstants.ACTION_SET_VOLUME);
+		actionSetMap.put(ENTITY_TYPE.GLUSTER_SERVERS, ActionConstants.ACTION_SET_GLUSTER_SERVERS);
+		actionSetMap.put(ENTITY_TYPE.GLUSTER_SERVER, ActionConstants.ACTION_SET_GLUSTER_SERVER);
+		actionSetMap.put(ENTITY_TYPE.DISCOVERED_SERVERS, ActionConstants.ACTION_SET_DISCOVERED_SERVERS);
+		actionSetMap.put(ENTITY_TYPE.DISCOVERED_SERVER, ActionConstants.ACTION_SET_DISCOVERED_SERVER);
+		actionSetMap.put(ENTITY_TYPE.TASK, ActionConstants.ACTION_SET_TASK);
 
 		return actionSetMap;
 	}

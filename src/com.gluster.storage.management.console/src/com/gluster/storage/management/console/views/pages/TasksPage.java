@@ -73,7 +73,7 @@ public class TasksPage extends AbstractTableViewerPage<TaskInfo> {
 				tableViewer.remove(taskInfo);
 				parent.update();
 				// hide the task related actionset as no task is selected
-				// site.getPage().hideActionSet(IActionConstants.ACTION_SET_TASK);
+				// site.getPage().hideActionSet(ActionConstants.ACTION_SET_TASK);
 			}
 			
 			@Override

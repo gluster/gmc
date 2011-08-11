@@ -18,7 +18,7 @@
  *******************************************************************************/
 package com.gluster.storage.management.console.actions;
 
-public interface IActionConstants {
+public class ActionConstants {
 	public static final String ACTION_SET_CLUSTER = "com.gluster.storage.management.console.actionsets.gluster";
 	public static final String ACTION_SET_VOLUMES = "com.gluster.storage.management.console.actionsets.volumes";
 	public static final String ACTION_SET_VOLUME = "com.gluster.storage.management.console.actionsets.volume";

@@ -84,6 +84,7 @@ import com.gluster.storage.management.console.GlusterDataModelManager;
 import com.gluster.storage.management.console.IImageKeys;
 import com.gluster.storage.management.console.views.NavigationView;
 import com.gluster.storage.management.console.views.TasksView;
+import com.gluster.storage.management.console.views.TerminalView;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.utils.JavaUtil;
@@ -91,6 +92,7 @@ import com.gluster.storage.management.core.utils.JavaUtil;
 public class GUIHelper {
 	private static final GUIHelper instance = new GUIHelper();
 	private static final ImageUtil imageUtil = new ImageUtil();
+	private static final GlusterLogger logger = GlusterLogger.getInstance();
 
 	private GUIHelper() {
 
@@ -447,27 +449,30 @@ public class GUIHelper {
 		});
 	}
 	
-	public void showProgressView() {
+	public void showView(String viewId) {
 		try {
-			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
-					.showView(IProgressConstants.PROGRESS_VIEW_ID);
+			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(viewId);
 		} catch (PartInitException e) {
-			e.printStackTrace();
-			throw new GlusterRuntimeException("Could not open the progress view!", e);
+			String errMsg = "Could not open view [" + viewId + "]";
+			logger.error(errMsg, e);
+			throw new GlusterRuntimeException(errMsg, e);
 		}
 	}
 	
+	public void showTerminalView() {
+		//showView("org.eclipse.tm.terminal.view.TerminalView");
+		showView(TerminalView.ID);
+	}
+	
+	public void showProgressView() {
+		showView(IProgressConstants.PROGRESS_VIEW_ID);
+	}
+	
 	public void showTaskView() {
-		try {
-			NavigationView navigationView = (NavigationView) getView(NavigationView.ID);
-			navigationView.selectEntity(GlusterDataModelManager.getInstance().getModel().getCluster());
+		NavigationView navigationView = (NavigationView) getView(NavigationView.ID);
+		navigationView.selectEntity(GlusterDataModelManager.getInstance().getModel().getCluster());
 
-			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
-					.showView( TasksView.ID );
-		} catch (PartInitException e) {
-			e.printStackTrace();
-			throw new GlusterRuntimeException("Could not open the task progress view!", e);
-		}
+		showView(TasksView.ID);
 	}
 	
 	public void setStatusMessage(String message) {

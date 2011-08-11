@@ -44,7 +44,7 @@ import org.eclipse.ui.part.ViewPart;
 import com.gluster.storage.management.console.Activator;
 import com.gluster.storage.management.console.GlusterDataModelManager;
 import com.gluster.storage.management.console.IImageKeys;
-import com.gluster.storage.management.console.actions.IActionConstants;
+import com.gluster.storage.management.console.actions.ActionConstants;
 import com.gluster.storage.management.console.preferences.PreferenceConstants;
 import com.gluster.storage.management.console.utils.ChartUtil;
 import com.gluster.storage.management.console.utils.ChartViewerComposite;
@@ -287,7 +287,7 @@ public class ClusterSummaryView extends ViewPart {
 			public void linkActivated(HyperlinkEvent e) {
 				IHandlerService hs = (IHandlerService) getSite().getService(IHandlerService.class);
 				try {
-					hs.executeCommand(IActionConstants.COMMAND_CREATE_VOLUME, null);
+					hs.executeCommand(ActionConstants.COMMAND_CREATE_VOLUME, null);
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
