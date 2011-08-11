@@ -51,8 +51,9 @@ mkdir -p $RPM_BUILD_ROOT/var/log/glustermg
 wget -P $RPM_BUILD_ROOT %{glustermg_war_url}
 tar -C $RPM_BUILD_ROOT/opt/glustermg/%{release_version} -zxf $RPM_BUILD_ROOT/glustermg.war.tar.gz
 rm -f $RPM_BUILD_ROOT/glustermg.war.tar.gz
+%{__install} -d -m0755 %{buildroot}%{_bindir}
 %{__install} -d -m0755 %{buildroot}%{_sbindir}
-ln -sf /opt/glustermg/%{release_version}/glustermg/scripts/grun.py %{buildroot}%{_sbindir}/grun.py
+ln -sf /opt/glustermg/%{release_version}/glustermg/scripts/grun.py %{buildroot}%{_bindir}/grun.py
 ln -sf /opt/glustermg/%{release_version}/glustermg/scripts/add_user_cifs_all.py %{buildroot}%{_sbindir}/add_user_cifs_all.py
 ln -sf /opt/glustermg/%{release_version}/glustermg/scripts/delete_user_cifs_all.py %{buildroot}%{_sbindir}/delete_user_cifs_all.py
 ln -sf /opt/glustermg/%{release_version}/glustermg/scripts/setup_cifs_config_all.py %{buildroot}%{_sbindir}/setup_cifs_config_all.py
@@ -154,7 +155,7 @@ rm -rf $RPM_BUILD_ROOT
 /opt/glustermg/keys
 /opt/glustermg/etc
 /var/log/glustermg
-%{_sbindir}/grun.py
+%{_bindir}/grun.py
 %{_sbindir}/add_user_cifs_all.py
 %{_sbindir}/delete_user_cifs_all.py
 %{_sbindir}/setup_cifs_config_all.py
