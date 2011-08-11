@@ -414,6 +414,10 @@ public class VolumeService {
 		if (clusterService.getCluster(clusterName) == null) {
 			throw new GlusterValidationException("Cluster [" + clusterName + "] not found!");
 		}
+		
+		if (lineCount == null || lineCount == 0) {
+			lineCount = 100;
+		}
 
 		List<VolumeLogMessage> logMessages = null;
 		Volume volume = getVolume(clusterName, volumeName);
