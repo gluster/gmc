@@ -55,7 +55,7 @@ public class StartVolumeAction extends AbstractActionDelegate {
 		List<String> failedVolumes = new ArrayList<String>();
 		String errorMessage = "";
 		
-		for (Volume volume : selectedVolumes) {
+		for (Volume volume : selectedVolumes.toArray(new Volume[0])) {
 			if (volume.getStatus() == VOLUME_STATUS.ONLINE) { 
 				continue; // skip if already started
 			}

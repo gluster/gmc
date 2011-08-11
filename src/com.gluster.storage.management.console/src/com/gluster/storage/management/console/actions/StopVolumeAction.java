@@ -65,7 +65,7 @@ public class StopVolumeAction extends AbstractActionDelegate {
 		List<String> failedVolumes = new ArrayList<String>();
 		String errorMessage = "";
 
-		for (Volume volume : volumes) {
+		for (Volume volume : volumes.toArray(new Volume[0])) {
 			if (volume.getStatus() == VOLUME_STATUS.OFFLINE) {
 				continue; // skip if already stopped
 			}
@@ -138,7 +138,7 @@ public class StopVolumeAction extends AbstractActionDelegate {
 		for (Volume volume : volumes) {
 			if (volume.getStatus() == VOLUME_STATUS.ONLINE) {
 				action.setEnabled(true);
-				break;// If find an online volume, enable the action
+				break; // If find an online volume, enable the action
 			}
 		}
 	}

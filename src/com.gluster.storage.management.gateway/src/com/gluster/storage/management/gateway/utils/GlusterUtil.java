@@ -56,7 +56,7 @@ public class GlusterUtil {
 	private static final String HOSTNAME_PFX = "Hostname:";
 	private static final String UUID_PFX = "Uuid:";
 	private static final String STATE_PFX = "State:";
-	private static final String GLUSTER_SERVER_STATUS_ONLINE = "Connected";
+	private static final String GLUSTER_SERVER_STATUS_ONLINE = "Peer in Cluster (Connected)";
 
 	private static final String VOLUME_NAME_PFX = "Volume Name:";
 	private static final String VOLUME_TYPE_PFX = "Type:";
