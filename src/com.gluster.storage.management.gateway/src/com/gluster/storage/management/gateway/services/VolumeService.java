@@ -750,6 +750,9 @@ public class VolumeService {
 		try {
 			postDelete(volumeName, bricks, deleteFlag);
 			if (volume.isCifsEnable()) {
+				if (volume.getStatus() == VOLUME_STATUS.ONLINE) {
+					stopCifsReExport(clusterName, volumeName);
+				}
 				deleteCifsUsers(clusterName, volumeName);
 			}
 		} catch(Exception e) {

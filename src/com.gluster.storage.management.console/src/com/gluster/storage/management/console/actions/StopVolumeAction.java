@@ -25,6 +25,8 @@ import java.util.Set;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.custom.BusyIndicator;
+import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.console.GlusterDataModelManager;
@@ -36,14 +38,14 @@ import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 
 public class StopVolumeAction extends AbstractActionDelegate {
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
-	private List<Volume> volumes = new ArrayList<Volume>();
+	private List<Volume> selectedVolumes = new ArrayList<Volume>();
 	private List<String> selectedVolumeNames = new ArrayList<String>();
 	private List<String> onlineVolumeNames = new ArrayList<String>();
-
+	private GUIHelper guiHelper = GUIHelper.getInstance();
+	
 	@Override
 	protected void performAction(final IAction action) {
 		final String actionDesc = action.getDescription();
-		VolumesClient vc = new VolumesClient();
 
 		collectVolumeNames();
 
@@ -61,46 +63,64 @@ public class StopVolumeAction extends AbstractActionDelegate {
 			return;
 		}
 
-		List<String> stoppedVolumes = new ArrayList<String>();
-		List<String> failedVolumes = new ArrayList<String>();
-		String errorMessage = "";
+		
+		BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
+			@Override
+			public void run() {
+				VolumesClient vc = new VolumesClient();
+				List<String> stoppedVolumes = new ArrayList<String>();
+				List<String> failedVolumes = new ArrayList<String>();
+				String errorMessage = "";
 
-		for (Volume volume : volumes.toArray(new Volume[0])) {
-			if (volume.getStatus() == VOLUME_STATUS.OFFLINE) {
-				continue; // skip if already stopped
-			}
-			try {
-				vc.stopVolume(volume.getName());
-				modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
-				stoppedVolumes.add(volume.getName());
-			} catch (Exception e) {
-				failedVolumes.add(volume.getName());
-				// If any post volume stop activity failed, update the volume status
-				if (vc.getVolume(volume.getName()).getStatus() == VOLUME_STATUS.OFFLINE) {
-					modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
+				Volume newVolume = new Volume();
+
+				for (Volume volume : selectedVolumes.toArray(new Volume[0])) {
+					if (volume.getStatus() == VOLUME_STATUS.OFFLINE) {
+						continue; // skip if already stopped
+					}
+					try {
+						guiHelper.setStatusMessage("Stopping volume [" + volume.getName() + "]");
+						vc.stopVolume(volume.getName());
+						// modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
+						stoppedVolumes.add(volume.getName());
+					} catch (Exception e) {
+						failedVolumes.add(volume.getName());
+						// If any post volume stop activity failed, update the volume status
+						if (vc.getVolume(volume.getName()).getStatus() == VOLUME_STATUS.OFFLINE) {
+							modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
+						}
+						errorMessage += e.getMessage();
+					}
+
+					// Update the model by fetching latest volume info (NOT JUST STATUS)
+					try {
+						newVolume = vc.getVolume(volume.getName());
+						modelManager.volumeChanged(volume, newVolume);
+					} catch (Exception e) {
+						errorMessage += "Failed to update volume info on UI. [" + e.getMessage() + "]";
+					}
 				}
-				errorMessage += e.getMessage();
+				// Display the success or failure info
+				if (stoppedVolumes.size() == 0) { // No volume(s) stopped successfully
+					showErrorDialog(actionDesc, "Volumes " + failedVolumes + " could not be stopped! "
+							+ CoreConstants.NEWLINE + "Error: [" + errorMessage + "]");
+				} else {
+					String info = "Volumes " + stoppedVolumes + " stopped successfully!";
+					if (errorMessage != "") {
+						info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes " + failedVolumes
+								+ " failed to stop! [" + errorMessage + "]";
+					}
+					showInfoDialog(actionDesc, info);
+				}
 			}
-		}
-
-		// Display the success or failure info
-		if (stoppedVolumes.size() == 0) { // No volume(s) stopped successfully
-			showErrorDialog(actionDesc, "Volumes " + failedVolumes + " could not be stopped! " + CoreConstants.NEWLINE
-					+ "Error: [" + errorMessage + "]");
-		} else {
-			String info = "Volumes " + stoppedVolumes + " stopped successfully!";
-			if (errorMessage != "") {
-				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes " + failedVolumes
-						+ " failed to stop! [" + errorMessage + "]";
-			}
-			showInfoDialog(actionDesc, info);
-		}
+		});
+		guiHelper.clearStatusMessage();
 	}
 
 	private void collectVolumeNames() {
 		selectedVolumeNames.clear();
 		onlineVolumeNames.clear();
-		for (Volume volume : volumes) {
+		for (Volume volume : selectedVolumes) {
 			selectedVolumeNames.add(volume.getName());
 			if (volume.getStatus() == VOLUME_STATUS.ONLINE) {
 				onlineVolumeNames.add(volume.getName());
@@ -121,21 +141,20 @@ public class StopVolumeAction extends AbstractActionDelegate {
 	 */
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
-
-		Set<Volume> selectedVolumes = GUIHelper.getInstance().getSelectedEntities(getWindow(), Volume.class);
-		volumes.clear();
-		if (selectedVolumes == null || selectedVolumes.isEmpty()) {
+		Set<Volume> selectedVolumeNames = GUIHelper.getInstance().getSelectedEntities(getWindow(), Volume.class);
+		selectedVolumes.clear();
+		if (selectedVolumeNames == null || selectedVolumeNames.isEmpty()) {
 			super.selectionChanged(action, selection);
 			if (selectedEntity instanceof Volume) {
-				volumes.add((Volume) selectedEntity);
+				selectedVolumes.add((Volume) selectedEntity);
 			}
 		} else {
-			volumes.addAll(selectedVolumes); //TODO reverse the collection to maintain the selected order
+			selectedVolumes.addAll(selectedVolumeNames); //TODO reverse the collection to maintain the selected order
 		}
 
 		action.setEnabled(false);
 		// To enable the action
-		for (Volume volume : volumes) {
+		for (Volume volume : selectedVolumes) {
 			if (volume.getStatus() == VOLUME_STATUS.ONLINE) {
 				action.setEnabled(true);
 				break; // If find an online volume, enable the action
