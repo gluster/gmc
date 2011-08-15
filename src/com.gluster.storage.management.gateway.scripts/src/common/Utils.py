@@ -399,7 +399,7 @@ def _getCpuStatList():
         fp.close()
         return map(float, line.split()[1:5])
     except IOError, e:
-        Utils.log("Failed to open /proc/stat: %s" % str(e))
+        log("Failed to open /proc/stat: %s" % str(e))
     return None
 
 def getCpuUsageAvg():
@@ -1091,7 +1091,7 @@ def getCifsUserUid(userName):
         content = fp.read()
         fp.close()
     except IOError, e:
-        Utils.log("failed to read file %s: %s" % (Globals.CIFS_USER_FILE, str(e)))
+        log("failed to read file %s: %s" % (Globals.CIFS_USER_FILE, str(e)))
         return False
 
     for line in content.strip().split():
