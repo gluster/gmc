@@ -25,6 +25,8 @@ import java.util.Set;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.custom.BusyIndicator;
+import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.console.GlusterDataModelManager;
@@ -39,11 +41,11 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 	private List<Volume> selectedVolumes = new ArrayList<Volume>();
 	private List<String> selectedVolumeNames = new ArrayList<String>();
 	private List<String> onlineVolumeNames = new ArrayList<String>();
-
+	private GUIHelper guiHelper = GUIHelper.getInstance();
+	
 	@Override
 	protected void performAction(final IAction action) {
 		final String actionDesc = action.getDescription();
-		VolumesClient vc = new VolumesClient();
 
 		collectVolumeNames();
 		String warningMessage;
@@ -54,54 +56,62 @@ public class DeleteVolumeAction extends AbstractActionDelegate {
 			warningMessage = "Are you sure to delete the volumes " + selectedVolumeNames + " ?";
 		}
 
-		Integer deleteOption = new MessageDialog(getShell(), "Delete Volume", GUIHelper.getInstance().getImage(
+		final Integer directoryDeleteOption = new MessageDialog(getShell(), "Delete Volume", GUIHelper.getInstance().getImage(
 				IImageKeys.VOLUME_16x16), warningMessage, MessageDialog.QUESTION, new String[] { "Cancel",
 				"Delete volume and data", "Delete volume, keep data" }, -1).open();
-		if (deleteOption <= 0) { // By Cancel button(0) or Escape key(-1)
+		if (directoryDeleteOption <= 0) { // By Cancel button(0) or Escape key(-1)
 			return;
 		}
 
-		boolean confirmDelete = (deleteOption == 1) ? true : false;
-		List<String> deletedVolumeNames = new ArrayList<String>();
-		List<String> failedVolumes = new ArrayList<String>();
-		String errorMessage = "";
+		
+		BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
+			@Override
+			public void run() {
+				VolumesClient vc = new VolumesClient();
+				boolean confirmDeleteDir = (directoryDeleteOption == 1) ? true : false;
+				List<String> deletedVolumeNames = new ArrayList<String>();
+				List<String> failedVolumes = new ArrayList<String>();
+				String errorMessage = "";
 
-		for (Volume volume : selectedVolumes.toArray(new Volume[0])) {
-			try {
-				if (volume.getStatus() == VOLUME_STATUS.ONLINE) { // stop if online volume
-					vc.stopVolume(volume.getName());
+				for (Volume volume : selectedVolumes.toArray(new Volume[0])) {
+					try {
+						guiHelper.setStatusMessage("Deleting volume [" + volume.getName() + "]");
+						if (volume.getStatus() == VOLUME_STATUS.ONLINE) { // stop if online volume
+							vc.stopVolume(volume.getName());
+						}
+						vc.deleteVolume(volume.getName(), confirmDeleteDir);
+						modelManager.deleteVolume(volume);
+						deletedVolumeNames.add(volume.getName());
+					} catch (Exception e) {
+						// Volume delete succeeded and post delete operation (directory cleanup, CIFS etc) may fail
+						if (vc.volumeExists(volume.getName())) {
+							errorMessage += CoreConstants.NEWLINE + "[" + volume.getName() + "] : [" + e.getMessage()
+									+ "]";
+							failedVolumes.add(volume.getName());
+						} else {
+							errorMessage += CoreConstants.NEWLINE + "Volume deleted, but following error occured: ["
+									+ e.getMessage() + "]";
+							modelManager.deleteVolume(volume);
+							deletedVolumeNames.add(volume.getName());
+						}
+					}
 				}
-				vc.deleteVolume(volume.getName(), confirmDelete);
-				modelManager.deleteVolume(volume);
-				deletedVolumeNames.add(volume.getName());
-			} catch (Exception e) {
-				// there is a possibility that the error was in post-delete operation, which means
-				// volume was deleted, but some other error happened. check if this is the case.
-				if (vc.volumeExists(volume.getName())) {
-					errorMessage += CoreConstants.NEWLINE + "[" + volume.getName() + "] : [" + e.getMessage() + "]";
-					failedVolumes.add(volume.getName());
+
+				// Display the success or failure info
+				if (deletedVolumeNames.size() == 0) { // No volume(s) deleted successfully
+					showErrorDialog(actionDesc, "volumes " + failedVolumes + " could not be delete! "
+							+ CoreConstants.NEWLINE + "Error: [" + errorMessage + "]");
 				} else {
-					errorMessage += CoreConstants.NEWLINE + "Volume deleted, but following error occured: ["
-							+ e.getMessage() + "]";
-					modelManager.deleteVolume(volume);
-					deletedVolumeNames.add(volume.getName());
+					String info = "Volumes " + deletedVolumeNames + " deleted successfully!";
+					if (errorMessage != "") {
+						info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes " + failedVolumes
+								+ " could not be deleted! [" + errorMessage + "]";
+					}
+					showInfoDialog(actionDesc, info);
 				}
 			}
-		}
-
-		// Display the success or failure info
-		if (deletedVolumeNames.size() == 0) { // No volume(s) deleted successfully
-			showErrorDialog(actionDesc, "volumes " + failedVolumes + " could not be delete! " + CoreConstants.NEWLINE
-					+ "Error: [" + errorMessage + "]");
-		} else {
-			String info = "Volumes " + deletedVolumeNames + " deleted successfully!";
-			if (errorMessage != "") {
-				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes "
-						+ failedVolumes + " could not be deleted! ["
-						+ errorMessage + "]";
-			}
-			showInfoDialog(actionDesc, info);
-		}
+		});
+		guiHelper.clearStatusMessage();
 	}
 
 	private void collectVolumeNames() {

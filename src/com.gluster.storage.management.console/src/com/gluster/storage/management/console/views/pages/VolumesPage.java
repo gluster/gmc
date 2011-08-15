@@ -32,6 +32,7 @@ import org.eclipse.ui.IWorkbenchSite;
 
 import com.gluster.storage.management.console.EntityGroupContentProvider;
 import com.gluster.storage.management.console.VolumeTableLabelProvider;
+import com.gluster.storage.management.console.toolbar.GlusterToolbarManager;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
@@ -41,6 +42,8 @@ import com.gluster.storage.management.core.model.Volume;
 
 public class VolumesPage extends AbstractTableViewerPage<Volume> {
 	private List<Volume> volumes;
+	
+	final GlusterToolbarManager toolbarManager = new GlusterToolbarManager( site.getWorkbenchWindow());
 	
 	public enum VOLUME_TABLE_COLUMN_INDICES {
 		NAME, VOLUME_TYPE, NUM_OF_BRICKS, TRANSPORT_TYPE, VOLUME_STATUS
@@ -83,18 +86,21 @@ public class VolumesPage extends AbstractTableViewerPage<Volume> {
 			public void volumeCreated(Volume volume) {
 				tableViewer.add(volume);
 				parent.update();
+				toolbarManager.updateToolbar(volume);
 			}
 			
 			@Override
 			public void volumeDeleted(Volume volume) {
 				tableViewer.remove(volume);
 				parent.update();
+				toolbarManager.updateToolbar(volume);
 			}
 			
 			@Override
 			public void volumeChanged(Volume volume, Event event) {
 				tableViewer.update(volume, null);
 				parent.update();
+				toolbarManager.updateToolbar(volume);
 			}
 		};
 	}

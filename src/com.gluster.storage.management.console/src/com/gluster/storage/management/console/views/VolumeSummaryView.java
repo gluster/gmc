@@ -3,12 +3,10 @@ package com.gluster.storage.management.console.views;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.fieldassist.ControlDecoration;
-import org.eclipse.osgi.service.resolver.DisabledInfo;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.custom.CLabel;
@@ -111,7 +109,6 @@ public class VolumeSummaryView extends ViewPart {
 				toolbarManager.updateToolbar(volume);
 				cifsCheckbox.setSelection(volume.isCifsEnable());
 				populateCifsUsersText();
-				
 			}
 
 			@Override
@@ -420,11 +417,13 @@ public class VolumeSummaryView extends ViewPart {
 			BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
 				@Override
 				public void run() {
+					VolumesClient vc = new VolumesClient();
+					Volume newVolume = new Volume();
 					try {
-						new VolumesClient().setCifsConfig(volume.getName(), cifsCheckbox.getSelection(), cifsUsers);
+						vc.setCifsConfig(volume.getName(), cifsCheckbox.getSelection(), cifsUsers);
 						enableCifsUsersControls(false);
-						modelManager.setCifsConfig(volume, cifsCheckbox.getSelection(),
-								Arrays.asList(cifsUsers.split(",")));
+						newVolume = vc.getVolume(volume.getName());
+						modelManager.volumeChanged(volume, newVolume);
 					} catch (Exception e) {
 						MessageDialog.openError(Display.getDefault().getActiveShell(), "Cifs Configuration",
 								e.getMessage());

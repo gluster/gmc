@@ -24,6 +24,8 @@ import java.util.Set;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.custom.BusyIndicator;
+import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.console.GlusterDataModelManager;
@@ -38,11 +40,11 @@ public class StartVolumeAction extends AbstractActionDelegate {
 	private List<Volume> selectedVolumes = new ArrayList<Volume>();
 	private List<String> selectedVolumeNames = new ArrayList<String>();
 	private List<String> offlineVolumeNames = new ArrayList<String>();
+	private GUIHelper guiHelper = GUIHelper.getInstance();
 
 	@Override
 	protected void performAction(IAction action) {
 		final String actionDesc = action.getDescription();
-		VolumesClient vc = new VolumesClient();
 		
 		collectVolumeNames();
 		
@@ -50,41 +52,55 @@ public class StartVolumeAction extends AbstractActionDelegate {
 			showWarningDialog(actionDesc, "Volumes " + selectedVolumeNames + " already started!");
 			return; // Volume already started. Don't do anything.
 		}
-		
-		List<String> startedVolumes = new ArrayList<String>();
-		List<String> failedVolumes = new ArrayList<String>();
-		String errorMessage = "";
-		
-		for (Volume volume : selectedVolumes.toArray(new Volume[0])) {
-			if (volume.getStatus() == VOLUME_STATUS.ONLINE) { 
-				continue; // skip if already started
-			}
-			try {
-				vc.startVolume(volume.getName());
-				modelManager.updateVolumeStatus(volume, VOLUME_STATUS.ONLINE);
-				startedVolumes.add(volume.getName());
-			}catch (Exception e) {
-				failedVolumes.add(volume.getName());
-				// If any post volume start activity failed, update the volume status
-				if (vc.getVolume(volume.getName()).getStatus() == VOLUME_STATUS.ONLINE) {
-					modelManager.updateVolumeStatus(volume, VOLUME_STATUS.ONLINE);
-				}
-				errorMessage += e.getMessage();
-			}
-		}
+		BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
+			@Override
+			public void run() {
+				VolumesClient vc = new VolumesClient();
+				Volume newVolume = new Volume();
+				List<String> startedVolumes = new ArrayList<String>();
+				List<String> failedVolumes = new ArrayList<String>();
+				String errorMessage = "";
 
-		// Display the success or failure info
-		if (startedVolumes.size() == 0) { // No volume(s) started successfully
-			showErrorDialog(actionDesc, "Following volumes " + failedVolumes + " could not be start!"
-					+ CoreConstants.NEWLINE + "Error: [" + errorMessage + "]");
-		} else {
-			String info = "Volumes " + startedVolumes + " started successfully!";
-			if (errorMessage != "") {
-				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes " + failedVolumes
-						+ " failed to start! [" + errorMessage + "]";
+				for (Volume volume : selectedVolumes.toArray(new Volume[0])) {
+					if (volume.getStatus() == VOLUME_STATUS.ONLINE) {
+						continue; // skip if already started
+					}
+					try {
+						guiHelper.setStatusMessage("Starting volume [" + volume.getName() + "]");
+						vc.startVolume(volume.getName());
+						startedVolumes.add(volume.getName());
+					} catch (Exception e) {
+						failedVolumes.add(volume.getName());
+						// If any post volume start activity failed, update the volume status
+						if (vc.getVolume(volume.getName()).getStatus() == VOLUME_STATUS.ONLINE) {
+							modelManager.updateVolumeStatus(volume, VOLUME_STATUS.ONLINE);
+						}
+						errorMessage += e.getMessage();
+					}
+					// Update the model by fetching latest volume info (NOT JUST STATUS)
+					try {
+						newVolume = vc.getVolume(volume.getName());
+						modelManager.volumeChanged(volume, newVolume);
+					} catch (Exception e) {
+						errorMessage += "Updating volume info failed on UI. [" + e.getMessage() + "]";
+					}
+				}
+
+				// Display the success or failure info
+				if (startedVolumes.size() == 0) { // No volume(s) started successfully
+					showErrorDialog(actionDesc, "Following volumes " + failedVolumes + " could not be start!"
+							+ CoreConstants.NEWLINE + "Error: [" + errorMessage + "]");
+				} else {
+					String info = "Volumes " + startedVolumes + " started successfully!";
+					if (errorMessage != "") {
+						info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes " + failedVolumes
+								+ " failed to start! [" + errorMessage + "]";
+					}
+					showInfoDialog(actionDesc, info);
+				}
 			}
-			showInfoDialog(actionDesc, info);
-		}
+		});
+		guiHelper.clearStatusMessage();
 	}
 
 	private void collectVolumeNames() {
