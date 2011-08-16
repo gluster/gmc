@@ -24,6 +24,7 @@ if not p1 in sys.path:
     sys.path.append(p1)
 if not p2 in sys.path:
     sys.path.append(p2)
+import dbus
 import socket
 import re
 import Utils
@@ -100,11 +101,16 @@ def getServerDetails(listall):
     responseDom.appendTag(serverTag)
     serverTag.appendChild(responseDom.createTag("numOfCPUs", int(os.sysconf('SC_NPROCESSORS_ONLN'))))
 
-    diskDom = DiskUtils.getDiskDom()
+    try:
+        diskDom = DiskUtils.getDiskDom()
+    except dbus.dbus_bindings.DBusException, e:
+        sys.stderr.write("Failed to connect HAL to get device details. Please check if HAL services are running\n")
+        Utils.log("Failed to connect HAL to get device details")
+        sys.exit(1)
     if not diskDom:
         sys.stderr.write("No disk found!")
         Utils.log("Failed to get disk details")
-        sys.exit(1)
+        sys.exit(2)
 
     serverTag.appendChild(diskDom.getElementsByTagRoute("disks")[0])
     return serverTag

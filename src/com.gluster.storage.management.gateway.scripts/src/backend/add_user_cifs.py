@@ -37,8 +37,8 @@ def main():
             sys.exit(1)
     except KeyError, e:
         if Utils.runCommand("groupadd -g %s %s" % (uid, userName)) != 0:
-            Utils.log("failed to add group %s gid %s\n" % (username, uid))
-            sys.stderr.write("Failed to add group %s gid %s\n" % (username, uid))
+            Utils.log("failed to add group %s gid %s\n" % (userName, uid))
+            sys.stderr.write("Failed to add group %s gid %s\n" % (userName, uid))
             sys.exit(2)
     try:
         userInfo = pwd.getpwnam(userName)
