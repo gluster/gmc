@@ -85,10 +85,11 @@ def main():
         sys.stderr.write("Failed to create samba configuration file %s: %s\n" % (Globals.REAL_SAMBA_CONF_FILE, str(e)))
         sys.exit(4)
 
-    if Utils.runCommand("setsebool -P samba_share_fusefs on") != 0:
-        Utils.log("failed to set SELinux samba_share_fusefs")
-        sys.stderr.write("failed to set SELinux samba_share_fusefs\n")
-        sys.exit(5)
+    if Utils.runCommand("/usr/sbin/selinuxenabled") == 0:
+        if Utils.runCommand("setsebool -P samba_share_fusefs on") != 0:
+            Utils.log("failed to set SELinux samba_share_fusefs")
+            sys.stderr.write("failed to set SELinux samba_share_fusefs\n")
+            sys.exit(5)
 
     if Utils.runCommand("service smb status") != 0:
         if Utils.runCommand("service smb start") != 0:
