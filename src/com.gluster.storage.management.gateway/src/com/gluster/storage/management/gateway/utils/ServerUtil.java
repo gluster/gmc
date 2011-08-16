@@ -99,6 +99,12 @@ public class ServerUtil {
 		server.setDisks(((Server) response).getDisks());
 	}
 	
+	public boolean isServerOnline(Server server) {
+		// fetch latest details and check if server is still online
+		fetchServerDetails(server);
+		return server.isOnline();
+	}
+	
 	public String fetchHostName(String serverName) {
 		Object response = fetchServerDetails(serverName);
 		return ((Server) response).getName();

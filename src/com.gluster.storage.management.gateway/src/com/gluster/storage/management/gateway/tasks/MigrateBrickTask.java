@@ -20,6 +20,7 @@
  */
 package com.gluster.storage.management.gateway.tasks;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.ContextLoader;
 
@@ -30,6 +31,7 @@ import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.gateway.services.ClusterService;
 import com.gluster.storage.management.gateway.utils.GlusterUtil;
+import com.gluster.storage.management.gateway.utils.ServerUtil;
 import com.sun.jersey.core.util.Base64;
 
 public class MigrateBrickTask extends Task {
@@ -38,6 +40,9 @@ public class MigrateBrickTask extends Task {
 	private String toBrick;
 	private Boolean autoCommit;
 	private GlusterUtil glusterUtil;
+	
+	@Autowired
+	protected ServerUtil serverUtil;
 
 	public String getFromBrick() {
 		return fromBrick;
@@ -89,9 +94,12 @@ public class MigrateBrickTask extends Task {
 	public void start() {
 		try {
 			startMigration(getOnlineServer().getName());
-		} catch (ConnectionException e) {
-			// online server might have gone Offline. try with a new one.
-			startMigration(getNewOnlineServer().getName());
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(getOnlineServer()) == false) {
+				// online server might have gone Offline. try with a new one.
+				startMigration(getNewOnlineServer().getName());
+			}
 		}
 	}
 
@@ -110,9 +118,12 @@ public class MigrateBrickTask extends Task {
 	public void pause() {
 		try {
 			pauseMigration(getOnlineServer().getName());
-		} catch (ConnectionException e) {
-			// online server might have gone offline. try with a new one.
-			pauseMigration(getNewOnlineServer().getName());
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(getOnlineServer()) == false) {
+				// online server might have gone offline. try with a new one.
+				pauseMigration(getNewOnlineServer().getName());
+			}
 		}
 	}
 
@@ -138,9 +149,12 @@ public class MigrateBrickTask extends Task {
 	public void commit() {
 		try {
 			commitMigration(getOnlineServer().getName());
-		} catch (ConnectionException e) {
-			// online server might have gone offline. try with a new one.
-			commitMigration(getNewOnlineServer().getName());
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(getOnlineServer()) == false) {
+				// online server might have gone offline. try with a new one.
+				commitMigration(getNewOnlineServer().getName());
+			}
 		}
 	}
 	
@@ -162,9 +176,12 @@ public class MigrateBrickTask extends Task {
 	public void stop() {
 		try {
 			stopMigration(getOnlineServer().getName());
-		} catch (ConnectionException e) {
-			// online server might have gone offline. try with a new one.
-			stopMigration(getNewOnlineServer().getName());
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(getOnlineServer()) == false) {
+				// online server might have gone offline. try with a new one.
+				stopMigration(getNewOnlineServer().getName());
+			}
 		}
 	}
 
@@ -184,10 +201,14 @@ public class MigrateBrickTask extends Task {
 	public TaskStatus checkStatus() {
 		try {
 			return checkMigrationStatus(getOnlineServer().getName());
-		} catch (ConnectionException e) {
-			// online server might have gone offline. try with a new one.
-			return checkMigrationStatus(getNewOnlineServer().getName());
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(getOnlineServer()) == false) {
+				// online server might have gone offline. try with a new one.
+				return checkMigrationStatus(getNewOnlineServer().getName());
+			}
 		}
+		return null;
 	}
 	
 	private TaskStatus checkMigrationStatus(String serverName) {
