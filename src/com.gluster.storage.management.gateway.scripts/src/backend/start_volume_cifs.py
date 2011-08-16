@@ -33,10 +33,11 @@ def main():
         Utils.log("Failed to create reexport link %s" % cifsDirName)
         sys.stderr.write("Failed to create reexport link %s\n" % cifsDirName)
         sys.exit(2)
-    if Utils.runCommand("chcon -t samba_share_t %s -h" % cifsDirName) != 0:
-        Utils.log("Failed to change security context for the link %s" % cifsDirName)
-        sys.stderr.write("Failed to change security context for the link %s\n" % cifsDirName)
-        sys.exit(2)
+    if Utils.runCommand("/usr/sbin/selinuxenabled") == 0:
+        if Utils.runCommand("chcon -t samba_share_t %s -h" % cifsDirName) != 0:
+            Utils.log("Failed to change security context for the link %s" % cifsDirName)
+            sys.stderr.write("Failed to change security context for the link %s\n" % cifsDirName)
+            sys.exit(2)
     if not VolumeUtils.includeVolume(volumeName):
         Utils.log("Failed to include volume for CIFS reexport")
         sys.stderr.write("Failed to include volume for CIFS reexport\n")
