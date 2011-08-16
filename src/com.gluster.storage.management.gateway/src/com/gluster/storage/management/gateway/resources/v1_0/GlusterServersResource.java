@@ -210,9 +210,12 @@ public class GlusterServersResource extends AbstractResource {
 
 		try {
 			glusterUtil.addServer(onlineServer.getName(), serverName);
-		} catch (ConnectionException e) {
-			// online server has gone offline! try with a different one.
-			onlineServer = clusterService.getNewOnlineServer(clusterName);
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
+				// online server has gone offline! try with a different one.
+				onlineServer = clusterService.getNewOnlineServer(clusterName);
+			}
 			if (onlineServer == null) {
 				throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
 			}
@@ -327,9 +330,12 @@ public class GlusterServersResource extends AbstractResource {
 
 		try {
 			glusterUtil.removeServer(onlineServer.getName(), serverName);
-		} catch (ConnectionException e) {
-			// online server has gone offline! try with a different one.
-			onlineServer = clusterService.getNewOnlineServer(clusterName, serverName);
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
+				// online server has gone offline! try with a different one.
+				onlineServer = clusterService.getNewOnlineServer(clusterName, serverName);
+			}
 			if (onlineServer == null) {
 				throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
 			}

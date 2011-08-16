@@ -137,22 +137,26 @@ public class VolumeOptionsDefaults {
 	
 	public List<VolumeOptionInfo> getVolumeOptionsInfo(String clusterName) {
 		String command = "gluster volume set help-xml";
-		String output = "";
-		VolumeOptionInfoListResponse options = new VolumeOptionInfoListResponse();
 		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
 
 		try {
-			output = getVolumeOptionsInfo(onlineServer.getName(), command);
-			options = parseXML(output); 
-			return options.getOptions();
-		} catch (ConnectionException e) {
-			onlineServer = clusterService.getNewOnlineServer(clusterName);
-			output =  getVolumeOptionsInfo(onlineServer.getName(), command);
-			options = parseXML(output);
-			return options.getOptions();
+			return getVolumeOptionsInfo(command, onlineServer);
 		} catch (Exception e) {
-			throw new GlusterRuntimeException("Fetching volume options default failed! [" + e.getMessage() + "]"); 
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
+				return getVolumeOptionsInfo(command, clusterService.getNewOnlineServer(clusterName));
+			} else {
+				throw new GlusterRuntimeException("Fetching volume options default failed! [" + e.getMessage() + "]");
+			}
 		}
+	}
+
+	private List<VolumeOptionInfo> getVolumeOptionsInfo(String command, GlusterServer onlineServer) {
+		String output;
+		VolumeOptionInfoListResponse options;
+		output =  getVolumeOptionsInfo(onlineServer.getName(), command);
+		options = parseXML(output);
+		return options.getOptions();
 	}
 	
 	private String getVolumeOptionsInfo(String serverName, String command) {

@@ -118,14 +118,17 @@ public class VolumeService {
 		List<String> brickList = Arrays.asList(bricks.split(",")); 
 		try {
 			glusterUtil.addBricks(volumeName, brickList, onlineServer.getName());
-		} catch (ConnectionException e) {
-			// online server has gone offline! try with a different one.
-			onlineServer = clusterService.getNewOnlineServer(clusterName);
-			if (onlineServer == null) {
-				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
+				// online server has gone offline! try with a different one.
+				onlineServer = clusterService.getNewOnlineServer(clusterName);
+				if (onlineServer == null) {
+					throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
+				}
+
+				glusterUtil.addBricks(volumeName, brickList, onlineServer.getName());
 			}
-			
-			glusterUtil.addBricks(volumeName, brickList, onlineServer.getName());
 		}
 	}
 
@@ -148,11 +151,14 @@ public class VolumeService {
 			volume = glusterUtil.getVolume(volumeName, onlineServer.getName());
 			// Collect the CIFS users if CIFS Re-exported 
 			fetchVolumeCifsUsers(clusterName, volume);
-		} catch (ConnectionException e) {
-			// online server has gone offline! try with a different one.
-			onlineServer = clusterService.getNewOnlineServer(clusterName);
-			if (onlineServer == null) {
-				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
+				// online server has gone offline! try with a different one.
+				onlineServer = clusterService.getNewOnlineServer(clusterName);
+				if (onlineServer == null) {
+					throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
+				}
 			}
 			volume = glusterUtil.getVolume(volumeName, onlineServer.getName());
 			// Collect the CIFS users if CIFS Re-exported 
@@ -193,7 +199,7 @@ public class VolumeService {
 
 		try {
 			return glusterUtil.getAllVolumes(onlineServer.getName());
-		} catch (ConnectionException e) {
+		} catch (Exception e) {
 			// online server has gone offline! try with a different one.
 			onlineServer = clusterService.getNewOnlineServer(clusterName);
 			if (onlineServer == null) {
@@ -368,11 +374,14 @@ public class VolumeService {
 		try {
 			glusterUtil.createVolume(onlineServer.getName(), volumeName, volumeType, transportType, replicaCount,
 					stripeCount, bricks, accessProtocols, options);
-		} catch (ConnectionException e) {
-			// online server has gone offline! try with a different one.
-			onlineServer = clusterService.getNewOnlineServer(clusterName);
-			if (onlineServer == null) {
-				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
+				// online server has gone offline! try with a different one.
+				onlineServer = clusterService.getNewOnlineServer(clusterName);
+				if (onlineServer == null) {
+					throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
+				}
 			}
 
 			glusterUtil.createVolume(onlineServer.getName(), volumeName, volumeType, transportType, replicaCount,
@@ -629,10 +638,13 @@ public class VolumeService {
 			}
 
 			performOperation(clusterName, volumeName, operation, onlineServer);
-		} catch (ConnectionException e) {
-			// online server has gone offline! try with a different one.
-			onlineServer = clusterService.getNewOnlineServer(clusterName);
-			performOperation(clusterName, volumeName, operation, onlineServer);
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
+				// online server has gone offline! try with a different one.
+				onlineServer = clusterService.getNewOnlineServer(clusterName);
+				performOperation(clusterName, volumeName, operation, onlineServer);
+			}
 		}
 	}
 
@@ -689,9 +701,12 @@ public class VolumeService {
 	private void removeBricks(String clusterName, String volumeName, List<String> brickList, GlusterServer onlineServer) {
 		try {
 			glusterUtil.removeBricks(volumeName, brickList, onlineServer.getName());
-		} catch (ConnectionException e) {
-			// online server has gone offline! try with a different one.
-			onlineServer = clusterService.getNewOnlineServer(clusterName);
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
+				// online server has gone offline! try with a different one.
+				onlineServer = clusterService.getNewOnlineServer(clusterName);
+			}
 			if (onlineServer == null) {
 				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 			}
@@ -793,13 +808,16 @@ public class VolumeService {
 
 		try {
 			glusterUtil.resetOptions(volumeName, onlineServer.getName());
-		} catch (ConnectionException e) {
-			// online server has gone offline! try with a different one.
-			onlineServer = clusterService.getNewOnlineServer(clusterName);
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
+				// online server has gone offline! try with a different one.
+				onlineServer = clusterService.getNewOnlineServer(clusterName);
+			}
 			if (onlineServer == null) {
 				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 			}
-			
+
 			glusterUtil.resetOptions(volumeName, onlineServer.getName());
 		}
 	}
@@ -832,13 +850,16 @@ public class VolumeService {
 		
 		try {
 			glusterUtil.setOption(volumeName, key, value, onlineServer.getName());
-		} catch (ConnectionException e) {
-			// online server has gone offline! try with a different one.
-			onlineServer = clusterService.getNewOnlineServer(clusterName);
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
+				// online server has gone offline! try with a different one.
+				onlineServer = clusterService.getNewOnlineServer(clusterName);
+			}
 			if (onlineServer == null) {
 				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 			}
-			
+
 			glusterUtil.setOption(volumeName, key, value, onlineServer.getName());
 		}
 	}

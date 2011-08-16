@@ -68,9 +68,12 @@ public class GlusterServerService {
 
 		try {
 			glusterServers = getGlusterServers(clusterName, onlineServer, fetchDetails, maxCount, previousServerName);
-		} catch (ConnectionException e) {
-			// online server has gone offline! try with a different one.
-			onlineServer = clusterService.getNewOnlineServer(clusterName);
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
+				// online server has gone offline! try with a different one.
+				onlineServer = clusterService.getNewOnlineServer(clusterName);	
+			}
 			if (onlineServer == null) {
 				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 			}
@@ -84,9 +87,12 @@ public class GlusterServerService {
 		List<GlusterServer> glusterServers;
 		try {
 			glusterServers = glusterUtil.getGlusterServers(onlineServer);
-		} catch (ConnectionException e) {
-			// online server has gone offline! try with a different one.
-			onlineServer = clusterService.getNewOnlineServer(clusterName);
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
+				// online server has gone offline! try with a different one.
+				onlineServer = clusterService.getNewOnlineServer(clusterName);
+			}
 			if (onlineServer == null) {
 				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 			}
@@ -146,9 +152,12 @@ public class GlusterServerService {
 		GlusterServer server = null;
 		try {
 			server = glusterUtil.getGlusterServer(onlineServer, serverName);
-		} catch (ConnectionException e) {
-			// online server has gone offline! try with a different one.
-			onlineServer = clusterService.getNewOnlineServer(clusterName);
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
+				// online server has gone offline! try with a different one.
+				onlineServer = clusterService.getNewOnlineServer(clusterName);
+			}
 			if (onlineServer == null) {
 				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 			}

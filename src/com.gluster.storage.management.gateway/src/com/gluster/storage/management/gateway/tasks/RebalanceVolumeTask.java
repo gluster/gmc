@@ -66,10 +66,13 @@ public class RebalanceVolumeTask extends Task {
 		try {
 			serverName = getOnlineServer().getName();
 			startRebalance(serverName);
-		} catch(ConnectionException e) {
-			// online server might have gone offline. try with a new one
-			serverName = getNewOnlineServer().getName();
-			startRebalance(serverName);
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(getOnlineServer()) == false) {
+				// online server might have gone offline. try with a new one
+				serverName = getNewOnlineServer().getName();
+				startRebalance(serverName);
+			}
 		}
 	}
 
@@ -90,9 +93,12 @@ public class RebalanceVolumeTask extends Task {
 	public void stop() {
 		try {
 			glusterUtil.stopRebalance(serverName, getTaskInfo().getReference());
-		} catch (ConnectionException e) {
-			// online server might have gone offline. update the failure status
-			getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_FAILURE, e.getMessage())));
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(getOnlineServer()) == false) {
+				// online server might have gone offline. update the failure status
+				getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_FAILURE, e.getMessage())));
+			}
 		}
 	}
 
@@ -107,11 +113,15 @@ public class RebalanceVolumeTask extends Task {
 	public TaskStatus checkStatus() {
 		try {
 			return glusterUtil.checkRebalanceStatus(serverName, getTaskInfo().getReference());
-		} catch(ConnectionException e) {
-			// online server might have gone offline. update the failure status
-			getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_FAILURE, e.getMessage())));
-			return getTaskInfo().getStatus();
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(getOnlineServer()) == false) {
+				// online server might have gone offline. update the failure status
+				getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_FAILURE, e.getMessage())));
+				return getTaskInfo().getStatus();
+			}
 		}
+		return null;
 	}
 	
 	public void setLayout(String layout) {
