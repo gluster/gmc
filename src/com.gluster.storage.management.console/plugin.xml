@@ -299,6 +299,12 @@
             id="com.gluster.storage.management.console.commands.Refresh"
             name="Refresh Data">
       </command>
+      <command
+            categoryId="com.gluster.storage.management.console.category"
+            description="Terminal"
+            id="com.gluster.storage.management.console.commands.Terminal"
+            name="Terminal">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.bindings">
@@ -383,6 +389,11 @@
             commandId="com.gluster.storage.management.console.commands.Refresh"
             schemeId="com.gluster.storage.management.console.KeyConfig"
             sequence="F5">
+      </key>
+      <key
+            commandId="com.gluster.storage.management.console.commands.Terminal"
+            schemeId="com.gluster.storage.management.console.KeyConfig"
+            sequence="CTRL+T">
       </key>
    </extension>
    <extension
@@ -1110,7 +1121,7 @@
          <action
                allowLabelUpdate="false"
                class="com.gluster.storage.management.console.actions.TerminalAction"
-               definitionId="org.eclipse.tm.terminal.command1"
+               definitionId="com.gluster.storage.management.console.commands.Terminal"
                icon="icons/tango/32x32/utilities-terminal.png"
                id="com.gluster.storage.management.console.actions.TerminalAction"
                label="&amp;Terminal"
@@ -1407,15 +1418,15 @@
                visible="false">
          </view>
          <view
-               closeable="false"
+               closeable="true"
                id="com.gluster.storage.management.console.views.TerminalView"
                minimized="false"
                moveable="false"
-               ratio="0.70f"
+               ratio="0.60f"
                relationship="bottom"
                relative="com.gluster.storage.management.console.views.ClusterSummaryView"
                showTitle="true"
-               standalone="true"
+               standalone="false"
                visible="false">
          </view>
       </perspectiveExtension>
