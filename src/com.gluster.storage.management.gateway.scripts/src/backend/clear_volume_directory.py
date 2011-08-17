@@ -43,8 +43,7 @@ def main():
     if not options.todelete:
         sys.exit(0)
 
-    rv = Utils.runCommand("rm -fr %s" % newVolumeDirectoryName, root=True) != 0
-    sys.exit(rv)
+    sys.exit(Utils.runCommand("rm -fr %s" % newVolumeDirectoryName, root=True))
 
 if __name__ == "__main__":
     main()

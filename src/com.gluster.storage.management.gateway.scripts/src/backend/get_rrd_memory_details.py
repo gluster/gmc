@@ -38,7 +38,6 @@ if not p1 in sys.path:
 if not p2 in sys.path:
     sys.path.append(p2)
 import syslog
-from XmlHandler import ResponseXml
 import Utils
 
 MEMORY_RRD_FILE = "/var/lib/rrd/mem.rrd"
@@ -50,7 +49,6 @@ def main():
 
     period = sys.argv[1]
 
-    rs = ResponseXml()
     command = "rrdtool xport --start -%s \
                  DEF:free=%s:memfree:AVERAGE \
                  DEF:used=%s:memused:AVERAGE \
@@ -67,9 +65,9 @@ def main():
 
     rv = Utils.runCommand(command, output=True, root=True)
     if rv["Status"] != 0:
-        rs.appendTagRoute("status.code", rv["Status"])
-        rs.appendTagRoute("status.message", "Failed to get RRD data of memory usage")
-        print rs.toxml()
+        sys.stderr.write("Failed to get RRD data of memory usage\n")
+        sys.exit(rv["Status"])
+
     print rv["Stdout"]
     sys.exit(0)
 
