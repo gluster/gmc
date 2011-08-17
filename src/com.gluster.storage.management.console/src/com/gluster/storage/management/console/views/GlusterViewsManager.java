@@ -24,6 +24,7 @@ import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 
+import com.gluster.storage.management.console.ConsoleConstants;
 import com.gluster.storage.management.core.model.Cluster;
 import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.EntityGroup;
@@ -44,6 +45,7 @@ public class GlusterViewsManager implements ViewsManager {
 	/* (non-Javadoc)
 	 * @see com.gluster.storage.management.console.views.ViewsManager#updateViews(com.gluster.storage.management.core.model.Entity)
 	 */
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void updateViews(Entity entity) {
 		closeAllViews();
@@ -65,13 +67,11 @@ public class GlusterViewsManager implements ViewsManager {
 		}
 	}
 
-	/**
-	 * 
-	 */
 	private void closeAllViews() {
 		IViewReference[] viewReferences = page.getViewReferences();
 		for (final IViewReference viewReference : viewReferences) {
-			if (!(viewReference.getId().equals(NavigationView.ID) || viewReference.getId().equals(TerminalView.ID))) {
+			if (!(viewReference.getId().equals(NavigationView.ID) || viewReference.getId().equals(
+					ConsoleConstants.TERMINAL_VIEW_ID))) {
 				page.hideView(viewReference);
 			}
 		}
@@ -80,7 +80,6 @@ public class GlusterViewsManager implements ViewsManager {
 	private void showViewsForCluster(Cluster cluster) throws PartInitException {
 		page.showView(ClusterSummaryView.ID);
 		page.showView(TasksView.ID, null, IWorkbenchPage.VIEW_CREATE);
-		//page.showView("org.eclipse.tm.terminal.view.TerminalView", null, IWorkbenchPage.VIEW_CREATE);
 	}
 
 	private void showViewsForVolume(Volume volume) throws PartInitException {
