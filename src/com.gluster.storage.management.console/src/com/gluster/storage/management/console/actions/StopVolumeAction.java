@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
@@ -36,7 +37,7 @@ import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 
-public class StopVolumeAction extends AbstractActionDelegate {
+public class StopVolumeAction extends AbstractMonitoredActionDelegate {
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 	private List<Volume> selectedVolumes = new ArrayList<Volume>();
 	private List<String> selectedVolumeNames = new ArrayList<String>();
@@ -44,7 +45,7 @@ public class StopVolumeAction extends AbstractActionDelegate {
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 	
 	@Override
-	protected void performAction(final IAction action) {
+	protected void performAction(final IAction action, IProgressMonitor monitor) {
 		final String actionDesc = action.getDescription();
 
 		collectVolumeNames();
@@ -63,57 +64,62 @@ public class StopVolumeAction extends AbstractActionDelegate {
 			return;
 		}
 
-		
-		BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
-			@Override
-			public void run() {
-				VolumesClient vc = new VolumesClient();
-				List<String> stoppedVolumes = new ArrayList<String>();
-				List<String> failedVolumes = new ArrayList<String>();
-				String errorMessage = "";
+		VolumesClient vc = new VolumesClient();
+		List<String> stoppedVolumes = new ArrayList<String>();
+		List<String> failedVolumes = new ArrayList<String>();
+		String errorMessage = "";
 
-				Volume newVolume = new Volume();
+		Volume newVolume = new Volume();
 
-				for (Volume volume : selectedVolumes.toArray(new Volume[0])) {
-					if (volume.getStatus() == VOLUME_STATUS.OFFLINE) {
-						continue; // skip if already stopped
-					}
-					try {
-						guiHelper.setStatusMessage("Stopping volume [" + volume.getName() + "]");
-						vc.stopVolume(volume.getName());
-						// modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
-						stoppedVolumes.add(volume.getName());
-					} catch (Exception e) {
-						failedVolumes.add(volume.getName());
-						// If any post volume stop activity failed, update the volume status
-						if (vc.getVolume(volume.getName()).getStatus() == VOLUME_STATUS.OFFLINE) {
-							modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
-						}
-						errorMessage += e.getMessage();
-					}
-
-					// Update the model by fetching latest volume info (NOT JUST STATUS)
-					try {
-						newVolume = vc.getVolume(volume.getName());
-						modelManager.volumeChanged(volume, newVolume);
-					} catch (Exception e) {
-						errorMessage += "Failed to update volume info on UI. [" + e.getMessage() + "]";
-					}
-				}
-				// Display the success or failure info
-				if (stoppedVolumes.size() == 0) { // No volume(s) stopped successfully
-					showErrorDialog(actionDesc, "Volumes " + failedVolumes + " could not be stopped! "
-							+ CoreConstants.NEWLINE + "Error: [" + errorMessage + "]");
-				} else {
-					String info = "Volumes " + stoppedVolumes + " stopped successfully!";
-					if (errorMessage != "") {
-						info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes " + failedVolumes
-								+ " failed to stop! [" + errorMessage + "]";
-					}
-					showInfoDialog(actionDesc, info);
-				}
+		monitor.beginTask("Stopping Selected Volumes...", selectedVolumes.size());
+		for (Volume volume : selectedVolumes.toArray(new Volume[0])) {
+			if(monitor.isCanceled()) {
+				break;
 			}
-		});
+			
+			if (volume.getStatus() == VOLUME_STATUS.OFFLINE) {
+				monitor.worked(1);
+				continue; // skip if already stopped
+			}
+			try {
+				String message = "Stopping volume [" + volume.getName() + "]";
+				guiHelper.setStatusMessage(message);
+				monitor.setTaskName(message);
+				vc.stopVolume(volume.getName());
+				// modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
+				stoppedVolumes.add(volume.getName());
+			} catch (Exception e) {
+				failedVolumes.add(volume.getName());
+				// If any post volume stop activity failed, update the volume status
+				if (vc.getVolume(volume.getName()).getStatus() == VOLUME_STATUS.OFFLINE) {
+					modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
+				}
+				errorMessage += e.getMessage();
+			}
+
+			// Update the model by fetching latest volume info (NOT JUST STATUS)
+			try {
+				newVolume = vc.getVolume(volume.getName());
+				modelManager.volumeChanged(volume, newVolume);
+			} catch (Exception e) {
+				errorMessage += "Failed to update volume info on UI. [" + e.getMessage() + "]";
+			}
+			monitor.worked(1);
+		}
+		monitor.done();
+		
+		// Display the success or failure info
+		if (stoppedVolumes.size() == 0) { // No volume(s) stopped successfully
+			showErrorDialog(actionDesc, "Volumes " + failedVolumes + " could not be stopped! " + CoreConstants.NEWLINE
+					+ "Error: [" + errorMessage + "]");
+		} else {
+			String info = "Volumes " + stoppedVolumes + " stopped successfully!";
+			if (errorMessage != "") {
+				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes " + failedVolumes
+						+ " failed to stop! [" + errorMessage + "]";
+			}
+			showInfoDialog(actionDesc, info);
+		}
 		guiHelper.clearStatusMessage();
 	}
 

@@ -20,11 +20,16 @@
  */
 package com.gluster.storage.management.console.views;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.birt.chart.util.CDateTime;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.layout.TableColumnLayout;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -50,16 +55,17 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.console.Activator;
+import com.gluster.storage.management.console.ConsoleConstants;
 import com.gluster.storage.management.console.GlusterDataModelManager;
 import com.gluster.storage.management.console.IImageKeys;
 import com.gluster.storage.management.console.NetworkInterfaceTableLabelProvider;
 import com.gluster.storage.management.console.preferences.PreferenceConstants;
 import com.gluster.storage.management.console.toolbar.GlusterToolbarManager;
 import com.gluster.storage.management.console.utils.ChartUtil;
+import com.gluster.storage.management.console.utils.ChartUtil.ChartPeriodLinkListener;
 import com.gluster.storage.management.console.utils.ChartViewerComposite;
 import com.gluster.storage.management.console.utils.GUIHelper;
 import com.gluster.storage.management.console.utils.GlusterLogger;
-import com.gluster.storage.management.console.utils.ChartUtil.ChartPeriodLinkListener;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Event;
@@ -330,10 +336,35 @@ public class GlusterServerSummaryView extends ViewPart {
 		createServerSummarySection(server, toolkit, form);
 
 		if (server.getStatus() == SERVER_STATUS.ONLINE) {
-			createMemoryUsageSection();
-			createNetworkUsageSection();
-			createCPUUsageSection();
-			createNetworkInterfacesSection(server, toolkit, form);
+			try {
+				new ProgressMonitorDialog(getSite().getShell()).run(false, false, new IRunnableWithProgress() {
+
+					@Override
+					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+						monitor.beginTask("Creating Server Summary View", 4);
+						monitor.setTaskName("Creating Memory Usage Section");
+						createMemoryUsageSection();
+						monitor.worked(1);
+
+						monitor.setTaskName("Creating Network Usage Section");
+						createNetworkUsageSection();
+						monitor.worked(1);
+						
+						monitor.setTaskName("Creating CPU Usage Section");
+						createCPUUsageSection();
+						monitor.worked(1);
+						
+						monitor.setTaskName("Creating Network Interfaces Section");
+						createNetworkInterfacesSection(server, toolkit, form);
+						monitor.worked(1);
+						monitor.done();
+					}
+				});
+			} catch (Exception e) {
+				String errMsg = "Exception while creating the Gluster Server Summary View : [" + e.getMessage() + "]";
+				logger.error(errMsg, e);
+				MessageDialog.openError(getSite().getShell(), ConsoleConstants.CONSOLE_TITLE, errMsg);
+			}
 		}
 
 		parent.layout(); // IMP: lays out the form properly

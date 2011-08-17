@@ -475,6 +475,8 @@ public class GUIHelper {
 	}
 	
 	public void setStatusMessage(String message) {
+		clearStatusMessage();
+		Application.getApplication().getStatusLineManager().setMessage(message);
 		Application.getApplication().getStatusLineManager().setMessage(message);
 	}
 	
