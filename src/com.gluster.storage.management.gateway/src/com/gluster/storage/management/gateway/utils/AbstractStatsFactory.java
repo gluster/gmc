@@ -103,7 +103,11 @@ public abstract class AbstractStatsFactory implements StatsFactory {
 				Double data = rowData.get(i);
 				if(!data.isNaN()) {
 					// data is available. add it.
-					aggregatedStatsRowData.set(i, aggregatedStatsRowData.get(i) + data);
+					Double oldData = aggregatedStatsRowData.get(i);
+					if(oldData.isNaN()) {
+						oldData = 0d;
+					}
+					aggregatedStatsRowData.set(i, oldData + data);
 					// increment record count. this will be used for calculating average of aggregated data.
 					dataCount[rowNum][i]++;
 				}
