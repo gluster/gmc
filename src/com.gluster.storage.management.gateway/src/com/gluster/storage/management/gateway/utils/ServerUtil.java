@@ -76,6 +76,8 @@ public class ServerUtil {
 		command.add(SCRIPT_COMMAND);
 		command.add(getScriptPath(scriptName));
 		command.addAll(arguments);
+		//TODO: Remove this debug log before moving to production
+		// logger.info("Executing script [" + command + "] on server gateway.");
 		return new ProcessUtil().executeCommand(runInForeground, command);
 	}
 
@@ -135,6 +137,8 @@ public class ServerUtil {
 	 */
 	public <T> T executeScriptOnServer(boolean runInForeground, String serverName, String scriptWithArgs,
 			Class<T> expectedClass) {
+		//TODO: Remove this debug log before moving to production
+		// logger.info("Executing script [" + scriptWithArgs + "] on server [" + serverName + "]"); 
 		return executeOnServer(runInForeground, serverName, getRemoteScriptDir() + File.separator + scriptWithArgs,
 				expectedClass);
 	}
