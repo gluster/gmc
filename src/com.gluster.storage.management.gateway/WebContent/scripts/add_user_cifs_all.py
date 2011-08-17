@@ -1,0 +1,1 @@
+../../../com.gluster.storage.management.gateway.scripts/src/gateway/add_user_cifs_all.py

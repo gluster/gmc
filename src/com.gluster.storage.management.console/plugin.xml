@@ -175,15 +175,6 @@
             name="Tasks"
             restorable="true">
       </view>
-      <view
-            allowMultiple="false"
-            category="com.gluster.storage.management.console.category"
-            class="org.eclipse.tm.internal.terminal.view.TerminalView"
-            icon="icons/tango/16x16/utilities-terminal.png"
-            id="com.gluster.storage.management.console.views.TerminalView"
-            name="Terminal"
-            restorable="true">
-      </view>
    </extension>
    <extension
          point="org.eclipse.ui.commands">
@@ -1419,7 +1410,7 @@
          </view>
          <view
                closeable="true"
-               id="com.gluster.storage.management.console.views.TerminalView"
+               id="org.eclipse.tm.terminal.view.TerminalView"
                minimized="false"
                moveable="false"
                ratio="0.60f"

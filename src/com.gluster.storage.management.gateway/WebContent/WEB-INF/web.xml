@@ -37,7 +37,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>gluster-resources-1.0</servlet-name>
-    <url-pattern>/1.0/*</url-pattern>
+    <url-pattern>/1.0.0/*</url-pattern>
   </servlet-mapping>
   <servlet>
     <servlet-name>JnlpDownloadServlet</servlet-name>

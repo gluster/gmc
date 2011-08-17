@@ -16,11 +16,11 @@
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package com.gluster.storage.management.console.views;
+package com.gluster.storage.management.console;
 
 /**
- * 
+ *
  */
-public class TerminalView extends org.eclipse.tm.internal.terminal.view.TerminalView {
-	public static final String ID = TerminalView.class.getName();
+public class ConsoleConstants {
+	public static final String TERMINAL_VIEW_ID = "org.eclipse.tm.terminal.view.TerminalView";
 }

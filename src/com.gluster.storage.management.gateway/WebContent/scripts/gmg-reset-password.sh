@@ -1,0 +1,1 @@
+../../../com.gluster.storage.management.gateway.scripts/src/gateway/gmg-reset-password.sh
