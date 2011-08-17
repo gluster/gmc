@@ -1,21 +1,16 @@
-#  Copyright (c) 2010 Gluster, Inc. <http://www.gluster.com>
-#  This file is part of Gluster Storage Platform.
+#!/usr/bin/python
+#  Copyright (C) 2011 Gluster, Inc. <http://www.gluster.com>
+#  This file is part of Gluster Management Gateway.
 #
-#  Gluster Storage Platform is free software; you can redistribute it
-#  and/or modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 3 of
-#  the License, or (at your option) any later version.
-#
-#  Gluster Storage Platform is distributed in the hope that it will be
-#  useful, but WITHOUT ANY WARRANTY; without even the implied warranty
-#  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program.  If not, see
-#  <http://www.gnu.org/licenses/>.
 
 import os
+import sys
+p1 = os.path.abspath(os.path.dirname(sys.argv[0]))
+p2 = "%s/common" % os.path.dirname(p1)
+if not p1 in sys.path:
+    sys.path.append(p1)
+if not p2 in sys.path:
+    sys.path.append(p2)
 import glob
 from copy import deepcopy
 import dbus
@@ -24,7 +19,7 @@ import time
 import Utils
 import Disk
 import Protocol
-from FsTabUtils import *
+import FsTabUtils
 
 ONE_MB_SIZE = 1048576
 
@@ -113,7 +108,7 @@ def readFile(fileName):
 
 
 def getRootPartition(fsTabFile=Globals.FSTAB_FILE):
-    fsTabEntryList = readFsTab(fsTabFile)
+    fsTabEntryList = FsTabUtils.readFsTab(fsTabFile)
     for fsTabEntry in fsTabEntryList:
         if fsTabEntry["MountPoint"] == "/":
             if fsTabEntry["Device"].startswith("UUID="):
@@ -384,39 +379,6 @@ def getDiskInfo(diskDeviceList=None):
 def getDiskList(diskDeviceList=None):
     return diskInfo["disks"]
 
-def readFsTab(fsTabFile=Globals.FSTAB_FILE):
-    try:
-        fsTabfp = open(fsTabFile)
-    except IOError, e:
-        Utils.log("readFsTab(): " + str(e))
-        return None
-    
-    fsTabEntryList = []
-    for line in fsTabfp:
-        tokens = line.strip().split()
-        if not tokens or tokens[0].startswith('#'):
-            continue
-        fsTabEntry = {}
-        fsTabEntry["Device"] = None
-        fsTabEntry["MountPoint"] = None
-        fsTabEntry["FsType"] = None
-        fsTabEntry["Options"] = None
-        fsTabEntry["DumpOption"] = 0
-        fsTabEntry["fsckOrder"] = 0
-        try:
-            fsTabEntry["Device"] = tokens[0]
-            fsTabEntry["MountPoint"] = tokens[1]
-            fsTabEntry["FsType"] = tokens[2]
-            fsTabEntry["Options"] = tokens[3]
-            fsTabEntry["DumpOption"] = tokens[4]
-            fsTabEntry["fsckOrder"] = tokens[5]
-        except IndexError:
-            pass
-        if fsTabEntry["Device"] and fsTabEntry["MountPoint"] and fsTabEntry["FsType"] and fsTabEntry["Options"]:
-            fsTabEntryList.append(fsTabEntry)
-    fsTabfp.close()
-    return fsTabEntryList
-        
 
 def checkDiskMountPoint(diskMountPoint):
     try:
@@ -533,7 +495,7 @@ def isDataDiskPartitionFormatted(device):
     if not uuid:
         return False
 
-    for fsTabEntry in readFsTab():
+    for fsTabEntry in FsTabUtils.readFsTab():
         if fsTabEntry["Device"] == ("UUID=%s" % uuid) and fsTabEntry["MountPoint"] == mountPoint:
             return True
     return False
@@ -780,156 +742,6 @@ def isDiskInFormatting(device):
 def isDiskInFormat(device):
     Utils.log("WARNING: isDiskInFormat() is deprecated by isDataDiskPartitionFormatted()")
     return isDataDiskPartitionFormatted(device)
-
-
-def diskOrder(serverExportList):
-    newServerExportList = []
-    while serverExportList:
-        serverExport = deepcopy(serverExportList[0])
-        if newServerExportList and serverExport.split(":")[0] == newServerExportList[-1].split(":")[0]:
-            inserted = False
-            for i in range(0, len(newServerExportList) - 1):
-                if serverExport.split(":")[0] == newServerExportList[i].split(":")[0]:
-                    continue
-                if i == 0:
-                    newServerExportList.insert(i, serverExport)
-                    inserted = True
-                    break
-                if serverExport.split(":")[0] == newServerExportList[i - 1].split(":")[0]:
-                    continue
-                newServerExportList.insert(i, serverExport)
-                inserted = True
-                break
-            if not inserted:
-                newServerExportList.append(serverExport)
-        else:
-            newServerExportList.append(serverExport)
-        serverExportList.remove(serverExport)
-        i = 0
-        while serverExportList and i < len(serverExportList):
-            if serverExport.split(":")[0] == serverExportList[i].split(":")[0]:
-                i += 1
-                continue
-            serverExport = deepcopy(serverExportList[i])
-            newServerExportList.append(serverExport)
-            serverExportList.remove(serverExport)
-    return newServerExportList
-
-
-def updateServerDiskConfig(serverName, diskDom, requestFlag=True, partitionFlag=True):
-    command = "command.server."
-    if not requestFlag:
-        command = ""
-    diskList = {}
-    for tagE in diskDom.getElementsByTagRoute(command + "disk"):
-        diskList[diskDom.getTextByTagRoute(command + "device")] = tagE
-    configDom = XDOM()
-    if not configDom.parseFile("%s/%s/disk.xml" % (Globals.SERVER_VOLUME_CONF_DIR, serverName)):
-        return diskDom.writexml("%s/%s/disk.xml" % (Globals.SERVER_VOLUME_CONF_DIR, serverName))
-    diskTag = configDom.getElementsByTagRoute("disks.disk")
-    disks = configDom.getElementsByTagRoute("disks")
-    if not (diskTag or disks):
-        return None
-    for tagE in diskTag:
-        diskDom = XDOM()
-        diskDom.setDomObj(tagE)
-        device = diskDom.getTextByTagRoute("device")
-        if partitionFlag and device in diskList:
-            disks[0].removeChild(tagE)
-            disks[0].appendChild(deepcopy(diskList[device]))
-            continue
-        if not partitionFlag and device in diskList:
-            partitionList = []
-            for childNodeTag in tagE.childNodes:
-                if childNodeTag.nodeName == 'partition':
-                    partitionList.append(childNodeTag)
-            tagE.childNodes = []
-            tagE.childNodes = diskList[device].childNodes + partitionList
-    return configDom.writexml("%s/%s/disk.xml" % (Globals.SERVER_VOLUME_CONF_DIR, serverName))
-
-
-def compareDisksDom(diskDomA, diskDomB, requestFlag=True):
-    command = "command.server.disk."
-    if not requestFlag:
-        command = ""
-    sourceDiskList = {}
-    sourceDisk = {}
-    for tagE in diskDomA.getElementsByTagRoute("disk"):
-        sourceDisk["description"] = diskDomA.getTextByTagRoute("description")
-        sourceDisk["size"] = diskDomA.getTextByTagRoute("size")
-        sourceDisk["init"] = diskDomA.getTextByTagRoute("init")
-        sourceDisk["interface"] = diskDomA.getTextByTagRoute("interface")
-        sourceDiskList[diskDomA.getTextByTagRoute("device")] = sourceDisk
-    objDiskList = {}
-    objDisk = {}
-    for tagE in diskDomB.getElementsByTagRoute("disk"):
-        objDisk["description"] = diskDomB.getTextByTagRoute("description")
-        objDisk["size"] = diskDomB.getTextByTagRoute("size")
-        objDisk["init"] = diskDomB.getTextByTagRoute("init")
-        objDisk["interface"] = diskDomB.getTextByTagRoute("interface")
-        objDiskList[diskDomB.getTextByTagRoute("device")] = objDisk
-    return sourceDiskList == objDiskList
-
- 
-def compareDiskDom(diskDomA, diskDomB, requestFlag=True):
-    command = "command.server.disk."
-    if not requestFlag:
-        command = ""
-    sourceDisk = {}
-    sourceDisk["device"] = diskDomA.getTextByTagRoute("device")
-    sourceDisk["description"] = diskDomA.getTextByTagRoute("description")
-    sourceDisk["size"] = diskDomA.getTextByTagRoute("size")
-    sourceDisk["init"] = diskDomA.getTextByTagRoute("init")
-    sourceDisk["interface"] = diskDomA.getTextByTagRoute("interface")
-    for tagE in diskDomA.getElementsByTagRoute("partition"):
-        sourceDiskPartitions = {}
-        partitionDom = XDOM()
-        partitionDom.setDomObj(tagE)
-        sourceDiskPartitions["size"] = partitionDom.getTextByTagRoute("size")
-        #sourceDiskPartitions["free"] = partitionDom.getTextByTagRoute("free")
-        sourceDiskPartitions["format"] = partitionDom.getTextByTagRoute("format")
-        sourceDiskPartitions["uuid"] = partitionDom.getTextByTagRoute("uuid")
-        sourceDisk[partitionDom.getTextByTagRoute("device")] = sourceDiskPartitions
-
-    objDisk = {}
-    objDisk["device"] = diskDomB.getTextByTagRoute(command + "device")
-    objDisk["description"] = diskDomB.getTextByTagRoute(command + "description")
-    objDisk["size"] = diskDomB.getTextByTagRoute(command + "size")
-    objDisk["init"] = diskDomB.getTextByTagRoute(command + "init")
-    objDisk["interface"] = diskDomB.getTextByTagRoute(command + "interface")
-    for tagE in diskDomB.getElementsByTagRoute(command + "partition"):
-        objDiskPartitions = {}
-        partitionDom = XDOM()
-        partitionDom.setDomObj(tagE)
-        objDiskPartitions["size"] = partitionDom.getTextByTagRoute("size")
-        #objDiskPartitions["free"] = partitionDom.getTextByTagRoute("free")
-        objDiskPartitions["format"] = partitionDom.getTextByTagRoute("format")
-        objDiskPartitions["uuid"] = partitionDom.getTextByTagRoute("uuid")
-        objDisk[partitionDom.getTextByTagRoute("device")] = objDiskPartitions
-    return sourceDisk == objDisk
-
-
-def getServerConfigDiskDom(serverName, diskName=None):
-    diskConfigDom = XDOM()
-    if not diskConfigDom.parseFile("%s/%s/disk.xml" % (Globals.SERVER_VOLUME_CONF_DIR, serverName)):
-        Utils.log("Unable to parse %s/%s/disk.xml" % (Globals.SERVER_VOLUME_CONF_DIR, serverName))
-        return None
-    diskTag = diskConfigDom.getElementsByTagRoute("disks.disk")
-    if not diskTag:
-        Utils.log("Unable to reterive disk information %s/%s/disk.xml" % (Globals.SERVER_VOLUME_CONF_DIR, serverName))
-        return None
-    if diskName:
-        for tagE in diskTag:
-            diskDom = XDOM()
-            diskDom.setDomObj(tagE)
-            if diskName == diskDom.getTextByTagRoute("device"):
-                return diskDom
-        return None
-
-    for tagE in diskTag:
-        for partitionTag in tagE.getElementsByTagName("partition"):
-            tagE.removeChild(partitionTag)
-    return diskConfigDom
 
 
 def getDeviceMountPoint(device):
