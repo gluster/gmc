@@ -135,9 +135,6 @@ public class GlusterUtil {
 
 	public List<GlusterServer> getGlusterServers(GlusterServer knownServer) {
 		String output = getPeerStatus(knownServer.getName());
-		if (output == null) {
-			return null;
-		}
 
 		knownServer.setUuid(getUuid(knownServer.getName()));
 		
@@ -207,13 +204,12 @@ public class GlusterUtil {
 	 * @return Outout of the "gluster peer status" command
 	 */
 	private String getPeerStatus(String knownServer) {
-		String output;
 		ProcessResult result = getSshUtil().executeRemote(knownServer, "gluster peer status");
 		if (!result.isSuccess()) {
-			output = null;
+			throw new GlusterRuntimeException("Couldn't get peer status on server [" + knownServer + "]. Error: "
+					+ result);
 		}
-		output = result.getOutput();
-		return output;
+		return result.getOutput();
 	}
 
 	public void addServer(String existingServer, String newServer) {
