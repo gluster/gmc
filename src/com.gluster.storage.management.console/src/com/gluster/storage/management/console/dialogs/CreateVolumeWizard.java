@@ -28,6 +28,7 @@ import com.gluster.storage.management.console.utils.GlusterLogger;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
+import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 
 public class CreateVolumeWizard extends Wizard {
 	private static final String title = "Gluster Management Console - Create Volume";
@@ -51,8 +52,17 @@ public class CreateVolumeWizard extends Wizard {
 		
 		try {
 			volumesClient.createVolume(newVolume);
+
+			// Set proper volume type before assign to model
+			VOLUME_TYPE volumetype = newVolume.getVolumeType();
+			if (volumetype == VOLUME_TYPE.REPLICATE && newVolume.getBricks().size() > newVolume.getReplicaCount()) {
+				newVolume.setVolumeType(VOLUME_TYPE.DISTRIBUTED_REPLICATE);
+			} else if (volumetype == VOLUME_TYPE.STRIPE && newVolume.getBricks().size() > newVolume.getStripeCount()) {
+				newVolume.setVolumeType(VOLUME_TYPE.DISTRIBUTED_STRIPE);
+			}
+
 			handleSuccess(newVolume, volumesClient);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			String errMsg = e.getMessage();
 			// the error could be in to post-volume-create processing. check if this is the case.
 			if (volumesClient.volumeExists(newVolume.getName())) {
@@ -62,7 +72,7 @@ public class CreateVolumeWizard extends Wizard {
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
 

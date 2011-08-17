@@ -362,7 +362,6 @@ public class CreateVolumePage1 extends WizardPage {
 		}
 		
 		addVolumeBricks();
-		
 		return volume;
 	}
 

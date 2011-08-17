@@ -3,6 +3,7 @@ package com.gluster.storage.management.console.views;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -664,7 +665,7 @@ public class VolumeSummaryView extends ViewPart {
 				|| volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_REPLICATE) {
 			replicaCount = (double) volume.getReplicaCount();
 		}
-		totalDiskSpace.setText("" + NumberUtil.formatNumber((getTotalDiskSpace() / 1024) / replicaCount));
+		totalDiskSpace.setText("" + NumberUtil.formatNumber(getTotalDiskSpace() / 1024));
 	}
 
 	private double getDiskSize(String serverName, String deviceName) {
@@ -691,16 +692,39 @@ public class VolumeSummaryView extends ViewPart {
 	}
 
 	private double getTotalDiskSpace() {
+		List<Double> diskSizes = getVolumeDiskSizes();
+		VOLUME_TYPE volumeType = volume.getVolumeType();
 		double diskSize = 0d;
-		Device device;
-		for (Brick brick : volume.getBricks()) {
-			device = modelManager.getDeviceForBrickDir(brick);
-			if (device != null) { // In case of off line server, device becomes null
-				diskSize += getDiskSize(brick.getServerName(), device.getName());
+		if (volumeType == VOLUME_TYPE.DISTRIBUTE || volumeType == VOLUME_TYPE.STRIPE
+				|| volumeType == VOLUME_TYPE.DISTRIBUTED_STRIPE) {
+			for (Double size : diskSizes) {
+				diskSize += size;
+			}
+		} else { // Replicate or distributed replicate
+			int replicaCount = volume.getReplicaCount();
+			if (replicaCount == 0) {
+				replicaCount = Volume.DEFAULT_REPLICA_COUNT;
+			}
+			int startIndex = 0;
+			for (int i = 0; i < (diskSizes.size() / replicaCount); i++) {
+				startIndex = i * replicaCount;
+				diskSize += Collections.min(diskSizes.subList(startIndex, startIndex + replicaCount));
 			}
 		}
 		return diskSize;
 	}
+	
+	private List<Double> getVolumeDiskSizes() {
+		List<Double> diskSizes = new ArrayList<Double>();
+		Device device;
+		for (Brick brick : volume.getBricks()) {
+			device = modelManager.getDeviceForBrickDir(brick);
+			diskSizes.add( (device == null) ? 0d : getDiskSize(brick.getServerName(), device.getName()) );
+		}
+		return diskSizes;
+	}
+	
+	
 
 	private void createDiskSpaceField(Composite section) {
 		Label diskSpaceLabel = toolkit.createLabel(section, "Total Disk Space (GB): ", SWT.NONE);
@@ -712,7 +736,7 @@ public class VolumeSummaryView extends ViewPart {
 			replicaCount = (double) Volume.DEFAULT_REPLICA_COUNT;
 		}
 		totalDiskSpace = toolkit.createLabel(section,
-				"" + NumberUtil.formatNumber((getTotalDiskSpace() / 1024) / replicaCount), SWT.NONE);
+				"" + NumberUtil.formatNumber(getTotalDiskSpace() / 1024), SWT.NONE);
 		toolkit.createLabel(section, "", SWT.NONE); // dummy
 	}
 
