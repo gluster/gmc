@@ -353,6 +353,7 @@ public class Volume extends Entity {
 		setReplicaCount(newVolume.getReplicaCount());
 		setStripeCount(newVolume.getStripeCount());
 		setNASProtocols(newVolume.getNASProtocols());
+		setCifsUsers(newVolume.getCifsUsers());
 		getOptions().copyFrom(newVolume.getOptions());
 	}
 }

@@ -1,0 +1,1 @@
+../../../com.gluster.storage.management.gateway.scripts/src/gateway/multicast-discover-servers.py

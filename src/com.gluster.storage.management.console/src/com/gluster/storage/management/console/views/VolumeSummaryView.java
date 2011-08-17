@@ -403,8 +403,6 @@ public class VolumeSummaryView extends ViewPart {
 		guiHelper.setStatusMessage("Setting Cifs Configuration...");
 		parent.update();
 
-		final String cifsUsers = cifsUsersText.getText().trim();
-
 		// To check if no changes in the users list
 		if (!isvalidCifsUser()) {
 			MessageDialog.openError(Display.getDefault().getActiveShell(), "Cifs Configuration",
@@ -419,6 +417,7 @@ public class VolumeSummaryView extends ViewPart {
 				public void run() {
 					VolumesClient vc = new VolumesClient();
 					Volume newVolume = new Volume();
+					String cifsUsers = cifsUsersText.getText().trim();
 					try {
 						vc.setCifsConfig(volume.getName(), cifsCheckbox.getSelection(), cifsUsers);
 						enableCifsUsersControls(false);

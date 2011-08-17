@@ -30,7 +30,6 @@ import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.GlusterServer;
-import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.VolumeOptionInfo;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 import com.gluster.storage.management.gateway.services.ClusterService;

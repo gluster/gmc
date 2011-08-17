@@ -80,11 +80,11 @@ import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.progress.IProgressConstants;
 
 import com.gluster.storage.management.console.Application;
+import com.gluster.storage.management.console.ConsoleConstants;
 import com.gluster.storage.management.console.GlusterDataModelManager;
 import com.gluster.storage.management.console.IImageKeys;
 import com.gluster.storage.management.console.views.NavigationView;
 import com.gluster.storage.management.console.views.TasksView;
-import com.gluster.storage.management.console.views.TerminalView;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Disk;
 import com.gluster.storage.management.core.utils.JavaUtil;
@@ -460,8 +460,7 @@ public class GUIHelper {
 	}
 	
 	public void showTerminalView() {
-		//showView("org.eclipse.tm.terminal.view.TerminalView");
-		showView(TerminalView.ID);
+		showView(ConsoleConstants.TERMINAL_VIEW_ID);
 	}
 	
 	public void showProgressView() {

@@ -1,0 +1,1 @@
+../../../com.gluster.storage.management.gateway.scripts/src/gateway/create_volume_cifs_all.py
