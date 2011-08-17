@@ -33,7 +33,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.hibernate.mapping.Array;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -76,7 +75,8 @@ public class VolumeService {
 	private static final String VOLUME_DELETE_CIFS_SCRIPT = "delete_volume_cifs_all.py";
 	private static final String VOLUME_BRICK_LOG_SCRIPT = "get_volume_brick_log.py";
 	private static final String VOLUME_DIRECTORY_CLEANUP_SCRIPT = "clear_volume_directory.py";
-	
+	private static final String REMOVE_SERVER_VOLUME_CIFS_CONFIG = "remove_server_volume_cifs_config.py";
+	private static final String ALL_ONLINE_VOLUMES_FILE_NAME = "volumes";
 
 	@Autowired
 	private ClusterService clusterService;
@@ -348,6 +348,54 @@ public class VolumeService {
 		} catch (Exception e) {
 			throw new GlusterRuntimeException("Error in updating CIFS configuration [" + volumeName + "]: "
 					+ e.getMessage());
+		}
+	}
+	
+	// To clear all the volume CIFS configurations from the server
+	public void clearCifsConfiguration(String clusterName, String onlineServerName, String serverName) {
+		VolumeService volumeService = new VolumeService();
+		File volumesFile = createOnlineVolumeList(clusterName, onlineServerName);
+		if (volumesFile == null) {
+			return;
+		}
+		try {
+			volumeService.removeServerVolumeCifsConfig(serverName, volumesFile.getAbsolutePath());
+			volumesFile.delete();
+		} catch(Exception e) {
+			volumesFile.delete();
+			throw new GlusterRuntimeException("Error in clearing volume CIFS configuration: [" + e.getMessage() + "]");
+		}
+	}
+	
+	private File createOnlineVolumeList(String clusterName, String onlineServerName) {
+		String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+		String volumeListFileName = FileUtil.getTempDirName() + CoreConstants.FILE_SEPARATOR
+				+ ALL_ONLINE_VOLUMES_FILE_NAME + "_" + timestamp;
+		try {
+			List<Volume> volumes = getVolumes(clusterName);
+			if (volumes.size() == 0) {
+				return null;
+			}
+			File volumesFile = new File(volumeListFileName);
+			FileOutputStream fos = new FileOutputStream(volumesFile);
+			for (Volume volume : volumes) {
+				if (volume.getStatus() == VOLUME_STATUS.ONLINE) {
+					fos.write((volume.getName() + CoreConstants.NEWLINE).getBytes());
+				}
+			}
+			fos.close();
+			return volumesFile;
+		} catch (Exception e) {
+			throw new GlusterRuntimeException("Error in preparing volume list: [" + e.getMessage() + "]");
+		}
+	}
+	
+	
+	public void removeServerVolumeCifsConfig(String serverName, String volumesFileName) {
+		ProcessResult result = serverUtil.executeGlusterScript(true, REMOVE_SERVER_VOLUME_CIFS_CONFIG, serverName,
+				volumesFileName);
+		if (!result.isSuccess()) {
+			throw new GlusterRuntimeException(result.toString());
 		}
 	}
 	

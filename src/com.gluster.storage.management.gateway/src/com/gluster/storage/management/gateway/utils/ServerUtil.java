@@ -101,8 +101,12 @@ public class ServerUtil {
 	
 	public boolean isServerOnline(Server server) {
 		// fetch latest details and check if server is still online
-		fetchServerDetails(server);
-		return server.isOnline();
+		try {
+			fetchServerDetails(server);
+			return server.isOnline();
+		} catch (Exception e) {
+			return false;
+		}
 	}
 	
 	public String fetchHostName(String serverName) {

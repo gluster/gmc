@@ -64,18 +64,21 @@ public class RemoveServerAction extends AbstractActionDelegate {
 				String errMsg = "";
 				for (GlusterServer server : selectedServers) {
 					guiHelper.setStatusMessage("Removing server [" + server.getName() + "]...");
-					
+
 					GlusterServersClient client = new GlusterServersClient();
 					try {
 						client.removeServer(server.getName());
 						GlusterServer glusterServer = (GlusterServer) server;
 						modelManager.removeGlusterServer(glusterServer);
 						successServers.add(server);
-					} catch(Exception e) {
+					} catch (Exception e) {
+						if (!isServerExist(server.getName())) {
+							modelManager.removeGlusterServer((GlusterServer) server);
+							successServers.add(server);
+						}
 						errMsg += "[" + server.getName() + "] : " + e.getMessage();
 					}
 				}
-
 				guiHelper.clearStatusMessage();
 				showStatusMessage(action.getDescription(), selectedServers, successServers, errMsg);
 			}
@@ -89,14 +92,28 @@ public class RemoveServerAction extends AbstractActionDelegate {
 		});
 	}
 
+	private Boolean isServerExist(String serverName) {
+		try {
+			GlusterServersClient client = new GlusterServersClient();
+			GlusterServer server = client.getGlusterServer(serverName);
+			if (server != null && server.getName().length() > 0) {
+				return true;
+			} else {
+				return false;
+			}
+		} catch (Exception e) {
+			return false;
+		}
+	}
+	
 	private void showStatusMessage(String dialogTitle, Set<GlusterServer> selectedServers, Set<GlusterServer> successServers,
 			String errMsg) {
 		if (successServers.size() == selectedServers.size()) {
 			if(selectedServers.size() == 1) {
-				showInfoDialog(dialogTitle, "Server [" + selectedServers.iterator().next() + "] removed successfully!");
+				showInfoDialog(dialogTitle, "Server [" + selectedServers.iterator().next() + "] removed successfully!" + CoreConstants.NEWLINE + errMsg);
 			} else {
 				showInfoDialog(dialogTitle, "Following servers removed successfully: " + CoreConstants.NEWLINE
-						+ selectedServers);
+						+ selectedServers + CoreConstants.NEWLINE + errMsg);
 			}
 			return;
 		}

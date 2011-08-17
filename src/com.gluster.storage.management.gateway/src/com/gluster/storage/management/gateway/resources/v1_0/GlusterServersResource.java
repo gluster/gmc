@@ -25,10 +25,10 @@ import static com.gluster.storage.management.core.constants.RESTConstants.PATH_P
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_SERVER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DETAILS;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_INTERFACE;
-import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_PERIOD;
-import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_TYPE;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_MAX_COUNT;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_NEXT_TO;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_PERIOD;
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_TYPE;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_DISKS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_SERVERS;
@@ -62,6 +62,7 @@ import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.exceptions.GlusterValidationException;
 import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.ServerStats;
 import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
@@ -70,6 +71,7 @@ import com.gluster.storage.management.gateway.data.ClusterInfo;
 import com.gluster.storage.management.gateway.data.ServerInfo;
 import com.gluster.storage.management.gateway.services.ClusterService;
 import com.gluster.storage.management.gateway.services.GlusterServerService;
+import com.gluster.storage.management.gateway.services.VolumeService;
 import com.gluster.storage.management.gateway.tasks.InitializeDiskTask;
 import com.gluster.storage.management.gateway.utils.CpuStatsFactory;
 import com.gluster.storage.management.gateway.utils.GlusterUtil;
@@ -287,78 +289,8 @@ public class GlusterServersResource extends AbstractResource {
 	@Path("{" + PATH_PARAM_SERVER_NAME + "}")
 	public Response removeServer(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@PathParam(PATH_PARAM_SERVER_NAME) String serverName) {
-		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Cluster name must not be empty!");
-		}
-
-		if (serverName == null || serverName.isEmpty()) {
-			return badRequestResponse("Server name must not be empty!");
-		}
-
-		ClusterInfo cluster = clusterService.getCluster(clusterName);
-		if (cluster == null) {
-			return notFoundResponse("Cluster [" + clusterName + "] not found!");
-		}
-
-		List<ServerInfo> servers = cluster.getServers();
-		if (servers == null || servers.isEmpty() || !containsServer(servers, serverName)) {
-			return badRequestResponse("Server [" + serverName + "] is not attached to cluster [" + clusterName + "]!");
-		}
-
-		if (servers.size() == 1) {
-			// Only one server mapped to the cluster, no "peer detach" required.
-			// remove the cached online server for this cluster if present
-			clusterService.removeOnlineServer(clusterName);
-		} else {
-			try {
-				removeServerFromCluster(clusterName, serverName);
-			} catch (Exception e) {
-				return errorResponse(e.getMessage());
-			}
-		}
-		clusterService.unmapServerFromCluster(clusterName, serverName);
-
+		glusterServerService.removeServerFromCluster(clusterName, serverName);
 		return noContentResponse();
-	}
-
-	private void removeServerFromCluster(String clusterName, String serverName) {
-		// get an online server that is not same as the server being removed
-		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName, serverName);
-		if (onlineServer == null) {
-			throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
-		}
-
-		try {
-			glusterUtil.removeServer(onlineServer.getName(), serverName);
-		} catch (Exception e) {
-			// check if online server has gone offline. If yes, try again one more time.
-			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
-				// online server has gone offline! try with a different one.
-				onlineServer = clusterService.getNewOnlineServer(clusterName, serverName);
-			}
-			if (onlineServer == null) {
-				throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
-			}
-			glusterUtil.removeServer(onlineServer.getName(), serverName);
-		}
-
-		if (onlineServer.getName().equals(serverName)) {
-			// since the cached server has been removed from the cluster, remove it from the cache
-			clusterService.removeOnlineServer(clusterName);
-		}
-
-		// since the server is removed from the cluster, it is now available to be added to other clusters.
-		// Hence add it back to the discovered servers list.
-		discoveredServersResource.addDiscoveredServer(serverName);
-	}
-
-	private boolean containsServer(List<ServerInfo> servers, String serverName) {
-		for (ServerInfo server : servers) {
-			if (server.getName().toUpperCase().equals(serverName.toUpperCase())) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	@PUT
