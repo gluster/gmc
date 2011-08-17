@@ -27,11 +27,13 @@ import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.exceptions.GlusterValidationException;
-import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.GlusterServer;
+import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.gateway.data.ClusterInfo;
+import com.gluster.storage.management.gateway.data.ServerInfo;
+import com.gluster.storage.management.gateway.resources.v1_0.DiscoveredServersResource;
 import com.gluster.storage.management.gateway.utils.GlusterUtil;
 import com.gluster.storage.management.gateway.utils.ServerUtil;
 
@@ -48,6 +50,13 @@ public class GlusterServerService {
 
 	@Autowired
 	private GlusterUtil glusterUtil;
+	
+	@Autowired
+	private VolumeService volumeService;
+	
+	// TODO: create a discovered servers "service" instead of injecting the resource directly
+	@Autowired
+	private DiscoveredServersResource discoveredServersResource;
 	
 	public void fetchServerDetails(GlusterServer server) {
 		try {
@@ -177,5 +186,81 @@ public class GlusterServerService {
 		} catch(Exception e) {
 			return false;
 		}
+	}
+	
+	public void removeServerFromCluster(String clusterName, String serverName) {
+		if (clusterName == null || clusterName.isEmpty()) {
+			throw new GlusterValidationException("Cluster name must not be empty!");
+		}
+
+		if (serverName == null || serverName.isEmpty()) {
+			throw new GlusterValidationException("Server name must not be empty!");
+		}
+
+		ClusterInfo cluster = clusterService.getCluster(clusterName);
+		if (cluster == null) {
+			throw new GlusterValidationException("Cluster [" + clusterName + "] not found!");
+		}
+
+		List<ServerInfo> servers = cluster.getServers();
+		if (servers == null || servers.isEmpty() || !containsServer(servers, serverName)) {
+			throw new GlusterValidationException("Server [" + serverName + "] is not attached to cluster ["
+					+ clusterName + "]!");
+		}
+
+		if (servers.size() == 1) {
+			// Only one server mapped to the cluster, no "peer detach" required.
+			// remove the cached online server for this cluster if present
+			clusterService.removeOnlineServer(clusterName);
+		} else {
+			// get an online server that is not same as the server being removed
+			GlusterServer onlineServer = clusterService.getOnlineServer(clusterName, serverName);
+			if (onlineServer == null) {
+				throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
+			}
+
+			try {
+				glusterUtil.removeServer(onlineServer.getName(), serverName);
+			} catch (Exception e) {
+				// check if online server has gone offline. If yes, try again one more time.
+				if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
+					// online server has gone offline! try with a different one.
+					onlineServer = clusterService.getNewOnlineServer(clusterName, serverName);
+				}
+				if (onlineServer == null) {
+					throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
+				}
+				glusterUtil.removeServer(onlineServer.getName(), serverName);
+			}
+			
+			try {
+				if (serverUtil.isServerOnline(new Server(serverName))) {
+					volumeService.clearCifsConfiguration(clusterName, onlineServer.getName(), serverName);
+				}
+			} catch (Exception e1) {
+				throw new GlusterRuntimeException(
+						"Server removed from cluster, however deleting cifs configuration failed ! [ "
+								+ e1.getMessage() + "]");
+			}
+			if (onlineServer.getName().equals(serverName)) {
+				// since the cached server has been removed from the cluster, remove it from the cache
+				clusterService.removeOnlineServer(clusterName);
+			}
+
+			// since the server is removed from the cluster, it is now available to be added to other clusters.
+			// Hence add it back to the discovered servers list.
+			discoveredServersResource.addDiscoveredServer(serverName);
+		}
+
+		clusterService.unmapServerFromCluster(clusterName, serverName);
+	}
+
+	private boolean containsServer(List<ServerInfo> servers, String serverName) {
+		for (ServerInfo server : servers) {
+			if (server.getName().toUpperCase().equals(serverName.toUpperCase())) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
