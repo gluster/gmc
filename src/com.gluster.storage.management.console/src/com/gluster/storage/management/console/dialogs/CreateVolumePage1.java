@@ -409,9 +409,9 @@ public class CreateVolumePage1 extends WizardPage {
 
 		VOLUME_TYPE volumeType = (VOLUME_TYPE) ((IStructuredSelection) typeComboViewer
 				.getSelection()).getFirstElement();
-		if (volumeType == VOLUME_TYPE.DISTRIBUTED_REPLICATE && diskCount % 2 != 0) {
+		if ((volumeType == VOLUME_TYPE.DISTRIBUTED_REPLICATE || volumeType == VOLUME_TYPE.REPLICATE ) && diskCount % 2 != 0) {
 			setError("Mirror type volume requires bricks in multiples of two");
-		} else if (volumeType == VOLUME_TYPE.DISTRIBUTED_STRIPE && diskCount % 4 != 0) {
+		} else if ((volumeType == VOLUME_TYPE.DISTRIBUTED_STRIPE || volumeType == VOLUME_TYPE.STRIPE) && diskCount % 4 != 0) {
 			setError("Stripe type volume requires bricks in multiples of four");
 		}
 	}
