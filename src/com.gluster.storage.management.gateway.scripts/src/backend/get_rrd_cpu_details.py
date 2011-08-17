@@ -14,10 +14,16 @@ if not p2 in sys.path:
 from XmlHandler import ResponseXml
 import Utils
 
-def getCpuData(period):
-    cpuRrdFile = "/var/lib/rrd/cpu.rrd"
-    rs = ResponseXml()
+CPU_RRD_FILE = "/var/lib/rrd/cpu.rrd"
 
+def main():
+    if len(sys.argv) != 2:
+        sys.stderr.write("usage: %s <PERIOD>\n" % os.path.basename(sys.argv[0]))
+        sys.exit(-1)
+
+    period = sys.argv[1]
+
+    rs = ResponseXml()
     command = "rrdtool xport --start -%s \
                DEF:cpuuser=%s:user:AVERAGE \
                DEF:cpusystem=%s:system:AVERAGE \
@@ -29,26 +35,14 @@ def getCpuData(period):
                CDEF:totalpct=userpct,systempct,+ \
                XPORT:userpct:userpct \
                XPORT:systempct:systempct \
-               XPORT:totalpct:totalpct" % (period, cpuRrdFile, cpuRrdFile, cpuRrdFile)
+               XPORT:totalpct:totalpct" % (period, CPU_RRD_FILE, CPU_RRD_FILE, CPU_RRD_FILE)
 
     rv = Utils.runCommand(command, output=True, root=True)
-    message = Utils.stripEmptyLines(rv["Stdout"])
-    if rv["Stderr"]:
-        error = Utils.stripEmptyLines(rv["Stderr"])
-        message += "Error: [%s]" % (error)
-        Utils.log("failed to create RRD file for cpu usages %s" % file)
+    if rv["Status"] != 0:
         rs.appendTagRoute("status.code", rv["Status"])
-        rs.appendTagRoute("status.message", message)
-        return rs.toxml()
-    return rv["Stdout"]
-
-def main():
-    if len(sys.argv) != 2:
-        sys.stderr.write("usage: %s <period>\n" % os.path.basename(sys.argv[0]))
-        sys.exit(-1)
-
-    period = sys.argv[1]
-    print getCpuData(period)
+        rs.appendTagRoute("status.message", "Failed to get RRD data of CPU")
+        print rs.toxml()
+    print rv["Stdout"]
     sys.exit(0)
 
 if __name__ == "__main__":

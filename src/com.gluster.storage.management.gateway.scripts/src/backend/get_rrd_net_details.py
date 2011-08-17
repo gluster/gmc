@@ -1,20 +1,8 @@
 #!/usr/bin/python
-#  Copyright (C) 2010 Gluster, Inc. <http://www.gluster.com>
-#  This file is part of Gluster Storage Platform.
+#  Copyright (C) 2011 Gluster, Inc. <http://www.gluster.com>
+#  This file is part of Gluster Management Gateway.
 #
-#  Gluster Storage Platform is free software; you can redistribute it
-#  and/or modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 3 of
-#  the License, or (at your option) any later version.
-#
-#  Gluster Storage Platform is distributed in the hope that it will be
-#  useful, but WITHOUT ANY WARRANTY; without even the implied warranty
-#  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program.  If not, see
-#  <http://www.gnu.org/licenses/>.
+
 import os
 import sys
 p1 = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -42,14 +30,11 @@ def main():
                XPORT:received:received \
                XPORT:transmitted:transmitted \
                XPORT:total:total" % (period, device, device)
+
     rv = Utils.runCommand(command, output=True, root=True)
-    message = Utils.stripEmptyLines(rv["Stdout"])
-    if rv["Stderr"]:
-        error = Utils.stripEmptyLines(rv["Stderr"])
-        message += "Error: [%s]" % (error)
-        Utils.log("failed to get RRD information of device %s" % file)
+    if rv["Status"] != 0:
         rs.appendTagRoute("status.code", rv["Status"])
-        rs.appendTagRoute("status.message", message)
+        rs.appendTagRoute("status.message", "Failed to get RRD information of device %s" % device)
         print rs.toxml()
     print rv["Stdout"]
     sys.exit(0)

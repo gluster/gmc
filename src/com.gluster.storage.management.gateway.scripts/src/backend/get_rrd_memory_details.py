@@ -1,20 +1,7 @@
 #!/usr/bin/python
-#  Copyright (C) 2010 Gluster, Inc. <http://www.gluster.com>
-#  This file is part of Gluster Storage Platform.
+#  Copyright (C) 2011 Gluster, Inc. <http://www.gluster.com>
+#  This file is part of Gluster Management Gateway.
 #
-#  Gluster Storage Platform is free software; you can redistribute it
-#  and/or modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 3 of
-#  the License, or (at your option) any later version.
-#
-#  Gluster Storage Platform is distributed in the hope that it will be
-#  useful, but WITHOUT ANY WARRANTY; without even the implied warranty
-#  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program.  If not, see
-#  <http://www.gnu.org/licenses/>.
 
 # Input command: get_rrd_memory_details.py 1hour
 # OUTPUT as bellow:
@@ -54,8 +41,15 @@ import syslog
 from XmlHandler import ResponseXml
 import Utils
 
-def getMemData(period):
-    memRrdFile = "/var/lib/rrd/mem.rrd"
+MEMORY_RRD_FILE = "/var/lib/rrd/mem.rrd"
+
+def main():
+    if len(sys.argv) != 2:
+        sys.stderr.write("usage: %s <PERIOD>\n" % os.path.basename(sys.argv[0]))
+        sys.exit(-1)
+
+    period = sys.argv[1]
+
     rs = ResponseXml()
     command = "rrdtool xport --start -%s \
                  DEF:free=%s:memfree:AVERAGE \
@@ -69,26 +63,14 @@ def getMemData(period):
                  XPORT:free:memoryFree \
                  XPORT:cache:memoryCache \
                  XPORT:buffer:memoryBuffer \
-                 XPORT:total:totalMemory" % (period, memRrdFile, memRrdFile, memRrdFile, memRrdFile)
+                 XPORT:total:totalMemory" % (period, MEMORY_RRD_FILE, MEMORY_RRD_FILE, MEMORY_RRD_FILE, MEMORY_RRD_FILE)
 
     rv = Utils.runCommand(command, output=True, root=True)
-    message = Utils.stripEmptyLines(rv["Stdout"])
-    if rv["Stderr"]:
-        error = Utils.stripEmptyLines(rv["Stderr"])
-        message += "Error: [%s]" % (error)
-        Utils.log("failed to create RRD file for memory usages %s" % file)
+    if rv["Status"] != 0:
         rs.appendTagRoute("status.code", rv["Status"])
-        rs.appendTagRoute("status.message", message)
-        return rs.toxml()
-    return rv["Stdout"]
-
-def main():
-    if len(sys.argv) != 2:
-        sys.stderr.write("usage: %s <period>\n" % os.path.basename(sys.argv[0]))
-        sys.exit(-1)
-
-    period = sys.argv[1]
-    print getMemData(period)
+        rs.appendTagRoute("status.message", "Failed to get RRD data of memory usage")
+        print rs.toxml()
+    print rv["Stdout"]
     sys.exit(0)
 
 if __name__ == "__main__":
