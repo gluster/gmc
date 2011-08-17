@@ -29,24 +29,22 @@ def main():
 
     volumeDirectory = args[0]
     if not os.path.exists(volumeDirectory):
-        sys.stderr.write("Given volume directory path:%s does not exists" % volumeDirectory)
+        sys.stderr.write("Given volume directory path:%s does not exists\n" % volumeDirectory)
         sys.exit(1)
 
+    # trim '/' at the end
+    if '/' == volumeDirectory[-1]:
+        volumeDirectory = volumeDirectory[:-1]
     newVolumeDirectoryName = "%s_%s" % (volumeDirectory, time.time())
-    rv = Utils.runCommand("mv -f %s %s" % (volumeDirectory, newVolumeDirectoryName), output=True, root=True)
-    if rv["Stderr"]:
-        sys.stderr.write(Utils.stripEmptyLines(rv["Stderr"]))
+    if Utils.runCommand("mv -f %s %s" % (volumeDirectory, newVolumeDirectoryName), root=True) != 0:
+        sys.stderr.write("Failed to rename volume directory\n")
         sys.exit(2)
 
     if not options.todelete:
         sys.exit(0)
 
-    rv = Utils.runCommand("rm -fr %s" % newVolumeDirectoryName, output=True, root=True)
-    if rv["Stderr"]:
-        sys.stderr.write(Utils.stripEmptyLines(rv["Stderr"]))
-        sys.exit(3)
-
-    sys.exit(0)
+    rv = Utils.runCommand("rm -fr %s" % newVolumeDirectoryName, root=True) != 0
+    sys.exit(rv)
 
 if __name__ == "__main__":
     main()
