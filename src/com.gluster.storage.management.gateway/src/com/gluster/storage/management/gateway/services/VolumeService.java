@@ -295,8 +295,6 @@ public class VolumeService {
 			ProcessResult result = serverUtil.executeGlusterScript(true, VOLUME_DELETE_CIFS_SCRIPT,
 					file.getAbsolutePath(), volumeName);
 			file.delete();
-			// All the CIFS users deleted, hence stop CIFS service for this volume
-			stopCifsReExport(clusterName, volumeName);
 			if (!result.isSuccess()) {
 				throw new GlusterRuntimeException(result.toString());
 			}
