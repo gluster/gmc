@@ -11,7 +11,6 @@ if not p1 in sys.path:
     sys.path.append(p1)
 if not p2 in sys.path:
     sys.path.append(p2)
-from XmlHandler import ResponseXml
 import Utils
 
 def main():
@@ -22,7 +21,6 @@ def main():
     device = sys.argv[1]
     period = sys.argv[2]
 
-    rs = ResponseXml()
     command = "rrdtool xport --start -%s \
                DEF:received=/var/lib/rrd/network-%s.rrd:received:AVERAGE \
                DEF:transmitted=/var/lib/rrd/network-%s.rrd:transmitted:AVERAGE \
@@ -33,9 +31,9 @@ def main():
 
     rv = Utils.runCommand(command, output=True, root=True)
     if rv["Status"] != 0:
-        rs.appendTagRoute("status.code", rv["Status"])
-        rs.appendTagRoute("status.message", "Failed to get RRD information of device %s" % device)
-        print rs.toxml()
+        sys.stderr.write("Failed to get RRD information of device %s\n" % device)
+        sys.exit(rv["Status"])
+
     print rv["Stdout"]
     sys.exit(0)
 
