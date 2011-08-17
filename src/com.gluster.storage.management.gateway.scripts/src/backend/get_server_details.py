@@ -104,8 +104,8 @@ def getServerDetails(listall):
     try:
         diskDom = DiskUtils.getDiskDom()
     except dbus.dbus_bindings.DBusException, e:
-        sys.stderr.write("Failed to connect HAL to get device details. Please check if HAL services are running\n")
-        Utils.log("Failed to connect HAL to get device details")
+        sys.stderr.write("%s. Please check if HAL services are running\n" % str(e))
+        Utils.log("failed to get disk details :%s" % str(e))
         sys.exit(1)
     if not diskDom:
         sys.stderr.write("No disk found!")

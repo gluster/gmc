@@ -157,9 +157,8 @@ public class LoginDialog extends Dialog {
 	@Override
 	protected Control createDialogArea(Composite parent) {
 		parent.setBackgroundImage(guiHelper.getImage(IImageKeys.DIALOG_SPLASH_IMAGE));
-		parent.setBackgroundMode(SWT.INHERIT_FORCE); // Makes sure that child
-														// composites inherit
-														// the same background
+		// Makes sure that child composites inherit the same background
+		parent.setBackgroundMode(SWT.INHERIT_FORCE); 
 
 		composite = (Composite) super.createDialogArea(parent);
 		configureDialogLayout(composite);
@@ -178,6 +177,7 @@ public class LoginDialog extends Dialog {
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
 		configureButtonCompositeLayout(parent);
+
 		GridData layoutData = new GridData(390, 130);
 		layoutData.horizontalAlignment = SWT.CENTER;
 		layoutData.verticalAlignment = SWT.TOP;
@@ -186,19 +186,19 @@ public class LoginDialog extends Dialog {
 		
 		layoutData = new GridData();
 		layoutData.widthHint = 70;
-		layoutData.horizontalAlignment = SWT.LEFT;
-		layoutData.grabExcessHorizontalSpace = true;
-		
-		okButton = createButton(parent, IDialogConstants.OK_ID, "&Login", true);
-		okButton.setLayoutData(layoutData);		
-
-		layoutData = new GridData();
-		layoutData.widthHint = 70;
 		layoutData.horizontalAlignment = SWT.RIGHT;
 		layoutData.grabExcessHorizontalSpace = true;
 
 		Button cancelButton = createButton(parent, IDialogConstants.CANCEL_ID, "&Cancel", false);
 		cancelButton.setLayoutData(layoutData);
+
+		layoutData = new GridData();
+		layoutData.widthHint = 70;
+		layoutData.horizontalAlignment = SWT.LEFT;
+		layoutData.grabExcessHorizontalSpace = true;
+		
+		okButton = createButton(parent, IDialogConstants.OK_ID, "&Login", true);
+		okButton.setLayoutData(layoutData);		
 
 		setupDataBinding();
 	}
