@@ -149,18 +149,6 @@ public class InitServerTask extends JdbcDaoSupport {
 			// Database not created yet. Create it!
 			initDatabase();
 		}
-
-		// For development time debugging. To be removed later.
-		List<ClusterInfo> clusters = clusterDao.findAll();
-		logger.info(clusters.size());
-
-		if (clusters.size() > 0) {
-			for (ClusterInfo cluster : clusters) {
-				logger.info("Cluster: [" + cluster.getId() + "][" + cluster.getName() + "]");
-			}
-		} else {
-			
-		}
 	}
 
 	private void upgradeData(String fromVersion, String toVersion) {
