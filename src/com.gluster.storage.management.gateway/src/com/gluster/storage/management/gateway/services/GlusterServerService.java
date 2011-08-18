@@ -81,12 +81,15 @@ public class GlusterServerService {
 			// check if online server has gone offline. If yes, try again one more time.
 			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
 				// online server has gone offline! try with a different one.
-				onlineServer = clusterService.getNewOnlineServer(clusterName);	
+				onlineServer = clusterService.getNewOnlineServer(clusterName);
+				if (onlineServer == null) {
+					throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
+				}
+				glusterServers = getGlusterServers(clusterName, onlineServer, fetchDetails, maxCount, previousServerName);
+			} else {
+				throw new GlusterRuntimeException(e.getMessage());
 			}
-			if (onlineServer == null) {
-				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
-			}
-			glusterServers = getGlusterServers(clusterName, onlineServer, fetchDetails, maxCount, previousServerName);
+			
 		}
 		return glusterServers;
 	}
@@ -101,12 +104,13 @@ public class GlusterServerService {
 			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
 				// online server has gone offline! try with a different one.
 				onlineServer = clusterService.getNewOnlineServer(clusterName);
+				if (onlineServer == null) {
+					throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
+				}
+				glusterServers = glusterUtil.getGlusterServers(onlineServer);
+			} else {
+				throw new GlusterRuntimeException(e.getMessage());
 			}
-			if (onlineServer == null) {
-				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
-			}
-
-			glusterServers = glusterUtil.getGlusterServers(onlineServer);
 		}
 		
 		// skip the servers by maxCount / previousServerName
@@ -166,11 +170,13 @@ public class GlusterServerService {
 			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
 				// online server has gone offline! try with a different one.
 				onlineServer = clusterService.getNewOnlineServer(clusterName);
+				if (onlineServer == null) {
+					throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
+				}
+				server = glusterUtil.getGlusterServer(onlineServer, serverName);
+			} else {
+				throw new GlusterRuntimeException(e.getMessage());
 			}
-			if (onlineServer == null) {
-				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
-			}
-			server = glusterUtil.getGlusterServer(onlineServer, serverName);
 		}
 
 		if (fetchDetails && server.isOnline()) {
@@ -226,11 +232,13 @@ public class GlusterServerService {
 				if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
 					// online server has gone offline! try with a different one.
 					onlineServer = clusterService.getNewOnlineServer(clusterName, serverName);
+					if (onlineServer == null) {
+						throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
+					}
+					glusterUtil.removeServer(onlineServer.getName(), serverName);
+				} else {
+					throw new GlusterRuntimeException(e.getMessage());
 				}
-				if (onlineServer == null) {
-					throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
-				}
-				glusterUtil.removeServer(onlineServer.getName(), serverName);
 			}
 			
 			try {

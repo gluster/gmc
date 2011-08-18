@@ -419,17 +419,21 @@ public class VolumeSummaryView extends ViewPart {
 					VolumesClient vc = new VolumesClient();
 					Volume newVolume = new Volume();
 					String cifsUsers = cifsUsersText.getText().trim();
-					try {
-						vc.setCifsConfig(volume.getName(), cifsCheckbox.getSelection(), cifsUsers);
-						enableCifsUsersControls(false);
-						newVolume = vc.getVolume(volume.getName());
-						modelManager.volumeChanged(volume, newVolume);
-					} catch (Exception e) {
-						MessageDialog.openError(Display.getDefault().getActiveShell(), "Cifs Configuration",
-								e.getMessage());
-						cifsCheckbox.setSelection(volume.isCifsEnable());
-						enableCifsUsersControls(cifsCheckbox.getSelection());
-						populateCifsUsersText();
+					// If no cifs users and removing cifs config, nothing to do
+					if (!(!cifsCheckbox.getSelection() && volume.getCifsUsers().toString() == "[]" && (cifsUsers
+							.isEmpty() || cifsUsers.equals("")))) {
+						try {
+							vc.setCifsConfig(volume.getName(), cifsCheckbox.getSelection(), cifsUsers);
+							enableCifsUsersControls(false);
+							newVolume = vc.getVolume(volume.getName());
+							modelManager.volumeChanged(volume, newVolume);
+						} catch (Exception e) {
+							MessageDialog.openError(Display.getDefault().getActiveShell(), "Cifs Configuration",
+									e.getMessage());
+							cifsCheckbox.setSelection(volume.isCifsEnable());
+							enableCifsUsersControls(cifsCheckbox.getSelection());
+							populateCifsUsersText();
+						}
 					}
 				}
 			});
@@ -573,16 +577,23 @@ public class VolumeSummaryView extends ViewPart {
 				} else {
 					// need to disable cifs
 					// TODO: hide the textbox and the link AFTER disabling cifs
-					Integer userAction = new MessageDialog(parent.getShell(), "CIFS Re-export", GUIHelper.getInstance()
-							.getImage(IImageKeys.VOLUME_16x16),
-							"Are you sure you want to stop the CIFS re-export for volume [" + volume.getName() + "]?",
-							MessageDialog.QUESTION, new String[] { "No", "Yes" }, -1).open();
-					if (userAction <= 0) { // user select cancel or pressed escape key
-						cifsCheckbox.setSelection(true); // back to previous state.
-					} else {
+					if ((volume.getCifsUsers() == null || volume.getCifsUsers().toString().equals("[]"))
+							&& cifsUsersText.getText().trim().equals("")) {
 						showCifsUsersControls(false);
 						enableCifsUsersControls(false);
-						saveCifsConfiguration();
+					} else {
+
+						Integer userAction = new MessageDialog(parent.getShell(), "CIFS Re-export", GUIHelper
+								.getInstance().getImage(IImageKeys.VOLUME_16x16),
+								"Are you sure you want to stop the CIFS re-export for volume [" + volume.getName()
+										+ "]?", MessageDialog.QUESTION, new String[] { "No", "Yes" }, -1).open();
+						if (userAction <= 0) { // user select cancel or pressed escape key
+							cifsCheckbox.setSelection(true); // back to previous state.
+						} else {
+							showCifsUsersControls(false);
+							enableCifsUsersControls(false);
+							saveCifsConfiguration();
+						}
 					}
 				}
 				populateCifsUsersText();
@@ -660,11 +671,6 @@ public class VolumeSummaryView extends ViewPart {
 
 	private void updateBrickChanges(Volume volume) {
 		numberOfBricks.setText("" + volume.getNumOfBricks());
-		Double replicaCount = 1d;
-		if (volume.getVolumeType() == VOLUME_TYPE.REPLICATE
-				|| volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_REPLICATE) {
-			replicaCount = (double) volume.getReplicaCount();
-		}
 		totalDiskSpace.setText("" + NumberUtil.formatNumber(getTotalDiskSpace() / 1024));
 	}
 
@@ -729,12 +735,6 @@ public class VolumeSummaryView extends ViewPart {
 	private void createDiskSpaceField(Composite section) {
 		Label diskSpaceLabel = toolkit.createLabel(section, "Total Disk Space (GB): ", SWT.NONE);
 		diskSpaceLabel.setToolTipText("<b>bold</b>normal");
-		Double replicaCount = 1d;
-		if (volume.getVolumeType() == VOLUME_TYPE.REPLICATE
-				|| volume.getVolumeType() == VOLUME_TYPE.DISTRIBUTED_REPLICATE) {
-			// replicaCount = (double) volume.getReplicaCount();
-			replicaCount = (double) Volume.DEFAULT_REPLICA_COUNT;
-		}
 		totalDiskSpace = toolkit.createLabel(section,
 				"" + NumberUtil.formatNumber(getTotalDiskSpace() / 1024), SWT.NONE);
 		toolkit.createLabel(section, "", SWT.NONE); // dummy

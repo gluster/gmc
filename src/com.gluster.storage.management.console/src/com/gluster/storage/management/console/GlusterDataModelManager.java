@@ -631,7 +631,7 @@ public class GlusterDataModelManager {
 	public List<Device> getReadyDevicesOfServer(String serverName, List<Device> excludeDevices) {
 		List<Device> devices = new ArrayList<Device>();
 		GlusterServer server = model.getCluster().getServer(serverName);
-		if (!server.isOnline()) {
+		if (server == null || !server.isOnline()) {
 			return devices;
 		}
 		for (Disk disk : server.getDisks()) {

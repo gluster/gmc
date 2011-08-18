@@ -72,6 +72,8 @@ public class RebalanceVolumeTask extends Task {
 				// online server might have gone offline. try with a new one
 				serverName = getNewOnlineServer().getName();
 				startRebalance(serverName);
+			} else {
+				throw new GlusterRuntimeException(e.getMessage());
 			}
 		}
 	}
@@ -98,6 +100,8 @@ public class RebalanceVolumeTask extends Task {
 			if (e instanceof ConnectionException || serverUtil.isServerOnline(getOnlineServer()) == false) {
 				// online server might have gone offline. update the failure status
 				getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_FAILURE, e.getMessage())));
+			} else {
+				throw new GlusterRuntimeException(e.getMessage());
 			}
 		}
 	}
