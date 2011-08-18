@@ -25,6 +25,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.ContextLoader;
 
 import com.gluster.storage.management.core.exceptions.ConnectionException;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.core.model.TaskStatus;
@@ -99,6 +100,8 @@ public class MigrateBrickTask extends Task {
 			if (e instanceof ConnectionException || serverUtil.isServerOnline(getOnlineServer()) == false) {
 				// online server might have gone Offline. try with a new one.
 				startMigration(getNewOnlineServer().getName());
+			} else {
+				throw new GlusterRuntimeException(e.getMessage());
 			}
 		}
 	}
@@ -123,6 +126,8 @@ public class MigrateBrickTask extends Task {
 			if (e instanceof ConnectionException || serverUtil.isServerOnline(getOnlineServer()) == false) {
 				// online server might have gone offline. try with a new one.
 				pauseMigration(getNewOnlineServer().getName());
+			} else {
+				throw new GlusterRuntimeException(e.getMessage());
 			}
 		}
 	}
@@ -154,6 +159,8 @@ public class MigrateBrickTask extends Task {
 			if (e instanceof ConnectionException || serverUtil.isServerOnline(getOnlineServer()) == false) {
 				// online server might have gone offline. try with a new one.
 				commitMigration(getNewOnlineServer().getName());
+			} else {
+				throw new GlusterRuntimeException(e.getMessage());
 			}
 		}
 	}
@@ -181,6 +188,8 @@ public class MigrateBrickTask extends Task {
 			if (e instanceof ConnectionException || serverUtil.isServerOnline(getOnlineServer()) == false) {
 				// online server might have gone offline. try with a new one.
 				stopMigration(getNewOnlineServer().getName());
+			} else {
+				throw new GlusterRuntimeException(e.getMessage());
 			}
 		}
 	}
@@ -206,7 +215,7 @@ public class MigrateBrickTask extends Task {
 			if (e instanceof ConnectionException || serverUtil.isServerOnline(getOnlineServer()) == false) {
 				// online server might have gone offline. try with a new one.
 				return checkMigrationStatus(getNewOnlineServer().getName());
-			}
+			} 
 		}
 		return null;
 	}
