@@ -80,6 +80,7 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.exceptions.GlusterValidationException;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.VolumeLogMessage;
 import com.gluster.storage.management.core.response.LogMessageListResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
@@ -215,7 +216,10 @@ public class VolumesResource extends AbstractResource {
 					volumeService.startCifsReExport(clusterName, volumeName);
 				} else {
 					// Stop the Cifs service and delete the users (!important)
-					volumeService.stopCifsReExport(clusterName, volumeName);
+					Volume newVolume = volumeService.getVolume(clusterName, volumeName);
+					if (newVolume.getStatus() == VOLUME_STATUS.ONLINE) {
+						volumeService.stopCifsReExport(clusterName, volumeName);
+					}
 					volumeService.deleteCifsUsers(clusterName, volumeName);
 				}
 			} else {
