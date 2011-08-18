@@ -26,8 +26,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.custom.BusyIndicator;
-import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.console.GlusterDataModelManager;
@@ -42,7 +40,6 @@ public class StopVolumeAction extends AbstractMonitoredActionDelegate {
 	private List<Volume> selectedVolumes = new ArrayList<Volume>();
 	private List<String> selectedVolumeNames = new ArrayList<String>();
 	private List<String> onlineVolumeNames = new ArrayList<String>();
-	private GUIHelper guiHelper = GUIHelper.getInstance();
 	
 	@Override
 	protected void performAction(final IAction action, IProgressMonitor monitor) {
@@ -82,9 +79,7 @@ public class StopVolumeAction extends AbstractMonitoredActionDelegate {
 				continue; // skip if already stopped
 			}
 			try {
-				String message = "Stopping volume [" + volume.getName() + "]";
-				guiHelper.setStatusMessage(message);
-				monitor.setTaskName(message);
+				monitor.setTaskName("Stopping volume [" + volume.getName() + "]");
 				vc.stopVolume(volume.getName());
 				// modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
 				stoppedVolumes.add(volume.getName());
@@ -94,7 +89,7 @@ public class StopVolumeAction extends AbstractMonitoredActionDelegate {
 				if (vc.getVolume(volume.getName()).getStatus() == VOLUME_STATUS.OFFLINE) {
 					modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
 				}
-				errorMessage += e.getMessage();
+				errorMessage += e.getMessage() + CoreConstants.NEWLINE;
 			}
 
 			// Update the model by fetching latest volume info (NOT JUST STATUS)
@@ -120,7 +115,6 @@ public class StopVolumeAction extends AbstractMonitoredActionDelegate {
 			}
 			showInfoDialog(actionDesc, info);
 		}
-		guiHelper.clearStatusMessage();
 	}
 
 	private void collectVolumeNames() {

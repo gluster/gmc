@@ -25,8 +25,6 @@ import java.util.Set;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.custom.BusyIndicator;
-import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.console.GlusterDataModelManager;
@@ -41,7 +39,6 @@ public class StartVolumeAction extends AbstractMonitoredActionDelegate {
 	private List<Volume> selectedVolumes = new ArrayList<Volume>();
 	private List<String> selectedVolumeNames = new ArrayList<String>();
 	private List<String> offlineVolumeNames = new ArrayList<String>();
-	private GUIHelper guiHelper = GUIHelper.getInstance();
 
 	@Override
 	protected void performAction(IAction action, IProgressMonitor monitor) {
@@ -70,9 +67,7 @@ public class StartVolumeAction extends AbstractMonitoredActionDelegate {
 				continue; // skip if already started
 			}
 			try {
-				String message = "Starting volume [" + volume.getName() + "]";
-				guiHelper.setStatusMessage(message);
-				monitor.setTaskName(message);
+				monitor.setTaskName("Starting volume [" + volume.getName() + "]");
 				vc.startVolume(volume.getName());
 				startedVolumes.add(volume.getName());
 			} catch (Exception e) {
@@ -81,7 +76,7 @@ public class StartVolumeAction extends AbstractMonitoredActionDelegate {
 				if (vc.getVolume(volume.getName()).getStatus() == VOLUME_STATUS.ONLINE) {
 					modelManager.updateVolumeStatus(volume, VOLUME_STATUS.ONLINE);
 				}
-				errorMessage += e.getMessage();
+				errorMessage += e.getMessage() + CoreConstants.NEWLINE;
 			}
 			// Update the model by fetching latest volume info (NOT JUST STATUS)
 			try {
@@ -96,7 +91,7 @@ public class StartVolumeAction extends AbstractMonitoredActionDelegate {
 
 		// Display the success or failure info
 		if (startedVolumes.size() == 0) { // No volume(s) started successfully
-			showErrorDialog(actionDesc, "Following volumes " + failedVolumes + " could not be start!"
+			showErrorDialog(actionDesc, "Following volumes " + failedVolumes + " could not be started!"
 					+ CoreConstants.NEWLINE + "Error: [" + errorMessage + "]");
 		} else {
 			String info = "Volumes " + startedVolumes + " started successfully!";
@@ -106,7 +101,6 @@ public class StartVolumeAction extends AbstractMonitoredActionDelegate {
 			}
 			showInfoDialog(actionDesc, info);
 		}
-		guiHelper.clearStatusMessage();
 	}
 
 	private void collectVolumeNames() {
