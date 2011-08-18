@@ -1213,30 +1213,6 @@
          </view>
          <view
                closeable="false"
-               id="com.gluster.storage.management.console.views.details.DetailsView"
-               minimized="false"
-               moveable="false"
-               ratio="0.70f"
-               relationship="right"
-               relative="com.gluster.storage.management.console.views.navigator.NavigationView"
-               showTitle="false"
-               standalone="false"
-               visible="false">
-         </view>
-         <view
-               closeable="true"
-               id="org.eclipse.ui.views.ProgressView"
-               minimized="false"
-               moveable="false"
-               ratio="0.80f"
-               relationship="bottom"
-               relative="com.gluster.storage.management.console.views.ClusterSummaryView"
-               showTitle="true"
-               standalone="true"
-               visible="false">
-         </view>
-         <view
-               closeable="false"
                id="com.gluster.storage.management.console.views.DiscoveredServersView"
                minimized="false"
                moveable="false"
@@ -1253,8 +1229,8 @@
                minimized="false"
                moveable="false"
                ratio="0.30f"
-               relationship="right"
-               relative="com.gluster.storage.management.console.views.navigator.NavigationView"
+               relationship="stack"
+               relative="com.gluster.storage.management.console.views.ClusterSummaryView"
                showTitle="true"
                standalone="false"
                visible="false">
