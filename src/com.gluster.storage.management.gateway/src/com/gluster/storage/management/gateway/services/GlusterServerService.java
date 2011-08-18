@@ -18,8 +18,12 @@
  *******************************************************************************/
 package com.gluster.storage.management.gateway.services;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Vector;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -117,7 +121,7 @@ public class GlusterServerService {
 		glusterServers = GlusterCoreUtil.skipEntities(glusterServers, maxCount, previousServerName);
 		
 		if (fetchDetails) {
-			String errMsg = fetchDetailsOfServers(glusterServers, onlineServer);
+			String errMsg = fetchDetailsOfServers(glusterServers);
 			if (!errMsg.isEmpty()) {
 				throw new GlusterRuntimeException("Couldn't fetch details for server(s): " + errMsg);
 			}
@@ -125,17 +129,96 @@ public class GlusterServerService {
 		return glusterServers;
 	}
 
-	private String fetchDetailsOfServers(List<GlusterServer> glusterServers, GlusterServer onlineServer) {
-		String errMsg = "";
-
-		for (GlusterServer server : glusterServers) {
-			try {
-				fetchServerDetails(server);
-			} catch (Exception e) {
-				errMsg += CoreConstants.NEWLINE + server.getName() + " : [" + e.getMessage() + "]";
-			}
+	private String fetchDetailsOfServers(List<GlusterServer> glusterServers) {
+		try {
+			return new ServerDetailsThread(glusterServers).fetchDetails();
+		} catch(InterruptedException e) {
+			throw new GlusterRuntimeException("Exception while fetching details of servers! Error: [" + e.getMessage()
+					+ "]", e);
 		}
-		return errMsg;
+//		String errMsg = "";
+//
+//		for (GlusterServer server : glusterServers) {
+//			try {
+//				fetchServerDetails(server);
+//			} catch (Exception e) {
+//				errMsg += CoreConstants.NEWLINE + server.getName() + " : [" + e.getMessage() + "]";
+//			}
+//		}
+//		return errMsg;
+	}
+	
+	public class ServerDetailsThread extends Thread {
+		private List<String> errors;
+		private List<GlusterServer> glusterServers;
+		private GlusterServer server;
+		private final Logger logger = Logger.getLogger(ServerDetailsThread.class);
+
+		/**
+		 * This constructor should be called by clients that need to fetch details of the servers in parallel
+		 * @param glusterServers
+		 */
+		public ServerDetailsThread(List<GlusterServer> glusterServers) {
+			// create a synchronized "copy" so that the original list remains untouched
+			this(Collections.synchronizedList(new ArrayList<GlusterServer>(glusterServers)), Collections
+					.synchronizedList(new ArrayList<String>()), null);
+		}
+		
+		/**
+		 * Private constructor called on each thread
+		 * @param glusterServers
+		 * @param errors
+		 */
+		private ServerDetailsThread(List<GlusterServer> glusterServers, List<String> errors, GlusterServer server) {
+			this.glusterServers = glusterServers;
+			this.errors = errors;
+			this.server = server;
+		}
+
+		/**
+		 * Call this method to fetch details of all the servers passed in the constructor. Internally creates one thread
+		 * for each server
+		 * 
+		 * @param glusterServers
+		 * @return
+		 */
+		public String fetchDetails() throws InterruptedException {
+			for (int i = glusterServers.size()-1; i >= 0 ; i--) {
+				new ServerDetailsThread(glusterServers, errors, glusterServers.get(i)).start();
+				if(i >= 5 && i % 5 == 0) {
+					// After every 5 servers, wait for 1 second so that we don't end up with too many running threads
+					Thread.sleep(1000);
+				}
+			}
+			
+			// Wait till all servers have been processed
+			while (!glusterServers.isEmpty()) {
+				Thread.sleep(500);
+			}
+			
+			String errMsg = "";
+			for(String error : errors) {
+				if(!errMsg.isEmpty()) {
+					errMsg += CoreConstants.NEWLINE;
+				}
+				errMsg +=  error;
+			}
+			
+			return errMsg;
+		}
+		
+		@Override
+		public void run() {
+			try {
+				logger.info("fetching details of server [" + server.getName() + "] - start");
+				fetchServerDetails(server);
+				logger.info("fetching details of server [" + server.getName() + "] - end");
+			} catch (Exception e) {
+				logger.error("fetching details of server [" + server.getName() + "] - error", e);
+				errors.add(server.getName() + " : [" + e.getMessage() + "]");
+			}
+			glusterServers.remove(server);
+		}
 	}
 	
 	public GlusterServer getGlusterServer(String clusterName, String serverName, Boolean fetchDetails) {
