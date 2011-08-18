@@ -22,9 +22,8 @@ import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.swt.custom.BusyIndicator;
-import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.console.GlusterDataModelManager;
@@ -33,65 +32,63 @@ import com.gluster.storage.management.console.utils.GUIHelper;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Server;
 
-public class AddServerAction extends AbstractActionDelegate {
+public class AddServerAction extends AbstractMonitoredActionDelegate {
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 	
 	@Override
-	protected void performAction(final IAction action) {
-		final Runnable addServerThread = new Runnable() {
-			@Override
-			public void run() {
-				GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
-				GlusterServersClient glusterServersClient = new GlusterServersClient();
+	protected void performAction(final IAction action, IProgressMonitor monitor) {
+		GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+		GlusterServersClient glusterServersClient = new GlusterServersClient();
 
-				Set<Server> selectedServers = GUIHelper.getInstance().getSelectedEntities(getWindow(), Server.class);
-				Set<Server> successServers = new HashSet<Server>();
-				Set<Server> partSuccessServers = new HashSet<Server>();
-				String errMsg = "";
-				String partErrMsg = "";
-				
-				if (selectedServers.isEmpty()) {
-					addServerManually();
-				} else {
-					for (Server server : selectedServers) {
-						guiHelper.setStatusMessage("Adding server [" + server.getName() + "]...");
+		Set<Server> selectedServers = GUIHelper.getInstance().getSelectedEntities(getWindow(), Server.class);
+		Set<Server> successServers = new HashSet<Server>();
+		Set<Server> partSuccessServers = new HashSet<Server>();
+		String errMsg = "";
+		String partErrMsg = "";
 
-						try {
-							URI newServerURI = glusterServersClient.addServer(server.getName());
-							modelManager.addGlusterServer(glusterServersClient.getGlusterServer(newServerURI));
-							successServers.add(server);
-						} catch (Exception e) {
-							if (!errMsg.isEmpty()) {
-								errMsg += CoreConstants.NEWLINE;
-							}
-							errMsg += "Server " + server.getName() + ". Error: [" + e.getMessage() + "]";
-						}
-					}
+		if (selectedServers.isEmpty()) {
+			monitor.beginTask("Starting Manual Server Addition", 1);
+			addServerManually();
+			monitor.worked(1);
+			monitor.done();
+			return;
+		}
+		
+		monitor.beginTask("Adding Selected Servers...", selectedServers.size());
+		for (Server server : selectedServers) {
+			if(monitor.isCanceled()) {
+				break;
+			}
+			
+			monitor.setTaskName("Adding server [" + server.getName() + "]...");
 
-					guiHelper.clearStatusMessage();
-					showStatusMessage(action.getDescription(), selectedServers, successServers, partSuccessServers,
-							errMsg, partErrMsg);
+			try {
+				URI newServerURI = glusterServersClient.addServer(server.getName());
+				modelManager.addGlusterServer(glusterServersClient.getGlusterServer(newServerURI));
+				successServers.add(server);
+			} catch (Exception e) {
+				if (!errMsg.isEmpty()) {
+					errMsg += CoreConstants.NEWLINE;
 				}
+				errMsg += "Server " + server.getName() + ". Error: [" + e.getMessage() + "]";
 			}
+			monitor.worked(1);
+		}
+		monitor.done();
 
-			private void addServerManually() {
-				try {
-					// To open a dialog for server addition
-					ServerAdditionDialog dialog = new ServerAdditionDialog(getShell());
-					dialog.open();
-				} catch (Exception e) {
-					logger.error("Error in Manual server addition", e);
-					showErrorDialog("Add server", "Add server failed! [" + e.getMessage() + "]");
-				}
-			}
-		};
+		showStatusMessage(action.getDescription(), selectedServers, successServers, partSuccessServers, errMsg,
+				partErrMsg);
+	}
 
-		BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
-			@Override
-			public void run() {
-				Display.getDefault().asyncExec(addServerThread);
-			}
-		});
+	private void addServerManually() {
+		try {
+			// To open a dialog for server addition
+			ServerAdditionDialog dialog = new ServerAdditionDialog(getShell());
+			dialog.open();
+		} catch (Exception e) {
+			logger.error("Error in Manual server addition", e);
+			showErrorDialog("Add server", "Add server failed! [" + e.getMessage() + "]");
+		}
 	}
 
 	private void showStatusMessage(String dialogTitle, Set<Server> selectedServers, Set<Server> successServers,

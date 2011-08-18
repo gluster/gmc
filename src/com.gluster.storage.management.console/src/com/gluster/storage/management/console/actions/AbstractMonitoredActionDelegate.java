@@ -26,15 +26,12 @@ import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 
 import com.gluster.storage.management.console.ConsoleConstants;
-import com.gluster.storage.management.console.utils.GlusterLogger;
 
 /**
  * Any action that can potentially run for a long time, and supports monitoring and progress dialog should extend from
  * this class
  */
 public abstract class AbstractMonitoredActionDelegate extends AbstractActionDelegate {
-	private GlusterLogger logger = GlusterLogger.getInstance();
-	
 	/* (non-Javadoc)
 	 * @see com.gluster.storage.management.console.actions.AbstractActionDelegate#performAction(org.eclipse.jface.action.IAction)
 	 */

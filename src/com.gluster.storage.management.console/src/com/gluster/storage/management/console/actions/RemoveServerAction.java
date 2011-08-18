@@ -25,10 +25,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.custom.BusyIndicator;
-import org.eclipse.swt.widgets.Display;
 
 import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.console.GlusterDataModelManager;
@@ -36,63 +35,52 @@ import com.gluster.storage.management.console.utils.GUIHelper;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.GlusterServer;
 
-public class RemoveServerAction extends AbstractActionDelegate {
+public class RemoveServerAction extends AbstractMonitoredActionDelegate {
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 
 	@Override
-	protected void performAction(final IAction action) {
-		final Runnable removeServerThread = new Runnable() {
-			@Override
-			public void run() {
-				final String actionDesc = action.getDescription();
+	protected void performAction(final IAction action, IProgressMonitor monitor) {
+		final String actionDesc = action.getDescription();
 
-				Set<GlusterServer> selectedServers = guiHelper.getSelectedEntities(getWindow(),
-						GlusterServer.class);
+		Set<GlusterServer> selectedServers = guiHelper.getSelectedEntities(getWindow(), GlusterServer.class);
 
-				if (!validate(action, selectedServers)) {
-					return;
+		if (!validate(action, selectedServers)) {
+			return;
+		}
+
+		boolean confirmed = showConfirmDialog(actionDesc, "Are you sure you want to remove the server(s) "
+				+ selectedServers + " ?");
+		if (!confirmed) {
+			return;
+		}
+
+		Set<GlusterServer> successServers = new HashSet<GlusterServer>();
+		String errMsg = "";
+		monitor.beginTask("Removing Selected Servers...", selectedServers.size());
+		for (GlusterServer server : selectedServers) {
+			monitor.setTaskName("Removing server [" + server.getName() + "]...");
+
+			GlusterServersClient client = new GlusterServersClient();
+			try {
+				client.removeServer(server.getName());
+				GlusterServer glusterServer = (GlusterServer) server;
+				modelManager.removeGlusterServer(glusterServer);
+				successServers.add(server);
+			} catch (Exception e) {
+				if (!serverExists(server.getName())) {
+					modelManager.removeGlusterServer((GlusterServer) server);
+					successServers.add(server);
 				}
-
-				boolean confirmed = showConfirmDialog(actionDesc, "Are you sure you want to remove the server(s) "
-						+ selectedServers + " ?");
-				if (!confirmed) {
-					return;
-				}
-
-				Set<GlusterServer> successServers = new HashSet<GlusterServer>();
-				String errMsg = "";
-				for (GlusterServer server : selectedServers) {
-					guiHelper.setStatusMessage("Removing server [" + server.getName() + "]...");
-
-					GlusterServersClient client = new GlusterServersClient();
-					try {
-						client.removeServer(server.getName());
-						GlusterServer glusterServer = (GlusterServer) server;
-						modelManager.removeGlusterServer(glusterServer);
-						successServers.add(server);
-					} catch (Exception e) {
-						if (!isServerExist(server.getName())) {
-							modelManager.removeGlusterServer((GlusterServer) server);
-							successServers.add(server);
-						}
-						errMsg += "[" + server.getName() + "] : " + e.getMessage();
-					}
-				}
-				guiHelper.clearStatusMessage();
-				showStatusMessage(action.getDescription(), selectedServers, successServers, errMsg);
+				errMsg += "[" + server.getName() + "] : " + e.getMessage() + CoreConstants.NEWLINE;
 			}
-		};
-		
-		BusyIndicator.showWhile(Display.getDefault(), new Runnable() {			
-			@Override
-			public void run() {
-				Display.getDefault().asyncExec(removeServerThread);
-			}
-		});
+			monitor.worked(1);
+		}
+		monitor.done();
+		showStatusMessage(action.getDescription(), selectedServers, successServers, errMsg);
 	}
 
-	private Boolean isServerExist(String serverName) {
+	private Boolean serverExists(String serverName) {
 		try {
 			GlusterServersClient client = new GlusterServersClient();
 			GlusterServer server = client.getGlusterServer(serverName);
