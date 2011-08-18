@@ -22,6 +22,9 @@
   <listener>
     <listener-class>org.springframework.web.context.request.RequestContextListener</listener-class>
   </listener>
+  <listener>
+  	<listener-class>com.gluster.storage.management.gateway.listeners.ShutdownListener</listener-class>
+  </listener>
   <servlet>
     <servlet-name>gluster-resources-1.0</servlet-name>
     <servlet-class>com.sun.jersey.spi.spring.container.servlet.SpringServlet</servlet-class>
