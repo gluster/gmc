@@ -43,6 +43,7 @@ import com.gluster.storage.management.core.exceptions.GlusterValidationException
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
@@ -253,7 +254,9 @@ public class VolumeService {
 			File serversFile = new File(clusterServersListFile);
 			FileOutputStream fos = new FileOutputStream(serversFile);
 			for (GlusterServer server : glusterServers) {
-				fos.write((server.getName() + CoreConstants.NEWLINE).getBytes());
+				if (server.getStatus() == SERVER_STATUS.ONLINE) {
+					fos.write((server.getName() + CoreConstants.NEWLINE).getBytes());
+				}
 			}
 			fos.close();
 			return serversFile;
@@ -354,13 +357,12 @@ public class VolumeService {
 	
 	// To clear all the volume CIFS configurations from the server
 	public void clearCifsConfiguration(String clusterName, String onlineServerName, String serverName) {
-		VolumeService volumeService = new VolumeService();
 		File volumesFile = createOnlineVolumeList(clusterName, onlineServerName);
 		if (volumesFile == null) {
 			return;
 		}
 		try {
-			volumeService.removeServerVolumeCifsConfig(serverName, volumesFile.getAbsolutePath());
+			removeServerVolumeCifsConfig(serverName, volumesFile.getAbsolutePath());
 			volumesFile.delete();
 		} catch(Exception e) {
 			volumesFile.delete();
@@ -374,7 +376,7 @@ public class VolumeService {
 				+ ALL_ONLINE_VOLUMES_FILE_NAME + "_" + timestamp;
 		try {
 			List<Volume> volumes = getVolumes(clusterName);
-			if (volumes.size() == 0) {
+			if (volumes == null || volumes.size() == 0) {
 				return null;
 			}
 			File volumesFile = new File(volumeListFileName);
