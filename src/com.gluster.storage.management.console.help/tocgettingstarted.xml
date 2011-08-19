@@ -1,10 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?NLS TYPE="org.eclipse.help.toc"?>
 
-<toc label="Getting Started" link_to="toc.xml#gettingstarted"> 
-	<topic label="Exploring Gluster Management Console" href="html/gettingstarted/explore_gmc.html" />
-	<topic label="Monitoring Resources" href="html/gettingstarted/monitor_resources.html" />
-	<topic label="Change Administrator's Password" href="html/gettingstarted/change_password.html" />
+<toc label="Getting Started" link_to="toc.xml#gettingstarted">
+   <topic label="Preparing to Install Gluster Management Gateway">
+      <topic href="html/gettingstarted/check_req_gmg.html" label="Checking the Gluster Management Gateway Minimum Requirements">
+      </topic>
+      <topic href="html/gettingstarted/install_gmg.html" label="Installing the Gluster Management Gateway">
+      </topic>
+      <topic href="html/gettingstarted/install_gmg_backend.html" label="Installing Gluster Management Gateway Backend Packages">
+      </topic>
+   </topic>
+   <topic label="Setting up the Gluster Management Console">
+      <topic href="html/gettingstarted/check_req_client.html" label="Checking the Minimum Requirements on the Client Machine">
+      </topic>
+      <topic href="html/gettingstarted/access_gmc_jws.html" label="Accessing the Gluster Management Console Using Java Web Start">
+      </topic>
+   </topic> 
+	<topic href="html/gettingstarted/explore_gmc.html" label="Exploring Gluster Management Console">
+    <topic href="html/gettingstarted/monitor_resources.html" label="Monitoring Cluster Resources">
+    </topic>
+    <topic href="html/gettingstarted/alerts.html" label="Alerts">
+    </topic>
+    <topic label="Preferences">
+    </topic>
+    <topic label="Security Keys">
+    </topic>
+    <topic href="html/gettingstarted/change_password.html" label="Changing Administrator’s Password">
+    </topic>
+    <topic href="html/gettingstarted/resetting_pwd.html" label="Resetting the Password">
+    </topic>
+    <topic href="html/gettingstarted/cifs_service.html" label="CIFS Services">
+    </topic>
+ </topic>
  <topic href="html/gettingstarted/manage_cluster.html" label="Managing Clusters">
  </topic>
  <topic href="html/gettingstarted/manage_servers.html" label="Managing Servers">

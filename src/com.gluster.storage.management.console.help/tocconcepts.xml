@@ -4,7 +4,9 @@
 <toc label="Concepts" link_to="toc.xml#concepts">
 	<topic label="Gluster FileSystem"  href="html/concepts/gluster_fs.html">
 	<topic label="Common Cluster Terminologies"  href="html/concepts/common_terms.html" /> 
-	</topic> 
+	</topic>
+ <topic href="html/concepts/about_gmg.html" label="About Gluster Management Gateway">
+ </topic> 
 	<topic label="About Gluster Management Console"  href="html/concepts/about_gmc.html"> 
 	</topic> 
 </toc>

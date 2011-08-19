@@ -10,22 +10,22 @@
 <h1>CIFS Services</h1>
 The Common Internet File System (CIFS), also known as Server Message
 Block (SMB), is a network protocol whose most common use is sharing
-files on a Local Area Network (LAN). The protocol allows a client to
-manipulate files just as if they were on the local computer. Operations
-such as read, write, create, delete, and rename are all supported &#45;
-the only difference being that the files are not on the local computer
-and are actually on a remote server.
-<p>The CIFS protocol works by sending packets from the client to the
-server. Each packet is typically a basic request of some kind, such as
-open file, close file, or read file. The server then receives the
-packet, checks to see if the request is legal, verifies the client has
-the appropriate file permissions, and finally executes the request and
-returns a response packet to the client. The client then parses the
-response packet and can determine whether or not the initial request was
-successful.</p>
-<p>The CIFS protocol is most commonly used with Microsoft operating
-systems. Windows For Workgroups was the first Microsoft operating system
-to use CIFS, and each Microsoft operating system since then has been
-able to function as both a CIFS server and client.</p>
+files on a Local Area Network (LAN). It operates as an application-layer network protocol to provide shared access to files, printers, serial ports, and miscellaneous communications between nodes on a network. It also provides an authenticated inter-process communication mechanism. Most usage of SMB involves computers running Microsoft Windows operating system.
+
+<p>CIFS can be used as an access protocol by Microsoft Windows users to access files in a GlusterFS volume. Users will be able to perform regular file system operations such as creating files, read/write data to files, deletion of data through CIFS.</p>
+
+<h2>Configuring the CIFS Service</h2>
+<p>To configure CIFS, you must create a text file consisting of a list of servers (hostnames or IP addresses).</p>
+<p><b>Note:</b> You can configure CIFS on a fresh install or on an existing installation on the server which you have installed Gluster Management Gateway after adding the server to the cluster.</p>
+<p>Run the following command on the gateway server to configure CIFS:</p>
+<p><FONT FACE = "Courier">$ grun.py &lt;server list&gt;.txt setup_cifs_config.py</FONT></p>
+<h2>Creating CIFS Users</h2>
+<p>You must create users and their password to enable them to use the CIFS access protocol.</p>
+<p>To create CIFS users, run the following on the gateway server:</p>
+<p><FONT FACE = "Courier">$ add_user_cifs_all.py &lt;server list&gt; &lt;user list&gt; &lt;password&gt;</FONT></p>
+<h2>Removing CIFS Users</h2>
+<p>You can delete users and their password.</p>
+<p>To delete CIFS users, run the following on the gateway server:</p>
+<p><FONT FACE = "Courier">$ delete_user_cifs_all.py &lt;server list&gt; &lt;user list&gt;</FONT></p> 
 </body>
 </html>
