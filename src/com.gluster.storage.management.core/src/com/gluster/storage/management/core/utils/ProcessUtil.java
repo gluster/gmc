@@ -24,7 +24,6 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
@@ -35,18 +34,32 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
  */
 public class ProcessUtil {
 
-    private static final ProcessUtil instance = new ProcessUtil();
-
-    public ProcessResult executeCommand(List<String> command) {
+    public static ProcessResult executeCommand(List<String> command) {
         return executeCommand(true, command);
     }
+
+	/**
+	 * Waits till all the threads in given list are dead
+	 * @param threads Threads to watch
+	 * @throws InterruptedException
+	 */
+	public static void waitForThreads(List<Thread> threads) throws InterruptedException {
+		// Wait till all servers have been processed
+		for (int i = threads.size() - 1; i >= 0; i--) {
+			if (threads.get(i).isAlive()) {
+				// thread alive. sleep for half a second and check again.
+				Thread.sleep(500);
+				i++; // check the same thread in next iteration
+			}
+		}
+	}
 
     /**
      * Executes given command in a separate process in FOREGROUND
      * @param command
      * @return {@link ProcessResult} object
      */
-    public ProcessResult executeCommand(String... command) {
+    public static ProcessResult executeCommand(String... command) {
         ArrayList<String> commandList = new ArrayList<String>();
         for (String part : command) {
             commandList.add(part);
@@ -61,7 +74,7 @@ public class ProcessUtil {
      * @param command
      * @return {@link ProcessResult} object
      */
-    public ProcessResult executeCommand(boolean runInForeground, List<String> command) {
+    public static ProcessResult executeCommand(boolean runInForeground, List<String> command) {
         StringBuilder output = new StringBuilder();
         try {
             Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
@@ -88,11 +101,5 @@ public class ProcessUtil {
 			throw new GlusterRuntimeException("Exception while executing command [" + command + "] : ["
 					+ e.getMessage() + "]", e);
         }
-    }
-
-    public static void main(String args[]) {
-        ProcessResult result = new ProcessUtil().executeCommand("ls", "-lrt", "/");
-        System.out.println(result.getExitValue());
-        System.out.println(result.getOutput());
     }
 }

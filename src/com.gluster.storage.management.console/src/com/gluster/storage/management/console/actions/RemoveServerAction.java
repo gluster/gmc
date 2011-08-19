@@ -70,7 +70,6 @@ public class RemoveServerAction extends AbstractMonitoredActionDelegate {
 			} catch (Exception e) {
 				if (!serverExists(server.getName())) {
 					modelManager.removeGlusterServer((GlusterServer) server);
-					successServers.add(server);
 				}
 				errMsg += "[" + server.getName() + "] : " + e.getMessage() + CoreConstants.NEWLINE;
 			}
@@ -98,7 +97,7 @@ public class RemoveServerAction extends AbstractMonitoredActionDelegate {
 			String errMsg) {
 		if (successServers.size() == selectedServers.size()) {
 			if(selectedServers.size() == 1) {
-				showInfoDialog(dialogTitle, "Server [" + selectedServers.iterator().next() + "] removed successfully!" + CoreConstants.NEWLINE + errMsg);
+				showInfoDialog(dialogTitle, "Server [" + selectedServers.iterator().next() + "] removed successfully!");
 			} else {
 				showInfoDialog(dialogTitle, "Following servers removed successfully: " + CoreConstants.NEWLINE
 						+ selectedServers + CoreConstants.NEWLINE + errMsg);
