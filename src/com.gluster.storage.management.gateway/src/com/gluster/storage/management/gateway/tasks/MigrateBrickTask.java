@@ -41,8 +41,6 @@ public class MigrateBrickTask extends Task {
 	private String toBrick;
 	private Boolean autoCommit;
 	private GlusterUtil glusterUtil;
-	
-	@Autowired
 	protected ServerUtil serverUtil;
 
 	public String getFromBrick() {
@@ -83,6 +81,7 @@ public class MigrateBrickTask extends Task {
 	private void init() {
 		ApplicationContext ctx = ContextLoader.getCurrentWebApplicationContext();
 		glusterUtil = ctx.getBean(GlusterUtil.class);
+		serverUtil = ctx.getBean(ServerUtil.class);
 	}
 
 	@Override

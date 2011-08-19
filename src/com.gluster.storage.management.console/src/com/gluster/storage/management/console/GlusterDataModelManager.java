@@ -602,13 +602,13 @@ public class GlusterDataModelManager {
 		return brickDevice;
 	}
 	
-	public List<Device> getReadyDevicesOfVolume(Volume volume) {
+	public List<Device> getDevicesOfVolume(Volume volume) {
 		Device device = null;
 		List<Device> volumeDevices = new ArrayList<Device>();
 		for (Brick brick : volume.getBricks()) {
 			// device = getDevice(brick.getServerName(), brick.getDeviceName());
 			device = getDeviceForBrickDir(brick);
-			if (device != null && device.isReady()) {
+			if (device != null) {
 				volumeDevices.add(device);
 			}
 		}
