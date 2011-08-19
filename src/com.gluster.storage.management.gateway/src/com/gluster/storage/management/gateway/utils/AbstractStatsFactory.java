@@ -69,20 +69,16 @@ public abstract class AbstractStatsFactory implements StatsFactory {
 		int columnCount = aggregatedStats.getMetadata().getLegend().size();
 		int[][] dataCount = initDataCountArray(rowCount, columnCount);
 		
-		for (String serverName : serverNames) {
-			try {
-				// fetch the stats and add to aggregated stats
-				addServerStats(fetchStats(serverName, period), aggregatedStats, dataCount);
-			} catch(Exception e) {
-				// server might be offline - continue with next one
-				logger.warn("Couldn't fetch performance stats from server [" + serverName + "]!", e);
-				continue;
-			}
+		List<ServerStats> allStats = serverUtil.executeScriptOnServers(serverNames, getStatsScriptName() + " " + period, ServerStats.class, false);
+
+		for (ServerStats stats : allStats) {
+			// add to aggregated stats
+			addServerStats(stats, aggregatedStats, dataCount);
 		}
 		
 		averageAggregatedStats(aggregatedStats, dataCount);
 	}
-
+	
 	/**
 	 * 
 	 * @param statsToBeAdded

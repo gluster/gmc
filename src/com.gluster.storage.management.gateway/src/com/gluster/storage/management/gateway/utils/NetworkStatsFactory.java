@@ -18,6 +18,8 @@
  *******************************************************************************/
 package com.gluster.storage.management.gateway.utils;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -28,6 +30,7 @@ import com.gluster.storage.management.core.model.NetworkInterface;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.ServerStats;
 import com.gluster.storage.management.core.model.ServerStatsRow;
+import com.gluster.storage.management.core.utils.ProcessUtil;
 
 /**
  *
@@ -85,23 +88,64 @@ public class NetworkStatsFactory extends AbstractStatsFactory {
 			return;
 		}
 		
-		for (String serverName : serverNames) {
+		List<ServerStats> statsList = Collections.synchronizedList(new ArrayList<ServerStats>());
+		try {
+			List<Thread> threads = createThreads(serverNames, period, statsList);
+			ProcessUtil.waitForThreads(threads);
+			for(ServerStats stats : statsList) {
+				addServerStats(stats, aggregatedStats, dataCount);
+			}
+		} catch (InterruptedException e) {
+			String errMsg = "Exception while aggregating network statistics on servers [" + serverNames
+					+ "] for period [" + period + "]! Error: [" + e.getMessage() + "]";
+			logger.error(errMsg, e);
+			throw new GlusterRuntimeException(errMsg, e);
+		}
+		
+		averageAggregatedStats(aggregatedStats, dataCount);
+	}
+	
+	private <T> List<Thread> createThreads(List<String> serverNames, String period, List<ServerStats> statsList)
+			throws InterruptedException {
+		List<Thread> threads = new ArrayList<Thread>();
+		for (int i = serverNames.size()-1; i >= 0 ; i--) {
+			Thread thread = new NetworkStatsThread(serverNames.get(i), period, statsList);
+			threads.add(thread);
+			thread.start();
+			if(i >= 5 && i % 5 == 0) {
+				// After every 5 servers, wait for 1 second so that we don't end up with too many running threads
+				Thread.sleep(1000);
+			}
+		}
+		return threads;
+	}
+
+	public class NetworkStatsThread extends Thread {
+		private String serverName;
+		private String period;
+		private List<ServerStats> statsList;
+		
+		public NetworkStatsThread(String serverName, String period, List<ServerStats> statsList) {
+			this.serverName = serverName;
+			this.period = period;
+			this.statsList = statsList;
+		}
+		
+		@Override
+		public void run() {
 			try {
 				Server server = new Server(serverName);
 				serverUtil.fetchServerDetails(server);
 				
 				for (NetworkInterface networkInterface : server.getNetworkInterfaces()) {
 					// fetch the stats and add to aggregated stats
-					addServerStats(fetchStats(serverName, period, networkInterface.getName()), aggregatedStats, dataCount);
+					statsList.add(fetchStats(serverName, period, networkInterface.getName()));
 				}
 			} catch(Exception e) {
 				// server might be offline - continue with next one
 				logger.warn("Couldn't fetch Network stats from server [" + serverName + "]!", e);
-				continue;
 			}
 		}
-		
-		averageAggregatedStats(aggregatedStats, dataCount);
 	}
 	
 	@Override
