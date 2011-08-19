@@ -91,17 +91,11 @@ public class GlusterServersResource extends AbstractResource {
 	public static final String HOSTNAMETAG = "hostname:";
 
 	@InjectParam
-	private DiscoveredServersResource discoveredServersResource;
-
-	@InjectParam
 	private TasksResource taskResource;
 
 	@InjectParam
 	private ClusterService clusterService;
 
-	@InjectParam
-	private SshUtil sshUtil;
-	
 	@InjectParam
 	private CpuStatsFactory cpuStatsFactory;
 
@@ -110,12 +104,6 @@ public class GlusterServersResource extends AbstractResource {
 	
 	@InjectParam
 	private NetworkStatsFactory networkStatsFactory;
-	
-	@InjectParam
-	private ServerUtil serverUtil;
-	
-	@InjectParam
-	private GlusterUtil glusterUtil;
 	
 	@InjectParam
 	private GlusterServerService glusterServerService;
@@ -204,86 +192,10 @@ public class GlusterServersResource extends AbstractResource {
 		}
 	}
 
-	private void performAddServer(String clusterName, String serverName) {
-		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
-		if (onlineServer == null) {
-			throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
-		}
-
-		try {
-			glusterUtil.addServer(onlineServer.getName(), serverName);
-		} catch (Exception e) {
-			// check if online server has gone offline. If yes, try again one more time.
-			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
-				// online server has gone offline! try with a different one.
-				onlineServer = clusterService.getNewOnlineServer(clusterName);
-				if (onlineServer == null) {
-					throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
-				}
-				glusterUtil.addServer(onlineServer.getName(), serverName);
-			} else {
-				throw new GlusterRuntimeException(e.getMessage());
-			}
-		}
-	}
-
 	@POST
 	public Response addServer(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName,
 			@FormParam(FORM_PARAM_SERVER_NAME) String serverName) {
-		if (clusterName == null || clusterName.isEmpty()) {
-			return badRequestResponse("Cluster name must not be empty!");
-		}
-
-		if (serverName == null || serverName.isEmpty()) {
-			return badRequestResponse("Parameter [" + FORM_PARAM_SERVER_NAME + "] is missing in request!");
-		}
-
-		ClusterInfo cluster = clusterService.getCluster(clusterName);
-		if (cluster == null) {
-			return notFoundResponse("Cluster [" + clusterName + "] not found!");
-		}
-
-		boolean publicKeyInstalled = sshUtil.isPublicKeyInstalled(serverName);
-		if (!publicKeyInstalled && !sshUtil.hasDefaultPassword(serverName)) {
-			// public key not installed, default password doesn't work. return with error.
-			return errorResponse("Gluster Management Gateway uses the default password to set up keys on the server."
-					+ CoreConstants.NEWLINE + "However it seems that the password on server [" + serverName
-					+ "] has been changed manually." + CoreConstants.NEWLINE
-					+ "Please reset it back to the standard default password and try again.");
-		}
-
-		String hostName = serverUtil.fetchHostName(serverName);
-		List<ServerInfo> servers = cluster.getServers();
-		if (servers != null && !servers.isEmpty()) {
-			// cluster has at least one existing server, so that peer probe can be performed
-			performAddServer(clusterName, hostName);
-		} else {
-			// this is the first server to be added to the cluster, which means no
-			// gluster CLI operation required. just add it to the cluster-server mapping
-		}
-
-		try {
-			// add the cluster-server mapping
-			clusterService.mapServerToCluster(clusterName, hostName);
-		} catch (Exception e) {
-			return errorResponse(e.getMessage());
-		}
-
-		// since the server is added to a cluster, it should not more be considered as a
-		// discovered server available to other clusters
-		discoveredServersResource.removeDiscoveredServer(hostName);
-
-		if (!publicKeyInstalled) {
-			try {
-				// install public key (this will also disable password based ssh login)
-				sshUtil.installPublicKey(hostName);
-			} catch (Exception e) {
-				return errorResponse("Public key could not be installed on [" + hostName + "]! Error: ["
-						+ e.getMessage() + "]");
-			}
-		}
-
-		return createdResponse(hostName);
+		return createdResponse(glusterServerService.addServerToCluster(clusterName, serverName));
 	}
 
 	@DELETE

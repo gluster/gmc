@@ -35,8 +35,8 @@ import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.gateway.data.ClusterInfo;
 import com.gluster.storage.management.gateway.data.PersistenceDao;
 import com.gluster.storage.management.gateway.data.ServerInfo;
-import com.gluster.storage.management.gateway.resources.v1_0.DiscoveredServersResource;
 import com.gluster.storage.management.gateway.services.ClusterService;
+import com.gluster.storage.management.gateway.services.DiscoveredServerService;
 import com.gluster.storage.management.gateway.services.GlusterServerService;
 import com.gluster.storage.management.gateway.utils.ServerUtil;
 
@@ -54,7 +54,7 @@ public class ServerSyncTask {
 	private ServerUtil serverUtil;
 	
 	@Autowired
-	private DiscoveredServersResource discoveredServersResource;
+	private DiscoveredServerService discoveredServersService;
 	
 	@Autowired
 	private GlusterServerService glusterServerService;
@@ -163,6 +163,6 @@ public class ServerSyncTask {
 			}
 		}
 		
-		discoveredServersResource.setDiscoveredServerNames(serverNameList);
+		discoveredServersService.setDiscoveredServerNames(serverNameList);
 	}
 }

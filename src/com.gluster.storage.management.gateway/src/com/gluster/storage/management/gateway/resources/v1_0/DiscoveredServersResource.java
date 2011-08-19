@@ -22,7 +22,6 @@ import static com.gluster.storage.management.core.constants.RESTConstants.PATH_P
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DETAILS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_DISCOVERED_SERVERS;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.GET;
@@ -33,14 +32,12 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.response.ServerListResponse;
 import com.gluster.storage.management.core.response.ServerNameListResponse;
-import com.gluster.storage.management.gateway.utils.GlusterUtil;
-import com.gluster.storage.management.gateway.utils.ServerUtil;
+import com.gluster.storage.management.gateway.services.DiscoveredServerService;
 import com.sun.jersey.api.core.InjectParam;
 import com.sun.jersey.spi.resource.Singleton;
 
@@ -49,33 +46,8 @@ import com.sun.jersey.spi.resource.Singleton;
 @Path(RESOURCE_PATH_DISCOVERED_SERVERS)
 public class DiscoveredServersResource extends AbstractResource {
 	@InjectParam
-	protected ServerUtil serverUtil;
+	private DiscoveredServerService discoveredServerService;
 	
-	@InjectParam
-	protected GlusterUtil glusterUtil;
-	
-	private List<String> discoveredServerNames = new ArrayList<String>();
-	
-	private static final Logger logger = Logger.getLogger(DiscoveredServersResource.class);
-	
-	public List<String> getDiscoveredServerNames() {
-		return discoveredServerNames;
-	}
-	
-	public void setDiscoveredServerNames(List<String> discoveredServerNames) {
-		synchronized (discoveredServerNames) {
-			this.discoveredServerNames = discoveredServerNames;
-		}
-	}
-	
-	public void removeDiscoveredServer(String serverName) {
-		discoveredServerNames.remove(serverName);
-	}
-	
-	public void addDiscoveredServer(String serverName) {
-		discoveredServerNames.add(serverName);
-	}
-
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
 	public Response getDiscoveredServersXML(@QueryParam(QUERY_PARAM_DETAILS) Boolean details) {
@@ -91,29 +63,16 @@ public class DiscoveredServersResource extends AbstractResource {
 	private Response getDiscoveredServersResponse(Boolean details, String mediaType) {
 		if(details != null && details == true) {
 			try {
-				List<Server> discoveredServers = getDiscoveredServerDetails();
+				List<Server> discoveredServers = discoveredServerService.getDiscoveredServerDetails();
 				return okResponse(new ServerListResponse(discoveredServers), mediaType);
 			} catch(Exception e) {
 				return errorResponse(e.getMessage());
 			}
 		} else {		
-			return okResponse(new ServerNameListResponse(getDiscoveredServerNames()), mediaType);
+			return okResponse(new ServerNameListResponse(discoveredServerService.getDiscoveredServerNames()), mediaType);
 		}
 	}
 
-	private List<Server> getDiscoveredServerDetails() {
-		List<Server> discoveredServers = new ArrayList<Server>();
-		for (String serverName : getDiscoveredServerNames()) {
-			try {
-				discoveredServers.add(getDiscoveredServer(serverName));
-			} catch(Exception e) {
-				logger.warn("Could not fetch details of discovered server [ " + serverName + "]", e);
-				// continue with next discovered server
-			}
-		}
-		return discoveredServers;
-	}
-	
 	@Path("{" + PATH_PARAM_SERVER_NAME + "}")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
@@ -133,21 +92,10 @@ public class DiscoveredServersResource extends AbstractResource {
 			return badRequestResponse("Server name must not be empty!");
 		}
 		try {
-			return okResponse(getDiscoveredServer(serverName), mediaType);
+			return okResponse(discoveredServerService.getDiscoveredServer(serverName), mediaType);
 		} catch (Exception e) {
 			// TODO: Log the exception
 			return errorResponse(e.getMessage());
 		}
-	}
-	
-	private Server getDiscoveredServer(String serverName) {
-		Server server = new Server(serverName);
-		serverUtil.fetchServerDetails(server);
-		return server;
-	}
-	
-	public static void main(String[] args) {
-		Response response = (Response)new DiscoveredServersResource().getDiscoveredServersXML(false);
-		System.out.println(response.getEntity());
 	}
 }

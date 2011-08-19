@@ -18,10 +18,11 @@
  *******************************************************************************/
 package com.gluster.storage.management.gateway.services;
 
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SERVER_NAME;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,11 +36,12 @@ import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
+import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.gluster.storage.management.gateway.data.ClusterInfo;
 import com.gluster.storage.management.gateway.data.ServerInfo;
-import com.gluster.storage.management.gateway.resources.v1_0.DiscoveredServersResource;
 import com.gluster.storage.management.gateway.utils.GlusterUtil;
 import com.gluster.storage.management.gateway.utils.ServerUtil;
+import com.gluster.storage.management.gateway.utils.SshUtil;
 
 /**
  *
@@ -56,11 +58,15 @@ public class GlusterServerService {
 	private GlusterUtil glusterUtil;
 	
 	@Autowired
+	private SshUtil sshUtil;
+
+	@Autowired
 	private VolumeService volumeService;
 	
-	// TODO: create a discovered servers "service" instead of injecting the resource directly
 	@Autowired
-	private DiscoveredServersResource discoveredServersResource;
+	private DiscoveredServerService discoveredServerService;
+	
+	private static final Logger logger = Logger.getLogger(GlusterServerService.class);
 	
 	public void fetchServerDetails(GlusterServer server) {
 		try {
@@ -121,7 +127,7 @@ public class GlusterServerService {
 		glusterServers = GlusterCoreUtil.skipEntities(glusterServers, maxCount, previousServerName);
 		
 		if (fetchDetails) {
-			String errMsg = fetchDetailsOfServers(glusterServers);
+			String errMsg = fetchDetailsOfServers(Collections.synchronizedList(glusterServers));
 			if (!errMsg.isEmpty()) {
 				throw new GlusterRuntimeException("Couldn't fetch details for server(s): " + errMsg);
 			}
@@ -131,10 +137,16 @@ public class GlusterServerService {
 
 	private String fetchDetailsOfServers(List<GlusterServer> glusterServers) {
 		try {
-			return new ServerDetailsThread(glusterServers).fetchDetails();
+			List<String> errors = Collections.synchronizedList(new ArrayList<String>());
+
+			List<Thread> threads = createThreads(glusterServers, errors);
+			ProcessUtil.waitForThreads(threads);
+			
+			return prepareErrorMessage(errors);
 		} catch(InterruptedException e) {
-			throw new GlusterRuntimeException("Exception while fetching details of servers! Error: [" + e.getMessage()
-					+ "]", e);
+			String errMsg = "Exception while fetching details of servers! Error: [" + e.getMessage() + "]";
+			logger.error(errMsg, e);
+			throw new GlusterRuntimeException(errMsg, e);
 		}
 //		String errMsg = "";
 //
@@ -147,66 +159,56 @@ public class GlusterServerService {
 //		}
 //		return errMsg;
 	}
-	
+
+	private String prepareErrorMessage(List<String> errors) {
+		String errMsg = "";
+		for(String error : errors) {
+			if(!errMsg.isEmpty()) {
+				errMsg += CoreConstants.NEWLINE;
+			}
+			errMsg +=  error;
+		}
+		
+		return errMsg;
+	}
+
+	/**
+	 * Creates threads that will run in parallel and fetch details of given gluster servers
+	 * @param discoveredServers The list to be populated with details of gluster servers
+	 * @param errors List to be populated with errors if any
+	 * @return
+	 * @throws InterruptedException
+	 */
+	private List<Thread> createThreads(List<GlusterServer> glusterServers, List<String> errors)
+			throws InterruptedException {
+		List<Thread> threads = new ArrayList<Thread>();
+		for (int i = glusterServers.size()-1; i >= 0 ; i--) {
+			Thread thread = new ServerDetailsThread(glusterServers.get(i), errors);
+			threads.add(thread);
+			thread.start();
+			if(i >= 5 && i % 5 == 0) {
+				// After every 5 servers, wait for 1 second so that we don't end up with too many running threads
+				Thread.sleep(1000);
+			}
+		}
+		return threads;
+	}
+
 	public class ServerDetailsThread extends Thread {
 		private List<String> errors;
-		private List<GlusterServer> glusterServers;
 		private GlusterServer server;
 		private final Logger logger = Logger.getLogger(ServerDetailsThread.class);
 
 		/**
-		 * This constructor should be called by clients that need to fetch details of the servers in parallel
-		 * @param glusterServers
-		 */
-		public ServerDetailsThread(List<GlusterServer> glusterServers) {
-			// create a synchronized "copy" so that the original list remains untouched
-			this(Collections.synchronizedList(new ArrayList<GlusterServer>(glusterServers)), Collections
-					.synchronizedList(new ArrayList<String>()), null);
-		}
-		
-		/**
 		 * Private constructor called on each thread
-		 * @param glusterServers
+		 * @param server The server whose details are to be fetched by this thread
 		 * @param errors
 		 */
-		private ServerDetailsThread(List<GlusterServer> glusterServers, List<String> errors, GlusterServer server) {
-			this.glusterServers = glusterServers;
+		private ServerDetailsThread(GlusterServer server, List<String> errors) {
 			this.errors = errors;
 			this.server = server;
 		}
 
-		/**
-		 * Call this method to fetch details of all the servers passed in the constructor. Internally creates one thread
-		 * for each server
-		 * 
-		 * @param glusterServers
-		 * @return
-		 */
-		public String fetchDetails() throws InterruptedException {
-			for (int i = glusterServers.size()-1; i >= 0 ; i--) {
-				new ServerDetailsThread(glusterServers, errors, glusterServers.get(i)).start();
-				if(i >= 5 && i % 5 == 0) {
-					// After every 5 servers, wait for 1 second so that we don't end up with too many running threads
-					Thread.sleep(1000);
-				}
-			}
-			
-			// Wait till all servers have been processed
-			while (!glusterServers.isEmpty()) {
-				Thread.sleep(500);
-			}
-			
-			String errMsg = "";
-			for(String error : errors) {
-				if(!errMsg.isEmpty()) {
-					errMsg += CoreConstants.NEWLINE;
-				}
-				errMsg +=  error;
-			}
-			
-			return errMsg;
-		}
-		
 		@Override
 		public void run() {
 			try {
@@ -217,7 +219,6 @@ public class GlusterServerService {
 				logger.error("fetching details of server [" + server.getName() + "] - error", e);
 				errors.add(server.getName() + " : [" + e.getMessage() + "]");
 			}
-			glusterServers.remove(server);
 		}
 	}
 	
@@ -340,7 +341,7 @@ public class GlusterServerService {
 
 			// since the server is removed from the cluster, it is now available to be added to other clusters.
 			// Hence add it back to the discovered servers list.
-			discoveredServersResource.addDiscoveredServer(serverName);
+			discoveredServerService.addDiscoveredServer(serverName);
 		}
 
 		clusterService.unmapServerFromCluster(clusterName, serverName);
@@ -353,5 +354,88 @@ public class GlusterServerService {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Adds given server to cluster and returns its host name. e.g. If serverName passed is an IP address, this method
+	 * will return the host name of the machine with given IP address.
+	 * 
+	 * @param clusterName
+	 * @param serverName
+	 * @return
+	 */
+	public String addServerToCluster(String clusterName, String serverName) {
+		if (clusterName == null || clusterName.isEmpty()) {
+			throw new GlusterValidationException("Cluster name must not be empty!");
+		}
+
+		if (serverName == null || serverName.isEmpty()) {
+			throw new GlusterValidationException("Parameter [" + FORM_PARAM_SERVER_NAME + "] is missing in request!");
+		}
+
+		ClusterInfo cluster = clusterService.getCluster(clusterName);
+		if (cluster == null) {
+			throw new GlusterValidationException("Cluster [" + clusterName + "] not found!");
+		}
+
+		boolean publicKeyInstalled = sshUtil.isPublicKeyInstalled(serverName);
+		if (!publicKeyInstalled && !sshUtil.hasDefaultPassword(serverName)) {
+			// public key not installed, default password doesn't work. return with error.
+			throw new GlusterRuntimeException("Gluster Management Gateway uses the default password to set up keys on the server."
+					+ CoreConstants.NEWLINE + "However it seems that the password on server [" + serverName
+					+ "] has been changed manually." + CoreConstants.NEWLINE
+					+ "Please reset it back to the standard default password and try again.");
+		}
+
+		String hostName = serverUtil.fetchHostName(serverName);
+		List<ServerInfo> servers = cluster.getServers();
+		if (servers != null && !servers.isEmpty()) {
+			// cluster has at least one existing server, so that peer probe can be performed
+			performAddServer(clusterName, hostName);
+		} else {
+			// this is the first server to be added to the cluster, which means no
+			// gluster CLI operation required. just add it to the cluster-server mapping
+		}
+
+		// add the cluster-server mapping
+		clusterService.mapServerToCluster(clusterName, hostName);
+
+		// since the server is added to a cluster, it should not more be considered as a
+		// discovered server available to other clusters
+		discoveredServerService.removeDiscoveredServer(hostName);
+
+		if (!publicKeyInstalled) {
+			try {
+				// install public key (this will also disable password based ssh login)
+				sshUtil.installPublicKey(hostName);
+			} catch (Exception e) {
+				throw new GlusterRuntimeException("Public key could not be installed on [" + hostName + "]! Error: ["
+						+ e.getMessage() + "]");
+			}
+		}
+		return hostName;
+	}
+
+	private void performAddServer(String clusterName, String serverName) {
+		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
+		if (onlineServer == null) {
+			throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
+		}
+
+		try {
+			glusterUtil.addServer(onlineServer.getName(), serverName);
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
+				// online server has gone offline! try with a different one.
+				onlineServer = clusterService.getNewOnlineServer(clusterName);
+				if (onlineServer == null) {
+					throw new GlusterRuntimeException("No online server found in cluster [" + clusterName + "]");
+				}
+				glusterUtil.addServer(onlineServer.getName(), serverName);
+			} else {
+				throw new GlusterRuntimeException(e.getMessage());
+			}
+		}
 	}
 }
