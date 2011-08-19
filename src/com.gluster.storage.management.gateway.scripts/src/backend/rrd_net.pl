@@ -40,7 +40,7 @@ sub updatenetdata {
 	chomp;
 	s/^\s+//;             # remove left side whitespaces
 	/:.+/ or next;        # if input line contains ':' else continue
-	next if /^lo:\s/;     # continue if input line starts with 'lo:'
+	next if /^lo:/;       # continue if input line starts with 'lo:'
 
         @tokens1 = split /:/;                 # split with ':'
 	$tokens1[1]=~s/^\s+//;                # remove left side whitespaces
