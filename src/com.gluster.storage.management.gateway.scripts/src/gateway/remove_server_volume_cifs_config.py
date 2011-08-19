@@ -64,7 +64,7 @@ def main():
     for volumeName in runningCifsVolumeList:
         if Utils.runCommand(["grun.py", tempFileName, "stop_volume_cifs.py", volumeName.strip()]) != 0:
             status = False
-        if Utils.runCommand(["grun.py", tempFileName, "delete_volume_cifs.py", volumeName.strip()]) ! 0:
+        if Utils.runCommand(["grun.py", tempFileName, "delete_volume_cifs.py", volumeName.strip()]) != 0:
             status = False
 
     try:
