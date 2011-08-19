@@ -157,8 +157,9 @@ public class ServerSyncTask {
 				// The server discovery mechanism will return every server that has not been "peer probed". However we
 				// need to filter out those servers that are the "first" server of a new cluster, and hence are still
 				// not peer probed.
-				if(!existingServers.contains(serverName)) {
-					serverNameList.add(serverName);
+				String hostName = serverUtil.fetchHostName(serverName);
+				if(!existingServers.contains(hostName)) {
+					serverNameList.add(hostName);
 				}
 			}
 		}
