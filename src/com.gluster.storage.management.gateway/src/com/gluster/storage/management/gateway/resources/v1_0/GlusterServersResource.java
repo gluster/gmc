@@ -62,7 +62,6 @@ import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.exceptions.GlusterValidationException;
 import com.gluster.storage.management.core.model.GlusterServer;
-import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.ServerStats;
 import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
@@ -71,7 +70,6 @@ import com.gluster.storage.management.gateway.data.ClusterInfo;
 import com.gluster.storage.management.gateway.data.ServerInfo;
 import com.gluster.storage.management.gateway.services.ClusterService;
 import com.gluster.storage.management.gateway.services.GlusterServerService;
-import com.gluster.storage.management.gateway.services.VolumeService;
 import com.gluster.storage.management.gateway.tasks.InitializeDiskTask;
 import com.gluster.storage.management.gateway.utils.CpuStatsFactory;
 import com.gluster.storage.management.gateway.utils.GlusterUtil;
@@ -127,8 +125,8 @@ public class GlusterServersResource extends AbstractResource {
 	private Response getGlusterServers(String clusterName, String mediaType, Boolean fetchDetails, Integer maxCount,
 			String previousServerName) {
 		if(fetchDetails == null) {
-			// by default, fetch the server details
-			fetchDetails = true;
+			// by default, fetch the server list
+			fetchDetails = false;
 		}
 		
 		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();

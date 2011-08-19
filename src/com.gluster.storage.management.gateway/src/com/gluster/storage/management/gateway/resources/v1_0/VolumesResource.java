@@ -81,6 +81,7 @@ import com.gluster.storage.management.core.exceptions.GlusterValidationException
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
+import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.model.VolumeLogMessage;
 import com.gluster.storage.management.core.response.LogMessageListResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
@@ -133,18 +134,28 @@ public class VolumesResource extends AbstractResource {
 			@FormParam(FORM_PARAM_STRIPE_COUNT) Integer stripeCount, @FormParam(FORM_PARAM_BRICKS) String bricks,
 			@FormParam(FORM_PARAM_ACCESS_PROTOCOLS) String accessProtocols,
 			@FormParam(FORM_PARAM_VOLUME_OPTIONS) String options, @FormParam(FORM_PARAM_CIFS_USERS) String cifsUsers) {
+		int count = 0;
 		if (clusterName == null || clusterName.isEmpty()) {
 			return badRequestResponse("Cluster name must not be empty!");
 		}
-		
-		String missingParam = checkMissingParamsForCreateVolume(volumeName, volumeType, transportType, replicaCount,
-				stripeCount, bricks, accessProtocols, options);
+
+		String missingParam = checkMissingParamsForCreateVolume(volumeName, volumeType, transportType, bricks,
+				accessProtocols, options);
 		if (missingParam != null) {
 			throw new GlusterValidationException("Parameter [" + missingParam + "] is missing in request!");
 		}
 
-		volumeService.createVolume(clusterName, volumeName, volumeType, transportType, replicaCount,
-				stripeCount, bricks, accessProtocols, options, cifsUsers);
+		// For missing parameter, let default value
+		if (volumeType.equals(VOLUME_TYPE.REPLICATE.toString())
+				|| volumeType.equals(VOLUME_TYPE.DISTRIBUTED_REPLICATE.toString())) {
+			count = (replicaCount == null) ? Volume.DEFAULT_REPLICA_COUNT : replicaCount;
+		} else if (volumeType.equals(VOLUME_TYPE.STRIPE.toString())
+				|| volumeType.equals(VOLUME_TYPE.DISTRIBUTED_STRIPE.toString())) {
+			count = (stripeCount == null) ? Volume.DEFAULT_STRIPE_COUNT : stripeCount;
+		}
+
+		volumeService.createVolume(clusterName, volumeName, volumeType, transportType, count, bricks, accessProtocols,
+				options, cifsUsers);
 		return createdResponse(volumeName);
 	}
 
@@ -152,14 +163,12 @@ public class VolumesResource extends AbstractResource {
 	 * Returns name of the missing parameter if any. If all parameters are present, 
 	 */
 	private String checkMissingParamsForCreateVolume(String volumeName, String volumeType,
-			String transportType, Integer replicaCount, Integer stripeCount, String bricks, String accessProtocols,
+			String transportType, String bricks, String accessProtocols,
 			String options) {
 		
 		return (volumeName == null || volumeName.isEmpty()) ? FORM_PARAM_VOLUME_NAME :
 				(volumeType == null || volumeType.isEmpty()) ? FORM_PARAM_VOLUME_TYPE :
 				(transportType == null || transportType.isEmpty()) ? FORM_PARAM_TRANSPORT_TYPE :
-				(replicaCount == null) ? FORM_PARAM_REPLICA_COUNT :
-				(stripeCount == null) ? FORM_PARAM_STRIPE_COUNT :
 				(bricks == null || bricks.isEmpty()) ? FORM_PARAM_BRICKS :
 				(accessProtocols == null || accessProtocols.isEmpty()) ? FORM_PARAM_ACCESS_PROTOCOLS :
 				(options == null || options.isEmpty()) ? FORM_PARAM_VOLUME_OPTIONS :
