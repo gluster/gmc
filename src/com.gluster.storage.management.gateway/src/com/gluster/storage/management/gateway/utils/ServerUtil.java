@@ -24,6 +24,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.ServletContext;
@@ -76,9 +77,7 @@ public class ServerUtil {
 		command.add(SCRIPT_COMMAND);
 		command.add(getScriptPath(scriptName));
 		command.addAll(arguments);
-		//TODO: Remove this debug log before moving to production
-		// logger.info("Executing script [" + command + "] on server gateway.");
-		return new ProcessUtil().executeCommand(runInForeground, command);
+		return ProcessUtil.executeCommand(runInForeground, command);
 	}
 
 	private String getScriptPath(String scriptName) {
@@ -122,6 +121,94 @@ public class ServerUtil {
 	}
 
 	/**
+	 * Executes given script on all given servers in parallel, collects the output in objects of given class, and
+	 * returns a list of all returned objects.
+	 * 
+	 * @param serverNames
+	 * @param scriptWithArgs
+	 * @param expectedClass
+	 * @param failOnError
+	 *            If true, an exception will be thrown as soon as the script execution fails on any of the servers. If
+	 *            false, the exception will be caught and logged. Execution on all other servers will continue.
+	 * @return
+	 */
+	public <T> List<T> executeScriptOnServers(List<String> serverNames, String scriptWithArgs,
+			Class<T> expectedClass, boolean failOnError) {
+		List<T> result = Collections.synchronizedList(new ArrayList<T>());
+		try {
+			List<Thread> threads = createScriptExecutionThreads(serverNames, getRemoteScriptDir() + File.separator
+					+ scriptWithArgs, expectedClass, result, failOnError);
+			ProcessUtil.waitForThreads(threads);
+			return result;
+		} catch (InterruptedException e) {
+			String errMsg = "Exception while executing script [" + scriptWithArgs + "] on servers [" + serverNames + "]! Error: [" + e.getMessage() + "]";
+			logger.error(errMsg, e);
+			throw new GlusterRuntimeException(errMsg, e);
+		}
+	}
+
+	/**
+	 * Creates threads that will run in parallel and execute the given command on each of the given servers
+	 * 
+	 * @param serverNames
+	 * @param commandWithArgs
+	 * @param expectedClass
+	 * @param result
+	 * @param failOnError
+	 *            If true, an exception will be thrown as soon as the script execution fails on any of the servers. If
+	 *            false, the exception will be caught and logged. Execution on all other servers will continue.
+	 * @return
+	 * @throws InterruptedException
+	 */
+	private <T> List<Thread> createScriptExecutionThreads(List<String> serverNames, String commandWithArgs, Class<T> expectedClass, List<T> result,
+			boolean failOnError)
+			throws InterruptedException {
+		List<Thread> threads = new ArrayList<Thread>();
+		for (int i = serverNames.size()-1; i >= 0 ; i--) {
+			Thread thread = new RemoteExecutionThread<T>(serverNames.get(i), commandWithArgs, expectedClass, result, failOnError);
+			threads.add(thread);
+			thread.start();
+			if(i >= 5 && i % 5 == 0) {
+				// After every 5 servers, wait for 1 second so that we don't end up with too many running threads
+				Thread.sleep(1000);
+			}
+		}
+		return threads;
+	}
+
+
+	public class RemoteExecutionThread<T> extends Thread {
+		private String serverName;
+		private String commandWithArgs;
+		private List<T> result;
+		private Class<T> expectedClass;
+		private boolean failOnError = false;
+		
+		public RemoteExecutionThread(String serverName, String commandWithArgs, Class<T> expectedClass, List<T> result,
+				boolean failOnError) {
+			this.serverName = serverName;
+			this.commandWithArgs = commandWithArgs;
+			this.result = result;
+			this.expectedClass = expectedClass;
+			this.failOnError = failOnError;
+		}
+		
+		@Override
+		public void run() {
+			try {
+				result.add(executeOnServer(true, serverName, commandWithArgs, expectedClass));
+			} catch(Exception e) {
+				String errMsg = "Couldn't execute command [" + commandWithArgs + "] on [" + serverName + "]!";
+				logger.error(errMsg, e);
+				if(failOnError) {
+					throw new GlusterRuntimeException(errMsg, e);
+				}
+			}
+		}
+	}
+
+
+	/**
 	 * Executes given script on given server. Since the remote server may contain multiple versions of backend, this
 	 * method will invoke the script present in directory of same version as the gateway.
 	 * 
@@ -137,8 +224,6 @@ public class ServerUtil {
 	 */
 	public <T> T executeScriptOnServer(boolean runInForeground, String serverName, String scriptWithArgs,
 			Class<T> expectedClass) {
-		//TODO: Remove this debug log before moving to production
-		// logger.info("Executing script [" + scriptWithArgs + "] on server [" + serverName + "]"); 
 		return executeOnServer(runInForeground, serverName, getRemoteScriptDir() + File.separator + scriptWithArgs,
 				expectedClass);
 	}

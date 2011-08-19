@@ -282,8 +282,6 @@ public class VolumesResource extends AbstractResource {
 	@Path(RESOURCE_DEFAULT_OPTIONS)
 	@Produces(MediaType.APPLICATION_XML)
 	public VolumeOptionInfoListResponse getDefaultOptionsXML(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
-		// TODO: Fetch all volume options with their default values from GlusterFS
-		// whenever such a CLI command is made available in GlusterFS
 		return new VolumeOptionInfoListResponse(Status.STATUS_SUCCESS, volumeOptionsDefaults.getDefaults(clusterName));
 	}
 
@@ -291,8 +289,6 @@ public class VolumesResource extends AbstractResource {
 	@Path(RESOURCE_DEFAULT_OPTIONS)
 	@Produces(MediaType.APPLICATION_JSON)
 	public VolumeOptionInfoListResponse getDefaultOptionsJSON(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
-		// TODO: Fetch all volume options with their default values from GlusterFS
-		// whenever such a CLI command is made available in GlusterFS
 		return new VolumeOptionInfoListResponse(Status.STATUS_SUCCESS, volumeOptionsDefaults.getDefaults(clusterName));
 	}
 

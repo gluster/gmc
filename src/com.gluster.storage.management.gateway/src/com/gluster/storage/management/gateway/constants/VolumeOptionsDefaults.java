@@ -54,8 +54,8 @@ public class VolumeOptionsDefaults {
 	 * @return list of volume option information objects
 	 */
 	public List<VolumeOptionInfo> getDefaults(String clusterName) {
-		// return getVolumeOptionsInfo(clusterName);
-		return getVolumeOptionsInfo();
+		return getVolumeOptionsInfo(clusterName);
+		// return getVolumeOptionsInfo();
 	}
 	
 	
