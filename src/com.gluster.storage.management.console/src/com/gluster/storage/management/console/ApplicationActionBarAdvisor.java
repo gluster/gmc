@@ -23,6 +23,7 @@ import org.eclipse.jface.action.ICoolBarManager;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory;
@@ -70,7 +71,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		register(aboutAction);
 		
 		helpContentsAction = ActionFactory.HELP_CONTENTS.create(window);
-		helpContentsAction.setText("&Contents");
+		helpContentsAction.setText("&Management Console Help");
+		helpContentsAction.setAccelerator(SWT.F1);
 		//helpContentsAction.setImageDescriptor(newImage)
 		register(helpContentsAction);
 	}
