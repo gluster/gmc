@@ -44,7 +44,6 @@ import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
-import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.gateway.resources.v1_0.TasksResource;
@@ -65,7 +64,6 @@ public class GlusterUtil {
 	private static final String VOLUME_TRANSPORT_TYPE_PFX = "Transport-type:";
 	private static final String VOLUME_BRICKS_GROUP_PFX = "Bricks";
 	private static final String VOLUME_OPTIONS_RECONFIG_PFX = "Options Reconfigured";
-	private static final String VOLUME_OPTION_AUTH_ALLOW_PFX = "auth.allow:";
 	private static final String VOLUME_LOG_LOCATION_PFX = "log file location:";
 	private static final String VOLUME_TYPE_DISTRIBUTE = "Distribute";
 	private static final String VOLUME_TYPE_REPLICATE = "Replicate";
@@ -75,8 +73,6 @@ public class GlusterUtil {
 	
 	private static final String GLUSTERD_INFO_FILE = "/etc/glusterd/glusterd.info";
 	
-	private static final GlusterCoreUtil glusterCoreUtil = new GlusterCoreUtil();
-	
 	private static final String INITIALIZE_DISK_STATUS_SCRIPT = "get_format_device_status.py";
 	private static final String BRICK_STATUS_SCRIPT = "get_brick_status.py";
 
@@ -85,9 +81,6 @@ public class GlusterUtil {
 	
 	@Autowired
 	private ServerUtil serverUtil;
-	
-	@Autowired
-	private TasksResource taskResource; 
 
 	public void setSshUtil(SshUtil sshUtil) {
 		this.sshUtil = sshUtil;
@@ -250,18 +243,14 @@ public class GlusterUtil {
 	}
 
 	public void createVolume(String knownServer, String volumeName, String volumeTypeStr, String transportTypeStr,
-			Integer replicaCount, Integer stripeCount, String bricks, String accessProtocols, String options) {
-
-		int count = 1; // replica or stripe count
+			Integer count, String bricks, String accessProtocols, String options) {
 
 		VOLUME_TYPE volType = Volume.getVolumeTypeByStr(volumeTypeStr);
 		String volTypeArg = null;
 		if (volType == VOLUME_TYPE.REPLICATE || volType == VOLUME_TYPE.DISTRIBUTED_REPLICATE) {
 			volTypeArg = "replica";
-			count = replicaCount;
 		} else if (volType == VOLUME_TYPE.STRIPE || volType == VOLUME_TYPE.DISTRIBUTED_STRIPE) {
 			volTypeArg = "stripe";
-			count = stripeCount;
 		}
 
 		String transportTypeArg = null;

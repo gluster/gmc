@@ -63,6 +63,7 @@ public class VolumeSummaryView extends ViewPart {
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	private ScrolledForm form;
 	private Volume volume;
+	private Label volumeType;
 	private CLabel lblStatusValue;
 	private DefaultClusterListener volumeChangedListener;
 	private Hyperlink changeLink;
@@ -110,6 +111,7 @@ public class VolumeSummaryView extends ViewPart {
 				toolbarManager.updateToolbar(volume);
 				cifsCheckbox.setSelection(volume.isCifsEnable());
 				populateCifsUsersText();
+				renderVolumeTypeField();
 			}
 
 			@Override
@@ -785,8 +787,12 @@ public class VolumeSummaryView extends ViewPart {
 
 	private void createVolumeTypeField(Composite section) {
 		toolkit.createLabel(section, "Volume Type: ", SWT.NONE);
-		toolkit.createLabel(section, volume.getVolumeTypeStr(), SWT.NONE);
+		volumeType = toolkit.createLabel(section, volume.getVolumeTypeStr(), SWT.NONE);
 		toolkit.createLabel(section, "", SWT.NONE);
+	}
+	
+	private void renderVolumeTypeField() {
+		volumeType.setText(volume.getVolumeTypeStr());
 	}
 
 	@Override

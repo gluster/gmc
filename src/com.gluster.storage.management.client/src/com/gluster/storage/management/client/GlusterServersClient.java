@@ -18,6 +18,7 @@
  *******************************************************************************/
 package com.gluster.storage.management.client;
 
+import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_DETAILS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_SERVERS;
 
@@ -55,7 +56,9 @@ public class GlusterServersClient extends AbstractClient {
 	}
 
 	public List<GlusterServer> getServers() {
-		List<GlusterServer>  servers = ((GlusterServerListResponse) fetchResource(GlusterServerListResponse.class)).getServers();
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+		queryParams.putSingle(QUERY_PARAM_DETAILS, "true");
+		List<GlusterServer>  servers = ((GlusterServerListResponse) fetchResource(queryParams, GlusterServerListResponse.class)).getServers();
 		for(GlusterServer server : servers) {
 			GlusterCoreUtil.updateServerNameOnDevices(server);
 		}

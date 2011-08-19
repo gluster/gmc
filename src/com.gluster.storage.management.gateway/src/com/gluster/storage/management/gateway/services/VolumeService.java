@@ -403,17 +403,19 @@ public class VolumeService {
 	}
 	
 	public void createVolume(String clusterName, String volumeName, String volumeType, String transportType,
-			Integer replicaCount, Integer stripeCount, String bricks, String accessProtocols, String options,
+			Integer count, String bricks, String accessProtocols, String options,
 			String cifsUsers) {
 		if (clusterService.getCluster(clusterName) == null) {
 			throw new GlusterValidationException("Cluster [" + clusterName + "] not found!");
 		}
 		
-		if (volumeType.equals(VOLUME_TYPE.DISTRIBUTED_REPLICATE) && replicaCount <= 0) {
+		if ((volumeType.equals(VOLUME_TYPE.REPLICATE.toString()) || volumeType.equals(VOLUME_TYPE.DISTRIBUTED_REPLICATE
+				.toString())) && count <= 0) {
 			throw new GlusterValidationException("Replica count must be a positive integer");
 		}
 
-		if (volumeType.equals(VOLUME_TYPE.DISTRIBUTED_STRIPE) && stripeCount <= 0) {
+		if ((volumeType.equals(VOLUME_TYPE.STRIPE.toString()) || volumeType.equals(VOLUME_TYPE.DISTRIBUTED_STRIPE
+				.toString())) && count <= 0) {
 			throw new GlusterValidationException("Stripe count must be a positive integer");
 		}
 
@@ -423,8 +425,9 @@ public class VolumeService {
 		}
 
 		try {
-			glusterUtil.createVolume(onlineServer.getName(), volumeName, volumeType, transportType, replicaCount,
-					stripeCount, bricks, accessProtocols, options);
+			glusterUtil.createVolume(onlineServer.getName(), volumeName, volumeType, transportType, count,
+					bricks, accessProtocols, options);
+			
 		} catch (Exception e) {
 			// check if online server has gone offline. If yes, try again one more time.
 			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
@@ -433,8 +436,8 @@ public class VolumeService {
 				if (onlineServer == null) {
 					throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 				}
-				glusterUtil.createVolume(onlineServer.getName(), volumeName, volumeType, transportType, replicaCount,
-						stripeCount, bricks, accessProtocols, options);
+				glusterUtil.createVolume(onlineServer.getName(), volumeName, volumeType, transportType, count,
+						bricks, accessProtocols, options);
 			} else {
 				throw new GlusterRuntimeException(e.getMessage());
 			}

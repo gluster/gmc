@@ -775,6 +775,7 @@ public class GlusterDataModelManager {
 		for (ClusterListener listener : listeners) {
 			listener.volumeChanged(volume, new Event(EVENT_TYPE.BRICKS_ADDED, bricks));
 		}
+		updateVolumeTypeByBricks(volume);
 	}
 	
 	public void removeBricks(Volume volume, Set<Brick> bricks) {
@@ -790,8 +791,26 @@ public class GlusterDataModelManager {
 		for (ClusterListener listener : listeners) {
 			listener.volumeChanged(volume, new Event(EVENT_TYPE.BRICKS_REMOVED, bricks));
 		}
+		updateVolumeTypeByBricks(volume);
 	}
 
+	private void updateVolumeTypeByBricks(Volume volume) {
+		VOLUME_TYPE volumeType = volume.getVolumeType();
+		if (volumeType.equals(VOLUME_TYPE.REPLICATE) || volumeType.equals(VOLUME_TYPE.DISTRIBUTED_REPLICATE)) {
+			if (volume.getBricks().size() > volume.getReplicaCount()) {
+				volume.setVolumeType(VOLUME_TYPE.DISTRIBUTED_REPLICATE);
+			} else {
+				volume.setVolumeType(VOLUME_TYPE.REPLICATE);
+			}
+		} else if (volumeType.equals(VOLUME_TYPE.STRIPE) || volumeType.equals(VOLUME_TYPE.DISTRIBUTED_STRIPE)) {
+			if (volume.getBricks().size() > volume.getStripeCount()) {
+				volume.setVolumeType(VOLUME_TYPE.DISTRIBUTED_STRIPE);
+			} else {
+				volume.setVolumeType(VOLUME_TYPE.STRIPE);
+			}
+		}
+	}
+	
 	public void setVolumeOption(Volume volume, String optionKey, String optionValue) {
 		volume.setOption(optionKey, optionValue);
 		for (ClusterListener listener : listeners) {
