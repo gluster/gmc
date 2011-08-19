@@ -334,6 +334,7 @@ public class SshUtil {
 	 * @return Result of remote execution
 	 */
 	public ProcessResult executeRemoteWithPassword(String serverName, String command) {
+		logger.info("Executing command [" + command + "] on server [" + serverName + "] with default password.");
 		Connection conn = getConnectionWithPassword(serverName);
 		ProcessResult result = executeCommand(conn, command);
 		// we don't cache password based connections. hence the connection must be closed.
@@ -366,8 +367,10 @@ public class SshUtil {
 	 */
 	public ProcessResult executeRemote(String serverName, String command) {
 		try {
+			logger.info("Executing command [" + command + "] on server [" + serverName + "] with public key authentication"); 
 			return executeRemoteWithPubKey(serverName, command);
 		} catch(ConnectionException e) {
+			logger.warn("Couldn't execute command with public key authentication, will try with default password.", e);
 			// Couldn't connect with public key. Try with default password.
 			return executeRemoteWithPassword(serverName, command);
 		}
