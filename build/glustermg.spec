@@ -33,6 +33,7 @@ Requires:       rrdtool-perl >= 1.2.27
 Requires:       appliance-base >= 1.3
 Requires:       sudo
 Requires:       crontabs
+Requires:       samba3
 %description    backend
 %{product_family} server side backend tools
 
@@ -132,6 +133,7 @@ else
     /etc/init.d/multicast-discoverd start
 fi
 /etc/init.d/crond reload
+/sbin/chkconfig smb on
 
 %preun backend
 if [ "$1" = 0 ] ; then
