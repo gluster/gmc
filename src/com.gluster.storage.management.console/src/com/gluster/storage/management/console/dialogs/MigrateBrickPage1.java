@@ -29,6 +29,7 @@ import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -48,6 +49,7 @@ import com.gluster.storage.management.console.TableLabelProviderAdapter;
 import com.gluster.storage.management.console.utils.GUIHelper;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Device;
+import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.utils.NumberUtil;
 
@@ -70,6 +72,28 @@ public class MigrateBrickPage1 extends WizardPage {
 
 	private Button autoCompleteCheckbox;
 
+	private ITableLabelProvider getBrickLabelProvider(final String volumeName) {
+		return new TableLabelProviderAdapter() {
+			@Override
+			public String getColumnText(Object element, int columnIndex) {
+				if (!(element instanceof Brick)) {
+					return null;
+				}
+				Brick brick = (Brick) element;
+				GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
+				Device device = modelManager.getDeviceForBrickDir(brick);
+				// convert MB to GB
+				String freeSpace = (device == null ? "NA" : NumberUtil.formatNumber(device.getFreeSpace() / 1024));
+				String totalSpace = (device == null ? "NA" : NumberUtil.formatNumber(device.getSpace() / 1024));
+				return (columnIndex == DISK_TABLE_COLUMN_INDICES.SERVER.ordinal() ? brick.getServerName()
+						: columnIndex == DISK_TABLE_COLUMN_INDICES.BRICK_DIRECTORY.ordinal() ? brick.getBrickDirectory()
+						: columnIndex == DISK_TABLE_COLUMN_INDICES.FREE_SPACE.ordinal() ? freeSpace
+						: columnIndex == DISK_TABLE_COLUMN_INDICES.TOTAL_SPACE.ordinal() ? totalSpace 
+						: "Invalid");
+			}
+		};
+	}
+	
 	private ITableLabelProvider getDiskLabelProvider(final String volumeName) {
 		return new TableLabelProviderAdapter() {
 			
@@ -138,11 +162,11 @@ public class MigrateBrickPage1 extends WizardPage {
 		setDescription("Migrate volume data from \"" + source + "\" to \"" + target + "\"");
 	}
 
-	private Device getSelectedDevice(TableViewer tableViewer) {
+	private Object getSelectedItem(TableViewer tableViewer) {
 		TableItem[] selectedItems = tableViewer.getTable().getSelection();
-		Device selectedDevice = null;
+		Object selectedDevice = null;
 		for (TableItem item : selectedItems) {
-			selectedDevice = (Device) item.getData();
+			selectedDevice = item.getData();
 		}
 		return selectedDevice;
 	}
@@ -165,12 +189,12 @@ public class MigrateBrickPage1 extends WizardPage {
 	}
 
 	public String getSourceBrickDir() {
-		Device sourceDevice = getSelectedDevice(tableViewerFrom); 
-		return sourceDevice.getQualifiedBrickName(volume.getName());
+		Brick sourceBrick = (Brick)getSelectedItem(tableViewerFrom); 
+		return sourceBrick.getQualifiedName();
 	}
 
 	public String getTargetBrickDir() {
-		Device targetDevice = getSelectedDevice(tableViewerTo);
+		Device targetDevice = (Device)getSelectedItem(tableViewerTo);
 		return targetDevice.getQualifiedBrickName(volume.getName());
 	}
 	
@@ -204,18 +228,19 @@ public class MigrateBrickPage1 extends WizardPage {
 		Text txtFilterFrom = guiHelper.createFilterText(container);
 		Text txtFilterTo = guiHelper.createFilterText(container);
 		
-		ITableLabelProvider deviceLabelProvider = getDiskLabelProvider(volume.getName());
-
 		GlusterDataModelManager glusterDataModelManager = GlusterDataModelManager.getInstance();
-		List<Device> fromBricks = glusterDataModelManager.getReadyDevicesOfVolume(volume);
-		List<Device> toDevices = glusterDataModelManager.getReadyDevicesOfAllServersExcluding( fromBricks );
+		List<Brick> fromBricks = volume.getBricks();
+		List<Device> toDevices = glusterDataModelManager.getReadyDevicesOfAllServersExcluding(glusterDataModelManager
+				.getDevicesOfVolume(volume));
 		
-		tableViewerFrom = createTableViewer(container, deviceLabelProvider, fromBricks, txtFilterFrom);
+		tableViewerFrom = createTableViewer(container, getBrickLabelProvider(volume.getName()), fromBricks,
+				txtFilterFrom);
 		
 		if(fromBrick != null) {
 			setFromDisk(tableViewerFrom, fromBrick);
 		}
-		tableViewerTo = createTableViewer(container, deviceLabelProvider, toDevices, txtFilterTo);
+		tableViewerTo = createTableViewer(container, getDiskLabelProvider(volume.getName()), toDevices, txtFilterTo);
+		tableViewerTo.setSelection(new StructuredSelection(fromBrick));
 		
 		// Auto commit selection field
 		Composite autoCommitContainer = new Composite(container, SWT.NONE);
@@ -248,8 +273,8 @@ public class MigrateBrickPage1 extends WizardPage {
 		}
 	}
 
-	private TableViewer createTableViewer(Composite container, ITableLabelProvider diskLabelProvider,
-			List<Device> bricks, Text txtFilterText) {
+	private <T> TableViewer createTableViewer(Composite container, ITableLabelProvider diskLabelProvider,
+			List<T> bricks, Text txtFilterText) {
 		Composite tableViewerComposite = createTableViewerComposite(container);
 
 		TableViewer tableViewer = new TableViewer(tableViewerComposite, SWT.SINGLE);
