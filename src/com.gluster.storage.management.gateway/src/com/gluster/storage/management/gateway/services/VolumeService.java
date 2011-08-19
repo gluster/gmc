@@ -43,12 +43,14 @@ import com.gluster.storage.management.core.exceptions.GlusterValidationException
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.VolumeOptionInfo;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Volume.NAS_PROTOCOL;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.model.VolumeLogMessage;
 import com.gluster.storage.management.core.response.LogMessageListResponse;
+import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 import com.gluster.storage.management.core.utils.DateUtil;
 import com.gluster.storage.management.core.utils.FileUtil;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
@@ -924,8 +926,39 @@ public class VolumeService {
 			} else {
 				throw new GlusterRuntimeException(e.getMessage());
 			}
-			
-			
+		}
+	}
+	
+	public VolumeOptionInfoListResponse getVolumeOptionsInfo(String clusterName) {
+		if (clusterName == null || clusterName.isEmpty()) {
+			throw new GlusterValidationException("Cluster name must not be empty!");
+		}
+		
+		ClusterInfo cluster = clusterService.getCluster(clusterName);
+		if (cluster == null) {
+			throw new GlusterValidationException("Cluster [" + clusterName + "] not found!");
+		}
+		
+		if(cluster.getServers().isEmpty()) {
+			throw new GlusterValidationException("Cluster [" + clusterName + "] is empty! Can't fetch Volume Options Information!");
+		}
+		
+		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
+		if (onlineServer == null) {
+			throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
+		}
+		
+		String command = "gluster volume set help-xml";
+		try {
+			return serverUtil.executeOnServer(true, onlineServer.getName(), command, VolumeOptionInfoListResponse.class);
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
+				onlineServer = clusterService.getNewOnlineServer(clusterName);
+				return serverUtil.executeOnServer(true, onlineServer.getName(), command, VolumeOptionInfoListResponse.class);
+			} else {
+				throw new GlusterRuntimeException("Fetching volume options info failed! [" + e.getMessage() + "]");
+			}
 		}
 	}
 }

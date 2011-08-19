@@ -35,6 +35,7 @@ public class ShutdownListener implements ServletContextListener {
 	public void contextDestroyed(ServletContextEvent arg0) {
 		// Embedded derby must be shut down when the gateway stops.
 		DBUtil.shutdownDerby();
+		System.gc();
 	}
 
 	/* (non-Javadoc)

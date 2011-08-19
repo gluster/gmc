@@ -145,7 +145,7 @@ public class VolumesClient extends AbstractClient {
 		deleteSubResource(volumeName, queryParams);
 	}
 
-	public List<VolumeOptionInfo> getVolumeOptionsDefaults() {
+	public List<VolumeOptionInfo> getVolumeOptionsInfo() {
 		return ((VolumeOptionInfoListResponse) fetchSubResource(RESTConstants.RESOURCE_DEFAULT_OPTIONS,
 				VolumeOptionInfoListResponse.class)).getOptions();
 	}

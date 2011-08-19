@@ -70,7 +70,7 @@ public class VolumeOptionsPage extends Composite {
 	private DefaultClusterListener clusterListener;
 	private Text filterText;
 	private List<VolumeOptionInfo> defaultVolumeOptions = GlusterDataModelManager.getInstance()
-			.getVolumeOptionsDefaults();
+			.getVolumeOptionsInfo();
 
 	public enum OPTIONS_TABLE_COLUMN_INDICES {
 		OPTION_KEY, OPTION_VALUE

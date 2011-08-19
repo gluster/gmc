@@ -78,7 +78,6 @@ import org.apache.log4j.Logger;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.exceptions.GlusterValidationException;
-import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
@@ -87,7 +86,6 @@ import com.gluster.storage.management.core.response.LogMessageListResponse;
 import com.gluster.storage.management.core.response.VolumeListResponse;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 import com.gluster.storage.management.core.utils.FileUtil;
-import com.gluster.storage.management.gateway.constants.VolumeOptionsDefaults;
 import com.gluster.storage.management.gateway.services.ClusterService;
 import com.gluster.storage.management.gateway.services.VolumeService;
 import com.sun.jersey.api.core.InjectParam;
@@ -100,9 +98,6 @@ public class VolumesResource extends AbstractResource {
 
 	@InjectParam
 	private ClusterService clusterService;
-
-	@InjectParam
-	private VolumeOptionsDefaults volumeOptionsDefaults;
 
 	@InjectParam
 	private VolumeService volumeService;
@@ -281,15 +276,15 @@ public class VolumesResource extends AbstractResource {
 	@GET
 	@Path(RESOURCE_DEFAULT_OPTIONS)
 	@Produces(MediaType.APPLICATION_XML)
-	public VolumeOptionInfoListResponse getDefaultOptionsXML(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
-		return new VolumeOptionInfoListResponse(Status.STATUS_SUCCESS, volumeOptionsDefaults.getDefaults(clusterName));
+	public VolumeOptionInfoListResponse getOptionsInfoXML(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
+		return volumeService.getVolumeOptionsInfo(clusterName);
 	}
 
 	@GET
 	@Path(RESOURCE_DEFAULT_OPTIONS)
 	@Produces(MediaType.APPLICATION_JSON)
-	public VolumeOptionInfoListResponse getDefaultOptionsJSON(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
-		return new VolumeOptionInfoListResponse(Status.STATUS_SUCCESS, volumeOptionsDefaults.getDefaults(clusterName));
+	public VolumeOptionInfoListResponse getOptionsInfoJSON(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName) {
+		return volumeService.getVolumeOptionsInfo(clusterName);
 	}
 
 	@GET

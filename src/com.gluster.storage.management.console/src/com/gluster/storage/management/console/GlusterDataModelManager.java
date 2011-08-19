@@ -67,7 +67,7 @@ public class GlusterDataModelManager {
 	private GlusterDataModel model;
 	private String securityToken;
 	private List<ClusterListener> listeners = new ArrayList<ClusterListener>();
-	private List<VolumeOptionInfo> volumeOptionsDefaults;
+	private List<VolumeOptionInfo> volumeOptionsInfo;
 	private String clusterName;
  	private static Boolean syncInProgress = false;
  	private static final GlusterLogger logger = GlusterLogger.getInstance();;
@@ -109,7 +109,7 @@ public class GlusterDataModelManager {
 		GlusterDataModel model = fetchModel(monitor);
 		
 		initializeAlerts(model.getCluster());
-		initializeVolumeOptionsDefaults();
+		initializeVolumeOptionsInfo(model.getCluster());
 
 		return model;
 	}
@@ -452,8 +452,12 @@ public class GlusterDataModelManager {
 		cluster.setVolumes(volumeClient.getAllVolumes());
 	}
 
-	private void initializeVolumeOptionsDefaults() {
-		this.volumeOptionsDefaults = new VolumesClient(clusterName).getVolumeOptionsDefaults();
+	private void initializeVolumeOptionsInfo(Cluster cluster) {
+		if(cluster.getServers().isEmpty()) {
+			// cluster is empty. we won't be able to fetch the volume options information.
+			return;
+		}
+		this.volumeOptionsInfo = new VolumesClient(clusterName).getVolumeOptionsInfo();
 	}
 
 	private void initializeTasks(Cluster cluster) {
@@ -878,12 +882,15 @@ public class GlusterDataModelManager {
 		}
 	}
 	
-	public List<VolumeOptionInfo> getVolumeOptionsDefaults() {
-		return volumeOptionsDefaults;
+	public List<VolumeOptionInfo> getVolumeOptionsInfo() {
+		if(volumeOptionsInfo == null || volumeOptionsInfo.isEmpty()) {
+			initializeVolumeOptionsInfo(getModel().getCluster());
+		}
+		return volumeOptionsInfo;
 	}
 
 	public VolumeOptionInfo getVolumeOptionInfo(String optionKey) {
-		for (VolumeOptionInfo info : volumeOptionsDefaults) {
+		for (VolumeOptionInfo info : volumeOptionsInfo) {
 			if (info.getName().equals(optionKey)) {
 				return info;
 			}

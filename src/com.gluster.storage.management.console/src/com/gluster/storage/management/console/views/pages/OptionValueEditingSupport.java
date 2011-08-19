@@ -27,7 +27,7 @@ import com.gluster.storage.management.core.model.VolumeOptionInfo;
 public class OptionValueEditingSupport extends EditingSupport {
 	private CellEditor cellEditor;
 	private Volume volume;
-	private List<VolumeOptionInfo> defaults = GlusterDataModelManager.getInstance().getVolumeOptionsDefaults();
+	private List<VolumeOptionInfo> defaults = GlusterDataModelManager.getInstance().getVolumeOptionsInfo();
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 
 	public OptionValueEditingSupport(ColumnViewer viewer, Volume volume) {
