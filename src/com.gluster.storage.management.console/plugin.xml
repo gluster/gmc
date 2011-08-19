@@ -1182,6 +1182,25 @@
             </groupMarker>
          </menu>
       </actionSet>
+      <actionSet
+            description="Set of Actions in &quot;Edit&quot; menu"
+            id="com.gluster.storage.management.console.actionsets.help"
+            label="Help Action Set"
+            visible="true">
+         <action
+               allowLabelUpdate="false"
+               class="com.gluster.storage.management.console.actions.SupportAction"
+               definitionId="com.gluster.storage.management.console.commands.Support"
+               id="com.gluster.storage.management.console.actions.SupportAction"
+               label="&amp;Support"
+               menubarPath="help/helpEnd"
+               pulldown="false"
+               retarget="false"
+               state="false"
+               style="push"
+               tooltip="Support Information">
+         </action>
+      </actionSet>
    </extension>
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
