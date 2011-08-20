@@ -90,6 +90,9 @@ public class ProcessUtil {
                     output.append(line);
                     output.append(NEWLINE);
                 }
+                br.close();
+                isr.close();
+                is.close();
             } else {
                 output.append("Command [");
                 output.append(command);

@@ -255,21 +255,23 @@ public class SshUtil {
 	}
 
 	private ProcessResult executeCommand(Connection sshConnection, String command) {
+		Session session = null;
 		try {
-			Session session = sshConnection.openSession();
+			session = sshConnection.openSession();
 			BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(new StreamGobbler(
 					session.getStdout())));
 			BufferedReader stderrReader = new BufferedReader(new InputStreamReader(new StreamGobbler(
 					session.getStderr())));
 			session.execCommand(command);
 			ProcessResult result = getResultOfExecution(session, stdoutReader, stderrReader);
-			session.close();
 			return result;
 		} catch (IOException e) {
 			String errMsg = "Exception while executing command [" + command + "] on [" + sshConnection.getHostname()
 					+ "]";
 			logger.error(errMsg, e);
 			throw new GlusterRuntimeException(errMsg, e);
+		} finally {
+			session.close();
 		}
 	}
 
@@ -335,21 +337,32 @@ public class SshUtil {
 	 */
 	public ProcessResult executeRemoteWithPassword(String serverName, String command) {
 		logger.info("Executing command [" + command + "] on server [" + serverName + "] with default password.");
-		Connection conn = getConnectionWithPassword(serverName);
-		ProcessResult result = executeCommand(conn, command);
-		// we don't cache password based connections. hence the connection must be closed.
-		conn.close();
-		return result;
+		Connection conn = null;
+		try {
+			conn = getConnectionWithPassword(serverName);
+			return executeCommand(conn, command);
+		} finally {
+			// we don't cache password based connections. hence the connection must be closed.
+			if(conn != null) {
+				conn.close();
+			}
+		}
 	}
 	
 	private ProcessResult executeRemoteWithPubKey(String serverName, String command) {
+		Connection connection = null;
 		try {
-			return executeCommand(getConnection(serverName), command);
+			connection = getConnection(serverName);
+			return executeCommand(connection, command);
 		} catch(GlusterRuntimeException e) {
 			Throwable cause = e.getCause();
 			if(cause != null && cause instanceof IOException) {
+				logger.info("Cached connection might have gone bad. Discarding it and trying with a fresh one.", e);
 				// cached ssh connection might have gone bad.
 				// remove it and try with a new one
+				if(connection != null) {
+					connection.close();
+				}
 				sshConnCache.remove(serverName);
 				return executeCommand(getConnection(serverName), command);
 			} else {
