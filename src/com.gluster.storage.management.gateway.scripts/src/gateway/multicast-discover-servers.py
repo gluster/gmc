@@ -37,6 +37,7 @@ def sendMulticastRequest(idString):
 def openServerSocket():
     try:
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.setblocking(0)
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind(('', Globals.SERVER_PORT))
         server.listen(Globals.DEFAULT_BACKLOG)
@@ -64,7 +65,7 @@ def main():
     signal.alarm(Globals.DEFAULT_TIMEOUT)
     while running:
         try:
-            ilist,olist,elist = select.select(rlist, [], [], 0.25)
+            ilist,olist,elist = select.select(rlist, [], [], 0.1)
         except select.error, e:
             Utils.log("failed to read from connections: %s" % str(e))
             break
@@ -72,6 +73,7 @@ def main():
             # handle new connection
             if sock == serverSocket:
                 clientSocket, address = serverSocket.accept()
+                clientSocket.setblocking(0)
                 #print "connection from %s on %s" % (address, clientSocket)
                 rlist.append(clientSocket)
                 continue
