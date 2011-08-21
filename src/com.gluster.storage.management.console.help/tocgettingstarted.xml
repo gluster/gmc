@@ -21,9 +21,9 @@
     </topic>
     <topic href="html/gettingstarted/alerts.html" label="Alerts">
     </topic>
-    <topic label="Preferences">
+    <topic href="html/gettingstarted/setting_preferences.html" label="Preferences">
     </topic>
-    <topic label="Security Keys">
+    <topic href="html/gettingstarted/security_keys.html" label="Security Keys">
     </topic>
     <topic href="html/gettingstarted/change_password.html" label="Changing Administrator’s Password">
     </topic>

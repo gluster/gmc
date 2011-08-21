@@ -1,0 +1,33 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<link rel="stylesheet" href="../css/builder-gluster/style.css"
+type="text/css" media="screen" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>Sub Topic</title>
+</head>
+
+<body>
+<h1>Security Keys</h1>
+In order to secure all of the virtual machines that are created, root access to these machines is controlled by SSH key access rather than by using an interactive password. This establishes trust between your account on your central server and the new virtual machine you just added to your cluster. 
+<p>Administrators can export and/or import the SSH keys (of the gateway) for security reasons from the Gluster Management Gateway server.</p>
+<h2>Importing Keys</h2>
+<p>To import the security keys, perform the following steps:</p>
+<ol>
+<li>Choose <b>Edit</b> > <b>Import Keys</b>
+<li>A window is displayed allowing you to choose the download location on your machine.
+<li>Choose the location, and click <b>Save</b>. 
+<p>The security keys are imported from the gateway server to the location you specified in ssh-keys.tar file format.
+</ol>
+<h2>Exporting Keys</h2>
+<p>To export the security keys, perform the following steps:</p>
+<ol>
+<li>Choose <b>Edit</b> > <b>Export Keys</b>
+<li>A window is displayed allowing you to choose the location on your machine.
+<li>Choose the location, and click <b>Save</b>.
+<p>The security keys are exported on to gateway server to the location you specified in a .tar file format.</p>
+</ol>	
+
+</body>
+</html>

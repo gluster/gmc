@@ -12,7 +12,7 @@
  </topic> 
 	<topic label="Server">
 	<topic label="Adding Servers" href="html/tasks/add_servers.html" />
- <topic href="html/tasks/remove_server.html" label="Removing a Server">
+ <topic href="html/tasks/remove_server.html" label="Removing Servers">
  </topic>
 	<topic href="html/tasks/initialize_disk.html" label="Initializing a Disk"/>
 		</topic>
@@ -27,10 +27,10 @@
  </topic>
  <topic href="html/tasks/delete_volume.html" label="Deleting Volumes">
  </topic>
-	<topic label="Adding a Brick" href="html/tasks/add_brick.html" /> 
+	<topic label="Adding Bricks" href="html/tasks/add_brick.html" /> 
 	<topic href="html/tasks/delete_brick.html" label="Removing Bricks">
  </topic>
- <topic href="html/tasks/migrate_brick.html" label="Migrating a Brick">
+ <topic href="html/tasks/migrate_brick.html" label="Migrating Bricks">
  </topic> 
 	</topic>
 	<topic label="Logs"> 
