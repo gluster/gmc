@@ -101,7 +101,19 @@ public class SshUtil {
 	}
 	
 	public synchronized void installPublicKey(String serverName) {
-		Connection conn = getConnectionWithPassword(serverName);
+		Connection conn = null;
+		try {
+			conn = getConnectionWithPassword(serverName);
+		} catch(Exception e) {
+			// authentication failed. close the connection.
+			conn.close();
+			if (e instanceof GlusterRuntimeException) {
+				throw (GlusterRuntimeException) e;
+			} else {
+				throw new GlusterRuntimeException("Exception during authentication with public key on server ["
+						+ serverName + "]", e);
+			}
+		}
 		SCPClient scpClient = new SCPClient(conn);
 
 		// delete file if it exists
@@ -167,9 +179,21 @@ public class SshUtil {
 		if (conn != null) {
 			return conn;
 		}
-
+		
 		conn = createConnection(serverName);
-		authenticateWithPublicKey(conn);
+		try {
+			authenticateWithPublicKey(conn);
+		} catch(Exception e) {
+			// authentication failed. close the connection.
+			conn.close();
+			if(e instanceof GlusterRuntimeException) {
+				throw (GlusterRuntimeException)e;
+			} else {
+				throw new GlusterRuntimeException("Exception during authentication with public key on server ["
+						+ serverName + "]", e);
+			}
+		}
+		
 		sshConnCache.put(serverName, conn);
 		return conn;
 	}
@@ -186,7 +210,6 @@ public class SshUtil {
 						+ conn.getHostname() + "]");
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
 			throw new ConnectionException("Exception during SSH authentication (public key) for server ["
 					+ conn.getHostname() + "]", e);
 		}
@@ -204,7 +227,6 @@ public class SshUtil {
 						+ conn.getHostname() + "]");
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
 			throw new ConnectionException("Exception during SSH authentication (password) for server ["
 					+ conn.getHostname() + "]", e);
 		}
@@ -265,10 +287,14 @@ public class SshUtil {
 			session.execCommand(command);
 			ProcessResult result = getResultOfExecution(session, stdoutReader, stderrReader);
 			return result;
-		} catch (IOException e) {
+		} catch (Exception e) {
 			String errMsg = "Exception while executing command [" + command + "] on [" + sshConnection.getHostname()
 					+ "]";
 			logger.error(errMsg, e);
+			
+			// remove the connection from cache and close it
+			sshConnCache.remove(sshConnection);
+			sshConnection.close();
 			throw new GlusterRuntimeException(errMsg, e);
 		} finally {
 			if(session != null) {
@@ -352,25 +378,8 @@ public class SshUtil {
 	}
 	
 	private ProcessResult executeRemoteWithPubKey(String serverName, String command) {
-		Connection connection = null;
-		try {
-			connection = getConnection(serverName);
-			return executeCommand(connection, command);
-		} catch(GlusterRuntimeException e) {
-			Throwable cause = e.getCause();
-			if(cause != null && cause instanceof IOException) {
-				logger.info("Cached connection might have gone bad. Discarding it and trying with a fresh one.", e);
-				// cached ssh connection might have gone bad.
-				// remove it and try with a new one
-				if(connection != null) {
-					connection.close();
-				}
-				sshConnCache.remove(serverName);
-				return executeCommand(getConnection(serverName), command);
-			} else {
-				throw e;
-			}
-		}
+		Connection connection = getConnection(serverName);
+		return executeCommand(connection, command);
 	}
 	
 	/**
@@ -410,5 +419,29 @@ public class SshUtil {
 		for (Connection conn : sshConnCache.values()) {
 			conn.close();
 		}
+	}
+	
+	public Integer getSshConnectTimeout() {
+		return sshConnectTimeout;
+	}
+
+	public void setSshConnectTimeout(Integer sshConnectTimeout) {
+		this.sshConnectTimeout = sshConnectTimeout;
+	}
+
+	public Integer getSshKexTimeout() {
+		return sshKexTimeout;
+	}
+
+	public void setSshKexTimeout(Integer sshKexTimeout) {
+		this.sshKexTimeout = sshKexTimeout;
+	}
+
+	public Integer getSshExecTimeout() {
+		return sshExecTimeout;
+	}
+
+	public void setSshExecTimeout(Integer sshExecTimeout) {
+		this.sshExecTimeout = sshExecTimeout;
 	}
 }
