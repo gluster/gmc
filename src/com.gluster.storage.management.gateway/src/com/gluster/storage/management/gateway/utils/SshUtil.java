@@ -271,7 +271,9 @@ public class SshUtil {
 			logger.error(errMsg, e);
 			throw new GlusterRuntimeException(errMsg, e);
 		} finally {
-			session.close();
+			if(session != null) {
+				session.close();
+			}
 		}
 	}
 
