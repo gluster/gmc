@@ -168,7 +168,7 @@ public class SshUtil {
 //		}
 //	}
 
-	private Connection getConnectionWithPassword(String serverName) {
+	private synchronized Connection getConnectionWithPassword(String serverName) {
 		Connection conn = createConnection(serverName);
 		authenticateWithPassword(conn);
 		return conn;
