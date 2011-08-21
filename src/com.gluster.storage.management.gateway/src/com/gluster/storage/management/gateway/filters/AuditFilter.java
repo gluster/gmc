@@ -3,6 +3,8 @@
  */
 package com.gluster.storage.management.gateway.filters;
 
+import java.security.Principal;
+
 import org.apache.log4j.Logger;
 
 import com.sun.jersey.spi.container.ContainerRequest;
@@ -29,7 +31,12 @@ public class AuditFilter implements ResourceFilter, ContainerRequestFilter, Cont
 
 	@Override
 	public ContainerRequest filter(ContainerRequest req) {
-		logger.info("REQUEST from [" +  req.getUserPrincipal().getName() + "] : [" + req.getMethod() + "][" + req.getPath() + "]");
+		Principal principal = req.getUserPrincipal();
+		if(principal != null) {
+			logger.info("REQUEST from [" +  principal.getName() + "] : [" + req.getMethod() + "][" + req.getPath() + "]");
+		} else {
+			logger.info("REQUEST [" + req.getMethod() + "][" + req.getPath() + "]");
+		}
 		return req;
 	}
 
