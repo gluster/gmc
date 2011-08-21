@@ -240,7 +240,7 @@ public class SshUtil {
 		return Arrays.asList(conn.getRemainingAuthMethods(USER_NAME)).contains("publickey");
 	}
 
-	private Connection createConnection(String serverName) {
+	private synchronized Connection createConnection(String serverName) {
 		Connection conn;
 		conn = new Connection(serverName);
 		try {
