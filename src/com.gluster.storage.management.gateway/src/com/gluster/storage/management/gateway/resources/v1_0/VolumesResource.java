@@ -214,13 +214,15 @@ public class VolumesResource extends AbstractResource {
 			} else if (operation.equals(RESTConstants.TASK_REBALANCE_STOP)) {
 				volumeService.rebalanceStop(clusterName, volumeName);
 			} else if (operation.equals(RESTConstants.FORM_PARAM_CIFS_CONFIG)) {
+				Volume newVolume = volumeService.getVolume(clusterName, volumeName);
 				if (enableCifs) {
 					// After add/modify volume cifs users, start/restart the cifs service
 					volumeService.createCIFSUsers(clusterName, volumeName, cifsUsers);
-					volumeService.startCifsReExport(clusterName, volumeName);
+					if (newVolume.getStatus() == VOLUME_STATUS.ONLINE) {
+						volumeService.startCifsReExport(clusterName, volumeName);
+					}
 				} else {
 					// Stop the Cifs service and delete the users (!important)
-					Volume newVolume = volumeService.getVolume(clusterName, volumeName);
 					if (newVolume.getStatus() == VOLUME_STATUS.ONLINE) {
 						volumeService.stopCifsReExport(clusterName, volumeName);
 					}
