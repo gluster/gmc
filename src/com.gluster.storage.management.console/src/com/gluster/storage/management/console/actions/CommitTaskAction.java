@@ -36,7 +36,7 @@ public class CommitTaskAction extends AbstractActionDelegate {
 			@Override
 			public void run() {
 				try {
-					String volumeName = taskInfo.getReference().split("-")[0]; //Extract volume name from reference
+					String volumeName = taskInfo.getReference().split("#")[0]; //Extract volume name from reference
 					Volume oldVolume = modelManager.getModel().getCluster().getVolume(volumeName);
 					Volume newVolume = (new VolumesClient()).getVolume(volumeName);
 					

@@ -79,6 +79,7 @@ public class BricksPage extends AbstractTableViewerPage<Brick> {
 					}
 					tableViewer.update(updatedBricks, null);
 					parent.update();
+					tableViewer.refresh(true);
 				default:
 					break;
 				}
