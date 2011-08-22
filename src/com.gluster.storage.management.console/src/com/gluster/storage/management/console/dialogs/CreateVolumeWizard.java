@@ -18,14 +18,18 @@
  *******************************************************************************/
 package com.gluster.storage.management.console.dialogs;
 
+import java.util.List;
+
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.wizard.Wizard;
 
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.console.GlusterDataModelManager;
+import com.gluster.storage.management.console.IImageKeys;
 import com.gluster.storage.management.console.utils.GUIHelper;
 import com.gluster.storage.management.console.utils.GlusterLogger;
 import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
@@ -51,6 +55,20 @@ public class CreateVolumeWizard extends Wizard {
 		VolumesClient volumesClient = new VolumesClient();
 		
 		try {
+			List<String> servers = GlusterDataModelManager.getInstance().getOfflineServers();
+			// One or more servers are offline, Show warning if cifs is enabled
+			if (newVolume.isCifsEnable() && servers != null && servers.size() > 0) {
+				Integer userAction = new MessageDialog(getShell(), "Create Volume", GUIHelper.getInstance().getImage(
+						IImageKeys.VOLUME_16x16),
+						"Performing CIFS updates when one or more servers are offline can trigger "
+								+ "inconsistent behavior for CIFS accesses in the cluster." + CoreConstants.NEWLINE
+								+ "Are you sure you want to continue?", MessageDialog.QUESTION, new String[] { "No",
+								"Yes" }, -1).open();
+				if (userAction != 1) {
+					return false; // To stay on the create dialog
+				}
+			}
+			
 			volumesClient.createVolume(newVolume);
 
 			// Set proper volume type before assign to model

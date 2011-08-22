@@ -969,4 +969,24 @@ public class GlusterDataModelManager {
 		}
 		return volumeNames;
 	}
+	
+	public List<String> getOfflineServers() {
+		List<String> offlineServers = new ArrayList<String>();
+		for(GlusterServer server : model.getCluster().getServers()) {
+			if (!server.isOnline()) {
+				offlineServers.add(server.getName());
+			}
+		}
+		return offlineServers;
+	}
+	
+	public List<String> getCifsEnabledVolumeNames(List<Volume> selectedVolumes) {
+		List<String> cifsVolumes = new ArrayList<String>();
+		for(Volume volume : selectedVolumes) {
+			if (volume.isCifsEnable()) {
+				cifsVolumes.add(volume.getName());
+			}
+		}
+		return cifsVolumes;
+	}
 }
