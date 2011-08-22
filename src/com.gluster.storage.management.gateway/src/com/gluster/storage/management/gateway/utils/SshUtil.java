@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.NoRouteToHostException;
 import java.util.Arrays;
 
 import org.apache.log4j.Logger;
@@ -75,7 +76,7 @@ public class SshUtil {
 		try {
 			getConnectionWithPassword(serverName).close();
 			return true;
-		} catch(ConnectionException e) {
+		} catch(Exception e) {
 			return false;
 		}
 	}
@@ -170,7 +171,19 @@ public class SshUtil {
 
 	private synchronized Connection getConnectionWithPassword(String serverName) {
 		Connection conn = createConnection(serverName);
-		authenticateWithPassword(conn);
+		if(!authenticateWithPassword(conn)) {
+			throw new ConnectionException("SSH Authentication (password) failed for server ["
+					+ conn.getHostname() + "]");
+		}
+		return conn;
+	}
+	
+	private synchronized Connection getConnectionWithPubKey(String serverName) {
+		Connection conn = createConnection(serverName);
+		if(!authenticateWithPublicKey(conn)) {
+			throw new ConnectionException("SSH Authentication (public key) failed for server ["
+					+ conn.getHostname() + "]");
+		}
 		return conn;
 	}
 
@@ -182,15 +195,19 @@ public class SshUtil {
 		
 		conn = createConnection(serverName);
 		try {
-			authenticateWithPublicKey(conn);
+			if(!authenticateWithPublicKey(conn)) {
+				if(!authenticateWithPassword(conn)) {
+					conn.close();
+					throw new ConnectionException("SSH authentication failed on server [" + serverName + "]!");
+				}
+			}
 		} catch(Exception e) {
 			// authentication failed. close the connection.
 			conn.close();
 			if(e instanceof GlusterRuntimeException) {
 				throw (GlusterRuntimeException)e;
 			} else {
-				throw new GlusterRuntimeException("Exception during authentication with public key on server ["
-						+ serverName + "]", e);
+				throw new GlusterRuntimeException("Exception during authentication on server [" + serverName + "]", e);
 			}
 		}
 		
@@ -198,7 +215,7 @@ public class SshUtil {
 		return conn;
 	}
 
-	private void authenticateWithPublicKey(Connection conn) {
+	private boolean authenticateWithPublicKey(Connection conn) {
 		try {
 			if (!supportsPublicKeyAuthentication(conn)) {
 				throw new ConnectionException("Public key authentication not supported on [" + conn.getHostname()
@@ -206,16 +223,17 @@ public class SshUtil {
 			}
 
 			if (!conn.authenticateWithPublicKey(USER_NAME, PRIVATE_KEY_FILE, null)) {
-				throw new ConnectionException("SSH Authentication (public key) failed for server ["
-						+ conn.getHostname() + "]");
+				return false;
 			}
+			
+			return true;
 		} catch (IOException e) {
 			throw new ConnectionException("Exception during SSH authentication (public key) for server ["
 					+ conn.getHostname() + "]", e);
 		}
 	}
 
-	private void authenticateWithPassword(Connection conn) {
+	private boolean authenticateWithPassword(Connection conn) {
 		try {
 			if (!supportsPasswordAuthentication(conn)) {
 				throw new ConnectionException("Password authentication not supported on [" + conn.getHostname()
@@ -223,9 +241,9 @@ public class SshUtil {
 			}
 
 			if (!conn.authenticateWithPassword(USER_NAME, DEFAULT_PASSWORD)) {
-				throw new ConnectionException("SSH Authentication (password) failed for server ["
-						+ conn.getHostname() + "]");
+				return false;
 			}
+			return true;
 		} catch (IOException e) {
 			throw new ConnectionException("Exception during SSH authentication (password) for server ["
 					+ conn.getHostname() + "]", e);
@@ -241,12 +259,12 @@ public class SshUtil {
 	}
 
 	private synchronized Connection createConnection(String serverName) {
-		Connection conn;
-		conn = new Connection(serverName);
+		Connection conn = new Connection(serverName);
 		try {
 			conn.connect(null, sshConnectTimeout, sshKexTimeout);
 		} catch (IOException e) {
 			logger.error("Couldn't establish SSH connection with server [" + serverName + "]", e);
+			conn.close();
 			throw new ConnectionException("Exception while creating SSH connection with server [" + serverName + "]", e);
 		}
 		return conn;
@@ -382,11 +400,6 @@ public class SshUtil {
 		}
 	}
 	
-	private ProcessResult executeRemoteWithPubKey(String serverName, String command) {
-		Connection connection = getConnection(serverName);
-		return executeCommand(connection, command);
-	}
-	
 	/**
 	 * Executes given command on remote machine using public key authentication
 	 * 
@@ -395,14 +408,8 @@ public class SshUtil {
 	 * @return Result of remote execution
 	 */
 	public ProcessResult executeRemote(String serverName, String command) {
-		try {
-			logger.info("Executing command [" + command + "] on server [" + serverName + "] with public key authentication"); 
-			return executeRemoteWithPubKey(serverName, command);
-		} catch(ConnectionException e) {
-			logger.warn("Couldn't execute command with public key authentication, will try with default password.", e);
-			// Couldn't connect with public key. Try with default password.
-			return executeRemoteWithPassword(serverName, command);
-		}
+		logger.info("Executing command [" + command + "] on server [" + serverName + "]"); 
+		return executeCommand(getConnection(serverName), command);
 	}
 
 	/**
@@ -413,7 +420,7 @@ public class SshUtil {
 	 */
 	public boolean isPublicKeySetup(String serverName) {
 		try {
-			getConnection(serverName);
+			getConnectionWithPubKey(serverName);
 			return true;
 		} catch (Exception e) {
 			return false;

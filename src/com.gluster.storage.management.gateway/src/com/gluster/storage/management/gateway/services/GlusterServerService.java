@@ -34,7 +34,6 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.exceptions.GlusterValidationException;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
-import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.gluster.storage.management.gateway.data.ClusterInfo;
@@ -67,15 +66,6 @@ public class GlusterServerService {
 	private DiscoveredServerService discoveredServerService;
 	
 	private static final Logger logger = Logger.getLogger(GlusterServerService.class);
-	
-	public void fetchServerDetails(GlusterServer server) {
-		try {
-			server.setStatus(SERVER_STATUS.ONLINE);
-			serverUtil.fetchServerDetails(server);
-		} catch (ConnectionException e) {
-			server.setStatus(SERVER_STATUS.OFFLINE);
-		}
-	}
 	
 	public List<GlusterServer> getGlusterServers(String clusterName, boolean fetchDetails, Integer maxCount,
 			String previousServerName) {
@@ -213,7 +203,7 @@ public class GlusterServerService {
 		public void run() {
 			try {
 				logger.info("fetching details of server [" + server.getName() + "] - start");
-				fetchServerDetails(server);
+				serverUtil.fetchServerDetails(server);
 				logger.info("fetching details of server [" + server.getName() + "] - end");
 			} catch (Exception e) {
 				logger.error("fetching details of server [" + server.getName() + "] - error", e);
@@ -264,7 +254,7 @@ public class GlusterServerService {
 		}
 
 		if (fetchDetails && server.isOnline()) {
-			fetchServerDetails(server);
+			serverUtil.fetchServerDetails(server);
 		}
 		return server;
 	}
