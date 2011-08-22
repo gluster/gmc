@@ -167,7 +167,7 @@ public class ClusterService {
 			for(GlusterServer glusterServer : glusterServers) {
 				String serverName = glusterServer.getName();
 				
-				glusterServerService.fetchServerDetails(glusterServer);
+				serverUtil.fetchServerDetails(glusterServer);
 				if(glusterServer.isOnline()) {
 					checkAndSetupPublicKey(serverName);
 				}

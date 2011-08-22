@@ -37,9 +37,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
+import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.ProcessUtil;
 
@@ -95,9 +97,13 @@ public class ServerUtil {
 	 *            Server whose details are to be fetched
 	 */
 	public void fetchServerDetails(Server server) {
-		Object response = fetchServerDetails(server.getName());
-		server.copyFrom((Server) response); // Update the details in <Server> object
-		server.setDisks(((Server) response).getDisks());
+		try {
+			Server serverDetails = (Server)fetchServerDetails(server.getName());
+			server.copyFrom(serverDetails); // Update the details in <Server> object
+			server.setDisks(serverDetails.getDisks());
+		} catch (ConnectionException e) {
+			server.setStatus(SERVER_STATUS.OFFLINE);
+		}
 	}
 	
 	public boolean isServerOnline(Server server) {
