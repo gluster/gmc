@@ -24,10 +24,12 @@ import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 
 import com.gluster.storage.management.client.VolumesClient;
 import com.gluster.storage.management.console.GlusterDataModelManager;
+import com.gluster.storage.management.console.IImageKeys;
 import com.gluster.storage.management.console.utils.GUIHelper;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Volume;
@@ -56,7 +58,21 @@ public class StartVolumeAction extends AbstractMonitoredActionDelegate {
 		List<String> startedVolumes = new ArrayList<String>();
 		List<String> failedVolumes = new ArrayList<String>();
 		String errorMessage = "";
-
+		List<String> cifsVolumes = GlusterDataModelManager.getInstance().getCifsEnabledVolumeNames(selectedVolumes);
+		List<String> offlineServers = GlusterDataModelManager.getInstance().getOfflineServers();
+		// One or more servers are offline, Show warning if cifs is enabled
+		if (cifsVolumes != null && cifsVolumes.size() > 0 && offlineServers != null && offlineServers.size() > 0) {
+			Integer userAction = new MessageDialog(getShell(), "CIFS configuration", GUIHelper.getInstance().getImage(
+					IImageKeys.VOLUME_16x16),
+					"Performing CIFS updates when one or more servers are offline can trigger "
+							+ "inconsistent behavior for CIFS accesses in the cluster." + CoreConstants.NEWLINE
+							+ "Are you sure you want to continue?", MessageDialog.QUESTION,
+					new String[] { "No", "Yes" }, -1).open();
+			if (userAction != 1) {
+				return; // Do not start volume services
+			}
+		}
+		
 		monitor.beginTask("Starting Selected Volumes...", selectedVolumes.size());
 		for (Volume volume : selectedVolumes.toArray(new Volume[0])) {
 			if(monitor.isCanceled()) {

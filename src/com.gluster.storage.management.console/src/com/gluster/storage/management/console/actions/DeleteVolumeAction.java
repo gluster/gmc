@@ -47,6 +47,21 @@ public class DeleteVolumeAction extends AbstractMonitoredActionDelegate {
 
 		collectVolumeNames();
 		String warningMessage;
+		List<String> cifsVolumes = GlusterDataModelManager.getInstance().getCifsEnabledVolumeNames(selectedVolumes);
+		List<String> offlineServers = GlusterDataModelManager.getInstance().getOfflineServers();
+		// One or more servers are offline, Show warning if cifs is enabled
+		if (cifsVolumes != null && cifsVolumes.size() > 0 && offlineServers != null && offlineServers.size() > 0) {
+			Integer userAction = new MessageDialog(getShell(), "CIFS configuration", GUIHelper.getInstance().getImage(
+					IImageKeys.VOLUME_16x16),
+					"Performing CIFS updates when one or more servers are offline can trigger "
+							+ "inconsistent behavior for CIFS accesses in the cluster." + CoreConstants.NEWLINE
+							+ "Are you sure you want to continue?", MessageDialog.QUESTION,
+					new String[] { "No", "Yes" }, -1).open();
+			if (userAction != 1) {
+				return; // Do not delete volume services
+			}
+		}
+		
 		if (onlineVolumeNames.size() > 0) { // Getting confirmation for stop and delete
 			warningMessage = "Following volume(s) " + onlineVolumeNames + " are online, " + CoreConstants.NEWLINE
 					+ "Are you sure to continue?" + CoreConstants.NEWLINE + selectedVolumeNames;
@@ -54,13 +69,13 @@ public class DeleteVolumeAction extends AbstractMonitoredActionDelegate {
 			warningMessage = "Are you sure to delete the volumes " + selectedVolumeNames + " ?";
 		}
 
-		final Integer directoryDeleteOption = new MessageDialog(getShell(), "Delete Volume", GUIHelper.getInstance().getImage(
-				IImageKeys.VOLUME_16x16), warningMessage, MessageDialog.QUESTION, new String[] { "Cancel",
+		final Integer directoryDeleteOption = new MessageDialog(getShell(), "Delete Volume", GUIHelper.getInstance()
+				.getImage(IImageKeys.VOLUME_16x16), warningMessage, MessageDialog.QUESTION, new String[] { "Cancel",
 				"Delete volume and data", "Delete volume, keep data" }, -1).open();
 		if (directoryDeleteOption <= 0) { // By Cancel button(0) or Escape key(-1)
 			return;
 		}
-
+		
 		VolumesClient vc = new VolumesClient();
 		boolean confirmDeleteDir = (directoryDeleteOption == 1) ? true : false;
 		List<String> deletedVolumeNames = new ArrayList<String>();

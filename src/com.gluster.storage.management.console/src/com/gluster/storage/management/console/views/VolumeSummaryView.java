@@ -39,6 +39,7 @@ import com.gluster.storage.management.console.GlusterDataModelManager;
 import com.gluster.storage.management.console.IImageKeys;
 import com.gluster.storage.management.console.toolbar.GlusterToolbarManager;
 import com.gluster.storage.management.console.utils.GUIHelper;
+import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.model.Alert;
 import com.gluster.storage.management.core.model.Brick;
@@ -420,15 +421,29 @@ public class VolumeSummaryView extends ViewPart {
 				public void run() {
 					VolumesClient vc = new VolumesClient();
 					Volume newVolume = new Volume();
+					Integer userAction = 1;
 					String cifsUsers = cifsUsersText.getText().trim();
+					List<String> servers = GlusterDataModelManager.getInstance().getOfflineServers();
+					// One or more servers are offline, Show warning if cifs is enabled
+					if (servers != null && servers.size() > 0) {
+						userAction = new MessageDialog(parent.getShell(), "CIFS configuration", GUIHelper
+								.getInstance().getImage(IImageKeys.VOLUME_16x16),
+								"Performing CIFS updates when one or more servers are offline can trigger "
+										+ "inconsistent behavior for CIFS accesses in the cluster."
+										+ CoreConstants.NEWLINE + CoreConstants.NEWLINE
+										+ "Are you sure you want to continue?", MessageDialog.QUESTION, new String[] {
+										"No", "Yes" }, -1).open();
+					}
+					
 					// If no cifs users and removing cifs config, nothing to do
 					if (!(!cifsCheckbox.getSelection() && volume.getCifsUsers().toString() == "[]" && (cifsUsers
-							.isEmpty() || cifsUsers.equals("")))) {
+							.isEmpty() || cifsUsers.equals(""))) && userAction == 1) {
 						try {
 							vc.setCifsConfig(volume.getName(), cifsCheckbox.getSelection(), cifsUsers);
 							enableCifsUsersControls(false);
 							newVolume = vc.getVolume(volume.getName());
 							modelManager.volumeChanged(volume, newVolume);
+							showCifsUsersControls(volume.isCifsEnable());
 						} catch (Exception e) {
 							MessageDialog.openError(Display.getDefault().getActiveShell(), "Cifs Configuration",
 									e.getMessage());
@@ -436,6 +451,10 @@ public class VolumeSummaryView extends ViewPart {
 							enableCifsUsersControls(cifsCheckbox.getSelection());
 							populateCifsUsersText();
 						}
+					} else {
+						newVolume = vc.getVolume(volume.getName());
+						modelManager.volumeChanged(volume, newVolume);
+						showCifsUsersControls(volume.isCifsEnable());
 					}
 				}
 			});
