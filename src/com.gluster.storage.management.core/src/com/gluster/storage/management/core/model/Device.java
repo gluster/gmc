@@ -219,6 +219,8 @@ public class Device extends Entity {
 		setMountPoint(newDevice.getMountPoint());
 		setServerName(newDevice.getServerName());
 		setStatus(newDevice.getStatus());
+		setFsType(newDevice.getFsType());
+		setType(newDevice.getType());
 		setSpace(newDevice.getSpace());
 		setSpaceInUse(newDevice.getSpaceInUse());
 	}
