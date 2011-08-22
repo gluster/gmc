@@ -114,7 +114,7 @@ public abstract class AbstractTableViewerPage<T> extends Composite implements IS
 				@Override
 				public void linkActivated(org.eclipse.ui.forms.events.HyperlinkEvent e) {
 					((CheckboxTableViewer) tableViewer).setAllChecked(false);
-					tableViewer.setSelection(null);
+					tableViewer.setSelection(StructuredSelection.EMPTY);
 				}
 			});
 		} else {
