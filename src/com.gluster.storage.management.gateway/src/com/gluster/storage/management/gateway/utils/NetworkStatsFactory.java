@@ -54,6 +54,13 @@ public class NetworkStatsFactory extends AbstractStatsFactory {
 			String serverName = serverNames.get(i);
 			Server server = new Server(serverName);
 			serverUtil.fetchServerDetails(server);
+			if(!server.isOnline()) {
+				if(removeServerOnError) {
+					// server is offline. no point in trying to fetch it's details.
+					serverNames.remove(serverName);
+				}
+				continue;
+			}
 			try {
 				for(NetworkInterface networkInterface : server.getNetworkInterfaces()) {
 					ServerStats stats = fetchStats(serverName, period, networkInterface.getName());
