@@ -46,7 +46,7 @@ LOG_SYSLOG = 1
 SYSLOG_REQUIRED = False
 LOG_FILE_NAME = None
 LOG_FILE_OBJ = None
-
+logOpened = False
 
 def _getLogCode(priority):
     if syslog.LOG_EMERG == priority:
@@ -1043,6 +1043,11 @@ def configureDhcpServer(serverIpAddress, dhcpIpAddress):
     return configureDnsmasq(serverIpAddress, dhcpIpAddress)
 
 def log(priority, message=None):
+    global logOpened
+    if not logOpened:
+        syslog.openlog(os.path.basename(sys.argv[0]))
+        logOpened = True
+
     if type(priority) == type(""):
         logPriority = syslog.LOG_INFO
         logMessage = priority

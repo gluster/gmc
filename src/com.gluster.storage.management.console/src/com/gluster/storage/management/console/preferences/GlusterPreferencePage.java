@@ -77,7 +77,7 @@ public class GlusterPreferencePage
 
 		addField(new ComboFieldEditor(PreferenceConstants.P_DEFAULT_CLUSTER_NAME, "Default &Cluster to manage:",
 				clusterNamesArr, getFieldEditorParent()));
-		addField(new IntegerFieldEditor(PreferenceConstants.P_DATA_SYNC_INTERVAL, "&Data Sync Interval (sec):",
+		addField(new IntegerFieldEditor(PreferenceConstants.P_DATA_SYNC_INTERVAL, "&Refresh Interval (sec):",
 				getFieldEditorParent()));
 	}
 
