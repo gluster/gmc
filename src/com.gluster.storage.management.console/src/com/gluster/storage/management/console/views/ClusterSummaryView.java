@@ -337,7 +337,7 @@ public class ClusterSummaryView extends ViewPart {
 		if (cluster.getServers().size() == 0) {
 			toolkit.createLabel(section, "This section will be populated after at least" + CoreConstants.NEWLINE
 					+ "one server is added to the storage cloud.");
-			return null;
+			return section;
 		}
 		
 		ChartUtil.getInstance().createAreaChart(toolkit, section, stats, dataColumnIndex, unit, timestampFormat, listener, maxValue, chartLinkColumnCount);
