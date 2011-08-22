@@ -56,7 +56,7 @@ public class RESTConstants {
 	public static final String TASK_REBALANCE_STATUS = "rebalanceStatus";
 	public static final String TASK_REBALANCE_STOP = "rebalanceStop";
 
-	public static final String FORM_PARAM_VOLUME_NAME = "name";
+	public static final String FORM_PARAM_VOLUME_NAME = "volumeName";
 	public static final String FORM_PARAM_VOLUME_TYPE = "volumeType";
 	public static final String FORM_PARAM_TRANSPORT_TYPE = "transportType";
 	public static final String FORM_PARAM_REPLICA_COUNT = "replicaCount";
@@ -79,9 +79,9 @@ public class RESTConstants {
 	public static final String FORM_PARAM_SOURCE = "source";
 	public static final String FORM_PARAM_TARGET = "target";
 	public static final String FORM_PARAM_AUTO_COMMIT = "autoCommit";
-	public static final String FORM_PARAM_FIX_LAYOUT = "fix-layout";
-	public static final String FORM_PARAM_MIGRATE_DATA = "migrate-data";
-	public static final String FORM_PARAM_FORCED_DATA_MIGRATE = "forced-data-migrate";
+	public static final String FORM_PARAM_FIX_LAYOUT = "fixLayout";
+	public static final String FORM_PARAM_MIGRATE_DATA = "migrateData";
+	public static final String FORM_PARAM_FORCED_DATA_MIGRATE = "forcedDataMigrate";
 	public static final String FORM_PARAM_OLD_PASSWORD = "oldPassword";
 	public static final String FORM_PARAM_NEW_PASSWORD = "newPassword";
 	
@@ -98,10 +98,10 @@ public class RESTConstants {
 	public static final String QUERY_PARAM_BRICKS = "bricks";
 	public static final String QUERY_PARAM_LINE_COUNT = "lineCount";
 	public static final String QUERY_PARAM_VOLUME_NAME = "volumeName";
-	public static final String QUERY_PARAM_DELETE_OPTION = "deleteOption";
+	public static final String QUERY_PARAM_DELETE_OPTION = "deleteData";
 	public static final String QUERY_PARAM_LOG_SEVERITY = "severity";
-	public static final String QUERY_PARAM_FROM_TIMESTAMP = "fromTimestamp";
-	public static final String QUERY_PARAM_TO_TIMESTAMP = "toTimestamp";
+	public static final String QUERY_PARAM_FROM_TIMESTAMP = "fromTimeStamp";
+	public static final String QUERY_PARAM_TO_TIMESTAMP = "toTimeStamp";
 	public static final String QUERY_PARAM_DOWNLOAD = "download";
 	public static final String QUERY_PARAM_SERVER_NAME = "serverName";
 	public static final String QUERY_PARAM_DETAILS = "details";
