@@ -58,6 +58,9 @@ public class ClusterService {
 	
 	@Autowired
 	private ServerUtil serverUtil;
+	
+	@Autowired
+	private GlusterServerService glusterServerService;
 
 	private LRUCache<String, GlusterServer> onlineServerCache = new LRUCache<String, GlusterServer>(3);
 	
@@ -164,7 +167,10 @@ public class ClusterService {
 			for(GlusterServer glusterServer : glusterServers) {
 				String serverName = glusterServer.getName();
 				
-				checkAndSetupPublicKey(serverName);
+				glusterServerService.fetchServerDetails(glusterServer);
+				if(glusterServer.isOnline()) {
+					checkAndSetupPublicKey(serverName);
+				}
 
 				ServerInfo serverInfo = new ServerInfo(serverName);
 				serverInfo.setCluster(cluster);

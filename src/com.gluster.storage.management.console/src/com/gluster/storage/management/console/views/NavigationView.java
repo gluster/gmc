@@ -83,7 +83,7 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 
 		clusterListener = new DefaultClusterListener() {
 			public void modelChanged() {
-				treeViewer.refresh();
+				treeViewer.refresh(true);
 			}
 			
 			@Override
