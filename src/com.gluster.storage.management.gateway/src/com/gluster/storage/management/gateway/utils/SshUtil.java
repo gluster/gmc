@@ -295,7 +295,12 @@ public class SshUtil {
 			// remove the connection from cache and close it
 			sshConnCache.remove(sshConnection);
 			sshConnection.close();
-			throw new GlusterRuntimeException(errMsg, e);
+			if(e instanceof IllegalStateException) {
+				// The connection is no more valid. Create and throw a connection exception.
+				throw new ConnectionException("Couldn't open SSH session on [" + sshConnection.getHostname() + "]!", e);
+			} else {
+				throw new GlusterRuntimeException(errMsg, e);
+			}
 		} finally {
 			if(session != null) {
 				session.close();
