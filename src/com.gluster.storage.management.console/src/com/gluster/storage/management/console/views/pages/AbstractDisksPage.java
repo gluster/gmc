@@ -86,7 +86,8 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 				case DEVICES_REMOVED:
 				case DEVICES_ADDED:
 				case DEVICES_CHANGED:
-					treeViewer.refresh();
+				case GLUSTER_SERVER_CHANGED:
+					treeViewer.refresh(true);
 				default:
 					break;
 				}
