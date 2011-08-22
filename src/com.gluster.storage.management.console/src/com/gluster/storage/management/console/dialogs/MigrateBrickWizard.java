@@ -80,7 +80,7 @@ public class MigrateBrickWizard extends Wizard {
 			TaskInfo taskInfo = taskClient.getTaskInfo(uri);
 			if (taskInfo != null && taskInfo instanceof TaskInfo) {
 				// cluster.addTaskInfo(taskInfo);
-				String volumeName = taskInfo.getReference().split("-")[0];
+				String volumeName = taskInfo.getReference().split("#")[0];
 				modelManager.addTask(taskInfo);
 				modelManager.refreshVolumeData(cluster.getVolume(volumeName));
 				

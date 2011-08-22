@@ -69,7 +69,7 @@ public class MigrateBrickTask extends Task {
 
 	public MigrateBrickTask(ClusterService clusterService, String clusterName, String volumeName, String fromBrick,
 			String toBrick) {
-		super(clusterService, clusterName, TASK_TYPE.BRICK_MIGRATE, volumeName + "-" + fromBrick + "-" + toBrick,
+		super(clusterService, clusterName, TASK_TYPE.BRICK_MIGRATE, volumeName + "#" + fromBrick + "#" + toBrick,
 				"Brick Migration on volume [" + volumeName + "] from [" + fromBrick + "] to [" + toBrick + "]", true,
 				true, true);
 		setFromBrick(fromBrick);
@@ -106,7 +106,7 @@ public class MigrateBrickTask extends Task {
 	}
 
 	private void startMigration(String onlineServerName) {
-		String volumeName = getTaskInfo().getReference().split("-")[0];
+		String volumeName = getTaskInfo().getReference().split("#")[0];
 		ProcessResult processResult = glusterUtil.executeBrickMigration(onlineServerName, volumeName,
 				getFromBrick(), getToBrick(), "start");
 		if (processResult.getOutput().trim().matches(".*started successfully$")) {
@@ -132,7 +132,7 @@ public class MigrateBrickTask extends Task {
 	}
 
 	private void pauseMigration(String onlineServer) {
-		String volumeName = getTaskInfo().getReference().split("-")[0];
+		String volumeName = getTaskInfo().getReference().split("#")[0];
 		ProcessResult processResult = glusterUtil.executeBrickMigration(onlineServer, volumeName,
 				getFromBrick(), getToBrick(), "pause");
 		TaskStatus taskStatus = new TaskStatus();
@@ -165,7 +165,7 @@ public class MigrateBrickTask extends Task {
 	}
 	
 	private void commitMigration(String serverName) {
-		String volumeName = getTaskInfo().getReference().split("-")[0];
+		String volumeName = getTaskInfo().getReference().split("#")[0];
 		ProcessResult processResult = glusterUtil.executeBrickMigration(serverName, volumeName,
 				getFromBrick(), getToBrick(), "commit");
 		TaskStatus taskStatus = new TaskStatus();
@@ -194,7 +194,7 @@ public class MigrateBrickTask extends Task {
 	}
 
 	private void stopMigration(String serverName) {
-		String volumeName = getTaskInfo().getReference().split("-")[0];
+		String volumeName = getTaskInfo().getReference().split("#")[0];
 		ProcessResult processResult = glusterUtil.executeBrickMigration(serverName, volumeName, getFromBrick(),
 				getToBrick(), "abort");
 		TaskStatus taskStatus = new TaskStatus();
@@ -227,7 +227,7 @@ public class MigrateBrickTask extends Task {
 
 		TaskStatus taskStatus = new TaskStatus();
 		try {
-			String volumeName = getTaskInfo().getReference().split("-")[0];
+			String volumeName = getTaskInfo().getReference().split("#")[0];
 			ProcessResult processResult = glusterUtil.executeBrickMigration(serverName, volumeName,
 					getFromBrick(), getToBrick(), "status");
 			String output = processResult.getOutput().trim();
