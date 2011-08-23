@@ -445,6 +445,10 @@ public class ClusterSummaryView extends ViewPart {
 
 	private void refreshChartSection(Composite section, ServerStats stats, String statsPeriod, String unit,
 			double maxValue, int columnCount, ChartPeriodLinkListener linkListener, int dataColumnIndex) {
+		if(stats == null) {
+			return;
+		}
+		
 		for (Control control : section.getChildren()) {
 			if (!control.isDisposed()) {
 				control.dispose();
