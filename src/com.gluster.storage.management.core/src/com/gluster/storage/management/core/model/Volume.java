@@ -330,6 +330,14 @@ public class Volume extends Entity {
 		if(oldBricks.size() != newBricks.size()) {
 			return false;
 		}
+		
+		if(!GlusterCoreUtil.getAddedEntities(oldBricks, newBricks, false).isEmpty()) {
+			return false;
+		}
+
+		if(!GlusterCoreUtil.getAddedEntities(newBricks, oldBricks, false).isEmpty()) {
+			return false;
+		}
 
 		Map<Brick, Brick> modifiedBricks = GlusterCoreUtil.getModifiedEntities(oldBricks, newBricks);
 		if(modifiedBricks.size() > 0) {
