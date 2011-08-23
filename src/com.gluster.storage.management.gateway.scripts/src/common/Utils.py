@@ -452,13 +452,6 @@ def getInfinibandPortStatus():
     return portkeys
         
 
-def getServerFqdn():
-    rv = runCommand("hostname --fqdn", output=True, root=True)
-    if not rv["Stderr"]:
-        return stripEmptyLines(rv["Stdout"])
-    return socket.gethostname()
-
-
 def getServerCount():
     try:
         return int(open(Globals.SERVER_COUNT_FILE).read().strip())
