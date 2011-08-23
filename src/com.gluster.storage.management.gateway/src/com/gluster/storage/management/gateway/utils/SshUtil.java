@@ -83,7 +83,7 @@ public class SshUtil {
 	
 	public boolean isPublicKeyInstalled(String serverName) {
 		try {
-			getConnection(serverName);
+			getConnectionWithPubKey(serverName).close();
 			return true;
 		} catch(ConnectionException e) {
 			return false;
@@ -172,6 +172,7 @@ public class SshUtil {
 	private synchronized Connection getConnectionWithPassword(String serverName) {
 		Connection conn = createConnection(serverName);
 		if(!authenticateWithPassword(conn)) {
+			conn.close();
 			throw new ConnectionException("SSH Authentication (password) failed for server ["
 					+ conn.getHostname() + "]");
 		}
@@ -181,6 +182,7 @@ public class SshUtil {
 	private synchronized Connection getConnectionWithPubKey(String serverName) {
 		Connection conn = createConnection(serverName);
 		if(!authenticateWithPublicKey(conn)) {
+			conn.close();
 			throw new ConnectionException("SSH Authentication (public key) failed for server ["
 					+ conn.getHostname() + "]");
 		}
