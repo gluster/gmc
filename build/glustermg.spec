@@ -66,6 +66,9 @@ cp -pa gmg-scripts/* $RPM_BUILD_ROOT/opt/glustermg/%{release_version}/backend
 %{__install} -d -m0755 %{buildroot}%{_initrddir}
 ln -sf /opt/glustermg/%{release_version}/backend/multicast-discoverd.py %{buildroot}%{_sbindir}/multicast-discoverd
 %{__install} -p -m0755 gmg-scripts/multicast-discoverd.init.d %{buildroot}%{_initrddir}/multicast-discoverd
+ln -sf /opt/glustermg/%{release_version}/backend/gluster_cifs_volume_startup.py %{buildroot}%{_sbindir}/gluster_cifs_volume_startup
+%{__install} -p -m0755 gmg-scripts/gluster-volume-settings.init.d %{buildroot}%{_initrddir}/gluster-volume-settings
+
 
 %post
 if [ -f /usr/share/tomcat5/webapps/glustermg ]; then
@@ -111,6 +114,13 @@ fi
 %preun
 rm -f /usr/share/tomcat5/webapps/glustermg
 
+%pre backend
+modprobe -q fuse
+if ! lsmod | grep -qw fuse; then
+    echo "FATAL: fuse kernel module is not found."
+    false
+fi
+
 %post backend
 if [ -f /etc/sudoers ]; then
     chmod 644 /etc/sudoers
@@ -135,10 +145,12 @@ else
 fi
 /etc/init.d/crond reload
 /sbin/chkconfig smb on
+/sbin/chkconfig --add gluster-volume-settings
 
 %preun backend
 if [ "$1" = 0 ] ; then
     /sbin/chkconfig --del multicast-discoverd
+    /sbin/chkconfig --del gluster-volume-settings
 fi
 
 
@@ -151,6 +163,8 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/rrd
 %{_sbindir}/multicast-discoverd
 %{_initrddir}/multicast-discoverd
+%{_sbindir}/gluster_cifs_volume_startup
+%{_initrddir}/gluster-volume-settings
 
 %files
 %defattr(-,root,root,0755)
