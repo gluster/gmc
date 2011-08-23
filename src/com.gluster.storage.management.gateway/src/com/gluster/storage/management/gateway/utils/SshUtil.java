@@ -313,9 +313,9 @@ public class SshUtil {
 			logger.error(errMsg, e);
 			
 			// remove the connection from cache and close it
-			sshConnCache.remove(sshConnection);
+			sshConnCache.remove(sshConnection.getHostname());
 			sshConnection.close();
-			if(e instanceof IllegalStateException) {
+			if(e instanceof IllegalStateException || e instanceof IOException) {
 				// The connection is no more valid. Create and throw a connection exception.
 				throw new ConnectionException("Couldn't open SSH session on [" + sshConnection.getHostname() + "]!", e);
 			} else {
