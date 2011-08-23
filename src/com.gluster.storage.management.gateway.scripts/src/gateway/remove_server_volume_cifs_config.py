@@ -55,9 +55,10 @@ def main():
     try:
         fp = open(tempFileName, "w")
         fp.write("%s\n" % serverName)
-    except IOError:
-        Utils.log("Failed to write server name to file %s" % tempFileName)
-        sys.stderr.write("Failed to write server name to file\n")
+        fp.close()
+    except IOError, e:
+        Utils.log("Failed to write server name to file %s: %s" % (tempFileName, str(e)))
+        sys.stderr.write("Failed to write server name to file %s: %s\n" % (tempFileName, str(e)))
         sys.exit(3)
 
     status = True
@@ -70,8 +71,8 @@ def main():
     try:
         os.remove(tempFileName)
     except OSError, e:
-        Utils.log("Failed to remove temporary file %s" % tempFileName)
-        sys.stderr.write("Failed to remove temporary file %s\n" % tempFileName)
+        Utils.log("Failed to remove temporary file %s: %s" % (tempFileName, str(e)))
+        sys.stderr.write("Failed to remove temporary file %s: %s\n" % (tempFileName, str(e)))
         pass
 
     if status:
