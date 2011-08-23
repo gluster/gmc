@@ -36,7 +36,7 @@ from optparse import OptionParser
 
 
 def getServerDetails(listall):
-    serverName = Utils.getServerFqdn()
+    serverName = socket.getfqdn()
     meminfo = getMeminfo()
     cpu = getCpuUsageAvg()
     nameServerList, domain, searchDomain = readResolvConfFile()
