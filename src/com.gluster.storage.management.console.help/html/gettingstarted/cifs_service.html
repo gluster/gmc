@@ -10,21 +10,31 @@ type="text/css" media="screen" />
 
 <body>
 <h1>CIFS Services</h1>
-The Common Internet File System (CIFS), also known as Server Message
-Block (SMB), is a network protocol whose most common use is sharing
-files on a Local Area Network (LAN). It operates as an application-layer network protocol to provide shared access to files, printers, serial ports, and miscellaneous communications between nodes on a network. It also provides an authenticated inter-process communication mechanism. Most usage of SMB involves computers running Microsoft Windows operating system.
-
-<p>CIFS can be used as an access protocol by Microsoft Windows users to access files in a GlusterFS volume. Users will be able to perform regular file system operations such as creating files, read/write data to files, deletion of data through CIFS.</p>
+<p>Common Internet File System (CIFS) operates as an application &#45; layer network protocol to provide shared access to files, printers, serial ports, and miscellaneous communications between nodes on a network. It also provides an authenticated inter&#45;process communication mechanism. Most usage of SMB involves computers running Microsoft Windows operating system.</p>
+<p>CIFS can be used as an access protocol by Microsoft Windows users to access files in a GlusterFS volume. Users will be able to perform regular file system operations such as creating files, read or write data to files, deletion of data through CIFS.</p>
+<p>Typically, all CIFS releated operations such as configuring CIFS services, creating and removing users, enabling CIFS re-export of a volume must be perfomed on each and every node of your cluster. Gluster Management Gateway provides an easy way to manage these opeartions, such as:
+<ul>
+<li>An user interface for enabling or disabling CIFS re-export of volumes and configuring CIFS users for a volume.</li>
+<li>Command line utilities for configuring CIFS services, creating and removing CIFS users on all the servers.</li>
+</ul>
 
 <h2>Configuring the CIFS Service</h2>
 <p>To configure CIFS, you must create a text file consisting of a list of servers (hostnames or IP addresses).</p>
 <p><b>Note:</b> You can configure CIFS on a fresh install or on an existing installation on the server which you have installed Gluster Management Gateway after adding the server to the cluster.</p>
 <p>Run the following command on the gateway server to configure CIFS:</p>
-<p><FONT FACE = "Courier">$ grun.py &lt;server list&gt;.txt setup_cifs_config.py</FONT></p>
+<p><FONT FACE = "Courier">$ grun.py &lt;server list file&gt;.txt setup_cifs_config.py</FONT></p>
+<p><b>Note:</b> Ensure that CIFS services are configured on all the servers of your cluster at all times. Any new servers added to the cluster, ensure that you configure CIFS services on them. This enables you to access the CIFS enabled volumes from any of the cluster nodes.
 <h2>Creating CIFS Users</h2>
 <p>You must create users and their password to enable them to use the CIFS access protocol.</p>
 <p>To create CIFS users, run the following on the gateway server:</p>
-<p><FONT FACE = "Courier">$ add_user_cifs_all.py &lt;server list&gt; &lt;user list&gt; &lt;password&gt;</FONT></p>
+<p><FONT FACE = "Courier">$ add_user_cifs_all.py &lt;server list file&gt; &lt;user list file&gt; &lt;password&gt;</FONT></p>
+<ul>
+<li>Server list file – contains one server name per line
+<li>User list file – contains one user name per line
+</ul>
+<p>All users defined in the &lt;user list file&gt; will be created on each and every server defined in &lt;server list file&gt;, will be assigned the same password defined in &lt;password&gt;.
+<p><b>Note:</b> Ensure that CIFS users are created on all the servers of your cluster at all times. Any new servers added to the cluster, ensure that you create all the CIFS users on them. 
+
 <h2>Removing CIFS Users</h2>
 <p>You can delete users and their password.</p>
 <p>To delete CIFS users, run the following on the gateway server:</p>

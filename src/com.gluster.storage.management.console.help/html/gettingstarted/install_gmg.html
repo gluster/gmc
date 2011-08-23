@@ -10,20 +10,31 @@ type="text/css" media="screen" />
 
 <body>
 <h1>Installing the Gluster Management Gateway</h1>
-<p><b>Note:</b> For checking the GlusterFS minimum requirements, refer to the <a href= "http://www.gluster.com/community/documentation/index.php/Gluster_3.2:_Checking_Minimum_Requirements">Gluster 3.2 Filesystem Installation Guide, Checking Minimum Requirements</a>.</p>
-<P>You can install the Gluster Management Gateway through the following command:</P>
+
+<p>To install the Gluster Management Gateway, perform the following steps:</p>
 <ol>
-<li>Open a terminal and type the following command
-<p><FONT FACE = "Courier"># rpm -ivh glustermg-1.0.0-1.x86_64.rpm</FONT>
-<li>Start the Gluster Management Gateway by executing the following service
-<p><FONT FACE = "Courier"># service tomcat5 start</FONT>
-</ol>
-<p><b>Note:</b>
+<li>Download the Gluster Management Gateway repository configuration file (<FONT FACE = "Courier">glustermg.repo</FONT>) and the Gluster Management Gateway RPM (<FONT FACE = "Courier">glustermg-1.0.0-1.x86_64.rpm</FONT>) from the location provided by Gluster. 
+<p><b>Note:</b> <FONT FACE = "Courier">glustermg.repo</FONT> has been created and tested with CentOS 5.6. It may work with other versions of CentOS, however it has not been extensively tested.
+<li>Save the file in the following location on your machine:
+<p><FONT FACE = "Courier">/etc/yum.repos.d/</FONT>
+<li>5.	Run the following command to install Gluster Management Gateway:
+<p><FONT FACE = "Courier"># yum groupinstall glustermg</FONT>
+<li>The following packages are installed if not installed earlier:
 <ul>
+<li>Java SE runtime version 1.6 &ndash; OpenJDK  v1.6.0.0 
+<li>Tomcat v5.5.23 or higher
+<li>wget 
+</ul>
+<li>Run the following command to install Gluster Management Gateway.
+<p><FONT FACE = "Courier">rpm -ivh glustermg-1.0.0-1.x86_64.rpm </FONT>
+</ol>
+<p>Gateway generates SSH keys during installation. These keys are stored in the following location <FONT FACE = "Courier">/opt/glustermg/keys</FONT>. These keys are used for communication with the storage servers. However, in Amazon Web Services (AWS) environment, SSH communication is done using the private key provided by Amazon. Hence, the AWS genegrated private key (.pem file) must be stored in <FONT FACE = "Courier">/opt/glustermg/keys</FONT> and the file must be named as <FONT FACE = "Courier">gluster.pem</FONT></p>
+<p><b>Note:</b>
+<ol>
 <li>You can install the Gluster Management Gateway packages on a Gluster Storage Server. However, this can impact performance of the GlusterFS processes on this machine hence this is not recommended.
 <li>The Gluster Management Gateway is shipped with a self-signed SSL certificate, by default. While this ensures that the communication between the console and gateway is encrypted and safe, some browsers may throw security warnings mentioning that the site is not secure. It is highly recommended that you install your own SSL certificate issued by a valid certifying authority in the tomcat5 configuration for the 8443 port.
-<li>Enable port 8443 on the Gateway as the Management Console connects to it over SSL on this port
-</ul>
-<p>Gateway generates SSH keys during installation. These keys are stored in the following location <FONT FACE = "Courier">/opt/glustermg/keys</FONT>. These keys are used for communication with the storage servers. However, in AWS environment, SSH communication is done using the private key provided by Amazon. Hence, the AWS genegrated private key (.pem file) must be stored in <FONT FACE = "Courier">/opt/glustermg/keys</FONT> and the file must be named as <FONT FACE = "Courier">gluster.pem</FONT></p>
+<li>Enable port 8443 on the Gateway as the Management Console connects to it over SSL on this port.
+<li>Gluster Management Gateway communicates with all storage servers through SSH, using their host names. Make sure all of your storage server&rsquo;s host names are resolvable by the Gateway.
+</ol>
 </body>
 </html>

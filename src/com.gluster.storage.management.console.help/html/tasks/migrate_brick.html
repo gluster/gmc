@@ -10,19 +10,20 @@ type="text/css" media="screen" />
 
 <body>
 <h1>Migrating Bricks</h1>
-<p>You can migrate the data from one brick to another, as needed, while the volume is online and available.You can migrate disks, that is, move data from one disk to another within your cluster. You might want to do this, for example, when upgrading a disk to another with a larger capacity.</p> 
-<p>When migrating a disk, the Gluster Management Console allows you to select both the source and destination bricks. After initiating a disk migration, the <b>Task</b> tab displays the status of the migration, and allows you to cancel the migration, if necessary.</p> 
+<p>You can migrate the data from one brick to another, as needed, while the cluster is online and available. 
+You can migrate bricks, that is, move data from one brick to another within your cluster. You might want to do this, for example, when upgrading a disk to another with a larger capacity.
+</p> 
+<p>When migrating a disk, the Gluster Management Console allows you to select both the source and destination bricks. After initiating a disk migration, the <b>Task</b> tab displays the status of the migration. You can stop, pause, resume, or commit the migration by selecting the appropriate icon from the toolbar.</p> 
 <p>To migrate volume data from one brick to another, perform the following steps.</p>
 <ol>
-<li>Select <b>Migrate Bricks</b> by choosing from the menu, toolbar, or right click and select the volume.
+<li>Select <b>Migrate Bricks</b> by choosing from the menu, toolbar, or right click when you select the volume.
 <p>The <b>Migrate Brick</b> window is displayed.</p>
 <p><img src="../images/GMC_Migrate_Brick.jpg" alt="Migrate Brick"/>
-<li>Type the source volume in the <b>From Disk</b> field.
-<li>Type the destination volume in the <b>To Disk</b> field.
+<li>Select the source brick from the <b>From Brick</b> table.
+<li>Select the destination brick from the <b>To Brick</b> table.
 <li>Click <b>Finish</b>. The Brick Migration window appears indicating that the brick was successfully migrated.
 <p><img src="../images/GMC_Migrate_Brick_success.jpg" alt="Migrate Brick Success"/>
-<li>The <b>Volumes</b> tab displays the migration status of the volume (updated automatically every few minutes).
-<li>In the <b>Task</b> tab, click <b>Cancel</b> to cancel the volume migration or click Pause to pause the process, if required. 
+<li>The <b>Tasks</b> tab displays the migration status (updated periodically).
 </ol>
 
 </body>

@@ -10,9 +10,7 @@ type="text/css" media="screen" />
 
 <body>
 <h1>Managing Logs</h1>
-You can use the Logs tab of your Management Console to download the
-gateway, server, volumes, and UI logs to your local machine to analyze
-and archive.
+You can download volume logs to your local machine to analyze and archive or you can retrieve volume logs based on a search criteria. This section describes how you can manage logs on your storage cluster.
 <p>Typically, the log file includes:</p>
 <ul>
 	<li>Installation messages
@@ -20,7 +18,11 @@ and archive.
 	<li>Configuration messages
 	<li>Informational messages
 </ul>
-<p>The default location for this log file is &lt;need this
-information&gt;.</p>
+<p>The Gluster Management Gateway log files are stored in the following locations on your server:</p>
+<ul>
+<li>Tomcat servlet container logs - <FONT FACE = "Courier">/var/log/tomcat5/catalina.out</FONT>
+<li>Gluster Management Gateway logs - <FONT FACE = "Courier">/var/log/glustermg/glustermg.log</FONT>
+</ul>
+
 </body>
 </html>

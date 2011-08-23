@@ -3,16 +3,16 @@
 
 <toc label="Tasks" link_to="toc.xml#tasks">
  <topic label="Cluster">
-    <topic href="html/tasks/create_cluster.html" label="Create Cluster">
+    <topic href="html/tasks/create_cluster.html" label="Creating a Cluster">
     </topic>
-    <topic href="html/tasks/select_cluster.html" label="Select Cluster">
+    <topic href="html/tasks/select_cluster.html" label="Selecting a Cluster">
     </topic>
-    <topic href="html/tasks/register_cluster.html" label="Register Cluster">
+    <topic href="html/tasks/register_cluster.html" label="Registering a Cluster">
     </topic>
  </topic> 
 	<topic label="Server">
-	<topic label="Adding Servers" href="html/tasks/add_servers.html" />
- <topic href="html/tasks/remove_server.html" label="Removing Servers">
+	<topic label="Adding Servers to a Cluster" href="html/tasks/add_servers.html" />
+ <topic href="html/tasks/remove_server.html" label="Removing Servers from a Cluster">
  </topic>
 	<topic href="html/tasks/initialize_disk.html" label="Initializing a Disk"/>
 		</topic>
@@ -28,7 +28,7 @@
  <topic href="html/tasks/delete_volume.html" label="Deleting Volumes">
  </topic>
 	<topic label="Adding Bricks" href="html/tasks/add_brick.html" /> 
-	<topic href="html/tasks/delete_brick.html" label="Removing Bricks">
+	<topic href="html/tasks/remove_brick.html" label="Removing Bricks">
  </topic>
  <topic href="html/tasks/migrate_brick.html" label="Migrating Bricks">
  </topic> 

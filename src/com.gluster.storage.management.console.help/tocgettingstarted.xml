@@ -17,6 +17,12 @@
       </topic>
    </topic> 
 	<topic href="html/gettingstarted/explore_gmc.html" label="Exploring Gluster Management Console">
+    <topic href="html/gettingstarted/gmc_toolbar.html" label="Gluster Management Console Toolbar">
+    </topic>
+    <topic href="html/gettingstarted/tasks.html" label="Tasks">
+    </topic>
+    <topic href="html/gettingstarted/gmc_terminal_window.html" label="Terminal">
+    </topic>
     <topic href="html/gettingstarted/monitor_resources.html" label="Monitoring Cluster Resources">
     </topic>
     <topic href="html/gettingstarted/alerts.html" label="Alerts">
@@ -24,8 +30,6 @@
     <topic href="html/gettingstarted/setting_preferences.html" label="Preferences">
     </topic>
     <topic href="html/gettingstarted/security_keys.html" label="Security Keys">
-    </topic>
-    <topic href="html/gettingstarted/change_password.html" label="Changing Administrator’s Password">
     </topic>
     <topic href="html/gettingstarted/resetting_pwd.html" label="Resetting the Password">
     </topic>

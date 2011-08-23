@@ -10,44 +10,38 @@ type="text/css" media="screen" />
 
 <body>
 <h1>Creating a Volume</h1>
-You can use the Management Console to create and start new volumes
-featuring a single global namespace. When creating a new volume, you can
-select the servers that will comprise the volume and, optionally,
-specify whether the volume is to be distributed, distributed mirrored,
-or distributed stripedPlease enter your text here.
+You can create new volumes in your storage environment, as needed.  When creating a new volume, you must specify the bricks that comprise the volume and specify whether the volume is to be distributed, replicated, or striped.
 <p>To create a volume, perform the following steps:
 <ol>
 	<li>Choose from the menu, toolbar, or right click and select the
-	Volume and select Create Volume.
+	Volume and select <b>Create Volume</b>.
 
-	<p>The Create Volume window is displayed.
+	<p>The <b>Create Volume</b> window is displayed.
 	<p><img src="../images/GMC_Create_Volume.jpg" alt="Create Volume" /></p>
-	<li>Enter the name of the volume in the Name field.
-	<li>Select the type of the volume from the Type drop-down list.
-	You can choose the type as either Plain Distribute, Distributed Mirror,
-	or Distributed Stripe.
+	<li>Type the name of the volume in the <b>Name</b> field.
+	<li>Select the type of the volume from the <b>Type</b> drop-down list.
+	You can choose the type as either <b>Distribute</b>, <b>Replicate</b>,
+	or <b>Stripe</b>.
 	<li>Bricks will be created on all the disks of the cluster when
-	you create a volume, by default. Click Customize, to select and add
+	you create a volume, by default. Click <b>Customize</b>, to select and add
 	specific bricks to your volume.
-	<li>Select the Access Protocol for the new volume. You can select
-	GlusterFS, NFS, or CIFS checkbox.
-	<li>If you choose CIFS, specify the user name and password to use
+	<li>Select the <b>Access Protocol</b> for the new volume by selecting <b>GlusterFS</b>, <b>NFS</b>, or <b>CIFS</b> checkbox.
+	<li>If you choose <b>CIFS</b>, specify the user name and password to use
 	from Windows clients to connect to the volume.
 	<p>You need to use user-based authentication for CIFS exports,
 	hence you must specify the user&rsquo;s who can access the volume as a
 	comma-separated list in the Users field.
-	<li>Specify the volume access control as a comma-separated list of
-	IP addresses or hostnames in the Access Control field.
-	<p>You can use wildcard to specify ranges of addresses. Typing an
-	asterisk (*) specifies all IP addresses. You need to use IP-based
-	authentication for Gluster Filesystem and NFS exports.</p>
-	<li>Select the Start Volume check box to automatically start the
+	
+	<p>For more information about configuring CIFS, refer <a href="cifs_service.html">CIFS
+	Services</a>.<li>In the<b> Allow Access From</b> field, specify the volume access control as a comma-separated list of IP addresses or hostnames.
+	<p>You can use wildcards to specify ranges of addresses. Typing an asterisk (*) specifies all IP addresses or hostnames. You need to use IP-based authentication for Gluster Filesystem and NFS exports.</p>
+	<li>Select the <b>Start Volume</b> check box to automatically start the
 	volume once created.
-	<li>Click Create Volume. The console displays Create Volume window
+	<li>Click <b>Create Volume</b>. The console displays Create Volume window
 	to indicate that the volume was successfully created.
 	<p><img src="../images/GMC_Create_Volume_success.jpg"
 		alt="Volume Created Successfuly" /></p>
-	<li>Click OK.
+	<li>Click <b>OK</b>.
 </ol>
 </body>
 </html>

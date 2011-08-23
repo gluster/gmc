@@ -10,8 +10,7 @@ type="text/css" media="screen" />
 
 <body>
 <h1>Security Keys</h1>
-In order to secure all of the virtual machines that are created, root access to these machines is controlled by SSH key access rather than by using an interactive password. This establishes trust between your account on your central server and the new virtual machine you just added to your cluster. 
-<p>Administrators can export and/or import the SSH keys (of the gateway) for security reasons from the Gluster Management Gateway server.</p>
+Gluster Management Gateway communicates with storage servers using public key authentication. This establishes trust between your account on your central server and the new machine you just added to your cluster. Administrators can export and/or import the SSH keys (of the gateway) for security reasons from the Gluster Management Gateway server.
 <h2>Importing Keys</h2>
 <p>To import the security keys, perform the following steps:</p>
 <ol>
