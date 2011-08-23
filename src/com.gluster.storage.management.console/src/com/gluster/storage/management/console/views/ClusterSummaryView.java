@@ -84,6 +84,8 @@ public class ClusterSummaryView extends ViewPart {
 	private Composite tasksSection;
 	private static final ChartUtil chartUtil = ChartUtil.getInstance();
 	private IPropertyChangeListener propertyChangeListener;
+	private Label onlineServerCountLabel;
+	private Label offlineServerCountLabel;
 
 	/*
 	 * (non-Javadoc)
@@ -136,6 +138,7 @@ public class ClusterSummaryView extends ViewPart {
 			public void aggregatedStatsChanged() {
 				super.aggregatedStatsChanged();
 				refreshCharts();
+				populateOnlineOfflineServerCount();
 			}
 
 			@Override
@@ -198,18 +201,23 @@ public class ClusterSummaryView extends ViewPart {
 
 	private void createServersSection() {
 		Composite section = guiHelper.createSection(form, toolkit, "Servers", null, 2, false);
+		toolkit.createLabel(section, "Online : ");
+		onlineServerCountLabel = toolkit.createLabel(section, "");
 
+		toolkit.createLabel(section, "Offline : ");
+		offlineServerCountLabel = toolkit.createLabel(section, "");
+		populateOnlineOfflineServerCount();
+	}
+
+	private void populateOnlineOfflineServerCount() {
 		int onlineServerCount = getServerCountByStatus(cluster, SERVER_STATUS.ONLINE);
 		int offlineServerCount = getServerCountByStatus(cluster, SERVER_STATUS.OFFLINE);
-		
-		toolkit.createLabel(section, "Online : ");
-		Label label = toolkit.createLabel(section, "" + onlineServerCount);
-		label.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
-		
-		toolkit.createLabel(section, "Offline : ");
-		label = toolkit.createLabel(section, "" + offlineServerCount);
-		label.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
+		onlineServerCountLabel.setText("" + onlineServerCount);
+		onlineServerCountLabel.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
+		offlineServerCountLabel.setText("" + offlineServerCount);
+		offlineServerCountLabel.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
 	}
+	
 	
 	private void createDiskSpaceSection() {
 		Composite section = guiHelper.createSection(form, toolkit, "Disk Space", null, 3, false);
