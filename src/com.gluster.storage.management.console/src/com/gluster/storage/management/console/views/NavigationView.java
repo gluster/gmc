@@ -89,6 +89,7 @@ public class NavigationView extends ViewPart implements ISelectionListener {
 			@Override
 			public void volumeChanged(Volume volume, Event event) {
 				super.volumeChanged(volume, event);
+				treeViewer.update(volume, null);
 				if (volume == entity) {
 					// this makes sure that the toolbar buttons get updated according to new status
 					selectEntity(volume);
