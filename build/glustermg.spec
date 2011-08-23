@@ -34,6 +34,7 @@ Requires:       appliance-base >= 1.3
 Requires:       sudo
 Requires:       crontabs
 Requires:       samba3
+Requires:       libxml2 >= 2.6.26
 %description    backend
 %{product_family} server side backend tools
 
