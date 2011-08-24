@@ -34,7 +34,7 @@ type="text/css" media="screen" />
 <li>You can install the Gluster Management Gateway packages on a Gluster Storage Server. However, this can impact performance of the GlusterFS processes on this machine hence this is not recommended.
 <li>The Gluster Management Gateway is shipped with a self-signed SSL certificate, by default. While this ensures that the communication between the console and gateway is encrypted and safe, some browsers may throw security warnings mentioning that the site is not secure. It is highly recommended that you install your own SSL certificate issued by a valid certifying authority in the tomcat5 configuration for the 8443 port.
 <li>Enable port 8443 on the Gateway as the Management Console connects to it over SSL on this port.
-<li>Gluster Management Gateway communicates with all storage servers through SSH, using their host names. Make sure all of your storage server&rsquo;s host names are resolvable by the Gateway.
+<li> 	Gluster Management Gateway communicates with all storage servers through SSH, using their host names. Make sure all of your storage server&#39;s host names (fully qualified domain names) are resolvable by the Gateway and by each other. If you have a properly configured DNS setup, this should work seamlessly.
 </ol>
 </body>
 </html>

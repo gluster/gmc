@@ -315,6 +315,12 @@ public class GlusterServerService {
 				}
 			}
 			
+			clusterService.unmapServerFromCluster(clusterName, serverName);
+
+			// since the server is removed from the cluster, it is now available to be added to other clusters.
+			// Hence add it back to the discovered servers list.
+			discoveredServerService.addDiscoveredServer(serverName);
+			
 			try {
 				if (serverUtil.isServerOnline(new Server(serverName))) {
 					volumeService.clearCifsConfiguration(clusterName, onlineServer.getName(), serverName);
@@ -328,13 +334,7 @@ public class GlusterServerService {
 				// since the cached server has been removed from the cluster, remove it from the cache
 				clusterService.removeOnlineServer(clusterName);
 			}
-
-			// since the server is removed from the cluster, it is now available to be added to other clusters.
-			// Hence add it back to the discovered servers list.
-			discoveredServerService.addDiscoveredServer(serverName);
 		}
-
-		clusterService.unmapServerFromCluster(clusterName, serverName);
 	}
 
 	private boolean containsServer(List<ServerInfo> servers, String serverName) {

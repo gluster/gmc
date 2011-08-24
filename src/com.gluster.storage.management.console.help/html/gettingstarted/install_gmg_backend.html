@@ -11,9 +11,14 @@ type="text/css" media="screen" />
 <body>
 <h1>Installing Gluster Management Gateway Backend Package</h1>
 Gluster Management Gateway communicates with every node of your cluster using the backend package. This package must be installed on each and every node of your cluster using the Linux package published by Gluster.
+<p><b>Pre-requisite</b></p>
+<ul>
+<li>Ensure that you have installed GlusterFS v3.2.3 or higher on all the nodes of your cluster.
+</ul>
+ 	
 <p>To install the backend packages on each and every node of your cluster, perform the following steps:</p>
 <ol>
-<li>Download the Gluster Management Gateway repository configuration file (<FONT FACE = "Courier">glustermg.repo</FONT>) and the Gluster Management Gateway RPM (<FONT FACE = "Courier">glustermg-1.0.0-1.x86_64.rpm</FONT>) from the location provided by Gluster. :
+<li>Download Gluster Management Gateway repository configuration file (<FONT FACE = "Courier">glustermg.repo</FONT>) and the Gluster Management Gateway RPM (<FONT FACE = "Courier">glustermg-1.0.0-1.x86_64.rpm</FONT>) from the location provided by Gluster. :
 <p><b>Note:</b> <FONT FACE = "Courier">glustermg.repo</FONT> has been created and tested with CentOS 5.6. It may work with other versions of CentOS, however it has not been extensively tested.
 <li>Save the file in the following location on your machine:
 <p><FONT FACE = "Courier">/etc/yum.repos.d/</FONT>

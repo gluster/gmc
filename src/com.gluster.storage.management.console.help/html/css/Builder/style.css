@@ -1,0 +1,939 @@
+/*
+Theme Name: Builder
+Theme URI: http://ithemes.com/
+Description: Builder lets you create custom layouts quickly and easily.
+Author: iThemes
+Author URI: http://ithemes.com/
+Version: 2.8.0
+Tags: blog, theme options, multiple layouts, multiple color schemes
+
+Version History
+	See history.txt
+*/
+
+/*********************************************
+	Default font settings and typography.
+	The font-size percentage is of 16px. (0.75 * 16px = 12px)
+*********************************************/
+html {
+	font-size: 100.01%;
+}
+body {
+	font-size: 75%;
+	line-height: 1.5;
+	color: #222222;
+	font-family: Arial, Helvetica, sans-serif;
+}
+input, select, textarea {
+	font-family: Arial, Helvetica, sans-serif;
+}
+pre, code, tt, kbd {
+	font-family: 'andale mono', 'lucida console', monospace;
+	font-size: 1em;
+	line-height: 1.5;
+}
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+address, dfn, img, samp, ul, ol, dl {
+	margin-top: 1.5em;
+	margin-bottom: 1.5em;
+}
+a img {
+	margin: 0;
+}
+
+/*********************************************
+	Constrain table, image, and input widths
+*********************************************/
+table, img, input, textarea, select {
+	max-width: 100%;
+	height: auto;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-ms-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+/*********************************************
+	Main Background
+*********************************************/
+body {
+	background: #F7F7F7;
+}
+
+/*********************************************
+	Universal Link Styles
+*********************************************/
+a {
+	color: #000000;
+	text-decoration: underline;
+}
+a:hover {
+	color: #000000;
+	text-decoration: underline;
+}
+a:focus {
+	color: #000000;
+}
+
+/*********************************************
+	Headings
+*********************************************/
+h1, h2, h3, h4, h5, h6 {
+	font-weight: bold;
+	color: #111111;
+}
+h1 {
+	font-family: "Arial Black", Arial, Helvetica, Sans-Serif;
+	font-size: 2em;
+	line-height: 1.5;
+	margin-top: 0.75em;
+	margin-bottom: 0.75em;
+	letter-spacing: -1px;
+}
+h2 {
+	font-size: 1.7em;
+	line-height: 1.75em;
+	margin-top: 0.9em;
+	margin-bottom: 0.9em;
+}
+h3 {
+	font-size: 1.5em;
+	line-height: 1;
+	margin-top: 1em;
+	margin-bottom: 1em;
+}
+h4 {
+	font-size: 1.2em;
+	line-height: 1.25em;
+	margin-top: 1.25em;
+	margin-bottom: 1.25em;
+}
+h5, h6 {
+	font-size: 1em;
+}
+h6 {
+	font-style: italic;
+}
+h1 img, h2 img, h3 img, h4 img, h5 img, h6 img {
+	margin: 0;
+}
+
+/*********************************************
+	Container Div
+*********************************************/
+.builder-container-outer-wrapper {
+	background: transparent;
+	margin: 1.5em auto;
+	border: none;
+	display: block;
+}
+
+/*********************************************
+	Default Module Styling
+*********************************************/
+.builder-module {
+	background: #FFFFFF;
+	margin-bottom: 1.5em;
+	border-top: .1em solid #777777;
+	border-bottom: .1em solid #777777;
+}
+.builder-module-last {
+	margin-bottom: 0;
+}
+
+/* Failed attempt #5 at producing full-height sidebars
+
+   This does not work due to a Firefox glitch that causes wide content to
+   override the width of blocks.
+
+   These rules should be looked at again later in case Firefox fixes this issue.
+*/
+/*
+.builder-module {
+	display: table;
+	table-layout: fixed;
+}
+.builder-module-block-outer-wrapper {
+	display: table-cell !important;
+	float: none !important;
+	vertical-align: top;
+}
+*/
+
+/*********************************************
+	All Sidebars
+*********************************************/
+.builder-module-sidebar {
+	background: #DDDDDD;
+	display: block;
+	width: 100%;
+	text-align: left;
+	margin: 0;
+	padding: .75em 0;
+}
+.builder-module-sidebar.right {
+	margin-right: 0;
+}
+.builder-module-sidebar.left {
+	margin-left: 0;
+}
+.builder-module-sidebar .widget-wrapper {
+	width: 100%;
+}
+.builder-module-sidebar .widget {
+	margin: 0;
+	padding: .75em 1.5em;
+	color: #333333;
+}
+.builder-module-block-outer-wrapper {
+	overflow: visible !important;
+}
+.builder-module-block-outer-wrapper .widget-wrapper-left .widget,
+.builder-module-block-outer-wrapper .widget-wrapper-middle .widget {
+	padding-right: .75em;
+}
+.builder-module-block-outer-wrapper .widget-wrapper-middle .widget,
+.builder-module-block-outer-wrapper .widget-wrapper-right .widget {
+	padding-left: .75em;
+}
+.builder-module-sidebar h4.widget-title {
+	color: #333333;
+	background: none;
+	font-size: 1.2em;
+	line-height: 1.25;
+	padding: 0;
+	margin: 0 0 1.25em 0;
+}
+.builder-module-sidebar h4.widget-title a {
+	color: #333333;
+}
+.builder-module-sidebar h4.widget-title + * {
+	margin-top: 0;
+}
+.builder-module-sidebar .widget *:first-child {
+	margin-top: 0;
+}
+.builder-module-sidebar .widget *:last-child {
+	margin-bottom: 0;
+}
+.builder-module-sidebar .widget a.rsswidget img {
+	display: none;
+}
+
+/*********************************************
+	Navigation Module
+*********************************************/
+.builder-module-navigation {
+	font-size: 1em;
+	line-height: 2em;
+	background: #FFFFFF url('images/nav_bg.png') repeat top left;
+	display: block;
+	width: 100%;
+}
+.builder-module-navigation .builder-module-element {
+	margin: 0 .5em;
+}
+.builder-module-navigation ul {
+	float: left;
+	display: block;
+	margin: 0;
+	padding: 0;
+}
+.builder-module-navigation ul * {
+	margin: 0;
+}
+.builder-module-navigation li {
+	padding: 0;
+}
+.builder-module-navigation li a,
+.builder-module-navigation li.current_page_item li a,
+.builder-module-navigation li.current-cat li a {
+	font-size: 1em;
+	padding: .4em .6em;
+	color: #333333;
+	font-weight: bold;
+	text-decoration: none;
+	background: #FFFFFF url('images/nav_bg.png') repeat-x top left;
+}
+.builder-module-navigation li a:hover {
+	background: #333333 url('images/nav_bg_hover.jpg') repeat-x top left;
+	color: #FFFFFF;
+}
+.builder-module-navigation li.current_page_item a,
+.builder-module-navigation li.current-cat a {
+}
+/* second level stuff */
+.builder-module-navigation li ul {
+	width: 14em;
+	border: .1em solid #777777;
+	border-bottom: 0;
+}
+.builder-module-navigation li li {
+	border-bottom: .1em solid #777777;
+	width: 14em;
+}
+.builder-module-navigation li li a {
+	float: none;
+}
+.builder-module-navigation li li a:hover,
+.builder-module-navigation li li a.sfhover {
+}
+.builder-module-navigation li ul ul {
+	margin: -2.9em 0 0 14em;
+}
+
+/*********************************************
+	Widget Bar Module
+*********************************************/
+.builder-module-widget-bar {
+	background: #DDDDDD;
+}
+
+/*********************************************
+	Footer Module
+*********************************************/
+.builder-module-footer {
+	background: transparent;
+	border: none;
+}
+.builder-module-footer .builder-module-element {
+	text-align: left;
+	color: #333333;
+	margin: 0 1.5em;
+}
+.builder-module-footer .builder-module-element .alignright {
+	text-align: right;
+}
+.builder-module-footer .builder-module-element a {
+	color: #333333;
+	text-decoration: none;
+}
+.builder-module-footer .builder-module-element a:hover {
+	text-decoration: underline;
+}
+
+/*********************************************
+	Image Module
+*********************************************/
+.builder-module-image .builder-module-element {
+	font-size: 0;
+}
+.builder-module-image .builder-module-element img {
+	margin: 0;
+}
+
+/*********************************************
+	HTML Module
+*********************************************/
+
+/*********************************************
+	Content Module
+*********************************************/
+.builder-module-content .builder-module-element {
+	margin: 1.5em;
+	display: block;
+	text-align: left;
+	overflow: hidden;
+}
+.builder-module-content .post {
+	margin-bottom: 1.5em;
+}
+
+.post-title, .post-title * {
+	margin: 0;
+	padding: 0;
+}
+.post .thumbnail-wrap {
+	display: none;
+}
+.post .date {
+	/*display: none;*/
+	float: left;
+}
+
+.post-title h1,
+.post-title h2,
+.post-title h3 {
+	font-family: "Arial Black",Arial,Helvetica,Sans-Serif;
+	clear: both;
+	color: #262626;
+	font-size: 1.9em;
+	line-height: 1em;
+	letter-spacing: -1px;
+	font-weight: bold;
+	text-transform: uppercase;
+	margin-bottom: .56em;
+}
+.post-title a {
+	text-decoration: none;
+	color: #262626;
+	font-size: 1em;
+}
+
+.post .post-meta {
+	display: block;
+	/*clear: both;*/
+}
+.post .post-meta a {
+	text-decoration: none;
+	font-style: italic;
+}
+.post .post-meta a:hover {
+	text-decoration: underline;
+}
+.post .meta-bottom {
+	display: block;
+}
+.post .meta-bottom img {
+	max-width: none;
+}
+
+.post .entry-attachment .attachment {
+	text-align: center;
+}
+
+.post .edit-entry-link {
+	margin: 0 0 1.5em 0;
+	clear: both;
+}
+
+.post-content {
+	margin-top: 1.5em;
+	clear: both;
+}
+.page-title {
+	font-size: 1.75em;
+	line-height: 1.7em;
+	margin-top: 0;
+	margin-bottom: .875em;
+}
+
+/*********************************************
+	Style images and galleries
+	.hentry is used instead of .page or .post
+	as it applies to all content types
+*********************************************/
+.hentry .gallery a,
+.hentry .gallery dt,
+.hentry .gallery img {
+	margin: 0;
+	font-size: 0;
+	line-height: 0;
+}
+.hentry .gallery-item {
+	display: inline-block;
+	margin: 0 1.5em 1.5em 0;
+	padding: 5px;
+	vertical-align: top;
+	text-align: left;
+	width: 150px;
+	border: 1px solid #CFCFCF;
+	background: #F3F3F3;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+}
+.hentry .gallery-item img {
+	border: 0;
+	margin: 0;
+	padding: 0;
+}
+.hentry .gallery-caption {
+	margin: 0;
+	padding: 10px 5px 5px 5px;
+	line-height: 1;
+}
+.hentry .gallery + * {
+	margin-top: 0;
+}
+
+.hentry img {
+	border: 1px solid #CFCFCF;
+	background: #F3F3F3;
+	padding: 5px;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+}
+.hentry .alignright {
+	margin: 0 0 1.5em 1.5em;
+}
+.hentry .alignleft {
+	margin: 0 1.5em 1.5em 0;
+}
+.hentry .aligncenter {
+	margin: 0 auto 1.5em auto;
+}
+
+.hentry .wp-caption {
+	border: 1px solid #CFCFCF;
+	background: #F3F3F3;
+	padding: 5px;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+}
+.hentry .wp-caption img {
+	border: none;
+	background: transparent;
+	padding: 0;
+}
+
+.hentry .wp-caption-text {
+	text-align: left;
+	margin: 0;
+	padding: 10px 5px 5px 5px;
+	line-height: 1;
+}
+
+
+/*********************************************
+	Post Meta Styles, if needed
+*********************************************/
+.meta-top {
+	clear: both; /* we need this so floats in the post are cleared */
+}
+
+.meta-bottom {
+	clear: both; /* we need this so floats in the post are cleared */
+	border-top: .1em solid #D7D7D7;
+	padding-top: 1.4em;
+	margin-bottom: 3em;
+}
+.meta-bottom .alignright {
+	margin-bottom: 1.5em;
+}
+.meta-bottom .categories,
+.meta-bottom .tags {
+	background: url( 'images/folder.png' ) 0 0 no-repeat;
+	padding: 0 0 0 1.5em;
+}
+.meta-bottom .comments {
+	background: url( 'images/comments.png' ) 0 2px no-repeat;
+	padding: 0 0 0 1.5em;
+}
+
+.EXIF table {
+	margin: 1.5em auto;
+}
+.photometa h4 {
+	text-align: center;
+	margin: 0;
+	padding: 0;
+}
+.photometa ul {
+	list-style-type: none;
+}
+
+/*********************************************
+	Previous/Next Page Navigation
+*********************************************/
+.paging {
+	clear: both; /* To clear any floats */
+	margin: 0;
+	padding: 0;
+}
+
+/*********************************************
+	Comment Styles
+*********************************************/
+#comments {
+	margin: 3em 0 1.5em 0;
+	padding: 0;
+}
+#comments ol.commentlist {
+	margin: 1.5em 0;
+	padding: 0;
+	background: transparent;
+}
+#comments ul.children {
+	margin: 0 1.5em;
+}
+#comments .vcard {
+	line-height: 1;
+	margin-bottom: .5em;
+}
+#comments .vcard .avatar {
+	display: block;
+	float: left;
+	margin: 0 .75em 0 0;
+}
+#comments .comment-meta {
+	margin-bottom: 1.5em;
+}
+#comments li {
+	clear: both;
+	list-style-type: none;
+	margin: 1.5em 0;
+	border: 1px solid #999999;
+	overflow: hidden;
+}
+#comments li .comment-body {
+	margin: 1.5em;
+}
+#comments blockquote {
+	margin: 1.5em;
+}
+
+#respond {
+	margin-top: 3em;
+	overflow: visible !important;
+}
+.comment #respond {
+	margin: 1.5em 1.5em 1.5em 1.5em;
+	padding: 0 1.5em 1.5em 1.5em;
+	border: 1px solid #999999;
+}
+#respond h3 {
+	margin-bottom: 0;
+}
+#respond .cancel-comment-reply a {
+	margin: 0;
+	display: block;
+}
+#commentform label {
+	margin-left: 1em;
+}
+#commentform input[type="text"] {
+	width: 20em;
+}
+#commentform input,
+#commentform textarea {
+	margin: 0;
+}
+#commentform #comment {
+	width: 100%;
+}
+#commentform .comment-submit-wrapper {
+	margin-bottom: 0;
+}
+
+/*********************************************
+	Text elements
+*********************************************/
+p {
+}
+p img.left {
+	float: left;
+	margin: 1.5em 1.5em 1.5em 0;
+	padding: 0;
+}
+p img.right {
+	float: right;
+	margin: 1.5em 0 1.5em 1.5em;
+}
+blockquote {
+	background: url('images/blockquote.png') top left no-repeat;
+	margin: 1.5em;
+	padding: 0;
+	color: #666666;
+	font-style: italic;
+}
+strong {
+	font-weight: bold;
+}
+em, dfn {
+	font-style: italic;
+}
+dfn {
+	font-weight: bold;
+}
+sup, sub {
+	height: 0;
+	line-height: 1.5;
+	vertical-align: baseline;
+	position: relative;
+}
+sup {
+	bottom: 1ex;
+}
+sub {
+	top: .5ex;
+}
+abbr, acronym {
+	border-bottom: 1px dotted #666;
+}
+address {
+	font-style: italic;
+}
+del {
+	color: #666666;
+}
+pre {
+	margin: 1.5em 0;
+	white-space: pre;
+}
+big {
+	font-size: 1.2em;
+	line-height: 1;
+}
+
+/*********************************************
+	Lists
+*********************************************/
+ul, ol {
+	list-style-position: outside;
+	margin: 0 0 0 1.4em;
+	padding: 0;
+}
+.post-content > ul,
+.post-content > ol {
+	margin-top: 1.5em;
+	margin-bottom: 1.5em;
+}
+ol {
+	margin-left: 20px;
+	*margin-left: 24px; /* targeted IE 6, 7 fix */
+}
+li {
+	margin: 0;
+	padding: 0;
+}
+li > * {
+	margin-top: 0;
+}
+li *:last-child {
+	margin-bottom: 0;
+}
+li > p + ul {
+	margin-top: -1.5em;
+}
+ul {
+	list-style-type: disc;
+}
+ol {
+	list-style-type: decimal;
+}
+dl {
+	margin: 0 0 1.5em 0;
+}
+dl dt {
+	font-weight: bold;
+}
+dd {
+	margin-left: 1.5em;
+}
+dd + dd {
+	margin-top: 1.5em;
+}
+
+/*********************************************
+	Tables
+*********************************************/
+table {
+	margin-bottom: 1.5em;
+	background: #F3F3F3;
+}
+table, td, th {
+	border: 1px solid #CFCFCF;
+	border-collapse: collapse;
+}
+th {
+	font-weight: bold;
+	line-height: 1.5;
+	background: #E8E8E8;
+}
+th, td, caption {
+	padding: .75em;
+}
+tr:nth-child(2n) th {
+	background: #F6F6F6;
+}
+tr:nth-child(2n) td {
+	background: #FFFFFF;
+}
+tfoot {
+	font-style: italic;
+}
+caption {
+	background: #EEEEEE;
+}
+
+/*********************************************
+	Misc classes
+*********************************************/
+.small {
+	font-size: .8em;
+	line-height: 1.875;
+	margin-top: 1.875em;
+	margin-bottom: 1.875em;
+}
+.large {
+	font-size: 1.2em;
+	line-height: 2.5;
+	margin-top: 1.25em;
+	margin-bottom: 1.25em;
+}
+.hide {
+	display: none;
+}
+.quiet {
+	color: #666666;
+}
+.loud {
+	color: #000000;
+}
+.highlight {
+	background: #FFFF00;
+}
+.added {
+	background: #006600;
+	color: #FFFFFF;
+}
+.removed {
+	background: #990000;
+	color: #FFFFFF;
+}
+.first {
+	margin-left: 0;
+	padding-left: 0;
+}
+.last {
+	margin-right: 0;
+	padding-right: 0;
+}
+.top {
+	margin-top: 0;
+	padding-top: 0;
+}
+.bottom {
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+
+/*********************************************
+	Default styling for forms
+*********************************************/
+label {
+	font-weight: bold;
+}
+fieldset {
+	padding: 1.4em;
+	margin: 0 0 1.5em 0;
+	border: .1em solid #CCCCCC;
+}
+legend {
+	font-weight: bold;
+	font-size: 1.2em;
+}
+
+/*********************************************
+	Form fields
+*********************************************/
+input[type=text], input[type=password], input.text, input.title, textarea, select {
+	font-size: 1em;
+	margin-top: .5em;
+	margin-bottom: .5em;
+}
+input[type=text], input[type=password], input.text, input.title, textarea {
+	background-color: #FFFFFF;
+	border: 1px solid #999999;
+	padding: 5px;
+}
+input[type=text]:focus, input[type=password]:focus, input.text:focus, input.title:focus, textarea:focus {
+	border-color: #666666;
+}
+textarea {
+	width: 30em;
+	height: 20em;
+}
+input[type=checkbox], input[type=radio], input.checkbox, input.radio {
+/*	position: relative;
+	top: .25em;*/
+}
+.search-text-box {
+	margin-bottom: 0;
+}
+.search-submit-button {
+	margin: 0 !important;
+	padding: .2em .5em;
+}
+
+/*********************************************
+	Success, notice and error boxes
+*********************************************/
+.error, .notice, .success {
+	padding: .8em;
+	margin-bottom: 1em;
+	border: 2px solid #ddd;
+}
+.error {
+	background: #FBE3E4;
+	color: #8a1f11;
+	border-color: #FBC2C4;
+}
+.notice {
+	background: #FFF6BF;
+	color: #514721;
+	border-color: #FFD324;
+}
+.success {
+	background: #E6EFC2;
+	color: #264409;
+	border-color: #C6D880;
+}
+.error a {
+	color: #8a1f11;
+}
+.notice a {
+	color: #514721;
+}
+.success a {
+	color: #264409;
+}
+
+/*********************************************
+	Widget Styling
+*********************************************/
+.widget_rss li {
+	margin-bottom: 1.5em;
+}
+.widget_rss .rsswidget {
+	display: block;
+	margin: 0;
+}
+.widget_rss .rss-date {
+	display: block;
+	font-style: italic;
+	margin-bottom: 1.5em;
+}
+.widget_rss .rssSummary {
+	margin: 1.5em 0;
+}
+
+
+/*********************************************
+	Social Tabs
+*********************************************/
+#social-tags {
+	position: fixed;
+	width: 95px;
+	height: 100%;
+	right: 0;
+	left: auto;
+	margin-right: 0;
+	margin-left: auto;
+	padding-top: 10px;
+	overflow: hidden;
+}
+#social-tags a {
+	position: relative;
+	right: -50px;
+	margin: 0;
+}
+#social-tags a:hover {
+	right: 0;
+}
+
+/*********************************************
+	The Obligatory WP Styles
+*********************************************/
+.alignright {
+	margin-left: 1.5em;
+}
+.alignleft {
+	margin-right: 1.5em;
+}
+.post img.wp-smiley {
+	border: none;
+}
