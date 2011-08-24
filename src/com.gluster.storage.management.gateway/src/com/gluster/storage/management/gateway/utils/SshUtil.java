@@ -122,11 +122,22 @@ public class SshUtil {
 		if(localTempFile.exists()) {
 			localTempFile.delete();
 		}
+		
 		try {
 			// get authorized_keys from server
 			scpClient.get(SSH_AUTHORIZED_KEYS_PATH_REMOTE, TEMP_DIR);
 		} catch (IOException e) {
 			// file doesn't exist. it will get created.
+			// create the .ssh directory in case it doesn't exist
+			logger.info("Couldn't fetch file [" + SSH_AUTHORIZED_KEYS_PATH_REMOTE +"].", e);
+			logger.info("Creating /root/.ssh on [" + serverName + "] in case it doesn't exist.");
+			String command = "mkdir -p " + SSH_AUTHORIZED_KEYS_DIR_REMOTE;
+			ProcessResult result = executeCommand(conn, command);
+			if(!result.isSuccess()) {
+				String errMsg = "Command [" + command + "] failed on server [" + serverName + "] with error: " + result;
+				logger.error(errMsg);
+				throw new GlusterRuntimeException(errMsg);
+			}
 		}
 		
 		byte[] publicKeyData;
