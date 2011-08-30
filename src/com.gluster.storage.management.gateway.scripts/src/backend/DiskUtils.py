@@ -120,8 +120,8 @@ def getRootPartition(fsTabFile=Globals.FSTAB_FILE):
             return getDeviceName(fsTabEntry["Device"])
     return None
 
-def getMounts():
-    mounts = {}
+def getMountInfo():
+    mountInfo = {}
     for line in readFile("/proc/mounts"):
         str = line.strip()
         if str.startswith("/dev/"):
@@ -137,8 +137,8 @@ def getMounts():
                     device["Type"] = "BOOT"
                 else:
                     device["Type"] = "DATA"
-            mounts[tokens[0].strip()] = device
-    return mounts
+            mountInfo[tokens[0].strip()] = device
+    return mountInfo
 
 def getRaidDisk():
     array = []
@@ -199,15 +199,45 @@ def getOsDisk():
     Utils.log("WARNING: getOsDisk() is deprecated by getRootPartition()")
     return getRootPartition()
 
+def getAMIDiskInfo():
+    diskInfo = {}
+    diskList = []
+
+    # In AMI instances, HAL does not provide the required information.
+    # So that, the /proc/partitions is used to retrieve the required parameters.
+    for line in readFile("/proc/partitions")[2:]:
+        disk = {}
+        tokens = line.split()
+        # In Gluster-AMI instances supports (recommends) only raid disks.
+        if tokens[3].startswith("md"):
+            continue
+        disk["Device"] = tokens[3]
+        disk["Description"] = None
+        disk["Size"] = long(tokens[2]) / 1024
+        disk["Status"] = None
+        disk["Interface"] = None
+        disk["DriveType"] = None
+        disk["Uuid"] = None
+        disk["Init"] = False
+        disk["Type"] = None
+        disk["FsType"] = None
+        disk["FsVersion"] = None
+        disk["MountPoint"] = None
+        disk["ReadOnlyAccess"] = None
+        disk["SpaceInUse"] = None
+        disk["Partitions"] = []
+        diskList.append(disk)
+    diskInfo["disks"] = diskList
+    return diskInfo
+
 
 def getDiskInfo(diskDeviceList=None):
+    if Utils.runCommand("wget -t 1 -T 1 -q -O /dev/null %s" % Globals.AWS_WEB_SERVICE_URL) == 0:    # AMI instance
+        return getAMIDiskInfo()
+
     diskDeviceList = getDevice(diskDeviceList)
     if Utils.isString(diskDeviceList):
         diskDeviceList = [diskDeviceList]
-
-    mounts = getMounts()
-    if Utils.runCommand("/usr/bin/lshal") != 0:
-        Utils.log("failed running /usr/bin/lshal")
 
     dbusSystemBus = dbus.SystemBus()
     halObj = dbusSystemBus.get_object("org.freedesktop.Hal",
@@ -217,7 +247,8 @@ def getDiskInfo(diskDeviceList=None):
 
     diskInfo = {}
     diskList = []
-    for udi in storageUdiList:
+    mountInfo = getMountInfo()
+    for udi in storageUdiList: # on every disk storage
         halDeviceObj = dbusSystemBus.get_object("org.freedesktop.Hal", udi)
         halDevice = dbus.Interface(halDeviceObj,
                                    "org.freedesktop.Hal.Device")
@@ -243,6 +274,7 @@ def getDiskInfo(diskDeviceList=None):
         disk["FsVersion"] = None
         disk["MountPoint"] = None
         disk["ReadOnlyAccess"] = None
+        disk["SpaceInUse"] = None
 
         partitionUdiList = halManager.FindDeviceStringMatch("info.parent", udi)
         if isDiskInFormatting(disk["Device"]):
@@ -254,26 +286,12 @@ def getDiskInfo(diskDeviceList=None):
                 disk["Status"] = "UNINITIALIZED"
                 disk["Type"] = "UNKNOWN"
 
-        if mounts and mounts.has_key(disk["Device"]):
-            disk["Uuid"] = mounts[disk["Device"]]["Uuid"]
-            disk["Type"] = mounts[disk["Device"]]["Type"]
-            disk["Status"] = mounts[disk["Device"]]["Status"]
-            disk["FsType"] = mounts[disk["Device"]]["FsType"]
-            disk["MountPoint"] = mounts[disk["Device"]]["MountPoint"]
-            
-        if disk["MountPoint"]:
-            disk["SpaceInUse"] = getDeviceUsedSpace(disk["Device"])
-        else:
-            disk["SpaceInUse"] = None
-            
         partitionList = []
         diskSpaceInUse = 0
         for partitionUdi in partitionUdiList:
             used = 0
-            partitionHalDeviceObj = dbusSystemBus.get_object("org.freedesktop.Hal",
-                                                             partitionUdi)
-            partitionHalDevice = dbus.Interface(partitionHalDeviceObj,
-                                                "org.freedesktop.Hal.Device")
+            partitionHalDeviceObj = dbusSystemBus.get_object("org.freedesktop.Hal", partitionUdi)
+            partitionHalDevice = dbus.Interface(partitionHalDeviceObj, "org.freedesktop.Hal.Device")
             if not partitionHalDevice.GetProperty("block.is_volume"):
                 continue
             partitionDevice = str(partitionHalDevice.GetProperty('block.device'))
@@ -290,7 +308,7 @@ def getDiskInfo(diskDeviceList=None):
 
             if disk["Device"] == partitionDevice:
                 disk["Uuid"] = str(partitionHalDevice.GetProperty('volume.uuid'))
-                disk["Init"] = True # TODO: use isDataDiskPartitionFormatted function to cross verify this
+                disk["Init"] = True
                 disk["Status"] = "INITIALIZED"
                 mountPoint = str(partitionHalDevice.GetProperty('volume.mount_point'))
                 if mountPoint:
@@ -306,9 +324,8 @@ def getDiskInfo(diskDeviceList=None):
                 disk["ReadOnlyAccess"] = str(partitionHalDevice.GetProperty('volume.is_mounted_read_only'))
                 if not disk["Size"]:
                     disk["Size"] = long(partitionHalDevice.GetProperty('volume.size')) / 1024**2
-                #disk["SpaceInUse"] = used
                 continue
-            
+
             partition = {}
             partition["Init"] = False
             partition["Type"] = "UNKNOWN"            
@@ -346,35 +363,31 @@ def getDiskInfo(diskDeviceList=None):
         disk["Partitions"] = partitionList
         if not disk["SpaceInUse"]:
             disk["SpaceInUse"] = diskSpaceInUse
-        diskList.append(disk)
-    diskInfo["disks"] = diskList
-    if diskList:
-        return diskInfo
-    for line in readFile("/proc/partitions")[2:]:
-        disk = {}
-        tokens = line.split()
-        if tokens[3].startswith("md"):
+
+        # In a paravirtualized server environment, HAL does not provide all the required information.
+        # The missing details are replaced using /proc/mounts data or 'df' command.
+        if not (mountInfo and mountInfo.has_key(disk["Device"])):
+            diskList.append(disk)
             continue
-        disk["Device"] = tokens[3]
-        ## if diskDeviceList and disk["Device"] not in diskDeviceList:
-        ##     continue
-        disk["Description"] = None
-        disk["Size"] = long(tokens[2]) / 1024
-        disk["Status"] = None
-        disk["Interface"] = None
-        disk["DriveType"] = None
-        disk["Uuid"] = None
-        disk["Init"] = False
-        disk["Type"] = None
-        disk["FsType"] = None
-        disk["FsVersion"] = None
-        disk["MountPoint"] = None
-        disk["ReadOnlyAccess"] = None
-        disk["SpaceInUse"] = None
-        disk["Partitions"] = []
+        if not disk["Uuid"]:
+            disk["Uuid"] = mountInfo[disk["Device"]]["Uuid"]
+        if not disk["Type"]:
+            disk["Type"] = mountInfo[disk["Device"]]["Type"]
+        if not disk["Status"] or "UNKNOWN" == disk["Status"]:
+            disk["Status"] = mountInfo[disk["Device"]]["Status"]
+        if not disk["FsType"]:
+            disk["FsType"] = mountInfo[disk["Device"]]["FsType"]
+        if not disk["MountPoint"]:
+            disk["MountPoint"] = mountInfo[disk["Device"]]["MountPoint"]
+        if not disk["SpaceInUse"] and disk["MountPoint"]:
+            disk["SpaceInUse"] = getDeviceUsedSpace(disk["Device"])
+        else:
+            disk["SpaceInUse"] = None
         diskList.append(disk)
+
     diskInfo["disks"] = diskList
     return diskInfo
+
 
 def getDiskList(diskDeviceList=None):
     return diskInfo["disks"]
@@ -383,8 +396,9 @@ def getDiskList(diskDeviceList=None):
 def checkDiskMountPoint(diskMountPoint):
     try:
         fstabEntries = open(Globals.FSTAB_FILE).readlines()
-    except IOError:
+    except IOError, e:
         fstabEntries = []
+        Utils.log("failed to read file %s: %s" % (Globals.FSTAB_FILE, str(e)))
     found = False
     for entry in fstabEntries:
         entry = entry.strip()
@@ -400,8 +414,9 @@ def getMountPointByUuid(partitionUuid):
     # check uuid in etc/fstab
     try:
         fstabEntries = open(Globals.FSTAB_FILE).readlines()
-    except IOError:
+    except IOError, e:
         fstabEntries = []
+        Utils.log("failed to read file %s: %s" % (Globals.FSTAB_FILE, str(e)))
     found = False
     for entry in fstabEntries:
         entry = entry.strip()
@@ -478,7 +493,6 @@ def getDiskSizeInfo(partition):
 
 
 def isDataDiskPartitionFormatted(device):
-    #Todo: Proper label needs to be added for data partition
     #if getDiskPartitionLabel(device) != Globals.DATA_PARTITION_LABEL:
     #    return False
     device = getDeviceName(device)
@@ -523,9 +537,6 @@ def getDiskDom(diskDeviceList=None, bootPartition=None, skipDisk=None):
         for i in v['Disks']:
             raidPartitions[i] = k
 
-    #for partition in raidDisk.values():
-    #    raidDiskPartitions += partition['disks']
-
     diskDom = Protocol.XDOM()
     disksTag = diskDom.createTag("disks", None)
     raidDisks = {}
@@ -541,14 +552,10 @@ def getDiskDom(diskDeviceList=None, bootPartition=None, skipDisk=None):
         diskTag.appendChild(diskDom.createTag("uuid", disk["Uuid"]))
         diskTag.appendChild(diskDom.createTag("status", disk["Status"]))
         diskTag.appendChild(diskDom.createTag("interface", disk["Interface"]))
-
-        #if not disk["Partitions"]:
         diskTag.appendChild(diskDom.createTag("type", disk["Type"]))
-        #diskTag.appendChild(diskDom.createTag("init", str(disk["Init"]).lower()))
         diskTag.appendChild(diskDom.createTag("fsType", disk["FsType"]))
         diskTag.appendChild(diskDom.createTag("fsVersion", disk["FsVersion"]))
         diskTag.appendChild(diskDom.createTag("mountPoint", disk["MountPoint"]))
-
         diskTag.appendChild(diskDom.createTag("size", disk["Size"]))
         diskTag.appendChild(diskDom.createTag("spaceInUse", disk["SpaceInUse"]))
         partitionsTag = diskDom.createTag("partitions", None)
@@ -563,12 +570,11 @@ def getDiskDom(diskDeviceList=None, bootPartition=None, skipDisk=None):
             partitionTag = diskDom.createTag("partition", None)
             device =  getDeviceName(partition["Device"])
             partitionTag.appendChild(diskDom.createTag("name", device))
-            if partition["Uuid"]: #TODO: Move this verification and findings to getDiskInfo function
+            if partition["Uuid"]:
                 partitionTag.appendChild(diskDom.createTag("uuid", partition["Uuid"]))
             else:
                 partitionTag.appendChild(diskDom.createTag("uuid", getUuidByDiskPartition("/dev/" + device)))
             partitionTag.appendChild(diskDom.createTag("status", partition["Status"]))
-            #partitionTag.appendChild(diskDom.createTag("init", str(partition["Init"]).lower()))
             partitionTag.appendChild(diskDom.createTag("type", str(partition["Type"])))
             partitionTag.appendChild(diskDom.createTag("fsType", partition["FsType"]))
             partitionTag.appendChild(diskDom.createTag("mountPoint", partition['MountPoint']))
@@ -618,122 +624,6 @@ def getDiskDom(diskDeviceList=None, bootPartition=None, skipDisk=None):
     return diskDom
 
 
-def initializeDisk(disk, boot=False, startSize=0, sudo=False):
-    if boot and startSize > 0:
-        return False
-
-    disk = getDevice(disk)
-    diskObj = getDiskList(disk)[0]
-
-    if boot or startSize == 0:
-        command = "dd if=/dev/zero of=%s bs=1024K count=1" % diskObj["Device"]
-        if runCommandFG(command, root=sudo) != 0:
-            if boot:
-                Utils.log("failed to clear boot sector of disk %s" % diskObj["Device"])
-                return False
-            Utils.log("failed to clear boot sector of disk %s.  ignoring" % diskObj["Device"])
-
-        command = "parted -s %s mklabel gpt" % diskObj["Device"]
-        if runCommandFG(command, root=sudo) != 0:
-            return False
-
-    if boot:
-        command = "parted -s %s mkpart primary ext3 0MB %sMB" % (diskObj["Device"], Globals.OS_PARTITION_SIZE)
-        if runCommandFG(command, root=sudo) != 0:
-            return False
-        command = "parted -s %s set 1 boot on" % (diskObj["Device"])
-        if runCommandFG(command, root=sudo) != 0:
-            return False
-        startSize = Globals.OS_PARTITION_SIZE
-
-    size = (diskObj["Size"] / ONE_MB_SIZE) - startSize
-    while size > Globals.MAX_PARTITION_SIZE:
-        endSize = startSize + Globals.MAX_PARTITION_SIZE
-        command = "parted -s %s mkpart primary ext3 %sMB %sMB" % (diskObj["Device"], startSize, endSize)
-        if runCommandFG(command, root=sudo) != 0:
-            return False
-        size -= Globals.MAX_PARTITION_SIZE
-        startSize = endSize
-
-    if size:
-        command = "parted -s %s mkpart primary ext3 %sMB 100%%" % (diskObj["Device"], startSize)
-        if runCommandFG(command, root=sudo) != 0:
-            return False
-
-    if runCommandFG("udevadm settle", root=sudo) != 0:
-        if runCommandFG("udevadm settle", root=sudo) != 0:
-            Utils.log("udevadm settle for disk %s failed.  ignoring" % diskObj["Device"])
-    time.sleep(1)
-
-    if runCommandFG("partprobe %s" % diskObj["Device"], root=sudo) != 0:
-        Utils.log("partprobe %s failed" % diskObj["Device"])
-        return False
-
-    if runCommandFG("gptsync %s" % diskObj["Device"], root=sudo) != 0:
-        Utils.log("gptsync %s failed.  ignoring" % diskObj["Device"])
-
-    # wait forcefully to appear devices in /dev
-    time.sleep(2)
-    return True
-
-
-def initializeOsDisk(diskObj):
-    Utils.log("WARNING: initializeOsDisk() is deprecated by initializeDisk(boot=True)")
-    return initializeDisk(diskObj, boot=True)
-
-
-def initializeDataDisk(diskObj):
-    Utils.log("WARNING: initializeDataDisk() is deprecated by initializeDisk()")
-    return initializeDisk(diskObj)
-
-def getBootPartition(serverName):
-    diskDom = XDOM()
-    diskDom.parseFile("%s/%s/disk.xml" % (Globals.SERVER_VOLUME_CONF_DIR, serverName))
-    if not diskDom:
-        return None
-    partitionDom  = XDOM()
-    partitionUuid = None
-    partitionName = None
-    for partitionTag in diskDom.getElementsByTagRoute("disk.partition"):
-        partitionDom.setDomObj(partitionTag)
-        boot = partitionDom.getTextByTagRoute("boot")
-        if boot and boot.strip().upper() == 'YES':
-            partitionUuid = partitionDom.getTextByTagRoute("uuid")
-            partitionName = partitionDom.getTextByTagRoute("device")
-            break
-    if not (partitionUuid and partitionName):
-        return None
-     
-    # check device label name
-    deviceBaseName = os.path.basename(partitionName)
-    process = runCommandBG(['sudo', 'e2label', partitionName])
-    if type(process) == type(True):
-        return None
-    if process.wait() != 0:
-        return None
-    output = process.communicate()
-    deviceLabel = output[0].split()[0]
-    if deviceLabel != Globals.BOOT_PARTITION_LABEL:
-        return None
-
-    # check uuid in etc/fstab
-    try:
-        fstabEntries = open(Globals.FSTAB_FILE).readlines()
-    except IOError:
-        fstabEntries = []
-    found = False
-    for entry in fstabEntries:
-        entry = entry.strip()
-        if not entry:
-            continue
-        if entry.split()[0] == "UUID=" + partitionUuid:
-            found = True
-            break
-    if not found:
-        return None
-    return partitionName
-
-
 def isDiskInFormatting(device):
     DEVICE_FORMAT_LOCK_FILE = "/var/lock/%s.lock" % device
     return os.path.exists(DEVICE_FORMAT_LOCK_FILE)
@@ -752,5 +642,5 @@ def getDeviceMountPoint(device):
                 return token[1]
         fp.close()
     except IOError, e:
+        Utils.log("failed to read file %s: %s" % ("/proc/mounts", str(e)))
         return None
-
