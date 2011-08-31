@@ -22,7 +22,7 @@ get-scripts()
 #---------------------------------------------
 # Main Action Body
 #---------------------------------------------
-echo "Packaging Gluster Management Console Scripts..."
+echo "Packaging Gluster Management Gateway Back-end Scripts..."
 
 prepare-script-dir
 get-scripts

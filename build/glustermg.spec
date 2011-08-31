@@ -1,4 +1,5 @@
-%define glustermg_war_url http://build.gluster.com:8080/job/glustermg-package/lastSuccessfulBuild/artifact/glustermg.war.tar.gz
+# the war can be picked up from current directory instead of the url
+# %define glustermg_war_url http://build.gluster.com:8080/job/glustermg-package/lastSuccessfulBuild/artifact/glustermg.war.tar.gz
 
 %define product_family Gluster Management Gateway
 
@@ -53,9 +54,15 @@ mkdir -p $RPM_BUILD_ROOT/opt/glustermg/%{release_version}
 mkdir -p $RPM_BUILD_ROOT/opt/glustermg/keys
 mkdir -p $RPM_BUILD_ROOT/opt/glustermg/etc
 mkdir -p $RPM_BUILD_ROOT/var/log/glustermg
-wget -P $RPM_BUILD_ROOT %{glustermg_war_url}
-tar -C $RPM_BUILD_ROOT/opt/glustermg/%{release_version} -zxf $RPM_BUILD_ROOT/glustermg.war.tar.gz
-rm -f $RPM_BUILD_ROOT/glustermg.war.tar.gz
+
+# following comment to be removed after testing picking up war file from current directory
+# wget -P $RPM_BUILD_ROOT %{glustermg_war_url}
+# tar -C $RPM_BUILD_ROOT/opt/glustermg/%{release_version} -zxf $RPM_BUILD_ROOT/glustermg.war.tar.gz
+# rm -f $RPM_BUILD_ROOT/glustermg.war.tar.gz
+
+tar -C $RPM_BUILD_ROOT/opt/glustermg/%{release_version} -zxf glustermg-${VERSION}.war.tar.gz
+rm -f glustermg-${VERSION}.war.tar.gz
+
 %{__install} -d -m0755 %{buildroot}%{_bindir}
 %{__install} -d -m0755 %{buildroot}%{_sbindir}
 ln -sf /opt/glustermg/%{release_version}/glustermg/scripts/grun.py %{buildroot}%{_bindir}/grun.py
