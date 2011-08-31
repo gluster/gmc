@@ -1,4 +1,4 @@
-ROOT_DIR=glustermg-1.0.0
+ROOT_DIR=glustermg-${VERSION}
 DIR_NAME=${ROOT_DIR}/gmg-scripts
 TAR_NAME=${ROOT_DIR}.tar
 

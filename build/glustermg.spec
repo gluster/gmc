@@ -1,7 +1,10 @@
 %define glustermg_war_url http://build.gluster.com:8080/job/glustermg-package/lastSuccessfulBuild/artifact/glustermg.war.tar.gz
 
 %define product_family Gluster Management Gateway
-%define release_version 1.0.0
+
+# following comment to be removed after testing passing of
+# release_version as a parameter using --define "release_version ${VERSION}"
+# %define release_version 1.0.0
 
 %define current_arch %{_arch}
 %ifarch i386
