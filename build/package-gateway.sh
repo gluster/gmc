@@ -1,7 +1,7 @@
 WAR_NAME="glustermg.war"
 WAR_SCRIPTS_DIR=${WAR_NAME}/scripts
 NEW_WAR_NAME="glustermg-${VERSION}"
-TAR_NAME=${NEW_WAR_NAME}.tar
+TAR_NAME=${NEW_WAR_NAME}.war.tar
 SERVER_DIST_DIR="${WORKSPACE}/buckminster.output"
 
 prepare-dist-dir()
