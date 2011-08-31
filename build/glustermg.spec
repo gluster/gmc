@@ -60,7 +60,7 @@ mkdir -p $RPM_BUILD_ROOT/var/log/glustermg
 # tar -C $RPM_BUILD_ROOT/opt/glustermg/%{release_version} -zxf $RPM_BUILD_ROOT/glustermg.war.tar.gz
 # rm -f $RPM_BUILD_ROOT/glustermg.war.tar.gz
 
-tar -C $RPM_BUILD_ROOT/opt/glustermg/%{release_version} -zxf glustermg-${VERSION}.war.tar.gz
+tar -C $RPM_BUILD_ROOT/opt/glustermg/%{release_version} -zxf glustermg-%{release_version}.war.tar.gz
 rm -f glustermg-${VERSION}.war.tar.gz
 
 %{__install} -d -m0755 %{buildroot}%{_bindir}
