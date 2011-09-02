@@ -1,7 +1,7 @@
 WAR_NAME="glustermg.war"
 WAR_SCRIPTS_DIR=${WAR_NAME}/scripts
-NEW_WAR_NAME="glustermg-${VERSION}"
-TAR_NAME=${NEW_WAR_NAME}.war.tar
+NEW_WAR_NAME="glustermg"
+TAR_NAME=${NEW_WAR_NAME}-${VERSION}.war.tar
 SERVER_DIST_DIR="${WORKSPACE}/buckminster.output"
 
 prepare-dist-dir()
@@ -69,6 +69,7 @@ get-scripts()
 {
 	cp src/com.gluster.storage.management.gateway.scripts/src/common/* ${WAR_SCRIPTS_DIR}
 	cp src/com.gluster.storage.management.gateway.scripts/src/gateway/* ${WAR_SCRIPTS_DIR}
+	chmod +x ${WAR_SCRIPTS_DIR}/*
 }
 
 #---------------------------------------------
