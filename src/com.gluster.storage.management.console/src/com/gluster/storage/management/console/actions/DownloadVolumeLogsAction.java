@@ -41,23 +41,28 @@ public class DownloadVolumeLogsAction extends AbstractActionDelegate {
 	@Override
 	protected void performAction(IAction action) {
 		final VolumesClient client = new VolumesClient();
-		Volume volume = guiHelper.getSelectedEntity(getWindow(), Volume.class);
+		final Volume volume = guiHelper.getSelectedEntity(getWindow(), Volume.class);
 
 		FileDialog dialog = new FileDialog(getShell(), SWT.SAVE);
 		dialog.setFilterNames(new String[] { "GZipped Tar (*.tar.gz)" });
 		dialog.setFilterExtensions(new String[] { "*.tar.gz" });
-		String filePath = dialog.open();
+		final String filePath = dialog.open();
 
 		if (filePath == null) {
 			return;
 		}
 
-		String title = "Download Volume Logs [" + volume.getName() + "]";
-		try {
-			client.downloadLogs(volume.getName(), filePath);
-			showInfoDialog(title, "Volume logs downloaded successfully to [" + filePath + "]");
-		} catch (Exception e) {
-			showErrorDialog(title, e.getMessage());
-		}
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				String title = "Download Volume Logs [" + volume.getName() + "]";
+				try {
+					client.downloadLogs(volume.getName(), filePath);
+					showInfoDialog(title, "Volume logs downloaded successfully to [" + filePath + "]");
+				} catch (Exception e) {
+					showErrorDialog(title, e.getMessage());
+				}
+			}
+		});
 	}
 }
