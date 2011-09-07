@@ -1,3 +1,7 @@
+#  Copyright (C) 2011 Gluster, Inc. <http://www.gluster.com>
+#  This file is part of Gluster Storage Platform.
+#
+
 import rrdtool
 import os
 from socket import gethostname

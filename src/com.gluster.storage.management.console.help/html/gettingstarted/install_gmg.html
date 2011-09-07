@@ -17,7 +17,7 @@ type="text/css" media="screen" />
 <p><b>Note:</b> <FONT FACE = "Courier">glustermg.repo</FONT> has been created and tested with CentOS 5.6. It may work with other versions of CentOS, however it has not been extensively tested.
 <li>Save the file in the following location on your machine:
 <p><FONT FACE = "Courier">/etc/yum.repos.d/</FONT>
-<li>5.	Run the following command to install Gluster Management Gateway:
+<li>	Run the following command to install Gluster Management Gateway:
 <p><FONT FACE = "Courier"># yum groupinstall glustermg</FONT>
 <li>The following packages are installed if not installed earlier:
 <ul>
@@ -30,11 +30,20 @@ type="text/css" media="screen" />
 </ol>
 <p>Gateway generates SSH keys during installation. These keys are stored in the following location <FONT FACE = "Courier">/opt/glustermg/keys</FONT>. These keys are used for communication with the storage servers. However, in Amazon Web Services (AWS) environment, SSH communication is done using the private key provided by Amazon. Hence, the AWS genegrated private key (.pem file) must be stored in <FONT FACE = "Courier">/opt/glustermg/keys</FONT> and the file must be named as <FONT FACE = "Courier">gluster.pem</FONT></p>
 <p><b>Note:</b>
-<ol>
+<ul>
 <li>You can install the Gluster Management Gateway packages on a Gluster Storage Server. However, this can impact performance of the GlusterFS processes on this machine hence this is not recommended.
-<li>The Gluster Management Gateway is shipped with a self-signed SSL certificate, by default. While this ensures that the communication between the console and gateway is encrypted and safe, some browsers may throw security warnings mentioning that the site is not secure. It is highly recommended that you install your own SSL certificate issued by a valid certifying authority in the tomcat5 configuration for the 8443 port.
-<li>Enable port 8443 on the Gateway as the Management Console connects to it over SSL on this port.
-<li> 	Gluster Management Gateway communicates with all storage servers through SSH, using their host names. Make sure all of your storage server&#39;s host names (fully qualified domain names) are resolvable by the Gateway and by each other. If you have a properly configured DNS setup, this should work seamlessly.
-</ol>
+
+	<li>The Gluster Management Gateway is shipped with a self-signed
+	SSL certificate, by default. While this ensures that the communication
+	between the console and gateway is encrypted and safe, some browsers
+	may throw security warnings mentioning that the site is not secure. It
+	is highly recommended that you install your own SSL certificate issued
+	by a valid certifying authority in the tomcat5 configuration for the
+	8443 port. For more information on obtaining your own service
+	certificate, refer to <a href="http://tomcat.apache.org/tomcat-5.5-doc/ssl-howto.html#Installing_a_Certificate_from_a_Certificate_Authority" target="_blank">Installing a Certificate from a
+	Certificate Authority</a> from Tomcat documentation.
+	<li>Ensure to enable port 8443 (HTTPS), port 24731 (TCP), and port 24729 (UDP) on the gateway.
+<li>Gluster Management Gateway communicates with all storage servers through SSH, using their host names. Make sure all of your storage server&#39;s host names (fully qualified domain names) are resolvable by the Gateway and by each other. If you have a properly configured DNS setup, this should work seamlessly.
+</ul>
 </body>
 </html>

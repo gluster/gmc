@@ -1,8 +1,8 @@
 WAR_NAME="glustermg.war"
 WAR_SCRIPTS_DIR=${WAR_NAME}/scripts
 NEW_WAR_NAME="glustermg"
-TAR_NAME=${WAR_NAME}.tar
-SERVER_DIST_DIR="${WORKSPACE}/../../glustermg/lastSuccessful"
+TAR_NAME=${NEW_WAR_NAME}-${VERSION}.war.tar
+SERVER_DIST_DIR="${WORKSPACE}/buckminster.output"
 
 prepare-dist-dir()
 {
@@ -48,7 +48,7 @@ get-dist()
 	OS=${2}
 	WS=${3}
 
-	OUT_DIR="${WORKSPACE}/../../glustermc/workspace/arch/${ARCH}/os/${OS}/ws/${WS}/buckminster.output/com.gluster.storage.management.console.feature.webstart*.feature/glustermc"
+	OUT_DIR="${WORKSPACE}/../../${VERSION}-glustermc/workspace/arch/${ARCH}/os/${OS}/ws/${WS}/buckminster.output/com.gluster.storage.management.console.feature.webstart*.feature/glustermc"
 	NEW_DIR=${WAR_NAME}/${OS}.${WS}.${ARCH}
 	cp -R ${OUT_DIR} ${NEW_DIR}
 
@@ -69,6 +69,7 @@ get-scripts()
 {
 	cp src/com.gluster.storage.management.gateway.scripts/src/common/* ${WAR_SCRIPTS_DIR}
 	cp src/com.gluster.storage.management.gateway.scripts/src/gateway/* ${WAR_SCRIPTS_DIR}
+	chmod +x ${WAR_SCRIPTS_DIR}/*
 }
 
 #---------------------------------------------

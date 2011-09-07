@@ -13,12 +13,12 @@ type="text/css" media="screen" />
 Gluster Management Gateway communicates with every node of your cluster using the backend package. This package must be installed on each and every node of your cluster using the Linux package published by Gluster.
 <p><b>Pre-requisite</b></p>
 <ul>
-<li>Ensure that you have installed GlusterFS v3.2.3 or higher on all the nodes of your cluster.
+<li> 	Your backend machines can be either Gluster Storage Software Appliance, Gluster Virtual Storage Appliance, or CentOS 5.6 running GlusterFS v3.2.3 or higher.
 </ul>
  	
 <p>To install the backend packages on each and every node of your cluster, perform the following steps:</p>
 <ol>
-<li>Download Gluster Management Gateway repository configuration file (<FONT FACE = "Courier">glustermg.repo</FONT>) and the Gluster Management Gateway RPM (<FONT FACE = "Courier">glustermg-1.0.0-1.x86_64.rpm</FONT>) from the location provided by Gluster. :
+<li>Download Gluster Management Gateway repository configuration file (<FONT FACE = "Courier">glustermg.repo</FONT>) and the Gluster Management Gateway Backend RPM (<FONT FACE = "Courier">glustermg-backend-1.0.0-1.x86_64.rpm</FONT>) from the location provided by Gluster. :
 <p><b>Note:</b> <FONT FACE = "Courier">glustermg.repo</FONT> has been created and tested with CentOS 5.6. It may work with other versions of CentOS, however it has not been extensively tested.
 <li>Save the file in the following location on your machine:
 <p><FONT FACE = "Courier">/etc/yum.repos.d/</FONT>
@@ -37,6 +37,10 @@ Gluster Management Gateway communicates with every node of your cluster using th
 <li>libxml2 v2.6
 </ul>
 </ol>
-<p><b>Note:</b> In case CIFS only, the Samba services must be configured to run on port 445  which needs to be enabled and open on all the storage servers in your cluster.</p>
+<p><b>Note:</b> 
+<ul>
+<li>You must enable port 24729 (UDP) for auto discovery of servers.
+<li>In case CIFS only, the Samba services must be configured to run on port 445  which needs to be enabled and open on all the storage servers in your cluster.
+</ul>
 </body>
 </html>

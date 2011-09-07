@@ -37,36 +37,22 @@ public class ExportSshKeysAction extends AbstractActionDelegate {
 	@Override
 	protected void performAction(IAction action) {
 		final KeysClient client = new KeysClient();
-		final Runnable exportKeysThread = new Runnable() {
-			
-			@Override
-			public void run() {
-				FileDialog dialog = new FileDialog(getShell(), SWT.SAVE);
-				dialog.setFilterNames(new String[] {"Tar (*.tar)"});
-				dialog.setFilterExtensions(new String[] {"*.tar"});
-				String filePath = dialog.open();
-				
-				if(filePath == null) {
-					return;
-				}
-				
-				String title = "Export SSH Keys";
-				try {
-					client.exportSshKeys(filePath);
-					showInfoDialog(title, "SSH keys exported successfully to [" + filePath + "]");
-				} catch(Exception e) {
-					showErrorDialog(title, e.getMessage());
-				}
-			}
-		};
-		
-		BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
-			
-			@Override
-			public void run() {
-				Display.getDefault().asyncExec(exportKeysThread);
-			}
-		});
+		FileDialog dialog = new FileDialog(getShell(), SWT.SAVE);
+		dialog.setFilterNames(new String[] { "Tar (*.tar)" });
+		dialog.setFilterExtensions(new String[] { "*.tar" });
+		String filePath = dialog.open();
+
+		if (filePath == null) {
+			return;
+		}
+
+		String title = "Export SSH Keys";
+		try {
+			client.exportSshKeys(filePath);
+			showInfoDialog(title, "SSH keys exported successfully to [" + filePath + "]");
+		} catch (Exception e) {
+			showErrorDialog(title, e.getMessage());
+		}
 	}
 	
 	

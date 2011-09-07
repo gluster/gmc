@@ -1,4 +1,4 @@
-ROOT_DIR=glustermg-1.0.0
+ROOT_DIR=glustermg-backend-${VERSION}
 DIR_NAME=${ROOT_DIR}/gmg-scripts
 TAR_NAME=${ROOT_DIR}.tar
 
@@ -22,7 +22,7 @@ get-scripts()
 #---------------------------------------------
 # Main Action Body
 #---------------------------------------------
-echo "Packaging Gluster Management Console Scripts..."
+echo "Packaging Gluster Management Gateway Back-end Scripts..."
 
 prepare-script-dir
 get-scripts

@@ -41,37 +41,23 @@ public class DownloadVolumeLogsAction extends AbstractActionDelegate {
 	@Override
 	protected void performAction(IAction action) {
 		final VolumesClient client = new VolumesClient();
-		final Runnable downloadLogsThread = new Runnable() {
-			
-			@Override
-			public void run() {
-				Volume volume = guiHelper.getSelectedEntity(getWindow(), Volume.class);
-				
-				FileDialog dialog = new FileDialog(getShell(), SWT.SAVE);
-				dialog.setFilterNames(new String[] {"GZipped Tar (*.tar.gz)"});
-				dialog.setFilterExtensions(new String[] {"*.tar.gz"});
-				String filePath = dialog.open();
-				
-				if(filePath == null) {
-					return;
-				}
-				
-				String title = "Download Volume Logs [" + volume.getName() + "]";
-				try {
-					client.downloadLogs(volume.getName(), filePath);
-					showInfoDialog(title, "Volume logs downloaded successfully to [" + filePath + "]");
-				} catch(Exception e) {
-					showErrorDialog(title, e.getMessage());
-				}
-			}
-		};
-		
-		BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
-			
-			@Override
-			public void run() {
-				Display.getDefault().asyncExec(downloadLogsThread);
-			}
-		});
+		Volume volume = guiHelper.getSelectedEntity(getWindow(), Volume.class);
+
+		FileDialog dialog = new FileDialog(getShell(), SWT.SAVE);
+		dialog.setFilterNames(new String[] { "GZipped Tar (*.tar.gz)" });
+		dialog.setFilterExtensions(new String[] { "*.tar.gz" });
+		String filePath = dialog.open();
+
+		if (filePath == null) {
+			return;
+		}
+
+		String title = "Download Volume Logs [" + volume.getName() + "]";
+		try {
+			client.downloadLogs(volume.getName(), filePath);
+			showInfoDialog(title, "Volume logs downloaded successfully to [" + filePath + "]");
+		} catch (Exception e) {
+			showErrorDialog(title, e.getMessage());
+		}
 	}
 }
