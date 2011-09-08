@@ -20,8 +20,6 @@ package com.gluster.storage.management.console.actions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.BusyIndicator;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 
 import com.gluster.storage.management.client.VolumesClient;

@@ -296,6 +296,12 @@
             id="com.gluster.storage.management.console.commands.Terminal"
             name="Terminal">
       </command>
+      <command
+            categoryId="com.gluster.storage.management.console.category"
+            description="Settings"
+            id="com.gluster.storage.management.console.commands.Preferences"
+            name="Settings">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.bindings">
@@ -345,7 +351,7 @@
             sequence="CTRL+SHIFT+M">
       </key>
       <key
-            commandId="org.eclipse.ui.window.preferences"
+            commandId="com.gluster.storage.management.console.commands.Preferences"
             schemeId="com.gluster.storage.management.console.KeyConfig"
             sequence="CTRL+SHIFT+P">
       </key>
@@ -1109,7 +1115,7 @@
          <action
                allowLabelUpdate="false"
                class="com.gluster.storage.management.console.actions.PreferencesAction"
-               definitionId="org.eclipse.ui.window.preferences"
+               definitionId="com.gluster.storage.management.console.commands.Preferences"
                icon="icons/tango/32x32/settings.png"
                id="com.gluster.storage.management.console.actions.PreferencesAction"
                label="&amp;Settings"
