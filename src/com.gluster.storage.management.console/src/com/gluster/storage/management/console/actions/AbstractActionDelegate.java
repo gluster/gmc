@@ -46,25 +46,12 @@ public abstract class AbstractActionDelegate implements IWorkbenchWindowActionDe
 
 	@Override
 	public void run(final IAction action) {
-		// Real action code must be executed using Display#asyncExec.
-		// Otherwise the system can hang when opening new dialog boxes on linux platform
 		try {
-			Display.getDefault().asyncExec(new Runnable() {
-				@Override
-				public void run() {
-					performAction(action);
-				}
-			});
+			performAction(action);
 		} catch (final Exception e) {
 			final String actionDesc = action.getDescription();
 			logger.error("Exception while running action [" + actionDesc + "]",  e);
-
-			Display.getDefault().asyncExec(new Runnable() {
-				@Override
-				public void run() {
-					showErrorDialog(actionDesc, e.getMessage());
-				}
-			});
+			showErrorDialog(actionDesc, e.getMessage());
 		}
 	}
 
