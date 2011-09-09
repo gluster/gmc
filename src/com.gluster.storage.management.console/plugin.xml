@@ -950,7 +950,7 @@
                allowLabelUpdate="false"
                class="com.gluster.storage.management.console.actions.ClearTaskAction"
                definitionId="com.gluster.storage.management.console.commands.Clear"
-               disabledIcon="icons/tango/32x32/create-volume-disabled.png"
+               disabledIcon="icons/tango/32x32/clear-task-disabled.png"
                icon="icons/tango/32x32/clear-task.png"
                id="com.gluster.storage.management.console.actions.Clear"
                label="&amp;Clear Task"
