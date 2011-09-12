@@ -78,7 +78,7 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 	}
 	
 	private void setupBackgroundJobs() {
-		syncJob = new DataSyncJob("Retrieving Management Information");
+		syncJob = new DataSyncJob("Retrieving Management Info");
 		syncJob.schedule(JOB_INTERVAL);
 		syncJob.addJobChangeListener(new JobChangeAdapter() {
 			@Override
