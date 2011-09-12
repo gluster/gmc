@@ -38,6 +38,6 @@ public class RefreshDataAction extends AbstractActionDelegate {
 	 */
 	@Override
 	protected void performAction(IAction action) {
-		new DataSyncJob("Retrieving Management Information").schedule();
+		new DataSyncJob("Retrieving Management Info").schedule();
 	}
 }
