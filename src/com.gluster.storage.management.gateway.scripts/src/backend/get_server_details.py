@@ -57,7 +57,7 @@ def getServerDetails(listall):
         deviceList[device["device"]] = device
         try:
             macAddress = open("/sys/class/net/%s/address" % device["device"]).read().strip()
-        except IOError:
+        except IOError, e:
             continue
         interfaceTag = responseDom.createTag("networkInterface", None)
         interfaceTag.appendChild(responseDom.createTag("name",  device["device"]))

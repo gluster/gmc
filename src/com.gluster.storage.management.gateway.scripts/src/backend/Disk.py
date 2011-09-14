@@ -44,7 +44,7 @@ class Disk:
         try: 
             if dev.GetProperty('storage.removable'):
                 disk_size = str(int(dev.GetProperty('storage.removable.media_size')) / 1024**2)
-        except:
+        except:  # TODO: Add appropriated exception on property error.
             return
 
         self.disks.append({

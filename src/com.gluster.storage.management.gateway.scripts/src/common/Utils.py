@@ -146,22 +146,22 @@ def runCommandFG(command, stdout=False, stderr=False,
 def IP2Number(ipString):
     try:
         return socket.htonl(struct.unpack("I", socket.inet_aton(ipString))[0])
-    except socket.error:
+    except socket.error, e:
         return None
-    except TypeError:
+    except TypeError, e:
         return None
-    except struct.error:
+    except struct.error, e:
         return None
 
 
 def Number2IP(number):
     try:
         return socket.inet_ntoa(struct.pack("I", socket.ntohl(number)))
-    except socket.error:
+    except socket.error, e:
         return None
-    except AttributeError:
+    except AttributeError, e:
         return None
-    except ValueError:
+    except ValueError, e:
         return None
 
 
@@ -178,7 +178,7 @@ def computeHostName(hostName):
     hostPrefix = hostName[:pos+1]
     try:
         hostIndex = int(hostName[pos+1:]) 
-    except ValueError:
+    except ValueError, e:
         hostIndex = 0
     # TODO: Check the availablity of the (server) name
     return "%s%s" % (hostPrefix, hostIndex + 1)
@@ -190,7 +190,7 @@ def daemonize():
         if pid > 0:
             # exit first parent
             sys.exit(0) 
-    except OSError, e: 
+    except OSError, e:
         #sys.stderr.write("fork #1 failed: %d (%s)\n" % (e.errno, e.strerror))
         return False
 	
@@ -225,7 +225,7 @@ def getDownloadStatus(fileName):
     try:
         lines = [line for line in open(fileName)
                  if "saved" in line or "%" in line]
-    except IOError:
+    except IOError, e:
         return 0
     if not lines:
         return 0
@@ -292,8 +292,8 @@ def getCpuUsageAvg():
 def getLoadavg():
     try:
         loadavgstr = open('/proc/loadavg', 'r').readline().strip()
-    except IOError:
-        syslog.syslog(syslog.LOG_ERR, "failed to find cpu load")
+    except IOError, e:
+        syslog.syslog(syslog.LOG_ERR, "failed to find cpu load: %s" % str(e))
         return None
 
     data = map(float, loadavgstr.split()[1:])
@@ -329,7 +329,7 @@ def getPasswordHash(userName):
     try:
         #return spwd.getspnam(userName).sp_pwd
         return "Not implimented"
-    except KeyError:
+    except KeyError, e:
         return None
 
 
@@ -342,12 +342,12 @@ def isUserExist(userName):
     try:
         grp.getgrnam(userName).gr_gid
         return True
-    except KeyError:
+    except KeyError, e:
         pass
     try:
         pwd.getpwnam(userName).pw_uid
         return True
-    except KeyError:
+    except KeyError, e:
         pass
     return False
 
@@ -371,7 +371,7 @@ def getPlatformVersion(fileName=Globals.GLUSTER_VERSION_FILE):
             if k.upper() == "UPDATE":
                 versionInfo["Update"] = v
     except IOError, e:
-        log("Failed to read file %s: %s" % (fileName, e))
+        log("Failed to read file %s: %s" % (fileName, str(e)))
     return versionInfo
 
 
@@ -395,7 +395,7 @@ def setPlatformVersion(versionInfo, fileName=Globals.GLUSTER_VERSION_FILE):
         fp.close()
         return True
     except IOError, e:
-        log("Failed to write file %s: %s" % (fileName, e))
+        log("Failed to write file %s: %s" % (fileName, str(e)))
     return False
 
 
@@ -408,7 +408,7 @@ def removeFile(fileName, root=False):
         os.remove(fileName)
         return True
     except OSError, e:
-        log("Failed to remove file %s: %s" % (fileName, e))
+        log("Failed to remove file %s: %s" % (fileName, str(e)))
     return False
 
 
@@ -425,9 +425,9 @@ def getIPIndex(indexFile):
         line = fp.readline()
         fp.close()
         index = int(line)
-    except IOError:
+    except IOError, e:
         index = 0
-    except ValueError:
+    except ValueError, e:
         index = False
     return index
 
@@ -436,34 +436,34 @@ def setIPIndex(index, indexFile):
         fp = open(indexFile, "w")
         fp.write(str(index))
         fp.close()
-    except IOError:
+    except IOError, e:
         return False
     return True
 
 def IP2Number(ipString):
     try:
         return socket.htonl(struct.unpack("I", socket.inet_aton(ipString))[0])
-    except socket.error:
+    except socket.error, e:
         return None
-    except TypeError:
+    except TypeError, e:
         return None
-    except struct.error:
+    except struct.error, e:
         return None
 
 def Number2IP(number):
     try:
         return socket.inet_ntoa(struct.pack("I", socket.ntohl(number)))
-    except socket.error:
+    except socket.error, e:
         return None
-    except AttributeError:
+    except AttributeError, e:
         return None
-    except ValueError:
+    except ValueError, e:
         return None
 
 def hasEntryFoundInFile(searchString, dnsEntryFileName):
     try:
         addServerEntryList = open(dnsEntryFileName).read().split()
-    except IOError:
+    except IOError, e:
         return None
     if searchString in addServerEntryList:
         return True
@@ -509,7 +509,7 @@ def setHostNameAndIp(hostName, ipAddress, lastAddServerDetailFile):
         fp.write("HOSTNAME=" + hostName + "\n")
         fp.write("IPADDRESS=" + ipAddress);
         fp.close()
-    except IOError:
+    except IOError, e:
         return False
     return True
 
@@ -519,9 +519,9 @@ def getPort():
         portString = fd.readline()
         fd.close()
         port = int(portString)
-    except IOError:
+    except IOError, e:
         port = Globals.DEFAULT_PORT - 2
-    except ValueError:
+    except ValueError, e:
         port = Globals.DEFAULT_PORT - 2
     return port
 
@@ -530,7 +530,7 @@ def setPort(port):
         fd = open(Globals.PORT_FILE, "w")
         fd.write(str(port))
         fd.close()
-    except IOError:
+    except IOError, e:
         return False
     return True
 
@@ -597,8 +597,8 @@ def getStoragePoolInfo():
                 startRange = tokens[1].strip()
             if tokens[0] == "ENDRANGE":
                 endRange = tokens[1].strip()
-    except IOError:
-        log(syslog.LOG_ERR, "unable to read %s file" % Globals.GLUSTER_SERVER_POOL_FILE)
+    except IOError, e:
+        log(syslog.LOG_ERR, "unable to read %s file: %s" % (Globals.GLUSTER_SERVER_POOL_FILE, str(e)))
     return startRange, endRange
 
 def configureDnsmasq(serverIpAddress, dhcpIpAddress):
@@ -610,12 +610,12 @@ def configureDnsmasq(serverIpAddress, dhcpIpAddress):
             if token[0] == "dhcp":
                 serverPortString = token[1]
                 break
-    except IOError:
-        log(syslog.LOG_ERR, "Failed to read /proc/cmdline.  Continuing with default port 68")
+    except IOError, e:
+        log(syslog.LOG_ERR, "Failed to read /proc/cmdline.  Continuing with default port 68: %s" % str(e))
     try:
         serverPort = int(serverPortString)
-    except ValueError:
-        log(syslog.LOG_ERR, "Invalid dhcp port '%s' in /proc/cmdline.  Continuing with default port 68" % serverPortString)
+    except ValueError, e:
+        log(syslog.LOG_ERR, "Invalid dhcp port '%s' in /proc/cmdline.  Continuing with default port 68: %s" % (serverPortString, str(e)))
         serverPort = 68
 
     try:
@@ -632,8 +632,8 @@ def configureDnsmasq(serverIpAddress, dhcpIpAddress):
         fp.write("server=%s\n" % serverIpAddress)
         fp.write("dhcp-script=/usr/sbin/server-info\n")
         fp.close()
-    except IOError:
-        log(syslog.LOG_ERR, "unable to write dnsmasq configuration %s" % dnsmasqConfFile)
+    except IOError, e:
+        log(syslog.LOG_ERR, "unable to write dnsmasq configuration %s: %s" % (dnsmasqConfFile, str(e)))
         return False
     if runCommand(["cp", "-f", Globals.GLUSTER_CONF_CONF_DIR + "/dnsmasq.conf", Globals.DNSMASQ_CONF_FILE], root=True) != 0:
         log(syslog.LOG_ERR, "unable to copy dnsmasq configuration to " + Globals.DNSMASQ_CONF_FILE)

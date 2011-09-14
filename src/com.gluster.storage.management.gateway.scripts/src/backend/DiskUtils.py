@@ -301,9 +301,9 @@ def getDiskInfo(diskDeviceList=None):
                     try:
                         used = long(rv["Stdout"].split("\n")[1].split()[2]) / 1024
                         diskSpaceInUse += used
-                    except IndexError:
+                    except IndexError, e:
                         pass
-                    except ValueError:
+                    except ValueError, e:
                         pass
 
             if disk["Device"] == partitionDevice:
@@ -431,9 +431,9 @@ def getDeviceUsedSpace(device):
     if rv["Status"] == 0:
         try:
             return long(rv["Stdout"].split("\n")[1].split()[2]) / 1024
-        except IndexError:
+        except IndexError, e:
             pass
-        except ValueError:
+        except ValueError, e:
             pass
 
 def getDiskSizeInfo(partition):
