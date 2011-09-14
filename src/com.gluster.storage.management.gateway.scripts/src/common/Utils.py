@@ -479,8 +479,8 @@ def computeIpAddress(ipAddress, startIp, endIp):
     while True:  
         nextIpNumber = nextIpNumber + 1
         ipAddress = Number2IP(nextIpNumber)
-        rv = runCommandFG(["ping", "-qnc", "1", ipAddress])
-        if type(rv) == type(True):
+        rv = runCommand("ping -qnc 1 %s" % ipAddress, output=True)
+        if rv["Status"] != 0:
             return False
         if rv != 0:
             break
@@ -492,8 +492,8 @@ def computeIpAddress(ipAddress, startIp, endIp):
     while True:
         ipAddress = Number2IP(nextIpNumber)
         nextIpNumber = nextIpNumber + 1
-        rv = runCommandFG(["ping", "-qnc", "1", ipAddress])
-        if type(rv) == type(True):
+        rv = runCommand("ping -qnc 1 %s" % ipAddress, output=True)
+        if rv["Status"] != 0:
             return False
         if rv != 0:
             break
@@ -573,20 +573,17 @@ def daemonize():
 
 
 def getDhcpServerStatus():
-    status = runCommandFG(["sudo", "service", "dnsmasq", " status"])
-    if type(status) == type(True) or 0 != status:
+    if runCommand("service dnsmasq status", root=True) != 0:
         return False
     return True
 
 def startDhcpServer():
-    status = runCommandFG(["sudo", "service", "dnsmasq", " start"])
-    if type(status) == type(True) or 0 != status:
+    if runCommand("service dnsmasq  start", root=True) != 0:
         return False
     return True
 
 def stopDhcpServer():
-    status = runCommandFG(["sudo", "service", "dnsmasq", " stop"])
-    if type(status) == type(True) or 0 != status:
+    if runCommand("service dnsmasq stop", root=True) != 0:
         return False
     return True
 
@@ -638,8 +635,7 @@ def configureDnsmasq(serverIpAddress, dhcpIpAddress):
     except IOError:
         log(syslog.LOG_ERR, "unable to write dnsmasq configuration %s" % dnsmasqConfFile)
         return False
-    status = runCommandFG(["sudo", "cp", "-f", Globals.GLUSTER_CONF_CONF_DIR + "/dnsmasq.conf", Globals.DNSMASQ_CONF_FILE])
-    if type(status) == type(True) or 0 != status:
+    if runCommand(["cp", "-f", Globals.GLUSTER_CONF_CONF_DIR + "/dnsmasq.conf", Globals.DNSMASQ_CONF_FILE], root=True) != 0:
         log(syslog.LOG_ERR, "unable to copy dnsmasq configuration to " + Globals.DNSMASQ_CONF_FILE)
         return False
     return True

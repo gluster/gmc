@@ -90,7 +90,7 @@ def getDeviceByLabel(label):
 
 
 def getDiskPartitionLabel(device):
-    rv = Utils.runCommandFG(["sudo", "e2label", device], stdout=True)
+    rv = Utils.runCommand("e2label %s" % device, output=True, root=True)
     if rv["Status"] == 0:
         return rv["Stdout"].strip()
     return False
@@ -296,7 +296,7 @@ def getDiskInfo(diskDeviceList=None):
                 continue
             partitionDevice = str(partitionHalDevice.GetProperty('block.device'))
             if partitionHalDevice.GetProperty("volume.is_mounted"):
-                rv = Utils.runCommandFG(["df", str(partitionHalDevice.GetProperty('volume.mount_point'))], stdout=True)
+                rv = Utils.runCommand(["df", str(partitionHalDevice.GetProperty('volume.mount_point'))], output=True)
                 if rv["Status"] == 0:
                     try:
                         used = long(rv["Stdout"].split("\n")[1].split()[2]) / 1024
@@ -442,10 +442,10 @@ def getDiskSizeInfo(partition):
     used = None
     free = None
     command = "df -kl -t ext3 -t ext4 -t xfs"
-    rv = Utils.runCommandFG(command, stdout=True, root=True)
+    rv = Utils.runCommand(command, output=True, root=True)
     message = Utils.stripEmptyLines(rv["Stdout"])
-    if rv["Stderr"]:
-        Utils.log("failed to get disk details. %s" % Utils.stripEmptyLines(rv["Stdout"]))
+    if rv["Status"] != 0:
+        Utils.log("failed to get disk partition details")
         return None, None, None
     for line in rv["Stdout"].split("\n"):
         tokens = line.split()
@@ -472,10 +472,9 @@ def getDiskSizeInfo(partition):
     
     number = int(partitionNumber)
     command = "parted -ms %s unit kb print" % disk
-    rv = Utils.runCommandFG(command, stdout=True, root=True)
-    message = Utils.stripEmptyLines(rv["Stdout"])
-    if rv["Stderr"]:
-        Utils.log("failed to get disk details. %s" % Utils.stripEmptyLines(rv["Stdout"]))
+    rv = Utils.runCommand(command, output=True, root=True)
+    if rv["Status"] != 0:
+        Utils.log("failed to get disk partition details")
         return None, None, None
     
     lines = rv["Stdout"].split(";\n")

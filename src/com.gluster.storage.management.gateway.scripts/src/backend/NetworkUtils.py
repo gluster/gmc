@@ -52,7 +52,7 @@ def writeHostFile(hostEntryList, fileName=None):
     except IOError:
         log("failed to write %s file" % hostFile)
         return False
-    if runCommandFG("mv -f %s /etc/hosts" % hostFile, root=True) != 0:
+    if runCommand("mv -f %s /etc/hosts" % hostFile, root=True) != 0:
         log("failed to rename file %s to /etc/hosts" % hostFile)
         return False
     return True
@@ -107,7 +107,7 @@ def writeResolvConfFile(nameServerList, domain, searchDomain, fileName=None, app
     except IOError:
         log("failed to write %s file" % resolvConfFile)
         return False
-    if runCommandFG("mv -f %s %s" % (resolvConfFile, Globals.RESOLV_CONF_FILE), root=True) != 0:
+    if runCommand("mv -f %s %s" % (resolvConfFile, Globals.RESOLV_CONF_FILE), root=True) != 0:
         log("failed to rename file %s to %s" % (resolvConfFile, Globals.RESOLV_CONF_FILE))
         return False
     return True
@@ -165,7 +165,7 @@ def writeIfcfgConfFile(deviceName, conf, root="", deviceFile=None):
     except IOError:
         log("failed to write %s file" % ifcfgConfFile)
         return False
-    if runCommandFG("mv -f %s %s" % (ifcfgConfFile, deviceFile), root=True) != 0:
+    if runCommand("mv -f %s %s" % (ifcfgConfFile, deviceFile), root=True) != 0:
         log("failed to rename file %s to %s" % (ifcfgConfFile, deviceFile))
         return False
     return True
@@ -173,7 +173,7 @@ def writeIfcfgConfFile(deviceName, conf, root="", deviceFile=None):
 def getNetDeviceDetail(deviceName):
     deviceDetail = {}
     deviceDetail['Name'] = deviceName
-    rv = runCommandFG("ifconfig %s" % deviceName, stdout=True, root=True)
+    rv = runCommand("ifconfig %s" % deviceName, output=True, root=True)
     if rv["Status"] != 0:
         return False
     for line in rv["Stdout"].split():
@@ -209,7 +209,7 @@ def getNetDeviceGateway(deviceName):
     return None
 
 def getNetSpeed(deviceName):
-    rv = runCommandFG("ethtool %s" % deviceName, stdout=True, root=True)
+    rv = runCommand("ethtool %s" % deviceName, output=True, root=True)
     if rv["Status"] != 0:
         return False
     for line in rv["Stdout"].split("\n"):
@@ -221,7 +221,7 @@ def getNetSpeed(deviceName):
 def getLinkStatus(deviceName):
     return True
     ## ethtool takes very long time to respond.  So its disabled now
-    rv = runCommandFG("ethtool %s" % deviceName, stdout=True, root=True)
+    rv = runCommand("ethtool %s" % deviceName, output=True, root=True)
     if rv["Status"] != 0:
         return False
     for line in rv["Stdout"].split("\n"):
@@ -278,7 +278,7 @@ def setBondMode(deviceName, mode, fileName=None):
         fp.write("alias %s bonding\n" % deviceName)
         fp.write("options %s max_bonds=2 mode=%s miimon=100\n" % (deviceName, mode))
     fp.close()
-    if runCommandFG(["mv", "-f", tempFileName, fileName], root=True) != 0:
+    if runCommand(["mv", "-f", tempFileName, fileName], root=True) != 0:
         log("unable to move file from %s to %s" % (tempFileName, fileName))
         return False
     return True
@@ -436,7 +436,7 @@ def configureDhcpServer(serverIpAddress, dhcpIpAddress):
     except IOError:
         log(syslog.LOG_ERR, "unable to write dnsmasq dhcp configuration %s" % tmpDhcpConfFile)
         return False
-    if runCommandFG("mv -f %s %s" % (tmpDhcpConfFile, Globals.DNSMASQ_DHCP_CONF_FILE), root=True) != 0:
+    if runCommand("mv -f %s %s" % (tmpDhcpConfFile, Globals.DNSMASQ_DHCP_CONF_FILE), root=True) != 0:
         log(syslog.LOG_ERR, "unable to copy dnsmasq dhcp configuration to %s" % Globals.DNSMASQ_DHCP_CONF_FILE)
         return False
     return True
@@ -447,31 +447,31 @@ def isDhcpServer():
 
 
 def getDhcpServerStatus():
-    if runCommandFG("service dnsmasq status", root=True) == 0:
+    if runCommand("service dnsmasq status", root=True) == 0:
         return True
     return False
 
 
 def startDhcpServer():
-    if runCommandFG("service dnsmasq start", root=True) == 0:
+    if runCommand("service dnsmasq start", root=True) == 0:
         return True
     return False
 
 
 def stopDhcpServer():
-    if runCommandFG("service dnsmasq stop", root=True) == 0:
-        runCommandFG("rm -f %s" % Globals.DNSMASQ_LEASE_FILE, root=True)
+    if runCommand("service dnsmasq stop", root=True) == 0:
+        runCommand("rm -f %s" % Globals.DNSMASQ_LEASE_FILE, root=True)
         return True
     return False
 
 
 def restartDhcpServer():
     stopDhcpServer()
-    runCommandFG("rm -f %s" % Globals.DNSMASQ_LEASE_FILE, root=True)
+    runCommand("rm -f %s" % Globals.DNSMASQ_LEASE_FILE, root=True)
     return startDhcpServer()
 
 
 def reloadDhcpServer():
-    if runCommandFG("service dnsmasq reload", root=True) == 0:
+    if runCommand("service dnsmasq reload", root=True) == 0:
         return True
     return False
