@@ -705,3 +705,20 @@ def getCifsUserUid(userName):
         if tokens[1] == userName:
             return int(tokens[0])
     return None
+
+def readFile(fileName, lines=False):
+    content = None
+    try:
+        fp = open(fileName)
+        if lines:
+            content = fp.readlines()
+        else:
+            content = fp.read()
+        fp.close()
+        return content
+    except IOError, e:
+        log("failed to read file %s: %s" % (fileName, str(e)))
+    if lines:
+        return []
+    else:
+        return ""
