@@ -39,7 +39,7 @@ def readFsTab(fsTabFile=Globals.FSTAB_FILE):
             fsTabEntry["Options"] = tokens[3]
             fsTabEntry["DumpOption"] = tokens[4]
             fsTabEntry["fsckOrder"] = tokens[5]
-        except IndexError:
+        except IndexError, e:
             pass
         if fsTabEntry["Device"] and fsTabEntry["MountPoint"] and fsTabEntry["FsType"] and fsTabEntry["Options"]:
             fsTabEntryList.append(fsTabEntry)
@@ -81,7 +81,7 @@ def removeFsTabEntry(fsTabEntry, fsTabFile=Globals.FSTAB_FILE):
 
     try:
         fsTabEntryList.remove(fsTabEntry)
-    except ValueError:
+    except ValueError, e:
         return False
 
     return writeFsTab(fsTabEntryList, fsTabFile)
