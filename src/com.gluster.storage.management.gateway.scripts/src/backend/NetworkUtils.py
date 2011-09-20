@@ -17,9 +17,7 @@ if not "/usr/share/system-config-network/" in sys.path:
 import os
 import tempfile
 import Globals
-
-from Utils import *
-#from netconfpkg.NCHardwareList import getHardwareList
+import Utils
 
 def readHostFile(fileName=None):
     hostEntryList = []
@@ -33,7 +31,7 @@ def readHostFile(fileName=None):
             hostEntryList.append({tokens[0] : tokens[1:]})
         return hostEntryList
     except IOError, e:
-        log("failed to read %s file: %s" % (fileName, str(e)))
+        Utils.log("failed to read %s file: %s" % (fileName, str(e)))
         return None
 
 
@@ -50,10 +48,10 @@ def writeHostFile(hostEntryList, fileName=None):
         if hostFile == fileName:
             return True
     except IOError, e:
-        log("failed to write %s file: %s" % (hostFile, str(e)))
+        Utils.log("failed to write %s file: %s" % (hostFile, str(e)))
         return False
-    if runCommand("mv -f %s /etc/hosts" % hostFile, root=True) != 0:
-        log("failed to rename file %s to /etc/hosts" % hostFile)
+    if Utils.runCommand("mv -f %s /etc/hosts" % hostFile, root=True) != 0:
+        Utils.log("failed to rename file %s to /etc/hosts" % hostFile)
         return False
     return True
 
@@ -82,7 +80,7 @@ def readResolvConfFile(fileName=None, includeLocalHost=False):
                 continue
         return nameServerList, domain, searchDomain
     except IOError, e:
-        log("failed to read %s file: %s" % (fileName, str(e)))
+        Utils.log("failed to read %s file: %s" % (fileName, str(e)))
         return None, None, None
 
 
@@ -105,10 +103,10 @@ def writeResolvConfFile(nameServerList, domain, searchDomain, fileName=None, app
         if resolvConfFile == fileName:
             return True
     except IOError, e:
-        log("failed to write %s file: %s" % (resolvConfFile, str(e)))
+        Utils.log("failed to write %s file: %s" % (resolvConfFile, str(e)))
         return False
-    if runCommand("mv -f %s %s" % (resolvConfFile, Globals.RESOLV_CONF_FILE), root=True) != 0:
-        log("failed to rename file %s to %s" % (resolvConfFile, Globals.RESOLV_CONF_FILE))
+    if Utils.runCommand("mv -f %s %s" % (resolvConfFile, Globals.RESOLV_CONF_FILE), root=True) != 0:
+        Utils.log("failed to rename file %s to %s" % (resolvConfFile, Globals.RESOLV_CONF_FILE))
         return False
     return True
 
@@ -124,7 +122,7 @@ def readIfcfgConfFile(deviceName, root=""):
             conf[tokens[0].strip().lower()] = tokens[1].strip()
         return conf
     except IOError, e:
-        log("failed to read %s file: %s" % (fileName, str(e)))
+        Utils.log("failed to read %s file: %s" % (fileName, str(e)))
         return None
 
 
@@ -151,7 +149,7 @@ def writeIfcfgConfFile(deviceName, conf, root="", deviceFile=None):
             if key == "onboot":
                 if conf[key] == True:
                     fp.write("ONBOOT=yes\n")
-                elif isString(conf[key]) and conf[key].upper() == "YES":
+                elif Utils.isString(conf[key]) and conf[key].upper() == "YES":
                     fp.write("ONBOOT=yes\n")
                 else:
                     fp.write("ONBOOT=no\n")
@@ -163,17 +161,17 @@ def writeIfcfgConfFile(deviceName, conf, root="", deviceFile=None):
         if ifcfgConfFile == deviceFile:
             return True
     except IOError, e:
-        log("failed to write %s file" % (ifcfgConfFile, str(e)))
+        Utils.log("failed to write %s file" % (ifcfgConfFile, str(e)))
         return False
-    if runCommand("mv -f %s %s" % (ifcfgConfFile, deviceFile), root=True) != 0:
-        log("failed to rename file %s to %s" % (ifcfgConfFile, deviceFile))
+    if Utils.runCommand("mv -f %s %s" % (ifcfgConfFile, deviceFile), root=True) != 0:
+        Utils.log("failed to rename file %s to %s" % (ifcfgConfFile, deviceFile))
         return False
     return True
 
 def getNetDeviceDetail(deviceName):
     deviceDetail = {}
     deviceDetail['Name'] = deviceName
-    rv = runCommand("ifconfig %s" % deviceName, output=True, root=True)
+    rv = Utils.runCommand("ifconfig %s" % deviceName, output=True, root=True)
     if rv["Status"] != 0:
         return False
     for line in rv["Stdout"].split():
@@ -195,7 +193,7 @@ def getNetDeviceDetail(deviceName):
     return deviceDetail
 
 def getNetDeviceGateway(deviceName):
-    rv = runCommand("route -n", output=True, root=True)
+    rv = Utils.runCommand("route -n", output=True, root=True)
     if rv["Status"] != 0:
         return None
     if not rv["Stdout"]:
@@ -209,7 +207,7 @@ def getNetDeviceGateway(deviceName):
     return None
 
 def getNetSpeed(deviceName):
-    rv = runCommand("ethtool %s" % deviceName, output=True, root=True)
+    rv = Utils.runCommand("ethtool %s" % deviceName, output=True, root=True)
     if rv["Status"] != 0:
         return False
     for line in rv["Stdout"].split("\n"):
@@ -221,7 +219,7 @@ def getNetSpeed(deviceName):
 def getLinkStatus(deviceName):
     return True
     ## ethtool takes very long time to respond.  So its disabled now
-    rv = runCommand("ethtool %s" % deviceName, output=True, root=True)
+    rv = Utils.runCommand("ethtool %s" % deviceName, output=True, root=True)
     if rv["Status"] != 0:
         return False
     for line in rv["Stdout"].split("\n"):
@@ -253,19 +251,19 @@ def getBondMode(deviceName, fileName=None):
                     return tokens[5].split("=")[1]
         return None
     except IOError, e:
-        log("failed to read %s file: %s" % (fileName, str(e)))
+        Utils.log("failed to read %s file: %s" % (fileName, str(e)))
         return None
 
 
 def setBondMode(deviceName, mode, fileName=None):
     if not fileName:
         fileName = Globals.MODPROBE_CONF_FILE
-    tempFileName = getTempFileName()
+    tempFileName = Utils.getTempFileName()
     try:
         fp = open(tempFileName, "w")
         lines = open(fileName).readlines()
     except IOError, e:
-        log("unable to open file %s: %s" % (Globals.MODPROBE_CONF_FILE, str(e)))
+        Utils.log("unable to open file %s: %s" % (Globals.MODPROBE_CONF_FILE, str(e)))
         return False
     for line in lines:
         tokens = line.split()
@@ -278,8 +276,8 @@ def setBondMode(deviceName, mode, fileName=None):
         fp.write("alias %s bonding\n" % deviceName)
         fp.write("options %s max_bonds=2 mode=%s miimon=100\n" % (deviceName, mode))
     fp.close()
-    if runCommand(["mv", "-f", tempFileName, fileName], root=True) != 0:
-        log("unable to move file from %s to %s" % (tempFileName, fileName))
+    if Utils.runCommand(["mv", "-f", tempFileName, fileName], root=True) != 0:
+        Utils.log("unable to move file from %s to %s" % (tempFileName, fileName))
         return False
     return True
 
@@ -415,11 +413,11 @@ def configureDhcpServer(serverIpAddress, dhcpIpAddress):
                 serverPortString = token[1]
                 break
     except IOError, e:
-        log(syslog.LOG_ERR, "Failed to read /proc/cmdline.  Continuing with default port 68: %s" % str(e))
+        Utils.log("Failed to read /proc/cmdline.  Continuing with default port 68: %s" % str(e))
     try:
         serverPort = int(serverPortString)
     except ValueError, e:
-        log(syslog.LOG_ERR, "Invalid dhcp port '%s' in /proc/cmdline.  Continuing with default port 68: %s" % (serverPortString, str(e)))
+        Utils.log("Invalid dhcp port '%s' in /proc/cmdline.  Continuing with default port 68: %s" % (serverPortString, str(e)))
         serverPort = 68
 
     try:
@@ -434,10 +432,10 @@ def configureDhcpServer(serverIpAddress, dhcpIpAddress):
         #fp.write("dhcp-script=/usr/sbin/server-info\n")
         fp.close()
     except IOError, e:
-        log(syslog.LOG_ERR, "unable to write dnsmasq dhcp configuration %s: %s" % (tmpDhcpConfFile, str(e)))
+        Utils.log("unable to write dnsmasq dhcp configuration %s: %s" % (tmpDhcpConfFile, str(e)))
         return False
-    if runCommand("mv -f %s %s" % (tmpDhcpConfFile, Globals.DNSMASQ_DHCP_CONF_FILE), root=True) != 0:
-        log(syslog.LOG_ERR, "unable to copy dnsmasq dhcp configuration to %s" % Globals.DNSMASQ_DHCP_CONF_FILE)
+    if Utils.runCommand("mv -f %s %s" % (tmpDhcpConfFile, Globals.DNSMASQ_DHCP_CONF_FILE), root=True) != 0:
+        Utils.log("unable to copy dnsmasq dhcp configuration to %s" % Globals.DNSMASQ_DHCP_CONF_FILE)
         return False
     return True
 
@@ -447,31 +445,31 @@ def isDhcpServer():
 
 
 def getDhcpServerStatus():
-    if runCommand("service dnsmasq status", root=True) == 0:
+    if Utils.runCommand("service dnsmasq status", root=True) == 0:
         return True
     return False
 
 
 def startDhcpServer():
-    if runCommand("service dnsmasq start", root=True) == 0:
+    if Utils.runCommand("service dnsmasq start", root=True) == 0:
         return True
     return False
 
 
 def stopDhcpServer():
-    if runCommand("service dnsmasq stop", root=True) == 0:
-        runCommand("rm -f %s" % Globals.DNSMASQ_LEASE_FILE, root=True)
+    if Utils.runCommand("service dnsmasq stop", root=True) == 0:
+        Utils.runCommand("rm -f %s" % Globals.DNSMASQ_LEASE_FILE, root=True)
         return True
     return False
 
 
 def restartDhcpServer():
     stopDhcpServer()
-    runCommand("rm -f %s" % Globals.DNSMASQ_LEASE_FILE, root=True)
+    Utils.runCommand("rm -f %s" % Globals.DNSMASQ_LEASE_FILE, root=True)
     return startDhcpServer()
 
 
 def reloadDhcpServer():
-    if runCommand("service dnsmasq reload", root=True) == 0:
+    if Utils.runCommand("service dnsmasq reload", root=True) == 0:
         return True
     return False
