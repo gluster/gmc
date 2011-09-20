@@ -722,3 +722,17 @@ def readFile(fileName, lines=False):
         return []
     else:
         return ""
+
+
+def writeFile(fileName, content):
+    try:
+        fp = open(fileName, "w")
+        if isString(content):
+            fp.write(content)
+        elif type(content) == type([]):
+            fp.writelines(content)
+        fp.close()
+        return True
+    except IOError, e:
+        log("failed to write file %s: %s" % (fileName, str(e))
+    return False
