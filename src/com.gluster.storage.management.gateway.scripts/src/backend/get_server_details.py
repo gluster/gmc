@@ -193,39 +193,29 @@ def getServerDetails(listall):
 
     #TODO: probe and retrieve timezone, ntp-server details and update the tags
 
-    deviceList = {}
     interfaces = responseDom.createTag("networkInterfaces", None)
-    for device in getNetDeviceList():
-        if device["model"] in ['LOCAL', 'IPV6-IN-IPV4']:
-            continue
-        deviceList[device["device"]] = device
-        try:
-            macAddress = open("/sys/class/net/%s/address" % device["device"]).read().strip()
-        except IOError, e:
+    for deviceName, values in getNetDeviceList().iteritems():
+        if values["type"].upper() in ['LOCAL', 'IPV6-IN-IPV4']:
             continue
         interfaceTag = responseDom.createTag("networkInterface", None)
-        interfaceTag.appendChild(responseDom.createTag("name",  device["device"]))
-        interfaceTag.appendChild(responseDom.createTag("hwAddr",macAddress))
-        interfaceTag.appendChild(responseDom.createTag("speed", device["speed"]))
-        interfaceTag.appendChild(responseDom.createTag("model", device["model"]))
-        if deviceList[device["device"]]:
-            if deviceList[device["device"]]["onboot"]:
-                interfaceTag.appendChild(responseDom.createTag("onboot", "yes"))
-            else:
-                interfaceTag.appendChild(responseDom.createTag("onBoot", "no"))
-            interfaceTag.appendChild(responseDom.createTag("bootProto", deviceList[device["device"]]["bootproto"]))
-            interfaceTag.appendChild(responseDom.createTag("ipAddress",    deviceList[device["device"]]["ipaddr"]))
-            interfaceTag.appendChild(responseDom.createTag("netMask",   deviceList[device["device"]]["netmask"]))
-            interfaceTag.appendChild(responseDom.createTag("defaultGateway",   deviceList[device["device"]]["gateway"]))
-            if deviceList[device["device"]]["mode"]:
-                interfaceTag.appendChild(responseDom.createTag("mode",   deviceList[device["device"]]["mode"]))
-            if deviceList[device["device"]]["master"]:
-                interfaceTag.appendChild(responseDom.createTag("bonding", "yes"))
-                spliter = re.compile(r'[\D]')
-                interfaceTag.appendChild(responseDom.createTag("bondid", spliter.split(device["master"])[-1]))            
+        interfaceTag.appendChild(responseDom.createTag("name",  deviceName))
+        interfaceTag.appendChild(responseDom.createTag("hwAddr", values["hwaddr"]))
+        interfaceTag.appendChild(responseDom.createTag("speed", values["speed"]))
+        interfaceTag.appendChild(responseDom.createTag("model", values["type"]))
+        if values["onboot"]:
+            interfaceTag.appendChild(responseDom.createTag("onBoot", "yes"))
         else:
-            interfaceTag.appendChild(responseDom.createTag("onBoot",    "no"))
-            interfaceTag.appendChild(responseDom.createTag("bootProto", "none"))
+            interfaceTag.appendChild(responseDom.createTag("onBoot", "no"))
+        interfaceTag.appendChild(responseDom.createTag("bootProto", values["bootproto"]))
+        interfaceTag.appendChild(responseDom.createTag("ipAddress",    values["ipaddr"]))
+        interfaceTag.appendChild(responseDom.createTag("netMask",   values["netmask"]))
+        interfaceTag.appendChild(responseDom.createTag("defaultGateway",   values["gateway"]))
+        if values["mode"]:
+            interfaceTag.appendChild(responseDom.createTag("mode",   values["mode"]))
+        if values["master"]:
+            interfaceTag.appendChild(responseDom.createTag("bonding", "yes"))
+            spliter = re.compile(r'[\D]')
+            interfaceTag.appendChild(responseDom.createTag("bondid", spliter.split(values["master"])[-1]))
         interfaces.appendChild(interfaceTag)
     serverTag.appendChild(interfaces)
 
