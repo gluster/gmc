@@ -13,7 +13,6 @@ if not p2 in sys.path:
     sys.path.append(p2)
 import subprocess
 import Utils
-import DiskUtils
 from optparse import OptionParser
 
 def writeStatus(deviceFormatStatusFile, message):

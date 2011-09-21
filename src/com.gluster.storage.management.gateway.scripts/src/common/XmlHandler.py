@@ -7,7 +7,6 @@ import xml.parsers.expat
 import xml.dom.minidom as MDOM
 import os
 import Globals
-import copy
 import Utils
 
 XML_STRING = 0

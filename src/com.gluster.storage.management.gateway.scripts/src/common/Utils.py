@@ -15,9 +15,7 @@ import socket
 import struct
 import syslog
 import subprocess
-#import spwd
 import time
-#import uuid
 import tempfile
 import grp
 import pwd

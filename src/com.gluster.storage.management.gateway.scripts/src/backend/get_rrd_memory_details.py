@@ -37,7 +37,6 @@ if not p1 in sys.path:
     sys.path.append(p1)
 if not p2 in sys.path:
     sys.path.append(p2)
-import syslog
 import Utils
 
 MEMORY_RRD_FILE = "/var/lib/rrd/mem.rrd"
