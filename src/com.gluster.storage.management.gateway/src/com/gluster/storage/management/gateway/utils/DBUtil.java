@@ -21,7 +21,6 @@ package com.gluster.storage.management.gateway.utils;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import org.apache.derby.jdbc.EmbeddedDriver;
 import org.apache.log4j.Logger;
 
 import com.gluster.storage.management.core.constants.CoreConstants;

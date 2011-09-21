@@ -28,11 +28,9 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.core.model.TaskStatus;
-import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.gateway.services.ClusterService;
 import com.gluster.storage.management.gateway.utils.GlusterUtil;
 import com.gluster.storage.management.gateway.utils.ServerUtil;
-import com.gluster.storage.management.gateway.utils.SshUtil;
 import com.sun.jersey.core.util.Base64;
 
 public class RebalanceVolumeTask extends Task {

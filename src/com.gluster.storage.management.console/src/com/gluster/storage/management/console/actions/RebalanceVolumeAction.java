@@ -21,7 +21,6 @@ package com.gluster.storage.management.console.actions;
 import java.net.URI;
 
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 
 import com.gluster.storage.management.client.TasksClient;
