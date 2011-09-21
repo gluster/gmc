@@ -55,11 +55,8 @@ import javax.ws.rs.core.Response;
 
 import org.springframework.stereotype.Component;
 
-import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.constants.RESTConstants;
-import com.gluster.storage.management.core.exceptions.ConnectionException;
-import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.exceptions.GlusterValidationException;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.ServerStats;
@@ -67,16 +64,12 @@ import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
 import com.gluster.storage.management.core.response.ServerNameListResponse;
 import com.gluster.storage.management.gateway.data.ClusterInfo;
-import com.gluster.storage.management.gateway.data.ServerInfo;
 import com.gluster.storage.management.gateway.services.ClusterService;
 import com.gluster.storage.management.gateway.services.GlusterServerService;
 import com.gluster.storage.management.gateway.tasks.InitializeDiskTask;
 import com.gluster.storage.management.gateway.utils.CpuStatsFactory;
-import com.gluster.storage.management.gateway.utils.GlusterUtil;
 import com.gluster.storage.management.gateway.utils.MemoryStatsFactory;
 import com.gluster.storage.management.gateway.utils.NetworkStatsFactory;
-import com.gluster.storage.management.gateway.utils.ServerUtil;
-import com.gluster.storage.management.gateway.utils.SshUtil;
 import com.gluster.storage.management.gateway.utils.StatsFactory;
 import com.sun.jersey.api.core.InjectParam;
 import com.sun.jersey.spi.resource.Singleton;

@@ -18,9 +18,6 @@
  *******************************************************************************/
 package com.gluster.storage.management.gateway.utils;
 
-import java.sql.DriverManager;
-import java.sql.SQLException;
-
 import org.apache.derby.jdbc.EmbeddedDriver;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.security.authentication.dao.ReflectionSaltSource;

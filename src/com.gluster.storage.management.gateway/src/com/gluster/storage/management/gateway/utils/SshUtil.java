@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.NoRouteToHostException;
 import java.util.Arrays;
 
 import org.apache.log4j.Logger;

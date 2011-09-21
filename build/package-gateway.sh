@@ -48,7 +48,7 @@ get-dist()
 	OS=${2}
 	WS=${3}
 
-	OUT_DIR="${WORKSPACE}/../../${VERSION}-glustermc/workspace/arch/${ARCH}/os/${OS}/ws/${WS}/buckminster.output/com.gluster.storage.management.console.feature.webstart*.feature/glustermc"
+	OUT_DIR="${WORKSPACE}/../../${BRANCH}-glustermc/workspace/arch/${ARCH}/os/${OS}/ws/${WS}/buckminster.output/com.gluster.storage.management.console.feature.webstart*.feature/glustermc"
 	NEW_DIR=${WAR_NAME}/${OS}.${WS}.${ARCH}
 	cp -R ${OUT_DIR} ${NEW_DIR}
 

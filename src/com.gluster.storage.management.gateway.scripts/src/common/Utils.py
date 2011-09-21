@@ -21,12 +21,8 @@ import time
 import tempfile
 import grp
 import pwd
-import inspect
-from datetime import datetime
-import urllib
 
 import Globals
-import Protocol
 
 RUN_COMMAND_ERROR = -1024
 LOG_SYSLOG = 1
@@ -34,116 +30,6 @@ SYSLOG_REQUIRED = False
 LOG_FILE_NAME = None
 LOG_FILE_OBJ = None
 logOpened = False
-
-def _getLogCode(priority):
-    if syslog.LOG_EMERG == priority:
-        return "M"
-    elif syslog.LOG_ALERT == priority:
-        return "A"
-    elif syslog.LOG_CRIT == priority:
-        return "C"
-    elif syslog.LOG_ERR == priority:
-        return "E"
-    elif syslog.LOG_WARNING == priority:
-        return "W"
-    elif syslog.LOG_NOTICE == priority:
-        return "N"
-    elif syslog.LOG_INFO == priority:
-        return "I"
-    elif syslog.LOG_DEBUG == priority:
-        return "D"
-    else: # UNKNOWN
-        return "X"
-
-
-def setLogFile(fileName):
-    global LOG_FILE_NAME
-
-    if fileName:
-        LOG_FILE_NAME = fileName
-        return True
-    return False
-
-
-def closeLog():
-    global LOG_FILE_OBJ
-    global SYSLOG_REQUIRED
-
-    if SYSLOG_REQUIRED:
-        syslog.closelog()
-        SYSLOG_REQUIRED = False
-        return True
-
-    if LOG_FILE_OBJ:
-        try:
-            LOG_FILE_OBJ.close()
-            LOG_FILE_OBJ = None
-        except IOError, e:
-            sys.stderr.write("Failed to close file: %s\n" % e)
-            return False
-    return True
-
-
-def openLog(fileName=None):
-    global LOG_FILE_NAME
-    global LOG_FILE_OBJ
-    global SYSLOG_REQUIRED
-
-    if fileName == LOG_SYSLOG:
-        syslog.openlog(os.path.basename(sys.argv[0]))
-        SYSLOG_REQUIRED = True
-        return True
-
-    if fileName:
-        LOG_FILE_NAME = fileName
-
-    if not LOG_FILE_NAME:
-        return False
-
-    closeLog()
-
-    try:
-        LOG_FILE_OBJ = open(LOG_FILE_NAME, "a")
-    except IOError, e:
-        sys.stderr.write("Failed to open file %s: %s\n" % (LOG_FILE_NAME, e))
-        return False
-    return True
-
-def record(priority, message=None):
-    global LOG_FILE_OBJ
-    global SYSLOG_REQUIRED
-
-    stack = inspect.stack()[1]
-    if stack[3] == "<module>":
-        prefix = "%s:%s:%s" % (stack[1], stack[2], stack[3])
-    else:
-        prefix = "%s:%s:%s()" % (stack[1], stack[2], stack[3])
-
-    if type(priority) == type("") or type(priority) == type(u""):
-        logPriority = syslog.LOG_INFO
-        logMessage = priority
-    else:
-        logPriority = priority
-        logMessage = message
-
-    if SYSLOG_REQUIRED:
-        syslog.syslog(logPriority, "[%s]: %s" % (prefix, logMessage))
-        return
-
-    fp = sys.stderr
-    if LOG_FILE_OBJ:
-        fp = LOG_FILE_OBJ
-
-    fp.write("[%s] %s [%s]: %s" % (str(datetime.now()), _getLogCode(logPriority), prefix, logMessage))
-    if logMessage[-1] != '\n':
-        fp.write("\n")
-    fp.flush()
-    return
-
-
-def trace(message):
-    if message:
-        log(syslog.LOG_DEBUG, message)
 
 
 def isString(value):
@@ -260,22 +146,22 @@ def runCommandFG(command, stdout=False, stderr=False,
 def IP2Number(ipString):
     try:
         return socket.htonl(struct.unpack("I", socket.inet_aton(ipString))[0])
-    except socket.error:
+    except socket.error, e:
         return None
-    except TypeError:
+    except TypeError, e:
         return None
-    except struct.error:
+    except struct.error, e:
         return None
 
 
 def Number2IP(number):
     try:
         return socket.inet_ntoa(struct.pack("I", socket.ntohl(number)))
-    except socket.error:
+    except socket.error, e:
         return None
-    except AttributeError:
+    except AttributeError, e:
         return None
-    except ValueError:
+    except ValueError, e:
         return None
 
 
@@ -292,7 +178,7 @@ def computeHostName(hostName):
     hostPrefix = hostName[:pos+1]
     try:
         hostIndex = int(hostName[pos+1:]) 
-    except ValueError:
+    except ValueError, e:
         hostIndex = 0
     # TODO: Check the availablity of the (server) name
     return "%s%s" % (hostPrefix, hostIndex + 1)
@@ -304,7 +190,7 @@ def daemonize():
         if pid > 0:
             # exit first parent
             sys.exit(0) 
-    except OSError, e: 
+    except OSError, e:
         #sys.stderr.write("fork #1 failed: %d (%s)\n" % (e.errno, e.strerror))
         return False
 	
@@ -339,7 +225,7 @@ def getDownloadStatus(fileName):
     try:
         lines = [line for line in open(fileName)
                  if "saved" in line or "%" in line]
-    except IOError:
+    except IOError, e:
         return 0
     if not lines:
         return 0
@@ -406,8 +292,8 @@ def getCpuUsageAvg():
 def getLoadavg():
     try:
         loadavgstr = open('/proc/loadavg', 'r').readline().strip()
-    except IOError:
-        syslog.syslog(syslog.LOG_ERR, "failed to find cpu load")
+    except IOError, e:
+        syslog.syslog(syslog.LOG_ERR, "failed to find cpu load: %s" % str(e))
         return None
 
     data = map(float, loadavgstr.split()[1:])
@@ -439,101 +325,12 @@ def getInfinibandPortStatus():
     return portkeys
         
 
-def getServerCount():
-    try:
-        return int(open(Globals.SERVER_COUNT_FILE).read().strip())
-    except IOError:
-        log("failed to read file %s" % Globals.SERVER_COUNT_FILE)
-        return 1
-    except ValueError:
-        log("invalid number format in file %s" % Globals.SERVER_COUNT_FILE)
-        return 1
-
-
-def setServerCount(count):
-    try:
-        open(Globals.SERVER_COUNT_FILE, "w").write("%s\n" % count)
-        return True
-    except IOError:
-        log("failed to write file %s" % Globals.SERVER_COUNT_FILE)
-        return False
-
-
-def getInstalledServerCount():
-    try:
-        return int(open(Globals.INSTALLED_SERVER_COUNT_FILE).read().strip())
-    except IOError:
-        log("failed to read file %s" % Globals.INSTALLED_SERVER_COUNT_FILE)
-        return 1
-    except ValueError:
-        log("invalid number format in file %s" % Globals.INSTALLED_SERVER_COUNT_FILE)
-        return 1
-
-
-def setInstalledServerCount(count):
-    try:
-        open(Globals.INSTALLED_SERVER_COUNT_FILE, "w").write("%s\n" % count)
-        return True
-    except IOError:
-        log("failed to write file %s" % Globals.INSTALLED_SERVER_COUNT_FILE)
-        return False
-
-
-def getLastInstalledServerIpList():
-    ipList = {}
-    networkDom = Protocol.XDOM()
-    if not networkDom.parseFile(Globals.GLOBAL_NETWORK_FILE):
-        log("failed to parse file %s" % Globals.GLOBAL_NETWORK_FILE)
-    for tagE in networkDom.getElementsByTagRoute("server.interface"):
-        interfaceDom = Protocol.XDOM()
-        interfaceDom.setDomObj(tagE)
-        ipAddress = interfaceDom.getTextByTagRoute("ipaddr")
-        if ipAddress:
-            ipList[interfaceDom.getTextByTagRoute("device")] = ipAddress
-    return ipList
-
-
-def getFreeIpAddress(device=None):
-    serverCount = getServerCount()
-    installedServerCount = getInstalledServerCount()
-    if serverCount == installedServerCount:
-        return None
-
-    availableServerCount = serverCount - installedServerCount
-    ipList = getLastInstalledServerIpList()
-    
-    if not ipList:
-        return None
-
-    if device:
-        if device not in ipList.keys():
-            return None
-        deviceIpAddress = ipList[device]
-    else:
-        deviceIpAddress = ipList.values()[0]
-    ipNumber = IP2Number(deviceIpAddress)
-
-    for i in range((ipNumber + availableServerCount), ipNumber, -1):
-        ipAddress = Number2IP(i)
-        if runCommandFG(["ping", "-qnc", "1", ipAddress]) != 0:
-            return ipAddress
-    return None
-
-
 def getPasswordHash(userName):
     try:
         #return spwd.getspnam(userName).sp_pwd
         return "Not implimented"
-    except KeyError:
+    except KeyError, e:
         return None
-
-
-def getTransactionKey():
-    try:
-        tokens = open(Globals.TRANSACTION_KEY_FILE).read().split(',')
-    except IOError:
-        return None, None
-    return tokens
 
 
 def generateSignature():
@@ -541,68 +338,17 @@ def generateSignature():
     return ('--%f' % time.time())
 
 
-def getSignature():
-    try:
-        return open(Globals.SIGNATURE_FILE).read().strip()
-    except IOError:
-        log(syslog.LOG_ERR, "unable to read signaure from %s file" % Globals.SIGNATURE_FILE)
-        return False
-
-
-def storeSignature(signature, fileName=Globals.SIGNATURE_FILE):
-    try:
-        open(fileName, "w").write(signature + "\n")
-    except IOError:
-        log(syslog.LOG_ERR, "unable to write signature %s to %s file" % (signature, fileName))
-        return False
-    return True
-
-
 def isUserExist(userName):
     try:
         grp.getgrnam(userName).gr_gid
         return True
-    except KeyError:
+    except KeyError, e:
         pass
     try:
         pwd.getpwnam(userName).pw_uid
         return True
-    except KeyError:
+    except KeyError, e:
         pass
-    return False
-
-
-def getGsnUserInfo(fileName=Globals.GSN_USER_INFO_FILE):
-    userInfo = {}
-    userInfo["UserId"] = None
-    userInfo["Password"] = None
-    try:
-        for line in open(fileName):
-            line = line.strip()
-            k = line[:line.index("=")]
-            v = line[line.index("=") + 1:]
-            if v[0] == "'" or v[0] == '"':
-                v = v[1:]
-            if v[-1] == "'" or v[-1] == '"':
-                v = v[:-1]
-            if k.upper() == "GSN_ID":
-                userInfo["UserId"] = v
-            if k.upper() == "GSN_PASSWORD":
-                userInfo["Password"] = v
-    except IOError, e:
-        log("Failed to read file %s: %s" % (fileName, e))
-    return userInfo
-
-
-def setGsnUserInfo(userInfo, fileName=Globals.GSN_USER_INFO_FILE):
-    try:
-        fp = open(fileName, "w")
-        fp.write("GSN_ID=%s\n" % userInfo["UserId"])
-        fp.write("GSN_PASSWORD=%s\n" % userInfo["Password"])
-        fp.close()
-        return True
-    except IOError, e:
-        log("Failed to write file %s: %s" % (fileName, e))
     return False
 
 
@@ -625,7 +371,7 @@ def getPlatformVersion(fileName=Globals.GLUSTER_VERSION_FILE):
             if k.upper() == "UPDATE":
                 versionInfo["Update"] = v
     except IOError, e:
-        log("Failed to read file %s: %s" % (fileName, e))
+        log("Failed to read file %s: %s" % (fileName, str(e)))
     return versionInfo
 
 
@@ -649,40 +395,8 @@ def setPlatformVersion(versionInfo, fileName=Globals.GLUSTER_VERSION_FILE):
         fp.close()
         return True
     except IOError, e:
-        log("Failed to write file %s: %s" % (fileName, e))
+        log("Failed to write file %s: %s" % (fileName, str(e)))
     return False
-
-
-def getGlusterUpdateDom(serverVersion):
-    errorMessage = ""
-    updateInfoDom = None
-    try:
-        baseUrl = open(Globals.GLUSTER_UPDATE_SITE_FILE).read().strip()
-    except IOError, e:
-        log("Failed to read file %s: %s" % (Globals.GLUSTER_UPDATE_SITE_FILE, e))
-        errorMessage = "Failed to read update site file"
-        return updateInfoDom, errorMessage
-
-    try:
-        url = "%s/%s/%s" % (baseUrl, serverVersion, Globals.GLUSTER_UPDATES_FILE)
-        connection = urllib.urlopen(url)
-        if connection.getcode() != 200:
-            connection.close()
-            errorMessage = "Error received from server to open URL %s" % url
-            return updateInfoDom, errorMessage
-        updateInfoString = connection.read()
-        connection.close()
-    except IOError, e:
-        log("Failed to get update information from URL %s: %s" % (url, e))
-        errorMessage = "Error getting update information"
-        return updateInfoDom, errorMessage
-
-    updateInfoDom = Protocol.XDOM()
-    if not updateInfoDom.parseString(updateInfoString):
-        log("XML parse error on update information content [%s]" % updateInfoString)
-        errorMessage = "Parse error on update information"
-        updateInfoDom = None
-    return updateInfoDom, errorMessage
 
 
 def removeFile(fileName, root=False):
@@ -694,7 +408,7 @@ def removeFile(fileName, root=False):
         os.remove(fileName)
         return True
     except OSError, e:
-        log("Failed to remove file %s: %s" % (fileName, e))
+        log("Failed to remove file %s: %s" % (fileName, str(e)))
     return False
 
 
@@ -711,9 +425,9 @@ def getIPIndex(indexFile):
         line = fp.readline()
         fp.close()
         index = int(line)
-    except IOError:
+    except IOError, e:
         index = 0
-    except ValueError:
+    except ValueError, e:
         index = False
     return index
 
@@ -722,34 +436,34 @@ def setIPIndex(index, indexFile):
         fp = open(indexFile, "w")
         fp.write(str(index))
         fp.close()
-    except IOError:
+    except IOError, e:
         return False
     return True
 
 def IP2Number(ipString):
     try:
         return socket.htonl(struct.unpack("I", socket.inet_aton(ipString))[0])
-    except socket.error:
+    except socket.error, e:
         return None
-    except TypeError:
+    except TypeError, e:
         return None
-    except struct.error:
+    except struct.error, e:
         return None
 
 def Number2IP(number):
     try:
         return socket.inet_ntoa(struct.pack("I", socket.ntohl(number)))
-    except socket.error:
+    except socket.error, e:
         return None
-    except AttributeError:
+    except AttributeError, e:
         return None
-    except ValueError:
+    except ValueError, e:
         return None
 
 def hasEntryFoundInFile(searchString, dnsEntryFileName):
     try:
         addServerEntryList = open(dnsEntryFileName).read().split()
-    except IOError:
+    except IOError, e:
         return None
     if searchString in addServerEntryList:
         return True
@@ -765,8 +479,8 @@ def computeIpAddress(ipAddress, startIp, endIp):
     while True:  
         nextIpNumber = nextIpNumber + 1
         ipAddress = Number2IP(nextIpNumber)
-        rv = runCommandFG(["ping", "-qnc", "1", ipAddress])
-        if type(rv) == type(True):
+        rv = runCommand("ping -qnc 1 %s" % ipAddress, output=True)
+        if rv["Status"] != 0:
             return False
         if rv != 0:
             break
@@ -778,8 +492,8 @@ def computeIpAddress(ipAddress, startIp, endIp):
     while True:
         ipAddress = Number2IP(nextIpNumber)
         nextIpNumber = nextIpNumber + 1
-        rv = runCommandFG(["ping", "-qnc", "1", ipAddress])
-        if type(rv) == type(True):
+        rv = runCommand("ping -qnc 1 %s" % ipAddress, output=True)
+        if rv["Status"] != 0:
             return False
         if rv != 0:
             break
@@ -795,7 +509,7 @@ def setHostNameAndIp(hostName, ipAddress, lastAddServerDetailFile):
         fp.write("HOSTNAME=" + hostName + "\n")
         fp.write("IPADDRESS=" + ipAddress);
         fp.close()
-    except IOError:
+    except IOError, e:
         return False
     return True
 
@@ -805,9 +519,9 @@ def getPort():
         portString = fd.readline()
         fd.close()
         port = int(portString)
-    except IOError:
+    except IOError, e:
         port = Globals.DEFAULT_PORT - 2
-    except ValueError:
+    except ValueError, e:
         port = Globals.DEFAULT_PORT - 2
     return port
 
@@ -816,84 +530,10 @@ def setPort(port):
         fd = open(Globals.PORT_FILE, "w")
         fd.write(str(port))
         fd.close()
-    except IOError:
+    except IOError, e:
         return False
     return True
 
-def getServerAgentCredentials():
-    try:
-        lines = open(Globals.SERVERAGENT_AUTH_FILE).readlines()
-    except IOError:
-        return None,None
-
-    userName = None
-    password = None
-
-    for l in lines:
-        if l[-1] == '\n':
-            l = l[:-1]
-        k = l[:l.index('=')]
-        v = l[l.index('=') + 1:]
-        if v[0] == "'" or v[0] == '"':
-            v = v[1:]
-        if v[-1] == "'" or v[-1] == '"':
-            v = v[:-1]
-        if k.upper() == "AGENT_ID":
-            userName = v
-        if k.upper() == "AGENT_PASSWORD":
-            password = v
-
-    return userName, password
-
-def getGatewayAgentCredentials():
-    try:
-        lines = open(Globals.GATEWAYAGENT_AUTH_FILE).readlines()
-    except IOError:
-        return None
-
-    #userName = None
-    password = None
-
-    for l in lines:
-        if l[-1] == '\n':
-            l = l[:-1]
-        k = l[:l.index('=')]
-        v = l[l.index('=') + 1:]
-        if v[0] == "'" or v[0] == '"':
-            v = v[1:]
-        if v[-1] == "'" or v[-1] == '"':
-            v = v[:-1]
-        #if k.upper() == "AGENT_ID":
-        #    userName = v
-        if k.upper() == "AGENT_PASSWORD":
-            password = v
-
-    return password
-
-def getWebAgentCredentials():
-    try:
-        lines = open(Globals.WEBAGENT_AUTH_FILE).readlines()
-    except IOError:
-        return None,None
-
-    userName = None
-    password = None
-
-    for l in lines:
-        if l[-1] == '\n':
-            l = l[:-1]
-        k = l[:l.index('=')]
-        v = l[l.index('=') + 1:]
-        if v[0] == "'" or v[0] == '"':
-            v = v[1:]
-        if v[-1] == "'" or v[-1] == '"':
-            v = v[:-1]
-        if k.upper() == "AGENT_ID":
-            userName = v
-        if k.upper() == "AGENT_PASSWORD":
-            password = v
-
-    return userName, password
 
 def daemonize():
     try: 
@@ -931,37 +571,19 @@ def daemonize():
     os.dup2(se.fileno(), sys.stderr.fileno())
     return True
 
-def getFreeIpAddress():
-    startRange, endRange = getStoragePoolInfo()
-    if not (startRange and endRange):
-        return None
-
-    startIpNumber = IP2Number(startRange)
-    endIpNumber = IP2Number(endRange)
-
-    for ipNumber in range(endIpNumber, startIpNumber, -1):
-        rv = runCommandFG(["ping", "-qnc", "1", Number2IP(ipNumber)])
-        if type(rv) == type(True):
-            return None
-        if rv != 0:
-            return Number2IP(ipNumber)
-    return None
 
 def getDhcpServerStatus():
-    status = runCommandFG(["sudo", "service", "dnsmasq", " status"])
-    if type(status) == type(True) or 0 != status:
+    if runCommand("service dnsmasq status", root=True) != 0:
         return False
     return True
 
 def startDhcpServer():
-    status = runCommandFG(["sudo", "service", "dnsmasq", " start"])
-    if type(status) == type(True) or 0 != status:
+    if runCommand("service dnsmasq  start", root=True) != 0:
         return False
     return True
 
 def stopDhcpServer():
-    status = runCommandFG(["sudo", "service", "dnsmasq", " stop"])
-    if type(status) == type(True) or 0 != status:
+    if runCommand("service dnsmasq stop", root=True) != 0:
         return False
     return True
 
@@ -975,8 +597,8 @@ def getStoragePoolInfo():
                 startRange = tokens[1].strip()
             if tokens[0] == "ENDRANGE":
                 endRange = tokens[1].strip()
-    except IOError:
-        log(syslog.LOG_ERR, "unable to read %s file" % Globals.GLUSTER_SERVER_POOL_FILE)
+    except IOError, e:
+        log(syslog.LOG_ERR, "unable to read %s file: %s" % (Globals.GLUSTER_SERVER_POOL_FILE, str(e)))
     return startRange, endRange
 
 def configureDnsmasq(serverIpAddress, dhcpIpAddress):
@@ -988,12 +610,12 @@ def configureDnsmasq(serverIpAddress, dhcpIpAddress):
             if token[0] == "dhcp":
                 serverPortString = token[1]
                 break
-    except IOError:
-        log(syslog.LOG_ERR, "Failed to read /proc/cmdline.  Continuing with default port 68")
+    except IOError, e:
+        log(syslog.LOG_ERR, "Failed to read /proc/cmdline.  Continuing with default port 68: %s" % str(e))
     try:
         serverPort = int(serverPortString)
-    except ValueError:
-        log(syslog.LOG_ERR, "Invalid dhcp port '%s' in /proc/cmdline.  Continuing with default port 68" % serverPortString)
+    except ValueError, e:
+        log(syslog.LOG_ERR, "Invalid dhcp port '%s' in /proc/cmdline.  Continuing with default port 68: %s" % (serverPortString, str(e)))
         serverPort = 68
 
     try:
@@ -1010,11 +632,10 @@ def configureDnsmasq(serverIpAddress, dhcpIpAddress):
         fp.write("server=%s\n" % serverIpAddress)
         fp.write("dhcp-script=/usr/sbin/server-info\n")
         fp.close()
-    except IOError:
-        log(syslog.LOG_ERR, "unable to write dnsmasq configuration %s" % dnsmasqConfFile)
+    except IOError, e:
+        log(syslog.LOG_ERR, "unable to write dnsmasq configuration %s: %s" % (dnsmasqConfFile, str(e)))
         return False
-    status = runCommandFG(["sudo", "cp", "-f", Globals.GLUSTER_CONF_CONF_DIR + "/dnsmasq.conf", Globals.DNSMASQ_CONF_FILE])
-    if type(status) == type(True) or 0 != status:
+    if runCommand(["cp", "-f", Globals.GLUSTER_CONF_CONF_DIR + "/dnsmasq.conf", Globals.DNSMASQ_CONF_FILE], root=True) != 0:
         log(syslog.LOG_ERR, "unable to copy dnsmasq configuration to " + Globals.DNSMASQ_CONF_FILE)
         return False
     return True
@@ -1084,3 +705,20 @@ def getCifsUserUid(userName):
         if tokens[1] == userName:
             return int(tokens[0])
     return None
+
+def readFile(fileName, lines=False):
+    content = None
+    try:
+        fp = open(fileName)
+        if lines:
+            content = fp.readlines()
+        else:
+            content = fp.read()
+        fp.close()
+        return content
+    except IOError, e:
+        log("failed to read file %s: %s" % (fileName, str(e)))
+    if lines:
+        return []
+    else:
+        return ""

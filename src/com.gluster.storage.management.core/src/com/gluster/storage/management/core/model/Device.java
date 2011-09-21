@@ -18,8 +18,6 @@
  *******************************************************************************/
 package com.gluster.storage.management.core.model;
 
-import java.io.File;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 

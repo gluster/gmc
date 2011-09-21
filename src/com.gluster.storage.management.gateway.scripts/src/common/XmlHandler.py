@@ -182,7 +182,7 @@ class XDOM:
             self._domObj.writexml(fp, indent, addindent, newl)
             fp.close()
             return True
-        except IOError:
+        except IOError, e:
             return False
 
     def toString(self, indent="  ", newl="\n", encoding = None):
@@ -218,9 +218,9 @@ class RequestXml(XDOM):
                 self._domObj = MDOM.parse(requestString)
             elif XML_STRING == type:
                 self._domObj = MDOM.parseString(requestString)
-        except IOError:
+        except IOError, e:
             XDOM.__init__(self)
-        except xml.parsers.expat.ExpatError:
+        except xml.parsers.expat.ExpatError, e:
             XDOM.__init__(self)
 
 ##--end of RequestXML

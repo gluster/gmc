@@ -46,7 +46,6 @@ import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.StringUtil;
-import com.gluster.storage.management.gateway.resources.v1_0.TasksResource;
 
 @Component
 public class GlusterUtil {

@@ -29,7 +29,6 @@ import com.gluster.storage.management.console.IImageKeys;
 import com.gluster.storage.management.console.utils.GUIHelper;
 import com.gluster.storage.management.console.utils.GlusterLogger;
 import com.gluster.storage.management.core.constants.CoreConstants;
-import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;

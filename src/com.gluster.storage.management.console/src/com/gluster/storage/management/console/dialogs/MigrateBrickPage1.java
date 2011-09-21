@@ -49,7 +49,6 @@ import com.gluster.storage.management.console.TableLabelProviderAdapter;
 import com.gluster.storage.management.console.utils.GUIHelper;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Device;
-import com.gluster.storage.management.core.model.Entity;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.utils.NumberUtil;
 
