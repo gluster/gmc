@@ -946,14 +946,13 @@ public class VolumeService {
 			throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 		}
 		
-		String command = "gluster volume set help-xml";
 		try {
-			return serverUtil.executeOnServer(onlineServer.getName(), command, VolumeOptionInfoListResponse.class);
+			return glusterUtil.getVolumeOptionsInfo(onlineServer.getName());
 		} catch (Exception e) {
 			// check if online server has gone offline. If yes, try again one more time.
 			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
 				onlineServer = clusterService.getNewOnlineServer(clusterName);
-				return serverUtil.executeOnServer(onlineServer.getName(), command, VolumeOptionInfoListResponse.class);
+				return glusterUtil.getVolumeOptionsInfo(onlineServer.getName());
 			} else {
 				throw new GlusterRuntimeException("Fetching volume options info failed! [" + e.getMessage() + "]");
 			}

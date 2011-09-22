@@ -44,6 +44,7 @@ import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
+import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 import com.gluster.storage.management.core.utils.StringUtil;
 
 @Component
@@ -155,22 +156,6 @@ public class GlusterUtil {
 
 		}
 		return glusterServers;
-	}
-
-	public List<String> getGlusterServerNames(String knownServer) {
-		String output = getPeerStatus(knownServer);
-		if (output == null) {
-			return null;
-		}
-
-		List<String> glusterServerNames = new ArrayList<String>();
-		for (String line : output.split(CoreConstants.NEWLINE)) {
-			String hostName = extractToken(line, HOSTNAME_PFX);
-			if (hostName != null) {
-				glusterServerNames.add(hostName);
-			}
-		}
-		return glusterServerNames;
 	}
 
 	/**
@@ -571,12 +556,7 @@ public class GlusterUtil {
 		return serverUtil.executeOnServer(onlineServerName, command, String.class).trim();
 	}
 
-	public static void main(String args[]) {
-		// List<String> names = new GlusterUtil().getGlusterServerNames();
-		// System.out.println(names);
-		List<String> disks = new ArrayList<String>();
-		disks.add("server1:sda");
-		disks.add("server1:sdb");
-		new GlusterUtil().addBricks("Volume3", disks, "localhost");
+	public VolumeOptionInfoListResponse getVolumeOptionsInfo(String serverName) {
+		return serverUtil.executeOnServer(serverName, "gluster volume set help-xml", VolumeOptionInfoListResponse.class);
 	}
 }
