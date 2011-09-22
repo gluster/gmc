@@ -106,12 +106,11 @@ public class MigrateBrickTask extends Task {
 
 	private void startMigration(String onlineServerName) {
 		String volumeName = getTaskInfo().getReference().split("#")[0];
-		ProcessResult processResult = glusterUtil.executeBrickMigration(onlineServerName, volumeName,
+		String output = glusterUtil.executeBrickMigration(onlineServerName, volumeName,
 				getFromBrick(), getToBrick(), "start");
-		if (processResult.getOutput().trim().matches(".*started successfully$")) {
+		if (output.matches(".*started successfully$")) {
 			getTaskInfo().setStatus(
-					new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, processResult.getOutput().trim())));
-			return;
+					new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, output)));
 		}
 	}
 
@@ -132,12 +131,12 @@ public class MigrateBrickTask extends Task {
 
 	private void pauseMigration(String onlineServer) {
 		String volumeName = getTaskInfo().getReference().split("#")[0];
-		ProcessResult processResult = glusterUtil.executeBrickMigration(onlineServer, volumeName,
+		String output = glusterUtil.executeBrickMigration(onlineServer, volumeName,
 				getFromBrick(), getToBrick(), "pause");
 		TaskStatus taskStatus = new TaskStatus();
-		if (processResult.getOutput().trim().matches(".*paused successfully$")) { 
+		if (output.matches(".*paused successfully$")) { 
 			taskStatus.setCode(Status.STATUS_CODE_PAUSE);
-			taskStatus.setMessage(processResult.getOutput());
+			taskStatus.setMessage(output);
 			getTaskInfo().setStatus(taskStatus);
 			return;
 		}
@@ -165,15 +164,13 @@ public class MigrateBrickTask extends Task {
 	
 	private void commitMigration(String serverName) {
 		String volumeName = getTaskInfo().getReference().split("#")[0];
-		ProcessResult processResult = glusterUtil.executeBrickMigration(serverName, volumeName,
-				getFromBrick(), getToBrick(), "commit");
+		String output = glusterUtil.executeBrickMigration(serverName, volumeName, getFromBrick(), getToBrick(),
+				"commit");
 		TaskStatus taskStatus = new TaskStatus();
-		if (processResult.isSuccess()) {
-			if (processResult.getOutput().trim().matches(".*commit successful$")) {
-				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
-				taskStatus.setMessage(processResult.getOutput()); 
-				getTaskInfo().setStatus(taskStatus);
-			}
+		if (output.matches(".*commit successful$")) {
+			taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
+			taskStatus.setMessage(output);
+			getTaskInfo().setStatus(taskStatus);
 		}
 	}
 
@@ -194,12 +191,12 @@ public class MigrateBrickTask extends Task {
 
 	private void stopMigration(String serverName) {
 		String volumeName = getTaskInfo().getReference().split("#")[0];
-		ProcessResult processResult = glusterUtil.executeBrickMigration(serverName, volumeName, getFromBrick(),
+		String output = glusterUtil.executeBrickMigration(serverName, volumeName, getFromBrick(),
 				getToBrick(), "abort");
 		TaskStatus taskStatus = new TaskStatus();
-		if (processResult.getOutput().trim().matches(".*aborted successfully$")) {
+		if (output.matches(".*aborted successfully$")) {
 			taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
-			taskStatus.setMessage(processResult.getOutput());
+			taskStatus.setMessage(output);
 			getTaskInfo().setStatus(taskStatus);
 		}
 	}
@@ -225,34 +222,29 @@ public class MigrateBrickTask extends Task {
 		}
 
 		TaskStatus taskStatus = new TaskStatus();
-		try {
-			String volumeName = getTaskInfo().getReference().split("#")[0];
-			ProcessResult processResult = glusterUtil.executeBrickMigration(serverName, volumeName,
-					getFromBrick(), getToBrick(), "status");
-			String output = processResult.getOutput().trim();
-			if (output.matches("^Number of files migrated.*Migration complete$")
-					|| output.matches("^Number of files migrated = 0 .*Current file=")) {
-				// Note: Workaround - if no file in the volume brick to migrate,
-				// Gluster CLI is not giving proper (complete) status
-				taskStatus.setCode(Status.STATUS_CODE_COMMIT_PENDING);
-				if (autoCommit) {
-					commitMigration(serverName);
-					return getTaskInfo().getStatus(); // return the committed status
-				} else {
-					taskStatus.setMessage(output.replaceAll("Migration complete", "Commit pending"));
-				}
-			} else if (output.matches("^Number of files migrated.*Current file=.*")) {
-				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
-			} else if (output.matches("^replace brick has been paused.*")) {
-				taskStatus.setCode(Status.STATUS_CODE_PAUSE);
+		String volumeName = getTaskInfo().getReference().split("#")[0];
+		String output = glusterUtil.executeBrickMigration(serverName, volumeName, getFromBrick(),
+				getToBrick(), "status");
+
+		if (output.matches("^Number of files migrated.*Migration complete$")
+				|| output.matches("^Number of files migrated = 0 .*Current file=")) {
+			// Note: Workaround - if no file in the volume brick to migrate,
+			// Gluster CLI is not giving proper (complete) status
+			taskStatus.setCode(Status.STATUS_CODE_COMMIT_PENDING);
+			if (autoCommit) {
+				commitMigration(serverName);
+				return getTaskInfo().getStatus(); // return the committed status
 			} else {
-				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+				taskStatus.setMessage(output.replaceAll("Migration complete", "Commit pending"));
 			}
-			taskStatus.setMessage(output);
-		} catch (Exception e) {
+		} else if (output.matches("^Number of files migrated.*Current file=.*")) {
+			taskStatus.setCode(Status.STATUS_CODE_RUNNING);
+		} else if (output.matches("^replace brick has been paused.*")) {
+			taskStatus.setCode(Status.STATUS_CODE_PAUSE);
+		} else {
 			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
-			taskStatus.setMessage(e.getMessage());
 		}
+		taskStatus.setMessage(output);
 		taskInfo.setStatus(taskStatus); // Update the task status
 		return taskStatus;
 	}

@@ -154,8 +154,8 @@ public abstract class AbstractStatsFactory implements StatsFactory {
 				argsStr += " " + arg;
 			}
 		}
-		return serverUtil.executeScriptOnServer(true, serverName, getStatsScriptName() + argsStr + " "
-				+ period, ServerStats.class);
+		return serverUtil.executeScriptOnServer(serverName, getStatsScriptName() + argsStr + " " + period,
+				ServerStats.class);
 	}
 
 	public abstract String getStatsScriptName();

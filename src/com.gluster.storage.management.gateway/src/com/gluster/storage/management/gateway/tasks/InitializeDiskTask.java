@@ -119,8 +119,8 @@ public class InitializeDiskTask extends Task {
 	private void startInitializeDisk(String serverName) {
 		String fsTypeCommand = (getFsType().equals(GlusterConstants.FSTYPE_DEFAULT)) ? "" : " -t " + getFsType();
 		
-		String output = serverUtil.executeScriptOnServer(true, serverName, INITIALIZE_DISK_SCRIPT
-				+ fsTypeCommand + " " + getDiskName(), String.class);
+		String output = serverUtil.executeScriptOnServer(serverName, INITIALIZE_DISK_SCRIPT + fsTypeCommand + " "
+				+ getDiskName());
 		TaskStatus taskStatus = new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, output));
 		taskStatus.setPercentageSupported((getFsType().equals(GlusterConstants.FSTYPE_XFS)) ? false : true);
 		getTaskInfo().setStatus(taskStatus);
