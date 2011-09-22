@@ -79,15 +79,7 @@ def main():
         Utils.runCommand("rm -fr %s/*" % Globals.CIFS_EXPORT_DIR, root=True, shell=True)
         sys.exit(0)
 
-    try:
-        fp = open(Globals.VOLUME_SMBCONF_FILE)
-        lines = fp.readlines()
-        fp.close()
-    except IOError, e:
-        Utils.log("Failed to samba volume configuration file %s: %s" % (Globals.VOLUME_SMBCONF_FILE, str(e)))
-        sys.stderr.write("Failed to samba volume configuration file %s: %s\n" % (Globals.VOLUME_SMBCONF_FILE, str(e)))
-        sys.exit(1)
-
+    lines = Utils.readFile(Globals.VOLUME_SMBCONF_FILE)
     volumeSmbConfList = [line.strip() for line in lines]
     for volumeName in volumeInfo.keys():
         if not "include = %s/%s.smbconf" % (Globals.VOLUME_CONF_DIR, volumeName) in volumeSmbConfList:
