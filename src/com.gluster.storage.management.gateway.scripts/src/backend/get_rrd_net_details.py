@@ -15,7 +15,7 @@ import Utils
 
 def main():
     if len(sys.argv) != 3:
-        sys.stderr.write("usage: %s <DEVICE> <PERIOD>\n" % os.path.basename(sys.argv[0]))
+        sys.stderr.write("usage: %s DEVICE DURATION\n" % os.path.basename(sys.argv[0]))
         sys.exit(-1)
 
     device = sys.argv[1]
