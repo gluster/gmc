@@ -16,9 +16,8 @@ import re
 import Utils
 import Protocol
 import DiskUtils
-from NetworkUtils import *
-from Disk import *
-from XmlHandler import ResponseXml
+import NetworkUtils
+rom XmlHandler import ResponseXml
 from optparse import OptionParser
 
 
@@ -169,7 +168,7 @@ def getServerDetails(listall):
     serverName = socket.getfqdn()
     meminfo = Utils.getMeminfo()
     cpu = Utils.getCpuUsageAvg()
-    nameServerList, domain, searchDomain = readResolvConfFile()
+    nameServerList, domain, searchDomain = NetworkUtils.readResolvConfFile()
     if not domain:
         domain = [None]
 
@@ -183,8 +182,8 @@ def getServerDetails(listall):
         serverTag.appendChild(responseDom.createTag("status", "OFFLINE"))
     serverTag.appendChild(responseDom.createTag("glusterFsVersion", Utils.getGlusterVersion()))
     serverTag.appendChild(responseDom.createTag("cpuUsage", str(cpu)))
-    serverTag.appendChild(responseDom.createTag("totalMemory", str(convertKbToMb(meminfo['MemTotal']))))
-    serverTag.appendChild(responseDom.createTag("memoryInUse", str(convertKbToMb(meminfo['MemUsed']))))
+    serverTag.appendChild(responseDom.createTag("totalMemory", str(Utils.convertKbToMb(meminfo['MemTotal']))))
+    serverTag.appendChild(responseDom.createTag("memoryInUse", str(Utils.convertKbToMb(meminfo['MemUsed']))))
     serverTag.appendChild(responseDom.createTag("uuid", None))
 
     for dns in nameServerList:
@@ -193,7 +192,7 @@ def getServerDetails(listall):
     #TODO: probe and retrieve timezone, ntp-server details and update the tags
 
     interfaces = responseDom.createTag("networkInterfaces", None)
-    for deviceName, values in getNetDeviceList().iteritems():
+    for deviceName, values in NetworkUtils.getNetDeviceList().iteritems():
         if values["type"].upper() in ['LOCAL', 'IPV6-IN-IPV4']:
             continue
         interfaceTag = responseDom.createTag("networkInterface", None)
