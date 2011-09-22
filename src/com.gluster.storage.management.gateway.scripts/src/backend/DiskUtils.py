@@ -188,32 +188,10 @@ def getDiskList(diskDeviceList=None):
     return diskInfo["disks"]
 
 
-def checkDiskMountPoint(diskMountPoint):
-    try:
-        fstabEntries = open(Globals.FSTAB_FILE).readlines()
-    except IOError, e:
-        fstabEntries = []
-        Utils.log("failed to read file %s: %s" % (Globals.FSTAB_FILE, str(e)))
-    found = False
-    for entry in fstabEntries:
-        entry = entry.strip()
-        if not entry:
-            continue
-        entries = entry.split()
-        if entries and len(entries) > 1 and entries[0].startswith("UUID=") and entries[1].upper() == diskMountPoint.upper():
-            return True
-    return False
-
-
 def getMountPointByUuid(partitionUuid):
-    # check uuid in etc/fstab
-    try:
-        fstabEntries = open(Globals.FSTAB_FILE).readlines()
-    except IOError, e:
-        fstabEntries = []
-        Utils.log("failed to read file %s: %s" % (Globals.FSTAB_FILE, str(e)))
+    lines = Utils.readFile(Globals.FSTAB_FILE, lines=True)
     found = False
-    for entry in fstabEntries:
+    for entry in lines:
         entry = entry.strip()
         if not entry:
             continue
