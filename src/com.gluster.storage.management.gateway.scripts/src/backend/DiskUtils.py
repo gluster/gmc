@@ -12,16 +12,9 @@ if not p1 in sys.path:
 if not p2 in sys.path:
     sys.path.append(p2)
 import glob
-from copy import deepcopy
-import dbus
 import Globals
-import time
 import Utils
-import Protocol
 import FsTabUtils
-
-ONE_MB_SIZE = 1048576
-
 
 def _stripDev(device):
     if Utils.isString(device) and device.startswith("/dev/"):
@@ -69,11 +62,6 @@ def getUuidByDiskPartition(device):
     return None
 
 
-def getDiskPartitionUuid(partition):
-    Utils.log("WARNING: getDiskPartitionUuid() is deprecated by getUuidByDiskPartition()")
-    return getUuidByDiskPartition(partition)
-
-
 def getDiskPartitionByLabel(label):
     ## TODO: Finding needs to be enhanced
     labelFile = "/dev/disk/by-label/%s" % label
@@ -83,35 +71,12 @@ def getDiskPartitionByLabel(label):
     return None
 
 
-def getDeviceByLabel(label):
-    Utils.log("WARNING: getDeviceByLabel() is deprecated by getDiskPartitionByLabel()")
-    return getDiskPartitionByLabel(label)
-
-
 def getDiskPartitionLabel(device):
     rv = Utils.runCommand("e2label %s" % device, output=True, root=True)
     if rv["Status"] == 0:
         return rv["Stdout"].strip()
     return False
 
-
-def getRootPartition(fsTabFile=Globals.FSTAB_FILE):
-    fsTabEntryList = FsTabUtils.readFsTab(fsTabFile)
-    for fsTabEntry in fsTabEntryList:
-        if fsTabEntry["MountPoint"] == "/":
-            if fsTabEntry["Device"].startswith("UUID="):
-                return getDiskPartitionByUuid(fsTabEntry["Device"].split("UUID=")[-1])
-            if fsTabEntry["Device"].startswith("LABEL="):
-                partitionName = getDiskPartitionByLabel(fsTabEntry["Device"].split("LABEL=")[-1])
-                if partitionName:
-                    return partitionName
-            return getDeviceName(fsTabEntry["Device"])
-    return None
-
-
-def getOsDisk():
-    Utils.log("WARNING: getOsDisk() is deprecated by getRootPartition()")
-    return getRootPartition()
 
 def getDiskInfo(diskNameList=None):
     procPartitionsDict = getProcPartitions()
@@ -184,86 +149,6 @@ def getDiskInfo(diskNameList=None):
     return outputDict
 
 
-def getDiskList(diskDeviceList=None):
-    return diskInfo["disks"]
-
-
-def getMountPointByUuid(partitionUuid):
-    lines = Utils.readFile(Globals.FSTAB_FILE, lines=True)
-    found = False
-    for entry in lines:
-        entry = entry.strip()
-        if not entry:
-            continue
-        if entry.split()[0] == "UUID=" + partitionUuid:
-            return entry.split()[1]
-    return None
-
-def getDeviceUsedSpace(device):
-    rv = Utils.runCommand("df -kl %s" % (device), output=True, root=True)
-    if rv["Status"] == 0:
-        try:
-            return long(rv["Stdout"].split("\n")[1].split()[2]) / 1024
-        except IndexError, e:
-            pass
-        except ValueError, e:
-            pass
-
-def getDiskSizeInfo(partition):
-    # get values from df output
-    total = None
-    used = None
-    free = None
-    command = "df -kl -t ext3 -t ext4 -t xfs"
-    rv = Utils.runCommand(command, output=True, root=True)
-    message = Utils.stripEmptyLines(rv["Stdout"])
-    if rv["Status"] != 0:
-        Utils.log("failed to get disk partition details")
-        return None, None, None
-    for line in rv["Stdout"].split("\n"):
-        tokens = line.split()
-        if len(tokens) < 4:
-            continue
-        if tokens[0] == partition:
-            total = int(tokens[1]) / 1024.0
-            used  = int(tokens[2]) / 1024.0
-            free  = int(tokens[3]) / 1024.0
-            break
-
-    if total:
-        return total, used, free
-    
-    # get total size from parted output
-    for i in range(len(partition), 0, -1):
-        pos = i - 1
-        if not partition[pos].isdigit():
-            break
-    disk = partition[:pos+1]
-    partitionNumber = partition[pos+1:]
-    if not partitionNumber.isdigit():
-        return None, None, None
-    
-    number = int(partitionNumber)
-    command = "parted -ms %s unit kb print" % disk
-    rv = Utils.runCommand(command, output=True, root=True)
-    if rv["Status"] != 0:
-        Utils.log("failed to get disk partition details")
-        return None, None, None
-    
-    lines = rv["Stdout"].split(";\n")
-    if len(lines) < 3:
-        return None,None,None
-    
-    for line in lines[2:]:
-        tokens = line.split(':')
-        if len(tokens) < 4:
-            continue
-        if tokens[0] == str(number):
-            total = int(tokens[3].split('kB')[0]) / 1024.0
-            break
-    return total, used, free
-
-
 def isDataDiskPartitionFormatted(device):
     rv = Utils.runCommand("blkid -c /dev/null -o value %s" % device, output=True, root=True)
     if rv["Status"] != 0:
@@ -282,11 +167,6 @@ def isDataDiskPartitionFormatted(device):
 def isDiskInFormatting(device):
     DEVICE_FORMAT_LOCK_FILE = "/var/lock/%s.lock" % device
     return os.path.exists(DEVICE_FORMAT_LOCK_FILE)
-
-
-def isDiskInFormat(device):
-    Utils.log("WARNING: isDiskInFormat() is deprecated by isDataDiskPartitionFormatted()")
-    return isDataDiskPartitionFormatted(device)
 
 
 def getDeviceMountPoint(device):
