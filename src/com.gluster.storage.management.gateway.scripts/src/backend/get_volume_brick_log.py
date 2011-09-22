@@ -13,6 +13,7 @@ if not p1 in sys.path:
 if not p2 in sys.path:
     sys.path.append(p2)
 from XmlHandler import XDOM
+import Utils
 
 def enumLogType(logCode):
     if "M" == logCode.upper():
