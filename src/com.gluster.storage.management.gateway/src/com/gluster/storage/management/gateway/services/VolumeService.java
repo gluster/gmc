@@ -477,7 +477,7 @@ public class VolumeService {
 		}
 
 		String gzipPath = FileUtil.getTempDirName() + CoreConstants.FILE_SEPARATOR + volume.getName() + "-logs.tar.gz";
-		new ProcessUtil().executeCommand("tar", "czvf", gzipPath, "-C", tempDir.getParent(), tempDir.getName());
+		ProcessUtil.executeCommand("tar", "czvf", gzipPath, "-C", tempDir.getParent(), tempDir.getName());
 
 		// delete the temp directory
 		FileUtil.recursiveDelete(tempDir);
@@ -589,7 +589,7 @@ public class VolumeService {
 		String logFilePath = logDir + CoreConstants.FILE_SEPARATOR + logFileName;
 
 		// Usage: get_volume_disk_log.py <volumeName> <diskName> <lineCount>
-		LogMessageListResponse response = serverUtil.executeScriptOnServer(true, brick.getServerName(),
+		LogMessageListResponse response = serverUtil.executeScriptOnServer(brick.getServerName(),
 				VOLUME_BRICK_LOG_SCRIPT + " " + logFilePath + " " + lineCount, LogMessageListResponse.class);
 
 		// populate disk and trim other fields
@@ -782,8 +782,8 @@ public class VolumeService {
 			String brickDirectory = brickInfo[1];
 
 			try {
-				serverUtil.executeScriptOnServer(true, serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
-						+ brickDirectory + " " + (deleteFlag ? "-d" : ""), String.class);
+				serverUtil.executeScriptOnServer(serverName, VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
+						+ brickDirectory + " " + (deleteFlag ? "-d" : ""));
 			} catch(Exception e) {
 				logger.error("Error while cleaning brick [" + serverName + ":" + brickDirectory + "] of volume ["
 						+ volumeName + "] : " + e.getMessage(), e);
@@ -842,9 +842,8 @@ public class VolumeService {
 			String brickDirectory = brick.getBrickDirectory();
 			// String mountPoint = brickDirectory.substring(0, brickDirectory.lastIndexOf("/"));
 
-			serverUtil.executeScriptOnServer(true, brick.getServerName(),
-					VOLUME_DIRECTORY_CLEANUP_SCRIPT + " " + brickDirectory + " " + (deleteFlag ? "-d" : ""),
-					String.class);
+			serverUtil.executeScriptOnServer(brick.getServerName(), VOLUME_DIRECTORY_CLEANUP_SCRIPT + " "
+					+ brickDirectory + " " + (deleteFlag ? "-d" : ""));
 		}
 	}
 	
@@ -949,12 +948,12 @@ public class VolumeService {
 		
 		String command = "gluster volume set help-xml";
 		try {
-			return serverUtil.executeOnServer(true, onlineServer.getName(), command, VolumeOptionInfoListResponse.class);
+			return serverUtil.executeOnServer(onlineServer.getName(), command, VolumeOptionInfoListResponse.class);
 		} catch (Exception e) {
 			// check if online server has gone offline. If yes, try again one more time.
 			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
 				onlineServer = clusterService.getNewOnlineServer(clusterName);
-				return serverUtil.executeOnServer(true, onlineServer.getName(), command, VolumeOptionInfoListResponse.class);
+				return serverUtil.executeOnServer(onlineServer.getName(), command, VolumeOptionInfoListResponse.class);
 			} else {
 				throw new GlusterRuntimeException("Fetching volume options info failed! [" + e.getMessage() + "]");
 			}

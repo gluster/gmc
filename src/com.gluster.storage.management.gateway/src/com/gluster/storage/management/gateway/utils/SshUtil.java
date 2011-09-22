@@ -54,7 +54,6 @@ public class SshUtil {
 	private static final String SSH_AUTHORIZED_KEYS_PATH_REMOTE = SSH_AUTHORIZED_KEYS_DIR_REMOTE + SSH_AUTHORIZED_KEYS_FILE;
 	public static final File PRIVATE_KEY_FILE = new File(SSH_AUTHORIZED_KEYS_DIR_LOCAL + "gluster.pem");
 	public static final File PUBLIC_KEY_FILE = new File(SSH_AUTHORIZED_KEYS_DIR_LOCAL + "gluster.pub");
-//	private static final String SCRIPT_DISABLE_SSH_PASSWORD_AUTH = "disable-ssh-password-auth.sh";
 	private LRUCache<String, Connection> sshConnCache = new LRUCache<String, Connection>(10);
 
 	// TODO: Make user name configurable
@@ -76,15 +75,23 @@ public class SshUtil {
 			getConnectionWithPassword(serverName).close();
 			return true;
 		} catch(Exception e) {
+			logger.warn("Couldn't connect to [" + serverName + "] with default password!", e);
 			return false;
 		}
 	}
 	
+	/**
+	 * Checks if public key of management gateway is configured on given server
+	 * 
+	 * @param serverName
+	 * @return true if public key is configured, else false
+	 */
 	public boolean isPublicKeyInstalled(String serverName) {
 		try {
 			getConnectionWithPubKey(serverName).close();
 			return true;
 		} catch(ConnectionException e) {
+			logger.warn("Couldn't connect to [" + serverName + "] with public key!", e);
 			return false;
 		}
 	}
@@ -422,21 +429,6 @@ public class SshUtil {
 	public ProcessResult executeRemote(String serverName, String command) {
 		logger.info("Executing command [" + command + "] on server [" + serverName + "]"); 
 		return executeCommand(getConnection(serverName), command);
-	}
-
-	/**
-	 * Checks if public key of management gateway is configured on given server
-	 * 
-	 * @param serverName
-	 * @return true if public key is configured, else false
-	 */
-	public boolean isPublicKeySetup(String serverName) {
-		try {
-			getConnectionWithPubKey(serverName);
-			return true;
-		} catch (Exception e) {
-			return false;
-		}
 	}
 
 	public void cleanup() {

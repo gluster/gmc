@@ -20,12 +20,12 @@
  */
 package com.gluster.storage.management.gateway.utils;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,13 +44,10 @@ import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
-import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.StringUtil;
 
 @Component
 public class GlusterUtil {
-	private static final String glusterFSminVersion = "3.1";
-
 	private static final String HOSTNAME_PFX = "Hostname:";
 	private static final String UUID_PFX = "Uuid:";
 	private static final String STATE_PFX = "State:";
@@ -75,19 +72,10 @@ public class GlusterUtil {
 	private static final String INITIALIZE_DISK_STATUS_SCRIPT = "get_format_device_status.py";
 	private static final String BRICK_STATUS_SCRIPT = "get_brick_status.py";
 
-	@Autowired
-	private SshUtil sshUtil;
+	private static final Logger logger = Logger.getLogger(GlusterUtil.class);
 	
 	@Autowired
 	private ServerUtil serverUtil;
-
-	public void setSshUtil(SshUtil sshUtil) {
-		this.sshUtil = sshUtil;
-	}
-
-	public SshUtil getSshUtil() {
-		return sshUtil;
-	}
 
 	/**
 	 * Extract value of given token from given line. It is assumed that the token, if present, will be of the following
@@ -117,12 +105,7 @@ public class GlusterUtil {
 	}
 	
 	private String getUuid(String serverName) {
-		ProcessResult result = getSshUtil().executeRemote(serverName, "cat " + GLUSTERD_INFO_FILE);
-		if (!result.isSuccess()) {
-			throw new GlusterRuntimeException("Couldn't read file [" + GLUSTERD_INFO_FILE + "]. Error: "
-					+ result.toString());
-		}
-		return result.getOutput().split("=")[1];
+		return serverUtil.executeOnServer(serverName, "cat " + GLUSTERD_INFO_FILE, String.class).split("=")[1];
 	}
 
 	public List<GlusterServer> getGlusterServers(GlusterServer knownServer) {
@@ -196,49 +179,25 @@ public class GlusterUtil {
 	 * @return Outout of the "gluster peer status" command
 	 */
 	private String getPeerStatus(String knownServer) {
-		ProcessResult result = getSshUtil().executeRemote(knownServer, "gluster peer status");
-		if (!result.isSuccess()) {
-			throw new GlusterRuntimeException("Couldn't get peer status on server [" + knownServer + "]. Error: "
-					+ result);
-		}
-		return result.getOutput();
+		return serverUtil.executeOnServer(knownServer, "gluster peer status", String.class);
 	}
 
 	public void addServer(String existingServer, String newServer) {
-		ProcessResult result = sshUtil.executeRemote(existingServer, "gluster peer probe " + newServer);
-		if(!result.isSuccess()) {
-			throw new GlusterRuntimeException("Couldn't probe server [" + newServer + "] from [" + existingServer
-					+ "]. Error: " + result);
-		}
-		
+		serverUtil.executeOnServer(existingServer, "gluster peer probe " + newServer);
 		// reverse peer probe to ensure that host names appear in peer status on both sides
-		result = sshUtil.executeRemote(newServer, "gluster peer probe " + existingServer);
-		if(!result.isSuccess()) {
-			throw new GlusterRuntimeException("Couldn't _reverse_ probe server [" + existingServer + "] from ["
-					+ newServer + "]. Error: " + result);
-		}
+		serverUtil.executeOnServer(newServer, "gluster peer probe " + existingServer);
 	}
 
 	public void startVolume(String volumeName, String knownServer) {
-		ProcessResult result = sshUtil.executeRemote(knownServer, "gluster volume start " + volumeName);
-		if(!result.isSuccess()) {
-			throw new GlusterRuntimeException("Couldn't start volume [" + volumeName + "]! Error: " + result.toString());
-		}
+		serverUtil.executeOnServer(knownServer, "gluster volume start " + volumeName);
 	}
 
 	public void stopVolume(String volumeName, String knownServer) {
-		ProcessResult result = sshUtil.executeRemote(knownServer, "gluster --mode=script volume stop " + volumeName);
-		if(!result.isSuccess()) {
-			throw new GlusterRuntimeException("Couldn't stop volume [" + volumeName + "]! Error: " + result.toString());
-		}
+		serverUtil.executeOnServer(knownServer, "gluster --mode=script volume stop " + volumeName);
 	}
 
 	public void resetOptions(String volumeName, String knownServer) {
-		ProcessResult result = sshUtil.executeRemote(knownServer, "gluster volume reset " + volumeName);
-		if(!result.isSuccess()) {
-			throw new GlusterRuntimeException("Couldn't reset options for volume [" + volumeName + "]! Error: "
-					+ result);
-		}
+		serverUtil.executeOnServer(knownServer, "gluster volume reset " + volumeName);
 	}
 
 	public void createVolume(String knownServer, String volumeName, String volumeTypeStr, String transportTypeStr,
@@ -259,10 +218,7 @@ public class GlusterUtil {
 		String command = prepareVolumeCreateCommand(volumeName, StringUtil.extractList(bricks, ","), count,
 				volTypeArg, transportTypeArg);
 
-		ProcessResult result = sshUtil.executeRemote(knownServer, command);
-		if (!result.isSuccess()) {
-			throw new GlusterRuntimeException("Error in creating volume [" + volumeName + "]: " + result);
-		}
+		serverUtil.executeOnServer(knownServer, command);
 
 		try {
 			createOptions(volumeName, StringUtil.extractMap(options, ",", "="), knownServer);
@@ -308,37 +264,20 @@ public class GlusterUtil {
 	}
 
 	public void setOption(String volumeName, String key, String value, String knownServer) {
-		ProcessResult result = sshUtil.executeRemote(knownServer, "gluster volume set " + volumeName + " " + key + " "
-				+ "\"" + value + "\"");
-		if (!result.isSuccess()) {
-			throw new GlusterRuntimeException("Volume [" + volumeName + "] set [" + key + "=" + value + "] => "
-					+ result);
-		}
+		serverUtil.executeOnServer(knownServer, "gluster volume set " + volumeName + " " + key + " " + "\""
+				+ value + "\"");
 	}
 
 	public void deleteVolume(String volumeName, String knownServer) {
-		ProcessResult result = sshUtil.executeRemote(knownServer, "gluster --mode=script volume delete " + volumeName);
-		if (!result.isSuccess()) {
-			throw new GlusterRuntimeException("Couldn't delete volume [" + volumeName + "]! Error: " + result);
-		}
+		serverUtil.executeOnServer(knownServer, "gluster --mode=script volume delete " + volumeName);
 	}
 
 	private String getVolumeInfo(String volumeName, String knownServer) {
-		ProcessResult result = sshUtil.executeRemote(knownServer, "gluster volume info " + volumeName);
-		if (!result.isSuccess()) {
-			throw new GlusterRuntimeException("Command [gluster volume info " + volumeName + "] failed on ["
-					+ knownServer + "] with error: " + result);
-		}
-		return result.getOutput();
+		return serverUtil.executeOnServer(knownServer, "gluster volume info " + volumeName, String.class);
 	}
 
 	private String getVolumeInfo(String knownServer) {
-		ProcessResult result = sshUtil.executeRemote(knownServer, "gluster volume info ");
-		if (!result.isSuccess()) {
-			throw new GlusterRuntimeException("Command [gluster volume info] failed on [" + knownServer
-					+ "] with error: " + result);
-		}
-		return result.getOutput();
+		return serverUtil.executeOnServer(knownServer, "gluster volume info", String.class);
 	}
 
 	private boolean readVolumeType(Volume volume, String line) {
@@ -426,7 +365,7 @@ public class GlusterUtil {
 	// Do not throw exception, Gracefully handle as Offline brick. 
 	private BRICK_STATUS getBrickStatus(String serverName, String volumeName, String brick){
 		try {
-			String output = serverUtil.executeScriptOnServer(true, serverName, BRICK_STATUS_SCRIPT + " " + volumeName
+			String output = serverUtil.executeScriptOnServer(serverName, BRICK_STATUS_SCRIPT + " " + volumeName
 					+ " " + brick, String.class);
 			if (output.equals(CoreConstants.ONLINE)) {
 				return BRICK_STATUS.ONLINE;
@@ -434,6 +373,8 @@ public class GlusterUtil {
 				return BRICK_STATUS.OFFLINE;
 			}
 		} catch(Exception e) { // Particularly interested on ConnectionExecption, if the server is offline
+			logger.warn("Exception while fetching brick status for [" + volumeName + "][" + brick
+					+ "]. Marking it as offline!", e);
 			return BRICK_STATUS.OFFLINE;
 		}
 	}
@@ -542,21 +483,12 @@ public class GlusterUtil {
 			command.append(" " + brickDir);
 		}
 		
-		ProcessResult result = sshUtil.executeRemote(knownServer, command.toString());
-		if(!result.isSuccess()) {
-			throw new GlusterRuntimeException("Error in volume [" + volumeName + "] add-brick [" + bricks + "]: "
-					+ result);
-		}
+		serverUtil.executeOnServer(knownServer, command.toString());
 	}
 
 	public String getLogLocation(String volumeName, String brickName, String knownServer) {
 		String command = "gluster volume log locate " + volumeName + " " + brickName;
-		ProcessResult result = sshUtil.executeRemote(knownServer, command);
-		if (!result.isSuccess()) {
-			throw new GlusterRuntimeException("Command [" + command + "] failed with error: [" + result.getExitValue()
-					+ "][" + result.getOutput() + "]");
-		}
-		String output = result.getOutput();
+		String output = serverUtil.executeOnServer(knownServer, command, String.class);
 		if (output.startsWith(VOLUME_LOG_LOCATION_PFX)) {
 			return output.substring(VOLUME_LOG_LOCATION_PFX.length()).trim();
 		}
@@ -565,13 +497,12 @@ public class GlusterUtil {
 				+ "] doesn't start with prefix [" + VOLUME_LOG_LOCATION_PFX + "]");
 	}
 
-	//TODO File.separator should be changed if gateway runs on windows/mac
 	public String getLogFileNameForBrickDir(String brickDir) {
 		String logFileName = brickDir;
-		if (logFileName.startsWith(File.separator)) {
-			logFileName = logFileName.replaceFirst(File.separator, "");
+		if (logFileName.length() > 0 && logFileName.charAt(0) == '/') {
+			logFileName = logFileName.replaceFirst("/", "");
 		}
-		logFileName = logFileName.replaceAll(File.separator, "-") + ".log";
+		logFileName = logFileName.replaceAll("/", "-") + ".log";
 		return logFileName;
 	}
 
@@ -580,46 +511,31 @@ public class GlusterUtil {
 		for (String brickDir : bricks) {
 			command.append(" " + brickDir);
 		}
-		ProcessResult result = sshUtil.executeRemote(knownServer, command.toString());
-		if(!result.isSuccess()) {
-			throw new GlusterRuntimeException(result.toString());
-		}
+		serverUtil.executeOnServer(knownServer, command.toString());
 	}
 
 	public void removeServer(String existingServer, String serverName) {
-		ProcessResult result = sshUtil.executeRemote(existingServer, "gluster --mode=script peer detach " + serverName);
-		if(!result.isSuccess()) {
-			throw new GlusterRuntimeException("Couldn't remove server [" + serverName + "]! Error: " + result);
-		}
+		serverUtil.executeOnServer(existingServer, "gluster --mode=script peer detach " + serverName);
 	}
 	
 	public TaskStatus checkRebalanceStatus(String serverName, String volumeName) {
 		String command = "gluster volume rebalance " + volumeName + " status";
-		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
+		String output = serverUtil.executeOnServer(serverName, command, String.class).trim();
 		TaskStatus taskStatus = new TaskStatus();
-		if (processResult.isSuccess()) {
-			if (processResult.getOutput().trim().matches("^rebalance completed.*")) {
-				taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
-			} else if(processResult.getOutput().trim().matches(".*in progress.*")) {
-				taskStatus.setCode(Status.STATUS_CODE_RUNNING);
-			} else {
-				taskStatus.setCode(Status.STATUS_CODE_FAILURE);
-			}
+		if (output.matches("^rebalance completed.*")) {
+			taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
+		} else if (output.matches(".*in progress.*")) {
+			taskStatus.setCode(Status.STATUS_CODE_RUNNING);
 		} else {
 			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
 		}
-		taskStatus.setMessage(processResult.getOutput()); // Common
+		taskStatus.setMessage(output);
 		return taskStatus;
 	}
 	
 	public void stopRebalance(String serverName, String volumeName) {
 		String command = "gluster volume rebalance " + volumeName + " stop";
-		ProcessResult processResult = sshUtil.executeRemote(serverName, command);
-		TaskStatus taskStatus = new TaskStatus();
-		if (processResult.isSuccess()) {
-			taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
-			taskStatus.setMessage(processResult.getOutput());
-		}
+		serverUtil.executeOnServer(serverName, command);
 	}
 	
 	public TaskStatus getInitializingDeviceStatus(String serverName, String diskName) {
@@ -627,7 +543,7 @@ public class GlusterUtil {
 		TaskStatus taskStatus = new TaskStatus();
 		
 		try {
-			initDiskStatusResponse = serverUtil.executeScriptOnServer(true, serverName, INITIALIZE_DISK_STATUS_SCRIPT + " "
+			initDiskStatusResponse = serverUtil.executeScriptOnServer(serverName, INITIALIZE_DISK_STATUS_SCRIPT + " "
 				+ diskName, InitDiskStatusResponse.class);
 		} catch(RuntimeException e) {
 			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
@@ -649,14 +565,10 @@ public class GlusterUtil {
 		return taskStatus;
 	}
 	
-	public ProcessResult executeBrickMigration(String onlineServerName, String volumeName, String fromBrick,
+	public String executeBrickMigration(String onlineServerName, String volumeName, String fromBrick,
 			String toBrick, String operation) {
 		String command = "gluster volume replace-brick " + volumeName + " " + fromBrick + " " + toBrick + " " + operation;
-		ProcessResult processResult = sshUtil.executeRemote(onlineServerName, command);
-		if (!processResult.isSuccess()) {
-			throw new GlusterRuntimeException(processResult.toString());
-		}
-		return processResult;
+		return serverUtil.executeOnServer(onlineServerName, command, String.class).trim();
 	}
 
 	public static void main(String args[]) {

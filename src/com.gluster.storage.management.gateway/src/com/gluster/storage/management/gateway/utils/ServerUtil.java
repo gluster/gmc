@@ -98,22 +98,19 @@ public class ServerUtil {
 	 */
 	public void fetchServerDetails(Server server) {
 		try {
-			Server serverDetails = (Server)fetchServerDetails(server.getName());
+			Server serverDetails = fetchServerDetails(server.getName());
 			server.copyFrom(serverDetails); // Update the details in <Server> object
 			server.setDisks(serverDetails.getDisks());
 		} catch (ConnectionException e) {
+			logger.warn("Couldn't connect to server [" + server.getName() + "]. Marking it offline!", e);
 			server.setStatus(SERVER_STATUS.OFFLINE);
 		}
 	}
 	
 	public boolean isServerOnline(Server server) {
 		// fetch latest details and check if server is still online
-		try {
-			fetchServerDetails(server);
-			return server.isOnline();
-		} catch (Exception e) {
-			return false;
-		}
+		fetchServerDetails(server);
+		return server.isOnline();
 	}
 	
 	public String fetchHostName(String serverName) {
@@ -123,7 +120,7 @@ public class ServerUtil {
 
 	private Server fetchServerDetails(String serverName) {
 		// fetch standard server details like cpu, disk, memory details
-		return executeScriptOnServer(true, serverName, REMOTE_SCRIPT_GET_SERVER_DETAILS, Server.class);
+		return executeScriptOnServer(serverName, REMOTE_SCRIPT_GET_SERVER_DETAILS, Server.class);
 	}
 
 	/**
@@ -202,7 +199,7 @@ public class ServerUtil {
 		@Override
 		public void run() {
 			try {
-				result.add(executeOnServer(true, serverName, commandWithArgs, expectedClass));
+				result.add(executeOnServer(serverName, commandWithArgs, expectedClass));
 			} catch(Exception e) {
 				String errMsg = "Couldn't execute command [" + commandWithArgs + "] on [" + serverName + "]!";
 				logger.error(errMsg, e);
@@ -218,7 +215,23 @@ public class ServerUtil {
 	 * Executes given script on given server. Since the remote server may contain multiple versions of backend, this
 	 * method will invoke the script present in directory of same version as the gateway.
 	 * 
-	 * @param runInForeground
+	 * @param serverName
+	 * @param scriptWithArgs
+	 *            The script name followed by arguments to be passed. Note that the script name should not contain path
+	 *            as it will be automatically identified by the method.
+	 * @param expectedClass
+	 *            Class of the object expected from script execution
+	 * @return Output (console/error) from the script execution
+	 * @throws GlusterRuntimeException in case the remote execution fails.
+	 */
+	public String executeScriptOnServer(String serverName, String scriptWithArgs) {
+		return executeOnServer(serverName, getRemoteScriptDir() + File.separator + scriptWithArgs, String.class);
+	}
+
+	/**
+	 * Executes given script on given server. Since the remote server may contain multiple versions of backend, this
+	 * method will invoke the script present in directory of same version as the gateway.
+	 * 
 	 * @param serverName
 	 * @param scriptWithArgs
 	 *            The script name followed by arguments to be passed. Note that the script name should not contain path
@@ -228,16 +241,15 @@ public class ServerUtil {
 	 * @return Object of the expected class from remote execution of the command.
 	 * @throws GlusterRuntimeException in case the remote execution fails.
 	 */
-	public <T> T executeScriptOnServer(boolean runInForeground, String serverName, String scriptWithArgs,
+	public <T> T executeScriptOnServer(String serverName, String scriptWithArgs,
 			Class<T> expectedClass) {
-		return executeOnServer(runInForeground, serverName, getRemoteScriptDir() + File.separator + scriptWithArgs,
+		return executeOnServer(serverName, getRemoteScriptDir() + File.separator + scriptWithArgs,
 				expectedClass);
 	}
 	
 	/**
 	 * Executes given command on given server
 	 * 
-	 * @param runInForeground
 	 * @param serverName
 	 * @param commandWithArgs
 	 * @param expectedClass
@@ -246,7 +258,7 @@ public class ServerUtil {
 	 *         ungracefully, an object of class {@link Status} will be returned.
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> T executeOnServer(boolean runInForeground, String serverName, String commandWithArgs,
+	public <T> T executeOnServer(String serverName, String commandWithArgs,
 			Class<T> expectedClass) {
 		String output = executeOnServer(serverName, commandWithArgs);
 		if (expectedClass == String.class) {
@@ -256,7 +268,7 @@ public class ServerUtil {
 		return unmarshal(expectedClass, output);
 	}
 
-	private String executeOnServer(String serverName, String commandWithArgs) {
+	public String executeOnServer(String serverName, String commandWithArgs) {
 		ProcessResult result = sshUtil.executeRemote(serverName, commandWithArgs);
 		
 		if (!result.isSuccess()) {
@@ -316,7 +328,6 @@ public class ServerUtil {
 	 *            Input string
 	 * @return Object of given expected class
 	 */
-	@SuppressWarnings("unchecked")
 	public <T> T unmarshal(Class<T> expectedClass, String input) {
 		try {
 			// create JAXB context and instantiate marshaller
@@ -339,26 +350,6 @@ public class ServerUtil {
 	 * @return Status object containing the disk name, or error message in case the remote script fails.
 	 */
 	public Status getDiskForDir(String serverName, String brickDir) {
-		return executeScriptOnServer(true, serverName, REMOTE_SCRIPT_GET_DISK_FOR_DIR + " " + brickDir, Status.class);
-	}
-
-	public static void main(String[] args) {
-//		ServerStats stats = new ServerUtil().fetchCPUUsageData("s1", "1d");
-//		for(ServerStatsRow row : stats.getRows()) {
-//			System.out.println(row.getUsageData().get(2));
-//		}
-//		JAXBContext context;
-//		try {
-//			context = JAXBContext.newInstance(ServerStats.class);
-//			Marshaller m = context.createMarshaller();
-//			ByteArrayOutputStream out = new ByteArrayOutputStream();
-//			m.marshal(stats, out);
-//			ServerStats stats1 = (ServerStats)new ServerUtil().unmarshal(ServerStats.class, out.toString(), false);
-//			for(ServerStatsRow row : stats1.getRows()) {
-//				System.out.println(row.getUsageData().get(2));
-//			}
-//		} catch (JAXBException e) {
-//			e.printStackTrace();
-//		}
+		return executeScriptOnServer(serverName, REMOTE_SCRIPT_GET_DISK_FOR_DIR + " " + brickDir, Status.class);
 	}
 }
