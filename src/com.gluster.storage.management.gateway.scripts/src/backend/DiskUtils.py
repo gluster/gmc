@@ -17,7 +17,6 @@ import dbus
 import Globals
 import time
 import Utils
-import Disk
 import Protocol
 import FsTabUtils
 
@@ -108,60 +107,6 @@ def getRootPartition(fsTabFile=Globals.FSTAB_FILE):
                     return partitionName
             return getDeviceName(fsTabEntry["Device"])
     return None
-
-def getRaidDisk():
-    array = []
-    arrayList = []
-    mdFound = False
-    
-    try:
-        fp = open("/proc/mdstat")
-        for line in fp:
-            str = line.strip()
-            if str.startswith("md"):
-                array.append(str)
-                mdFound = True
-                continue
-            if mdFound:
-                if str:
-                    array.append(str)
-                else:
-                    arrayList.append(array)
-                    array = []
-                    mdFound = False
-        fp.close()
-    except IOError, e:
-        return None
-                
-    raidList = {}
-    for array in arrayList:
-        raid = {}
-        tokens = array[0].split()
-        raid['Interface'] = tokens[3]
-        device = getDevice(tokens[0])
-        raid['MountPoint'] = getDeviceMountPoint(device)
-        if raid['MountPoint']:
-            raid['Type'] = "DATA"
-            raid['SpaceInUse'] = getDeviceUsedSpace(device)
-        else:
-            raid['SpaceInUse'] = None
-        rv = Utils.runCommand("blkid -c /dev/null %s" % (device), output=True, root=True)
-        raid['Uuid'] = None
-        raid['FsType'] = None
-        raid['Status'] = "UNINITIALIZED"
-        if isDiskInFormatting(device):
-            raid['Status'] = "INITIALIZING"
-        if not rv["Stderr"]:
-            words = rv["Stdout"].strip().split()
-            if words:
-                raid['Status'] = "INITIALIZED"
-            if len(words) > 2:
-                raid['Uuid']  = words[1].split("UUID=")[-1].split('"')[1]
-                raid['FsType'] = words[2].split("TYPE=")[-1].split('"')[1]
-        raid['Disks'] = [x.split('[')[0] for x in tokens[4:]]
-        raid['Size'] = float(array[1].split()[0]) / 1024.0
-        raidList[tokens[0]] = raid
-    return raidList
 
 
 def getOsDisk():
@@ -342,24 +287,16 @@ def getDiskSizeInfo(partition):
 
 
 def isDataDiskPartitionFormatted(device):
-    #if getDiskPartitionLabel(device) != Globals.DATA_PARTITION_LABEL:
-    #    return False
-    device = getDeviceName(device)
-    diskObj = Disk.Disk()
-    for disk in  diskObj.getMountableDiskList():
-        if disk['device'].upper() == device.upper():
-            mountPoint = disk['mount_point']
-            if not mountPoint:
-                return False
-            if not os.path.exists(mountPoint):
-                return False
+    rv = Utils.runCommand("blkid -c /dev/null -o value %s" % device, output=True, root=True)
+    if rv["Status"] != 0:
+        return False
 
     uuid = getUuidByDiskPartition(device)
     if not uuid:
         return False
 
     for fsTabEntry in FsTabUtils.readFsTab():
-        if fsTabEntry["Device"] == ("UUID=%s" % uuid) and fsTabEntry["MountPoint"] == mountPoint:
+        if fsTabEntry["Device"] == ("UUID=%s" % uuid) or fsTabEntry["Device"] == device:
             return True
     return False
 
