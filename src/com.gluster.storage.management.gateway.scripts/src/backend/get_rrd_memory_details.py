@@ -3,32 +3,6 @@
 #  This file is part of Gluster Management Gateway.
 #
 
-# Input command: get_rrd_memory_details.py 1hour
-# OUTPUT as bellow:
-# <?xml version="1.0" encoding="ISO-8859-1"?>
-#
-# <xport>
-#   <meta>
-#     <start>1310455500</start>
-#     <step>300</step>
-#     <end>1310459100</end>
-#     <rows>13</rows>
-#     <columns>5</columns>
-#     <legend>
-#       <entry>memoryUsed</entry>
-#       <entry>memoryFree</entry>
-#       <entry>memoryCache</entry>
-#      <entry>memoryBuffer</entry>
-#       <entry>totalMemory</entry>
-#     </legend>
-#   </meta>
-#   <data>
-#     <row><t>1310455500</t><v>1.9181091707e+06</v><v>1.5819754974e+06</v><v>1.2528146351e+06</v><v>1.2528146351e+06</v><v>3.5000846681e+06</v></row>
-#     ---
-#     ---
-#   </data>
-# </xport>
-
 import os
 import sys
 p1 = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -43,7 +17,7 @@ MEMORY_RRD_FILE = "/var/lib/rrd/mem.rrd"
 
 def main():
     if len(sys.argv) != 2:
-        sys.stderr.write("usage: %s <PERIOD>\n" % os.path.basename(sys.argv[0]))
+        sys.stderr.write("usage: %s DURATION\n" % os.path.basename(sys.argv[0]))
         sys.exit(-1)
 
     period = sys.argv[1]
