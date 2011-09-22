@@ -23,29 +23,13 @@ def main():
     serverName = sys.argv[1]
     volumeFile = sys.argv[2]
 
-    try:
-        fp = open(volumeFile)
-        lines = fp.readlines()
-        fp.close()
-    except IOError, e:
-        Utils.log("Failed to read volume file %s: %s" % (volumeFile, str(e)))
-        sys.stderr.write("Failed to read volume file %s: %s\n" % (volumeFile, str(e)))
-        sys.exit(1)
-
+    lines = Utils.readFile(volumeFile, lines=True)
     volumeNameList = [line.strip() for line in lines]
     if not volumeNameList:
         sys.exit(0)
 
-    try:
-        fp = open(Globals.CIFS_VOLUME_FILE)
-        content = fp.read()
-        fp.close()
-    except IOError, e:
-        Utils.log("failed to read file %s: %s" % (Globals.CIFS_VOLUME_FILE, str(e)))
-        sys.stderr.write("failed to read file %s: %s\n" % (Globals.CIFS_VOLUME_FILE, str(e)))
-        sys.exit(2)
-
-    cifsVolumeList = [line.split(":")[0] for line in content.split()]
+    lines = Utils.readFile(Globals.CIFS_VOLUME_FILE, lines=True)
+    cifsVolumeList = [line.strip().split(":")[0] for line in lines if line.strip()]
     runningCifsVolumeList = set(cifsVolumeList).intersection(set(volumeNameList))
 
     if not runningCifsVolumeList:
