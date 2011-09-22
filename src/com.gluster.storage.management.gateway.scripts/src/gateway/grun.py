@@ -27,15 +27,7 @@ def main():
         command = ["/opt/glustermg/1.0.0/backend/%s" % sys.argv[2]]
     command += sys.argv[3:]
 
-    try:
-        fp = open(serverFile)
-        serverNameList = fp.readlines()
-        fp.close()
-    except IOError, e:
-        Utils.log("Failed to read server file %s: %s\n" % (serverFile, str(e)))
-        sys.stderr.write("Failed to read server file %s: %s\n" % (serverFile, str(e)))
-        sys.exit(1)
-
+    serverNameList = Utils.readFile(serverFile, lines=True)
     status = True
     for serverName in serverNameList:
         rv = Utils.runCommand(sshCommandPrefix + [serverName.strip()] + command, output=True)
