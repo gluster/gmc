@@ -16,18 +16,12 @@ import Utils
 
 
 def removeUser(userName):
-    try:
-        fp = open(Globals.CIFS_USER_FILE)
-        content = fp.read()
-        fp.close()
-    except IOError, e:
-        Utils.log("failed to read file %s: %s" % (Globals.CIFS_USER_FILE, str(e)))
-        return False
-
+    lines = Utils.readFile(Globals.CIFS_USER_FILE, lines=True)
     try:
         fp = open(Globals.CIFS_USER_FILE, "w")
-        lines = content.strip().split()
         for line in lines:
+            if not line.strip():
+                continue
             if line.split(":")[1] == userName:
                 continue
             fp.write("%s\n" % line)
