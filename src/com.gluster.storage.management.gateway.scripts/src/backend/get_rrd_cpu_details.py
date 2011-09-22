@@ -17,7 +17,7 @@ CPU_RRD_FILE = "/var/lib/rrd/cpu.rrd"
 
 def main():
     if len(sys.argv) != 2:
-        sys.stderr.write("usage: %s <PERIOD>\n" % os.path.basename(sys.argv[0]))
+        sys.stderr.write("usage: %s DURATION\n" % os.path.basename(sys.argv[0]))
         sys.exit(-1)
 
     period = sys.argv[1]
