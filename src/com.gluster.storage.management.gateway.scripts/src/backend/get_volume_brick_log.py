@@ -56,21 +56,21 @@ def logSplit(log):
 def getVolumeLog(logFilePath, tailCount):
     rs = XDOM()
     if not logFilePath:
-        print >> sys.stderr, "No log file path given"
-        sys.exit(-1);
+        sys.stderr.write("No log file path given\n")
+        sys.exit(-1)
 
     if not tailCount:
-        print >> sys.stderr, "No tail count given"
-        sys.exit(-1);
+        sys.stderr.write("No tail count given\n")
+        sys.exit(-1)
 
     pattern = '\[\d{4}-\d{2}-\d{2}\s{1}\d{2}:\d{2}:\d{2}.\d+\]\s{1}([MACEWNIDT]){1}\s+'
-    if not os.path.exists(logFilePath):
-        print >> sys.stderr, "volume log file [%s] not found!" % logFilePath
-        sys.exit(-1);
 
-    fp = open(logFilePath)
-    lines = [line for line in fp if re.match(pattern, line)]
-    fp.close()
+    content = Utils.readFile(logFilePath, lines=True)
+    if not content:
+        sys.stderr.write("volume log not found in file %s\n" % logFilePath)
+        sys.exit(-1)
+
+    lines = [line for line in content if re.match(pattern, line)]
     i = len(lines) - int(tailCount)
     if i < 0:
         i = 0
@@ -84,7 +84,7 @@ def getVolumeLog(logFilePath, tailCount):
 
 def main():
     if len(sys.argv) != 3:
-        print >> sys.stderr, "usage: %s <Log File Path> <Line Count>" % sys.argv[0]
+        sys.stderr.write("usage: %s LOG-FILE LINE-COUNT\n" % sys.argv[0])
         sys.exit(-1)
 
     logFilePath = sys.argv[1]
