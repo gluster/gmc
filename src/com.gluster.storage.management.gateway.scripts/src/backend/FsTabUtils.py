@@ -11,17 +11,14 @@ if not p1 in sys.path:
     sys.path.append(p1)
 if not p2 in sys.path:
     sys.path.append(p2)
+import Utils
 import Globals
 
 def readFsTab(fsTabFile=Globals.FSTAB_FILE):
-    try:
-        fsTabfp = open(fsTabFile)
-    except IOError, e:
-        log("readFsTab(): " + str(e))
-        return None
+    lines = Utils.readFile(fsTabFile)
 
     fsTabEntryList = []
-    for line in fsTabfp:
+    for line in lines:
         tokens = line.strip().split()
         if not tokens or tokens[0].startswith('#'):
             continue
@@ -43,8 +40,6 @@ def readFsTab(fsTabFile=Globals.FSTAB_FILE):
             pass
         if fsTabEntry["Device"] and fsTabEntry["MountPoint"] and fsTabEntry["FsType"] and fsTabEntry["Options"]:
             fsTabEntryList.append(fsTabEntry)
-
-    fsTabfp.close()
     return fsTabEntryList
 
 def writeFsTab(fsTabEntryList, fsTabFile=Globals.FSTAB_FILE):
