@@ -1,6 +1,4 @@
-/**
- * GlusterUtil.java
- *
+/*******************************************************************************
  * Copyright (c) 2011 Gluster, Inc. <http://www.gluster.com>
  * This file is part of Gluster Management Console.
  *
@@ -8,17 +6,17 @@
  * modify it under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- *
+ *  
  * Gluster Management Console is distributed in the hope that it will be useful, 
  * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License
  * for more details.
- *
+ *  
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
- */
-package com.gluster.storage.management.gateway.utils;
+ *******************************************************************************/
+package com.gluster.storage.management.gateway.services;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +24,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
@@ -34,10 +32,6 @@ import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
-import com.gluster.storage.management.core.model.GlusterServer;
-import com.gluster.storage.management.core.model.InitDiskStatusResponse;
-import com.gluster.storage.management.core.model.InitDiskStatusResponse.FORMAT_STATUS;
-import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.core.model.Volume;
@@ -47,12 +41,12 @@ import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 import com.gluster.storage.management.core.response.VolumeOptionInfoListResponse;
 import com.gluster.storage.management.core.utils.StringUtil;
 
+/**
+ * Gluster Interface for GlusterFS version 3.2.3
+ */
 @Component
-public class GlusterUtil {
-	private static final String HOSTNAME_PFX = "Hostname:";
-	private static final String UUID_PFX = "Uuid:";
-	private static final String STATE_PFX = "State:";
-	private static final String GLUSTER_SERVER_STATUS_ONLINE = "Peer in Cluster (Connected)";
+@Lazy(value=true)
+public class Gluster323InterfaceService extends AbstractGlusterInterface {
 
 	private static final String VOLUME_NAME_PFX = "Volume Name:";
 	private static final String VOLUME_TYPE_PFX = "Type:";
@@ -68,136 +62,51 @@ public class GlusterUtil {
 	private static final String VOLUME_TYPE_STRIPE = "Stripe";
 	private static final String VOLUME_TYPE_DISTRIBUTED_STRIPE = "Distributed-Stripe";
 	
-	private static final String GLUSTERD_INFO_FILE = "/etc/glusterd/glusterd.info";
-	
-	private static final String INITIALIZE_DISK_STATUS_SCRIPT = "get_format_device_status.py";
 	private static final String BRICK_STATUS_SCRIPT = "get_brick_status.py";
+	private static final Logger logger = Logger.getLogger(Gluster323InterfaceService.class);
 
-	private static final Logger logger = Logger.getLogger(GlusterUtil.class);
-	
-	@Autowired
-	private ServerUtil serverUtil;
-
-	/**
-	 * Extract value of given token from given line. It is assumed that the token, if present, will be of the following
-	 * form: <code>token: value</code>
-	 * 
-	 * @param line
-	 *            Line to be analyzed
-	 * @param token
-	 *            Token whose value is to be extracted
-	 * @return Value of the token, if present in the line
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#addServer(java.lang.String, java.lang.String)
 	 */
-	private final String extractToken(String line, String token) {
-		if (line.contains(token)) {
-			return line.split(token)[1].trim();
-		}
-		return null;
-	}
-
-	public GlusterServer getGlusterServer(GlusterServer onlineServer, String serverName) {
-		List<GlusterServer> servers = getGlusterServers(onlineServer);
-		for (GlusterServer server : servers) {
-			if (server.getName().equalsIgnoreCase(serverName)) {
-				return server;
-			}
-		}
-		return null;
-	}
-	
-	private String getUuid(String serverName) {
-		return serverUtil.executeOnServer(serverName, "cat " + GLUSTERD_INFO_FILE, String.class).split("=")[1];
-	}
-
-	public List<GlusterServer> getGlusterServers(GlusterServer knownServer) {
-		String output = getPeerStatus(knownServer.getName());
-
-		knownServer.setUuid(getUuid(knownServer.getName()));
-		
-		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();
-		glusterServers.add(knownServer);
-		
-		GlusterServer server = null;
-		boolean foundHost = false;
-		boolean foundUuid = false;
-		for (String line : output.split(CoreConstants.NEWLINE)) {
-			if (foundHost && foundUuid) {
-				// Host and UUID is found, we should look for state
-				String state = extractToken(line, STATE_PFX);
-				if (state != null) {
-					server.setStatus(state.contains(GLUSTER_SERVER_STATUS_ONLINE) ? SERVER_STATUS.ONLINE
-							: SERVER_STATUS.OFFLINE);
-					// Completed populating current server. Add it to the list
-					// and reset all related variables.
-					glusterServers.add(server);
-
-					foundHost = false;
-					foundUuid = false;
-					server = null;
-				}
-			} else if (foundHost) {
-				// Host is found, look for UUID
-				String uuid = extractToken(line, UUID_PFX);
-				if (uuid != null) {
-					server.setUuid(uuid);
-					foundUuid = true;
-				}
-			} else {
-				// Look for the next host
-				if (server == null) {
-					server = new GlusterServer();
-				}
-				String hostName = extractToken(line, HOSTNAME_PFX);
-				if (hostName != null) {
-					server.setName(hostName);
-					foundHost = true;
-				}
-			}
-
-		}
-		return glusterServers;
-	}
-
-	/**
-	 * @param knownServer
-	 *            A known server on which the gluster command will be executed to fetch peer status
-	 * @return Outout of the "gluster peer status" command
-	 */
-	private String getPeerStatus(String knownServer) {
-		return serverUtil.executeOnServer(knownServer, "gluster peer status", String.class);
-	}
-
+	@Override
 	public void addServer(String existingServer, String newServer) {
 		serverUtil.executeOnServer(existingServer, "gluster peer probe " + newServer);
 		// reverse peer probe to ensure that host names appear in peer status on both sides
 		serverUtil.executeOnServer(newServer, "gluster peer probe " + existingServer);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#startVolume(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public void startVolume(String volumeName, String knownServer) {
 		serverUtil.executeOnServer(knownServer, "gluster volume start " + volumeName);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#stopVolume(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public void stopVolume(String volumeName, String knownServer) {
 		serverUtil.executeOnServer(knownServer, "gluster --mode=script volume stop " + volumeName);
 	}
-	
-	public void logRotate(String volumeName, List<String> brickList, String knownServer) {
-		if (brickList.size() > 0) {
-			for (String brickDir : brickList) {
-				serverUtil.executeOnServer(knownServer, "gluster volume log rotate " + volumeName + " " + brickDir);
-			}
-		} else {
-			serverUtil.executeOnServer(knownServer, "gluster volume log rotate " + volumeName);
-		}
-	}
 
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#resetOptions(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public void resetOptions(String volumeName, String knownServer) {
 		serverUtil.executeOnServer(knownServer, "gluster volume reset " + volumeName);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#createVolume(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.Integer, java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
 	public void createVolume(String knownServer, String volumeName, String volumeTypeStr, String transportTypeStr,
 			Integer count, String bricks, String accessProtocols, String options) {
 
+		// TODO: Disable NFS if required depending on value of accessProtocols
 		VOLUME_TYPE volType = Volume.getVolumeTypeByStr(volumeTypeStr);
 		String volTypeArg = null;
 		if (volType == VOLUME_TYPE.REPLICATE || volType == VOLUME_TYPE.DISTRIBUTED_REPLICATE) {
@@ -237,6 +146,10 @@ public class GlusterUtil {
 		return command.toString();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#createOptions(java.lang.String, java.util.Map, java.lang.String)
+	 */
+	@Override
 	public void createOptions(String volumeName, Map<String, String> options, String knownServer) {
 		String errors = "";
 		if (options != null) {
@@ -258,11 +171,19 @@ public class GlusterUtil {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#setOption(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
 	public void setOption(String volumeName, String key, String value, String knownServer) {
 		serverUtil.executeOnServer(knownServer, "gluster volume set " + volumeName + " " + key + " " + "\""
 				+ value + "\"");
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#deleteVolume(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public void deleteVolume(String volumeName, String knownServer) {
 		serverUtil.executeOnServer(knownServer, "gluster --mode=script volume delete " + volumeName);
 	}
@@ -276,7 +197,7 @@ public class GlusterUtil {
 	}
 
 	private boolean readVolumeType(Volume volume, String line) {
-		String volumeType = extractToken(line, VOLUME_TYPE_PFX);
+		String volumeType = StringUtil.extractToken(line, VOLUME_TYPE_PFX);
 		if (volumeType != null) {
 			if (volumeType.equals(VOLUME_TYPE_DISTRIBUTE)) {
 				volume.setVolumeType(VOLUME_TYPE.DISTRIBUTE);
@@ -303,7 +224,7 @@ public class GlusterUtil {
 	}
 
 	private void readReplicaOrStripeCount(Volume volume, String line) {
-		if (extractToken(line, "x") != null) {
+		if (StringUtil.extractToken(line, "x") != null) {
 			// expected formated of line is "Number of Bricks: 3 x 2 = 6"
 			int count = Integer.parseInt(line.split("x")[1].split("=")[0].trim());
 			if (volume.getVolumeType() == VOLUME_TYPE.STRIPE
@@ -319,7 +240,7 @@ public class GlusterUtil {
 	}
 
 	private boolean readVolumeStatus(Volume volume, String line) {
-		String volumeStatus = extractToken(line, VOLUME_STATUS_PFX);
+		String volumeStatus = StringUtil.extractToken(line, VOLUME_STATUS_PFX);
 		if (volumeStatus != null) {
 			volume.setStatus(volumeStatus.equals("Started") ? VOLUME_STATUS.ONLINE : VOLUME_STATUS.OFFLINE);
 			return true;
@@ -328,7 +249,7 @@ public class GlusterUtil {
 	}
 
 	private boolean readTransportType(Volume volume, String line) {
-		String transportType = extractToken(line, VOLUME_TRANSPORT_TYPE_PFX);
+		String transportType = StringUtil.extractToken(line, VOLUME_TRANSPORT_TYPE_PFX);
 		if (transportType != null) {
 			volume.setTransportType(transportType.equals("tcp") ? TRANSPORT_TYPE.ETHERNET : TRANSPORT_TYPE.INFINIBAND);
 			return true;
@@ -375,11 +296,11 @@ public class GlusterUtil {
 	}
 
 	private boolean readBrickGroup(String line) {
-		return extractToken(line, VOLUME_BRICKS_GROUP_PFX) != null;
+		return StringUtil.extractToken(line, VOLUME_BRICKS_GROUP_PFX) != null;
 	}
 
 	private boolean readOptionReconfigGroup(String line) {
-		return extractToken(line, VOLUME_OPTIONS_RECONFIG_PFX) != null;
+		return StringUtil.extractToken(line, VOLUME_OPTIONS_RECONFIG_PFX) != null;
 	}
 
 	private boolean readOption(Volume volume, String line) {
@@ -400,10 +321,18 @@ public class GlusterUtil {
 		return false;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#getVolume(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public Volume getVolume(String volumeName, String knownServer) {
 		return parseVolumeInfo(getVolumeInfo(volumeName, knownServer)).get(0);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#getAllVolumes(java.lang.String)
+	 */
+	@Override
 	public List<Volume> getAllVolumes(String knownServer) {
 		return parseVolumeInfo(getVolumeInfo(knownServer));
 	}
@@ -415,7 +344,7 @@ public class GlusterUtil {
 		Volume volume = null;
 
 		for (String line : volumeInfoText.split(CoreConstants.NEWLINE)) {
-			String volumeName = extractToken(line, VOLUME_NAME_PFX);
+			String volumeName = StringUtil.extractToken(line, VOLUME_NAME_PFX);
 			if (volumeName != null) {
 				if (volume != null) {
 					volumes.add(volume);
@@ -430,7 +359,7 @@ public class GlusterUtil {
 
 			if (readVolumeType(volume, line))
 				continue;
-			if (extractToken(line, VOLUME_NUMBER_OF_BRICKS) != null) {
+			if (StringUtil.extractToken(line, VOLUME_NUMBER_OF_BRICKS) != null) {
 				readReplicaOrStripeCount(volume, line);
 			}
 			if (readVolumeStatus(volume, line))
@@ -472,6 +401,10 @@ public class GlusterUtil {
 		return volumes;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#addBricks(java.lang.String, java.util.List, java.lang.String)
+	 */
+	@Override
 	public void addBricks(String volumeName, List<String> bricks, String knownServer) {
 		StringBuilder command = new StringBuilder("gluster volume add-brick " + volumeName);
 		for (String brickDir : bricks) {
@@ -481,6 +414,10 @@ public class GlusterUtil {
 		serverUtil.executeOnServer(knownServer, command.toString());
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#getLogLocation(java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
 	public String getLogLocation(String volumeName, String brickName, String knownServer) {
 		String command = "gluster volume log locate " + volumeName + " " + brickName;
 		String output = serverUtil.executeOnServer(knownServer, command, String.class);
@@ -492,6 +429,10 @@ public class GlusterUtil {
 				+ "] doesn't start with prefix [" + VOLUME_LOG_LOCATION_PFX + "]");
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#getLogFileNameForBrickDir(java.lang.String)
+	 */
+	@Override
 	public String getLogFileNameForBrickDir(String brickDir) {
 		String logFileName = brickDir;
 		if (logFileName.length() > 0 && logFileName.charAt(0) == '/') {
@@ -501,6 +442,10 @@ public class GlusterUtil {
 		return logFileName;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#removeBricks(java.lang.String, java.util.List, java.lang.String)
+	 */
+	@Override
 	public void removeBricks(String volumeName, List<String> bricks, String knownServer) {
 		StringBuilder command = new StringBuilder("gluster --mode=script volume remove-brick " + volumeName);
 		for (String brickDir : bricks) {
@@ -509,10 +454,18 @@ public class GlusterUtil {
 		serverUtil.executeOnServer(knownServer, command.toString());
 	}
 
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#removeServer(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public void removeServer(String existingServer, String serverName) {
 		serverUtil.executeOnServer(existingServer, "gluster --mode=script peer detach " + serverName);
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#checkRebalanceStatus(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public TaskStatus checkRebalanceStatus(String serverName, String volumeName) {
 		String command = "gluster volume rebalance " + volumeName + " status";
 		String output = serverUtil.executeOnServer(serverName, command, String.class).trim();
@@ -528,45 +481,117 @@ public class GlusterUtil {
 		return taskStatus;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#stopRebalance(java.lang.String, java.lang.String)
+	 */
+	@Override
 	public void stopRebalance(String serverName, String volumeName) {
 		String command = "gluster volume rebalance " + volumeName + " stop";
 		serverUtil.executeOnServer(serverName, command);
 	}
-	
-	public TaskStatus getInitializingDeviceStatus(String serverName, String diskName) {
-		InitDiskStatusResponse initDiskStatusResponse;
-		TaskStatus taskStatus = new TaskStatus();
-		
-		try {
-			initDiskStatusResponse = serverUtil.executeScriptOnServer(serverName, INITIALIZE_DISK_STATUS_SCRIPT + " "
-				+ diskName, InitDiskStatusResponse.class);
-		} catch(RuntimeException e) {
-			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
-			taskStatus.setMessage(e.getMessage());
-			throw e;
-		}
 
-		if (initDiskStatusResponse.getFormatStatus() == FORMAT_STATUS.COMPLETED) {
-			taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
-		} else if (initDiskStatusResponse.getFormatStatus() == FORMAT_STATUS.IN_PROGRESS) {
+	/**
+	 * Performs given Brick Migration (replace-brick) Operation on given volume
+	 * 
+	 * @param serverName
+	 *            The server on which the Gluster command will be executed. This must be part of the cluster to which
+	 *            the volume belongs.
+	 * @param volumeName
+	 *            Volume on which the Brick Migration Operation is to be executed
+	 * @param fromBrick
+	 *            The source Brick (being replaced)
+	 * @param toBrick
+	 *            The destination Brick (which is replacing the source Brick)
+	 * @param operation
+	 * @return
+	 */
+	private String performBrickMigrationOperation(String serverName, String volumeName, String fromBrick,
+			String toBrick, String operation) {
+		String command = "gluster volume replace-brick " + volumeName + " " + fromBrick + " " + toBrick + " "
+				+ operation;
+		return serverUtil.executeOnServer(serverName, command, String.class);
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#executeBrickMigration(java.lang.String,
+	 * java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
+	public void startBrickMigration(String serverName, String volumeName, String fromBrick, String toBrick) {
+		performBrickMigrationOperation(serverName, volumeName, fromBrick, toBrick, "start");
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.services.GlusterInterface#pauseBrickMigration(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
+	public void pauseBrickMigration(String serverName, String volumeName, String fromBrick, String toBrick) {
+		performBrickMigrationOperation(serverName, volumeName, fromBrick, toBrick, "pause");
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.services.GlusterInterface#stopBrickMigration(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
+	public void stopBrickMigration(String serverName, String volumeName, String fromBrick, String toBrick) {
+		performBrickMigrationOperation(serverName, volumeName, fromBrick, toBrick, "abort");
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.services.GlusterInterface#commitBrickMigration(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
+	public void commitBrickMigration(String serverName, String volumeName, String fromBrick, String toBrick) {
+		performBrickMigrationOperation(serverName, volumeName, fromBrick, toBrick, "commit");
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.services.GlusterInterface#checkBrickMigrationStatus(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
+	public TaskStatus checkBrickMigrationStatus(String serverName, String volumeName, String fromBrick, String toBrick) {
+		String output = performBrickMigrationOperation(serverName, volumeName, fromBrick, toBrick, "status");
+
+		TaskStatus taskStatus = new TaskStatus();
+		if (output.matches("^Number of files migrated.*Migration complete$")
+				|| output.matches("^Number of files migrated = 0 .*Current file=")) {
+			// Note: Workaround - if no file in the volume brick to migrate,
+			// Gluster CLI is not giving proper (complete) status
+			taskStatus.setCode(Status.STATUS_CODE_COMMIT_PENDING);
+			taskStatus.setMessage(output.replaceAll("Migration complete", "Commit pending"));
+		} else if (output.matches("^Number of files migrated.*Current file=.*")) {
 			taskStatus.setCode(Status.STATUS_CODE_RUNNING);
-			taskStatus.setPercentCompleted(Math.round(initDiskStatusResponse.getCompletedBlocks()
-					/ initDiskStatusResponse.getTotalBlocks() * 100));
-		} else if(initDiskStatusResponse.getFormatStatus() == FORMAT_STATUS.NOT_RUNNING) {
+		} else if (output.matches("^replace brick has been paused.*")) {
+			taskStatus.setCode(Status.STATUS_CODE_PAUSE);
+		} else {
 			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
 		}
 		
-		taskStatus.setMessage(initDiskStatusResponse.getMessage());
+		taskStatus.setMessage(output);
 		return taskStatus;
 	}
-	
-	public String executeBrickMigration(String onlineServerName, String volumeName, String fromBrick,
-			String toBrick, String operation) {
-		String command = "gluster volume replace-brick " + volumeName + " " + fromBrick + " " + toBrick + " " + operation;
-		return serverUtil.executeOnServer(onlineServerName, command, String.class).trim();
-	}
 
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#getVolumeOptionsInfo(java.lang.String)
+	 */
+	@Override
 	public VolumeOptionInfoListResponse getVolumeOptionsInfo(String serverName) {
 		return serverUtil.executeOnServer(serverName, "gluster volume set help-xml", VolumeOptionInfoListResponse.class);
+	}
+	
+	public void logRotate(String volumeName, List<String> brickList, String knownServer) {
+		if (brickList == null || brickList.size() > 0) {
+			for (String brickDir : brickList) {
+				serverUtil.executeOnServer(knownServer, "gluster volume log rotate " + volumeName + " " + brickDir);
+			}
+		} else {
+			serverUtil.executeOnServer(knownServer, "gluster volume log rotate " + volumeName);
+		}
 	}
 }

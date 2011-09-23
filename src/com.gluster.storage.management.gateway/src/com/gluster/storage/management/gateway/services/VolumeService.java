@@ -59,7 +59,6 @@ import com.gluster.storage.management.gateway.data.ClusterInfo;
 import com.gluster.storage.management.gateway.resources.v1_0.TasksResource;
 import com.gluster.storage.management.gateway.tasks.MigrateBrickTask;
 import com.gluster.storage.management.gateway.tasks.RebalanceVolumeTask;
-import com.gluster.storage.management.gateway.utils.GlusterUtil;
 import com.gluster.storage.management.gateway.utils.ServerUtil;
 
 /**
@@ -84,7 +83,10 @@ public class VolumeService {
 	private ClusterService clusterService;
 
 	@Autowired
-	private GlusterUtil glusterUtil;
+	private GlusterInterfaceService glusterUtil;
+	
+	@Autowired
+	private GlusterServerService glusterServerService;
 
 	@Autowired
 	protected ServerUtil serverUtil;
@@ -251,7 +253,7 @@ public class VolumeService {
 		
 		try {
 			GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
-			List<GlusterServer> glusterServers = glusterUtil.getGlusterServers(onlineServer);
+			List<GlusterServer> glusterServers = glusterServerService.getGlusterServers(onlineServer.getName());
 			File serversFile = new File(clusterServersListFile);
 			FileOutputStream fos = new FileOutputStream(serversFile);
 			for (GlusterServer server : glusterServers) {

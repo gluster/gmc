@@ -100,4 +100,21 @@ public class StringUtil {
 		}
 		return output;
 	}
+	
+	/**
+	 * Extract value of given token from given line. It is assumed that the token, if present, will be of the following
+	 * form: <code>token: value</code>
+	 * 
+	 * @param line
+	 *            Line to be analyzed
+	 * @param token
+	 *            Token whose value is to be extracted
+	 * @return Value of the token, if present in the line
+	 */
+	public static String extractToken(String line, String token) {
+		if (line.contains(token)) {
+			return line.split(token)[1].trim();
+		}
+		return null;
+	}
 }
