@@ -306,14 +306,14 @@ def getCifsUserUid(userName):
 
 def grun(serverFile, command, argumentList=[]):
     commandList = ["%s/%s" % (commandPath, command)] + argumentList
-    serverNameList = Utils.readFile(serverFile, lines=True)
+    serverNameList = readFile(serverFile, lines=True)
     if not serverNameList:
         return 1
     status = True
     for serverName in serverNameList:
         rv = runCommand(sshCommandPrefix + [serverName.strip()] + commandList, output=True)
         if rv["Status"] != 0:
-            sys.stderr.write("%s: %s\n" % (serverName, rv["Status"]))
+            sys.stderr.write("%s: %s\n" % (serverName.strip(), rv["Status"]))
             sys.stderr.write("Stdout:\n%s\n" % rv["Stdout"])
             sys.stderr.write("Stderr:\n%s\n" % rv["Stderr"])
             sys.stderr.write("---\n")
