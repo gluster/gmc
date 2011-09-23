@@ -77,6 +77,23 @@ public class StringUtilTest {
 		String result = StringUtil.collectionToString(string, delimiter);
 		assertEquals("test ## string##java world", result);
 	}
+	
+	/**
+	 * Run the String collectionToString(Collection<? extends Object>,String) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 21/9/11 4:53 PM
+	 */
+	@Test
+	public void testCollectionToString_4()
+		throws Exception {
+		List<String> string = new ArrayList<String>();
+		String delimiter = "";
+
+		String result = StringUtil.collectionToString(string, delimiter);
+		assertEquals("", result);
+	}
 
 	/**
 	 * Run the List<String> enumToArray(T[]) method test.
@@ -231,42 +248,6 @@ public class StringUtilTest {
 		boolean result = StringUtil.filterString(sourceString, filterString, caseSensitive);
 
 		assertEquals(true, result);
-	}
-
-	/**
-	 * Run the String formatNumber(Double,int) method test.
-	 *
-	 * @throws Exception
-	 *
-	 * @generatedBy CodePro at 21/9/11 4:53 PM
-	 */
-	@Test
-	public void testFormatNumber_1()
-		throws Exception {
-		Double number = new Double(1.0);
-		int dec = 1;
-
-		String result = StringUtil.formatNumber(number, dec);
-
-		assertEquals("1", result);
-	}
-	
-	/**
-	 * Run the String formatNumber(Double,int) method test.
-	 *
-	 * @throws Exception
-	 *
-	 * @generatedBy CodePro at 21/9/11 4:53 PM
-	 */
-	@Test
-	public void testFormatNumber_2()
-		throws Exception {
-		Double number = new Double(105.87);
-		int dec = 1;
-
-		String result = StringUtil.formatNumber(number, dec);
-
-		assertEquals("105.9", result);
 	}
 
 	/**
