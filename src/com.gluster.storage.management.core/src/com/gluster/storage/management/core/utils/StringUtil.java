@@ -102,14 +102,6 @@ public class StringUtil {
 		return output;
 	}
 	
-	public static String formatNumber(Double number, int dec) {
-	    NumberFormat nf = NumberFormat.getInstance();
-	    nf.setMaximumFractionDigits(dec);
-	    nf.setGroupingUsed(false);
-	    // Setting this to true will give you xx,xxx,xxx type of formatting.
-	    String formattedvalue = nf.format(number);
-	    return formattedvalue;
-	}
 
 	public static void main(String args[]) {
 		
