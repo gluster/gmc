@@ -11,14 +11,12 @@ if not p1 in sys.path:
     sys.path.append(p1)
 if not p2 in sys.path:
     sys.path.append(p2)
-import dbus
 import socket
 import re
 import Utils
 import Protocol
 import DiskUtils
-from NetworkUtils import *
-from Disk import *
+import NetworkUtils
 from XmlHandler import ResponseXml
 from optparse import OptionParser
 
@@ -31,7 +29,6 @@ def getDiskDom():
     diskDom = Protocol.XDOM()
     disksTag = diskDom.createTag("disks", None)
     diskTagDict = {}
-    raidDisksTag = diskDom.createTag("raidDisks", None)
     for raidDiskName, raidDisk in procMdstat.iteritems():
         raidDiskTag = diskDom.createTag("disk", None)
         raidDiskTag.appendChild(diskDom.createTag("name", raidDiskName))
@@ -48,7 +45,9 @@ def getDiskDom():
         raidDiskTag.appendChild(diskDom.createTag("fsVersion"))
         raidDiskTag.appendChild(diskDom.createTag("size", diskInfo[raidDiskName]['Size'] / 1024.0))
         raidDiskTag.appendChild(diskDom.createTag("spaceInUse", diskInfo[raidDiskName]['SpaceInUse']))
-        raidDisksTag.appendChild(raidDiskTag)
+        raidDisksTag = diskDom.createTag("raidDisks", None)  # raid members tag
+        raidDiskTag.appendChild(raidDisksTag)
+        disksTag.appendChild(raidDiskTag)
         for raidMember in raidDisk['Member']:
             # Case1: Raid array member is a disk. The following code will add the disk details under a disk tag
             if diskInfo.has_key(raidMember):
@@ -73,7 +72,7 @@ def getDiskDom():
                 diskTag.appendChild(diskDom.createTag("fsVersion", diskInfo[raidMember]["FsVersion"]))
                 diskTag.appendChild(diskDom.createTag("size", diskInfo[raidMember]["Size"] / 1024.0))
                 diskTag.appendChild(diskDom.createTag("spaceInUse", diskInfo[raidMember]["SpaceInUse"]))
-                raidDiskTag.appendChild(diskTag)
+                raidDisksTag.appendChild(diskTag)
                 del diskInfo[raidMember]
                 continue
             # Case2: Raid array member is a partition. The following code will add the partition and its corresponding disk its belong to.
@@ -95,7 +94,7 @@ def getDiskDom():
                     diskTag.appendChild(diskDom.createTag("spaceInUse", item["SpaceInUse"]))
                     partitionsTag = diskDom.createTag("partitions", None)
                     diskTag.appendChild(partitionsTag)
-                    raidDiskTag.appendChild(diskTag)
+                    raidDisksTag.appendChild(diskTag)
                     # Constructed disk tag will be added to the dictonary.
                     # This will be used to keep add all the corresponding partitions tags of the disk to the disk tag.
                     diskTagDict[disk] = {'diskTag': diskTag, 'partitionsTag': partitionsTag}
@@ -170,7 +169,7 @@ def getServerDetails(listall):
     serverName = socket.getfqdn()
     meminfo = Utils.getMeminfo()
     cpu = Utils.getCpuUsageAvg()
-    nameServerList, domain, searchDomain = readResolvConfFile()
+    nameServerList, domain, searchDomain = NetworkUtils.readResolvConfFile()
     if not domain:
         domain = [None]
 
@@ -184,8 +183,8 @@ def getServerDetails(listall):
         serverTag.appendChild(responseDom.createTag("status", "OFFLINE"))
     serverTag.appendChild(responseDom.createTag("glusterFsVersion", Utils.getGlusterVersion()))
     serverTag.appendChild(responseDom.createTag("cpuUsage", str(cpu)))
-    serverTag.appendChild(responseDom.createTag("totalMemory", str(convertKbToMb(meminfo['MemTotal']))))
-    serverTag.appendChild(responseDom.createTag("memoryInUse", str(convertKbToMb(meminfo['MemUsed']))))
+    serverTag.appendChild(responseDom.createTag("totalMemory", str(Utils.convertKbToMb(meminfo['MemTotal']))))
+    serverTag.appendChild(responseDom.createTag("memoryInUse", str(Utils.convertKbToMb(meminfo['MemUsed']))))
     serverTag.appendChild(responseDom.createTag("uuid", None))
 
     for dns in nameServerList:
@@ -193,39 +192,29 @@ def getServerDetails(listall):
 
     #TODO: probe and retrieve timezone, ntp-server details and update the tags
 
-    deviceList = {}
     interfaces = responseDom.createTag("networkInterfaces", None)
-    for device in getNetDeviceList():
-        if device["model"] in ['LOCAL', 'IPV6-IN-IPV4']:
-            continue
-        deviceList[device["device"]] = device
-        try:
-            macAddress = open("/sys/class/net/%s/address" % device["device"]).read().strip()
-        except IOError, e:
+    for deviceName, values in NetworkUtils.getNetDeviceList().iteritems():
+        if values["type"].upper() in ['LOCAL', 'IPV6-IN-IPV4']:
             continue
         interfaceTag = responseDom.createTag("networkInterface", None)
-        interfaceTag.appendChild(responseDom.createTag("name",  device["device"]))
-        interfaceTag.appendChild(responseDom.createTag("hwAddr",macAddress))
-        interfaceTag.appendChild(responseDom.createTag("speed", device["speed"]))
-        interfaceTag.appendChild(responseDom.createTag("model", device["model"]))
-        if deviceList[device["device"]]:
-            if deviceList[device["device"]]["onboot"]:
-                interfaceTag.appendChild(responseDom.createTag("onboot", "yes"))
-            else:
-                interfaceTag.appendChild(responseDom.createTag("onBoot", "no"))
-            interfaceTag.appendChild(responseDom.createTag("bootProto", deviceList[device["device"]]["bootproto"]))
-            interfaceTag.appendChild(responseDom.createTag("ipAddress",    deviceList[device["device"]]["ipaddr"]))
-            interfaceTag.appendChild(responseDom.createTag("netMask",   deviceList[device["device"]]["netmask"]))
-            interfaceTag.appendChild(responseDom.createTag("defaultGateway",   deviceList[device["device"]]["gateway"]))
-            if deviceList[device["device"]]["mode"]:
-                interfaceTag.appendChild(responseDom.createTag("mode",   deviceList[device["device"]]["mode"]))
-            if deviceList[device["device"]]["master"]:
-                interfaceTag.appendChild(responseDom.createTag("bonding", "yes"))
-                spliter = re.compile(r'[\D]')
-                interfaceTag.appendChild(responseDom.createTag("bondid", spliter.split(device["master"])[-1]))            
+        interfaceTag.appendChild(responseDom.createTag("name",  deviceName))
+        interfaceTag.appendChild(responseDom.createTag("hwAddr", values["hwaddr"]))
+        interfaceTag.appendChild(responseDom.createTag("speed", values["speed"]))
+        interfaceTag.appendChild(responseDom.createTag("model", values["type"]))
+        if values["onboot"]:
+            interfaceTag.appendChild(responseDom.createTag("onBoot", "yes"))
         else:
-            interfaceTag.appendChild(responseDom.createTag("onBoot",    "no"))
-            interfaceTag.appendChild(responseDom.createTag("bootProto", "none"))
+            interfaceTag.appendChild(responseDom.createTag("onBoot", "no"))
+        interfaceTag.appendChild(responseDom.createTag("bootProto", values["bootproto"]))
+        interfaceTag.appendChild(responseDom.createTag("ipAddress",    values["ipaddr"]))
+        interfaceTag.appendChild(responseDom.createTag("netMask",   values["netmask"]))
+        interfaceTag.appendChild(responseDom.createTag("defaultGateway",   values["gateway"]))
+        if values["mode"]:
+            interfaceTag.appendChild(responseDom.createTag("mode",   values["mode"]))
+        if values["master"]:
+            interfaceTag.appendChild(responseDom.createTag("bonding", "yes"))
+            spliter = re.compile(r'[\D]')
+            interfaceTag.appendChild(responseDom.createTag("bondid", spliter.split(values["master"])[-1]))
         interfaces.appendChild(interfaceTag)
     serverTag.appendChild(interfaces)
 

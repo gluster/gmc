@@ -22,24 +22,16 @@ def main():
 
     volumeName = sys.argv[1]
 
-    if not os.path.exists(Globals.CIFS_VOLUME_FILE):
-        sys.exit(0)
-
-    try:
-        fp = open(Globals.CIFS_VOLUME_FILE)
-        content = fp.read()
-        fp.close()
-        for line in content.split():
-            tokens = line.split(":")
-            if tokens[0] == volumeName:
-                print "\n".join(tokens[1:])
-                sys.exit(0)
-        # given volume is not configured for cifs export
-        sys.exit(0)
-    except IOError, e:
-        Utils.log("failed to read file %s: %s" % (Globals.CIFS_VOLUME_FILE, str(e)))
-        sys.stderr.write("Failed to read cifs-volume-file %s: %s\n" % (Globals.CIFS_VOLUME_FILE, str(e)))
-        sys.exit(2)
+    lines = Utils.readFile(Globals.CIFS_VOLUME_FILE, lines=True)
+    for line in lines:
+        if not line.strip():
+            continue
+        tokens = line.strip().split(":")
+        if tokens[0] == volumeName:
+            print "\n".join(tokens[1:])
+            sys.exit(0)
+    # given volume is not configured for cifs export
+    sys.exit(0)
 
 
 if __name__ == "__main__":

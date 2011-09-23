@@ -24,22 +24,22 @@ def main():
 
     if not os.path.exists(pidFile):
         print "OFFLINE"
-    else:
-        try:
-            fp = open(pidFile)
-            pidString = fp.readline()
-            fp.close()
-            os.getpgid(int(pidString))
-            print "ONLINE"
-        except IOError, e:
-            Utils.log("failed to open file %s: %s" % (pidFile, str(e)))
-            print "UNKNOWN"
-        except ValueError, e:
-            Utils.log("invalid pid %s in file %s: %s" % (pidString, pidFile, str(e)))
-            print "UNKNOWN"
-        except OSError, e:
-            #Utils.log("failed to get process detail of pid %s: %s" % (pidString, str(e)))
-            print "OFFLINE"
+        sys.exit(0)
+
+    lines = Utils.readFile(pidFile)
+    if not lines:
+        print "UNKNOWN"
+        sys.exit(0)
+    try:
+        pidString = lines[0]
+        os.getpgid(int(pidString))
+        print "ONLINE"
+    except ValueError, e:
+        Utils.log("invalid pid %s in file %s: %s" % (pidString, pidFile, str(e)))
+        print "UNKNOWN"
+    except OSError, e:
+        #Utils.log("failed to get process detail of pid %s: %s" % (pidString, str(e)))
+        print "OFFLINE"
     sys.exit(0)
 
 if __name__ == "__main__":

@@ -16,18 +16,13 @@ import Utils
 
 
 def addVolumeCifsConf(volumeName, userList):
-    try:
-        fp = open(Globals.CIFS_VOLUME_FILE)
-        content = fp.read()
-        fp.close()
-    except IOError, e:
-        Utils.log("failed to read file %s: %s" % (Globals.CIFS_VOLUME_FILE, str(e)))
-        content = ""
-
+    lines = Utils.readFile(Globals.CIFS_VOLUME_FILE, lines=True)
     try:
         fp = open(Globals.CIFS_VOLUME_FILE, "w")
-        for line in content.split():
-            if line.split(":")[0] != volumeName:
+        for line in lines:
+            if not line.strip():
+                continue
+            if line.strip().split(":")[0] != volumeName:
                 fp.write("%s\n" % line)
         fp.write("%s:%s\n" % (volumeName, ":".join(userList)))
         fp.close()
@@ -55,7 +50,7 @@ def main():
         sys.stderr.write("User %s does not exists\n" % missingUserList)
         sys.exit(1)
 
-    rv = Utils.runCommand(["grun.py", serverFile, "create_volume_cifs.py", volumeName] + userList)
+    rv = Utils.grun(serverFile, "create_volume_cifs.py", [volumeName] + userList)
     if rv == 0:
         if not addVolumeCifsConf(volumeName, userList):
             sys.stderr.write("Failed to add volume %s and user-list %s in cifs volume configuration\n" % (volumeName, userList))

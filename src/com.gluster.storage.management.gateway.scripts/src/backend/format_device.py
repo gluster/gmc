@@ -41,20 +41,16 @@ def main():
 
     if os.path.exists(deviceFormatStatusFile):
         Utils.log("format status file %s exists" % deviceFormatStatusFile)
-        try:
-            fp = open(deviceFormatStatusFile)
-            line = fp.read()
-            fp.close()
-            if line.strip().upper() == "COMPLETED":
-                sys.stderr.write("Device already formatted\n")
-                sys.exit(3)
-            else:
-                sys.stderr.write("Device format already running\n")
-                sys.exit(4)
-        except IOError, e:
-            Utils.log("failed to read format status file %s: %s" % (deviceFormatStatusFile, str(e)))
-            sys.stderr.write("%s\n" % str(e))
+        line = Utils.readFile(deviceFormatStatusFile)
+        if not line:
+            sys.stderr.write("failed to read format status file %s\n" % deviceFormatStatusFile)
             sys.exit(-2)
+        if line.strip().upper() == "COMPLETED":
+            sys.stderr.write("Device already formatted\n")
+            sys.exit(3)
+        else:
+            sys.stderr.write("Device format already running\n")
+            sys.exit(4)
 
     if os.path.exists(deviceFormatLockFile):
         Utils.log("lock file %s exists" % deviceFormatLockFile)

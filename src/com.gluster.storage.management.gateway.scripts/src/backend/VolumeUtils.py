@@ -16,17 +16,13 @@ import Utils
 
 def readVolumeSmbConfFile(fileName=Globals.VOLUME_SMBCONF_FILE):
     entryList = []
-    try:
-        fp = open(fileName)
-        for line in fp:
-            tokens = line.split("#")[0].strip().split(";")[0].strip().split("=")
-            if len(tokens) != 2:
-                continue
-            if tokens[0].strip().upper() == "INCLUDE":
-                entryList.append(tokens[1].strip())
-        fp.close()
-    except IOError, e:
-        Utils.log("Failed to open file %s: %s" % (fileName, str(e)))
+    lines = Utils.readFile(fileName, lines=True)
+    for line in lines:
+        tokens = line.split("#")[0].strip().split(";")[0].strip().split("=")
+        if len(tokens) != 2:
+            continue
+        if tokens[0].strip().upper() == "INCLUDE":
+            entryList.append(tokens[1].strip())
     return entryList
 
 

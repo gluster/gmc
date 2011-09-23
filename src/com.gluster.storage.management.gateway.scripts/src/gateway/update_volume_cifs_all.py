@@ -16,21 +16,16 @@ import Utils
 
 
 def updateVolumeCifsConf(volumeName, userList):
-    try:
-        fp = open(Globals.CIFS_VOLUME_FILE)
-        content = fp.read()
-        fp.close()
-    except IOError, e:
-        Utils.log("failed to read file %s: %s" % (Globals.CIFS_VOLUME_FILE, str(e)))
-        return False
-
+    lines = Utils.readFile(Globals.CIFS_VOLUME_FILE, lines=True)
     try:
         fp = open(Globals.CIFS_VOLUME_FILE, "w")
-        for line in content.split():
-            if line.split(":")[0] == volumeName:
+        for line in lines:
+            if not line.strip():
+                continue
+            if line.strip().split(":")[0] == volumeName:
                 fp.write("%s:%s\n" % (volumeName, ":".join(userList)))
             else:
-                fp.write("%s\n" % line)
+                fp.write("%s\n" % line.strip())
         fp.close()
     except IOError, e:
         Utils.log("failed to write file %s: %s" % (Globals.CIFS_VOLUME_FILE, str(e)))
@@ -56,8 +51,7 @@ def main():
         sys.stderr.write("User %s does not exists\n" % missingUserList)
         sys.exit(1)
 
-
-    rv = Utils.runCommand(["grun.py", serverFile, "update_volume_cifs.py", volumeName] + userList)
+    rv = Utils.grun(serverFile, "update_volume_cifs.py", [volumeName] + userList)
     if rv == 0:
         if not updateVolumeCifsConf(volumeName, userList):
             sys.stderr.write("Failed to update volume %s and user-list %s in cifs volume configuration\n" % (volumeName, userList))
