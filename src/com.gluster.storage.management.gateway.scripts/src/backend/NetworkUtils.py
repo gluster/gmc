@@ -102,8 +102,9 @@ def getNetDeviceList(root=""):
                 if line.find("inet addr:") != -1:
                     tokens = line.split("inet addr:")[1].split()
                     netDevice["ipaddr"] = tokens[0]
+                    if line.find("Mask:") != -1:
+                        netDevice["netmask"] = line.split("Mask:")[1].split()[0]
                     #print tokens[1].split(":")[1]
-                    netDevice["netmask"] = tokens[2].split(":")[1]
 
         rv = Utils.runCommand("ethtool %s" % deviceName, output=True, root=True)
         if rv["Status"] == 0:

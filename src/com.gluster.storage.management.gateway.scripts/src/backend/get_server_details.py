@@ -17,7 +17,7 @@ import Utils
 import Protocol
 import DiskUtils
 import NetworkUtils
-rom XmlHandler import ResponseXml
+from XmlHandler import ResponseXml
 from optparse import OptionParser
 
 
@@ -29,7 +29,6 @@ def getDiskDom():
     diskDom = Protocol.XDOM()
     disksTag = diskDom.createTag("disks", None)
     diskTagDict = {}
-    raidDisksTag = diskDom.createTag("raidDisks", None)
     for raidDiskName, raidDisk in procMdstat.iteritems():
         raidDiskTag = diskDom.createTag("disk", None)
         raidDiskTag.appendChild(diskDom.createTag("name", raidDiskName))
@@ -46,7 +45,9 @@ def getDiskDom():
         raidDiskTag.appendChild(diskDom.createTag("fsVersion"))
         raidDiskTag.appendChild(diskDom.createTag("size", diskInfo[raidDiskName]['Size'] / 1024.0))
         raidDiskTag.appendChild(diskDom.createTag("spaceInUse", diskInfo[raidDiskName]['SpaceInUse']))
-        raidDisksTag.appendChild(raidDiskTag)
+        raidDisksTag = diskDom.createTag("raidDisks", None)  # raid members tag
+        raidDiskTag.appendChild(raidDisksTag)
+        disksTag.appendChild(raidDiskTag)
         for raidMember in raidDisk['Member']:
             # Case1: Raid array member is a disk. The following code will add the disk details under a disk tag
             if diskInfo.has_key(raidMember):
@@ -71,7 +72,7 @@ def getDiskDom():
                 diskTag.appendChild(diskDom.createTag("fsVersion", diskInfo[raidMember]["FsVersion"]))
                 diskTag.appendChild(diskDom.createTag("size", diskInfo[raidMember]["Size"] / 1024.0))
                 diskTag.appendChild(diskDom.createTag("spaceInUse", diskInfo[raidMember]["SpaceInUse"]))
-                raidDiskTag.appendChild(diskTag)
+                raidDisksTag.appendChild(diskTag)
                 del diskInfo[raidMember]
                 continue
             # Case2: Raid array member is a partition. The following code will add the partition and its corresponding disk its belong to.
@@ -93,7 +94,7 @@ def getDiskDom():
                     diskTag.appendChild(diskDom.createTag("spaceInUse", item["SpaceInUse"]))
                     partitionsTag = diskDom.createTag("partitions", None)
                     diskTag.appendChild(partitionsTag)
-                    raidDiskTag.appendChild(diskTag)
+                    raidDisksTag.appendChild(diskTag)
                     # Constructed disk tag will be added to the dictonary.
                     # This will be used to keep add all the corresponding partitions tags of the disk to the disk tag.
                     diskTagDict[disk] = {'diskTag': diskTag, 'partitionsTag': partitionsTag}
