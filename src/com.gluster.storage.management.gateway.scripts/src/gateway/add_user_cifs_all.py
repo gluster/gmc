@@ -63,7 +63,7 @@ def main():
         existingUser = True
 
     print (serverFile, uid, userName, password)
-    rv = Utils.runCommand("grun.py %s add_user_cifs.py %s %s %s" % (serverFile, uid, userName, password))
+    rv = Utils.grun(serverFile, "add_user_cifs.py", [uid, userName, password])
     if existingUser:
         sys.exit(rv)
 

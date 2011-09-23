@@ -34,13 +34,13 @@ def removeUser(userName):
 
 def main():
     if len(sys.argv) < 3:
-        sys.stderr.write("usage: %s SERVER_LIST USERNAME\n" % os.path.basename(sys.argv[0]))
+        sys.stderr.write("usage: %s SERVER_FILE USERNAME\n" % os.path.basename(sys.argv[0]))
         sys.exit(-1)
 
-    serverList = sys.argv[1]
+    serverFile = sys.argv[1]
     userName = sys.argv[2]
 
-    rv = Utils.runCommand("grun.py %s delete_user_cifs.py %s" % (serverList, userName))
+    rv = Utils.grun(serverFile, "delete_user_cifs.py", [userName])
     if rv == 0:
         if not removeUser(userName):
             Utils.log("Failed to remove the user:%s on gateway server\n" % userName)

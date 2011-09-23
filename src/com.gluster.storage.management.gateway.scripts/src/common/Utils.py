@@ -24,7 +24,11 @@ SYSLOG_REQUIRED = False
 LOG_FILE_NAME = None
 LOG_FILE_OBJ = None
 logOpened = False
-
+sshCommandPrefix = "ssh -l root -q -i /opt/glustermg/keys/gluster.pem -o BatchMode=yes -o GSSAPIAuthentication=no -o PasswordAuthentication=no -o StrictHostKeyChecking=no".split()
+try:
+    commandPath = "/opt/glustermg/%s/backend" % os.environ['GMG_VERSION']
+except KeyError, e:
+    commandPath = "/opt/glustermg/1.0.0/backend"
 
 def log(priority, message=None):
     global logOpened
@@ -299,3 +303,23 @@ def getCifsUserUid(userName):
         if tokens[1] == userName:
             return int(tokens[0])
     return None
+
+def grun(serverFile, command, argumentList=[]):
+    commandList = ["%s/%s" % (commandPath, command)] + argumentList
+    serverNameList = Utils.readFile(serverFile, lines=True)
+    if not serverNameList:
+        return 1
+    status = True
+    for serverName in serverNameList:
+        rv = runCommand(sshCommandPrefix + [serverName.strip()] + commandList, output=True)
+        if rv["Status"] != 0:
+            sys.stderr.write("%s: %s\n" % (serverName, rv["Status"]))
+            sys.stderr.write("Stdout:\n%s\n" % rv["Stdout"])
+            sys.stderr.write("Stderr:\n%s\n" % rv["Stderr"])
+            sys.stderr.write("---\n")
+            status = False
+
+    if status:
+        return 0
+    else:
+        return 2

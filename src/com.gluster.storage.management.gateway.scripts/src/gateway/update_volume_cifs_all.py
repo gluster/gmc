@@ -51,8 +51,7 @@ def main():
         sys.stderr.write("User %s does not exists\n" % missingUserList)
         sys.exit(1)
 
-
-    rv = Utils.runCommand(["grun.py", serverFile, "update_volume_cifs.py", volumeName] + userList)
+    rv = Utils.grun(serverFile, "update_volume_cifs.py", [volumeName] + userList)
     if rv == 0:
         if not updateVolumeCifsConf(volumeName, userList):
             sys.stderr.write("Failed to update volume %s and user-list %s in cifs volume configuration\n" % (volumeName, userList))

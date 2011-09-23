@@ -50,7 +50,7 @@ def main():
         sys.stderr.write("User %s does not exists\n" % missingUserList)
         sys.exit(1)
 
-    rv = Utils.runCommand(["grun.py", serverFile, "create_volume_cifs.py", volumeName] + userList)
+    rv = Utils.grun(serverFile, "create_volume_cifs.py", [volumeName] + userList)
     if rv == 0:
         if not addVolumeCifsConf(volumeName, userList):
             sys.stderr.write("Failed to add volume %s and user-list %s in cifs volume configuration\n" % (volumeName, userList))

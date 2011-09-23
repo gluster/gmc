@@ -39,7 +39,7 @@ def main():
     serverFile = sys.argv[1]
     volumeName = sys.argv[2]
 
-    rv = Utils.runCommand(["grun.py", serverFile, "delete_volume_cifs.py", volumeName])
+    rv = Utils.grun(serverFile, "delete_volume_cifs.py", [volumeName])
     if rv == 0:
         if not removeVolumeCifsConf(volumeName):
             sys.stderr.write("Failed to remove volume %s and user-list in cifs volume configuration\n" % volumeName)
