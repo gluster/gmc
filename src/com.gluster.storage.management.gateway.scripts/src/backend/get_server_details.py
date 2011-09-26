@@ -14,10 +14,9 @@ if not p2 in sys.path:
 import socket
 import re
 import Utils
-import Protocol
 import DiskUtils
 import NetworkUtils
-from XmlHandler import ResponseXml
+import XmlHandler
 from optparse import OptionParser
 
 
@@ -26,7 +25,7 @@ def getDiskDom():
     if not diskInfo:
         return None
     procMdstat = DiskUtils.getProcMdstat()
-    diskDom = Protocol.XDOM()
+    diskDom = XmlHandler.XDOM()
     disksTag = diskDom.createTag("disks", None)
     diskTagDict = {}
     for raidDiskName, raidDisk in procMdstat.iteritems():
@@ -173,7 +172,7 @@ def getServerDetails(listall):
     if not domain:
         domain = [None]
 
-    responseDom = ResponseXml()
+    responseDom = XmlHandler.ResponseXml()
     serverTag = responseDom.appendTagRoute("server")
     serverTag.appendChild(responseDom.createTag("name", serverName))
     serverTag.appendChild(responseDom.createTag("domainname", domain[0]))
