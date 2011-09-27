@@ -16,18 +16,13 @@ import Utils
 
 
 def removeVolumeCifsConf(volumeName):
-    try:
-        fp = open(Globals.CIFS_VOLUME_FILE)
-        content = fp.read()
-        fp.close()
-    except IOError, e:
-        Utils.log("failed to read file %s: %s" % (Globals.CIFS_VOLUME_FILE, str(e)))
-        content = ""
-
+    lines = Utils.readFile(Globals.CIFS_VOLUME_FILE, lines=True)
     try:
         fp = open(Globals.CIFS_VOLUME_FILE, "w")
-        for line in content.split():
-            if line.split(":")[0] != volumeName:
+        for line in lines:
+            if not line.strip():
+                continue
+            if line.strip().split(":")[0] != volumeName:
                 fp.write("%s\n" % line)
         fp.close()
     except IOError, e:
@@ -44,7 +39,7 @@ def main():
     serverFile = sys.argv[1]
     volumeName = sys.argv[2]
 
-    rv = Utils.runCommand(["grun.py", serverFile, "delete_volume_cifs.py", volumeName])
+    rv = Utils.grun(serverFile, "delete_volume_cifs.py", [volumeName])
     if rv == 0:
         if not removeVolumeCifsConf(volumeName):
             sys.stderr.write("Failed to remove volume %s and user-list in cifs volume configuration\n" % volumeName)

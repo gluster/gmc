@@ -34,47 +34,26 @@ def main():
             sys.exit(1)
 
     if os.path.exists(deviceFormatStatusFile):
-        try:
-            fp = open(deviceFormatStatusFile)
-            line = fp.read()
-            fp.close()
-            line = line.strip()
+        line = Utils.readFile(deviceFormatStatusFile)
+        line = line.strip()
 
-            Utils.removeFile(deviceFormatOutputFile)
-            Utils.removeFile(deviceFormatStatusFile)
+        Utils.removeFile(deviceFormatOutputFile)
+        Utils.removeFile(deviceFormatStatusFile)
 
-            responseDom = ResponseXml()
-            responseDom.appendTagRoute("device", sys.argv[1])
-            responseDom.appendTagRoute("completedBlocks", "0")
-            responseDom.appendTagRoute("totalBlocks", "0")
-            responseDom.appendTagRoute("message", line)
-            if line.upper() == "COMPLETED":
-                responseDom.appendTagRoute("formatStatus", "COMPLETED")
-            else:
-                responseDom.appendTagRoute("formatStatus", "NOT_RUNNING")
-            print responseDom.toxml()
-            sys.exit(0)
-        except IOError, e:
-            Utils.log("failed to read format status file %s: %s" % (deviceFormatStatusFile, str(e)))
-            sys.stderr.write("%s\n" % str(e))
-            sys.exit(-2)
-
-    if not os.path.exists(deviceFormatOutputFile):
         responseDom = ResponseXml()
         responseDom.appendTagRoute("device", sys.argv[1])
         responseDom.appendTagRoute("completedBlocks", "0")
         responseDom.appendTagRoute("totalBlocks", "0")
-        responseDom.appendTagRoute("message", None)
-        responseDom.appendTagRoute("formatStatus", "IN_PROGRESS")
+        responseDom.appendTagRoute("message", line)
+        if line.upper() == "COMPLETED":
+            responseDom.appendTagRoute("formatStatus", "COMPLETED")
+        else:
+            responseDom.appendTagRoute("formatStatus", "NOT_RUNNING")
         print responseDom.toxml()
         sys.exit(0)
 
-    try:
-        fp = open(deviceFormatOutputFile)
-        content = fp.read()
-        fp.close()
-    except IOError, e:
-        Utils.log("failed to read format output file %s: %s" % (deviceFormatOutputFile, str(e)))
+    content = Utils.readFile(deviceFormatOutputFile, lines=True)
+    if not content:
         responseDom = ResponseXml()
         responseDom.appendTagRoute("device", sys.argv[1])
         responseDom.appendTagRoute("completedBlocks", "0")
@@ -91,10 +70,7 @@ def main():
         responseDom.appendTagRoute("device", sys.argv[1])
         responseDom.appendTagRoute("completedBlocks", "0")
         responseDom.appendTagRoute("totalBlocks", "0")
-        if content:
-            responseDom.appendTagRoute("message", content[-1])
-        else:
-            responseDom.appendTagRoute("message")
+        responseDom.appendTagRoute("message", content[-1])
         responseDom.appendTagRoute("formatStatus", "IN_PROGRESS")
         print responseDom.toxml()
         sys.exit(0)

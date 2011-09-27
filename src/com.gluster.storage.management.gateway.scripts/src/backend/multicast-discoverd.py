@@ -31,17 +31,12 @@ def exitHandler(signum, frame):
 
 
 def updateGlusterdUuid(signum, frame):
-    try:
-        fp = open("/etc/glusterd/glusterd.info")
-        content = fp.read()
-        fp.close()
-        for line in content.strip().split():
-            if line.startswith("UUID="):
-                GLUSTERD_UUID = line.split("=")[1]
-                break
-    except IOError, e:
-        Utils.log("failed to read file /etc/glusterd/glusterd.info: %s" % str(e))
-        GLUSTERD_UUID = "NA"
+    lines = Utils.readFile("/etc/glusterd/glusterd.info", lines=True)
+    for line in lines:
+        if line.strip().startswith("UUID="):
+            GLUSTERD_UUID = line.strip().split("=")[1]
+            return
+    GLUSTERD_UUID = "NA"
 
 
 def isInPeer():

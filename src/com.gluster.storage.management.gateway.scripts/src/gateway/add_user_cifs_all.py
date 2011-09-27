@@ -16,36 +16,19 @@ import Utils
 
 
 def getUid(userName):
-    try:
-        fp = open(Globals.CIFS_USER_FILE)
-        content = fp.read()
-        fp.close()
-    except IOError, e:
-        Utils.log("failed to read file %s: %s" % (Globals.CIFS_USER_FILE, str(e)))
-        return False
-
-    for line in content.strip().split():
-        tokens = line.split(":")
+    lines = Utils.readFile(Globals.CIFS_USER_FILE, lines=True)
+    for line in lines:
+        tokens = line.strip().split(":")
         if tokens[1] == userName:
             return int(tokens[0])
     return None
 
 
 def getLastUid():
-    if not os.path.exists(Globals.CIFS_USER_FILE):
-        return Globals.DEFAULT_UID
-    try:
-        fp = open(Globals.CIFS_USER_FILE)
-        content = fp.read()
-        fp.close()
-    except IOError, e:
-        Utils.log("failed to read file %s: %s" % (Globals.CIFS_USER_FILE, str(e)))
-        return False
-
-    lines = content.strip().split()
+    lines = Utils.readFile(Globals.CIFS_USER_FILE, lines=True)
     if not lines:
         return Globals.DEFAULT_UID
-    return int(lines[-1].split(":")[0])
+    return int([line.strip().split(':')[0] for line in lines if line.strip()][-1])
 
 
 def setUid(uid, userName):
@@ -80,7 +63,7 @@ def main():
         existingUser = True
 
     print (serverFile, uid, userName, password)
-    rv = Utils.runCommand("grun.py %s add_user_cifs.py %s %s %s" % (serverFile, uid, userName, password))
+    rv = Utils.grun(serverFile, "add_user_cifs.py", [uid, userName, password])
     if existingUser:
         sys.exit(rv)
 

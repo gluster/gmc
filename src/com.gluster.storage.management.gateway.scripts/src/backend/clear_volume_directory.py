@@ -11,10 +11,7 @@ if not p1 in sys.path:
     sys.path.append(p1)
 if not p2 in sys.path:
     sys.path.append(p2)
-import syslog
 import time
-from XmlHandler import ResponseXml
-import DiskUtils
 import Utils
 from optparse import OptionParser
 
@@ -24,7 +21,7 @@ def main():
     (options, args) = parser.parse_args()
 
     if len(args) != 1:
-        sys.stderr.write("usage: %s VOLUME_PATH [-d/--delete]\n" % os.path.basename(sys.argv[0]))
+        sys.stderr.write("usage: %s [-d | --delete] VOLUME_PATH\n" % os.path.basename(sys.argv[0]))
         sys.exit(-1)
 
     volumeDirectory = args[0]
@@ -32,18 +29,20 @@ def main():
         sys.stderr.write("Given volume directory path:%s does not exists\n" % volumeDirectory)
         sys.exit(1)
 
-    # trim '/' at the end
     if '/' == volumeDirectory[-1]:
         volumeDirectory = volumeDirectory[:-1]
+
     newVolumeDirectoryName = "%s_%s" % (volumeDirectory, time.time())
     if Utils.runCommand("mv -f %s %s" % (volumeDirectory, newVolumeDirectoryName), root=True) != 0:
         sys.stderr.write("Failed to rename volume directory\n")
         sys.exit(2)
 
-    if not options.todelete:
-        sys.exit(0)
+    if options.todelete:
+        process = Utils.runCommandBG("rm -fr %s" % newVolumeDirectoryName, root=True)
+        if not process:
+            sys.exit(3)
+    sys.exit(0)
 
-    sys.exit(Utils.runCommand("rm -fr %s" % newVolumeDirectoryName, root=True))
 
 if __name__ == "__main__":
     main()

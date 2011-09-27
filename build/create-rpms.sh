@@ -7,3 +7,4 @@ sudo rm -rf rpms || exit ${FILE_ERR}
 sudo mkdir rpms || exit ${FILE_ERR}
 sudo mv /usr/src/redhat/RPMS/x86_64/glustermg*.rpm rpms || exit ${FILE_ERR}
 sudo chown -R jenkins:jenkins rpms || exit ${FILE_ERR}
+sudo rm -f /usr/src/redhat/SOURCES/glustermg-backend-${VERSION}.tar.gz /usr/src/redhat/SOURCES/glustermg-${VERSION}.war.tar.gz
