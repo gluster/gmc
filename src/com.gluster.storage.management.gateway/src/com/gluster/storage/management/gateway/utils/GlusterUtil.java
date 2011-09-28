@@ -180,6 +180,16 @@ public class GlusterUtil {
 	public void stopVolume(String volumeName, String knownServer) {
 		serverUtil.executeOnServer(knownServer, "gluster --mode=script volume stop " + volumeName);
 	}
+	
+	public void logRotate(String volumeName, List<String> brickList, String knownServer) {
+		if (brickList.size() > 0) {
+			for (String brickDir : brickList) {
+				serverUtil.executeOnServer(knownServer, "gluster volume log rotate " + volumeName + " " + brickDir);
+			}
+		} else {
+			serverUtil.executeOnServer(knownServer, "gluster volume log rotate " + volumeName);
+		}
+	}
 
 	public void resetOptions(String volumeName, String knownServer) {
 		serverUtil.executeOnServer(knownServer, "gluster volume reset " + volumeName);

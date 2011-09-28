@@ -52,6 +52,7 @@ public class RESTConstants {
 	public static final String TASK_COMMIT = "commit";
 	public static final String TASK_STATUS = "status";
 	public static final String TASK_DELETE = "delete";
+	public static final String TASK_LOG_ROTATE = "logRotate";
 	public static final String TASK_REBALANCE_START = "rebalanceStart";
 	public static final String TASK_REBALANCE_STATUS = "rebalanceStatus";
 	public static final String TASK_REBALANCE_STOP = "rebalanceStop";

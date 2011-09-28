@@ -302,6 +302,11 @@
             id="com.gluster.storage.management.console.commands.Preferences"
             name="Settings">
       </command>
+      <command
+            description="Volume Log Rotate"
+            id="com.gluster.storage.management.console.commands.LogRotate"
+            name="LogRotate">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.bindings">
@@ -520,6 +525,19 @@
             id="com.gluster.storage.management.console.actionsets.volume"
             label="Volume Actions"
             visible="false">
+         <action
+               class="com.gluster.storage.management.console.actions.VolumeLogRotateAction"
+               definitionId="com.gluster.storage.management.console.commands.LogRotate"
+               icon="icons/tango/32x32/download-log.png"
+               id="com.gluster.storage.management.console.actions.LogRotateAction"
+               label="L&amp;og Rotate"
+               menubarPath="com.gluster.storage.management.console.menu.volume/volume"
+               pulldown="false"
+               state="true"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Rotate the volume logs">
+         </action>
          <action
                allowLabelUpdate="false"
                class="com.gluster.storage.management.console.actions.MigrateBrickAction"
