@@ -258,6 +258,13 @@ public class VolumesClient extends AbstractClient {
 		putRequest(volumeName, form);
 	}
 
+	public void volumeLogRotate(String volumeName, String bricks) {
+		Form form = new Form();
+		form.add(RESTConstants.FORM_PARAM_OPERATION, RESTConstants.FORM_PARAM_LOG_ROTATE);
+		form.add(FORM_PARAM_BRICKS, bricks);
+		putRequest(volumeName, form);
+	}
+	
 	public static void main(String[] args) {
 		UsersClient usersClient = new UsersClient();
 		try {

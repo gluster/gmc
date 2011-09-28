@@ -193,7 +193,8 @@ public class VolumesResource extends AbstractResource {
 			@FormParam(FORM_PARAM_FIX_LAYOUT) Boolean isFixLayout,
 			@FormParam(FORM_PARAM_MIGRATE_DATA) Boolean isMigrateData,
 			@FormParam(FORM_PARAM_FORCED_DATA_MIGRATE) Boolean isForcedDataMigrate,
-			@FormParam(FORM_PARAM_CIFS_ENABLE) Boolean enableCifs, @FormParam(FORM_PARAM_CIFS_USERS) String cifsUsers) {
+			@FormParam(FORM_PARAM_CIFS_ENABLE) Boolean enableCifs, @FormParam(FORM_PARAM_CIFS_USERS) String cifsUsers,
+			@FormParam(FORM_PARAM_BRICKS) String brickList) {
 		if (clusterName == null || clusterName.isEmpty()) {
 			throw new GlusterValidationException("Cluster name must not be empty!");
 		}
@@ -228,6 +229,8 @@ public class VolumesResource extends AbstractResource {
 					}
 					volumeService.deleteCifsUsers(clusterName, volumeName);
 				}
+			} else if (operation.equals(RESTConstants.FORM_PARAM_LOG_ROTATE)) {
+				volumeService.logRotate(clusterName, volumeName, brickList);
 			} else {
 				volumeService.performVolumeOperation(clusterName, volumeName, operation);
 			}
