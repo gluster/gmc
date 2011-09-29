@@ -69,6 +69,7 @@ public class RESTConstants {
 	public static final String FORM_PARAM_CIFS_ENABLE = "enableCifs";
 	public static final String FORM_PARAM_CIFS_USERS = "cifsUsers";
 	public static final String FORM_PARAM_CIFS_CONFIG = "cifsConfig";
+	public static final String FORM_PARAM_LOG_ROTATE = "logRotate";
 	
 	public static final String FORM_PARAM_CLUSTER_NAME = "clusterName";
 	public static final String FORM_PARAM_SERVER_NAME = "serverName";

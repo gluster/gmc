@@ -706,7 +706,6 @@ public class VolumeService {
 		}
 	}
 	
-	
 	public void performVolumeOperation(String clusterName, String volumeName, String operation) {
 		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
 		try {

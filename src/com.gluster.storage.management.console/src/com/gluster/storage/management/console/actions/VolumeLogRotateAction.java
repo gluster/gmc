@@ -8,11 +8,13 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchPart;
 
 import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.console.actions.AbstractActionDelegate;
 import com.gluster.storage.management.console.utils.GUIHelper;
 import com.gluster.storage.management.console.views.VolumeBricksView;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
+import com.gluster.storage.management.core.utils.StringUtil;
 
 
 public class VolumeLogRotateAction extends AbstractActionDelegate {
