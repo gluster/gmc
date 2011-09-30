@@ -80,5 +80,5 @@ sub updatecpudata {
         $ERROR = RRDs::error;
         print "Error in RRD::update for cpu: $ERROR\n" if $ERROR;
 
-        print "N:$user:$system:$idle\n";
+        #print "N:$user:$system:$idle\n";
 }
