@@ -686,6 +686,26 @@ public class VolumeService {
 		}
 	}
 	
+	public void logRotate(String clusterName, String volumeName, List<String> brickList) {
+		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
+		try {
+			if (onlineServer == null) {
+				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
+			}
+
+			glusterUtil.logRotate(volumeName, brickList, onlineServer.getName());
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
+				// online server has gone offline! try with a different one.
+				onlineServer = clusterService.getNewOnlineServer(clusterName);
+				glusterUtil.logRotate(volumeName, brickList, onlineServer.getName());
+			} else {
+				throw new GlusterRuntimeException("Volume [" + volumeName + "] log rotation failed!", e);
+			}
+		}
+	}
+	
 	public void performVolumeOperation(String clusterName, String volumeName, String operation) {
 		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
 		try {
