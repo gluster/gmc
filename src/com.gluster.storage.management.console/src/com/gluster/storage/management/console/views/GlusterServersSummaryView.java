@@ -70,7 +70,7 @@ public class GlusterServersSummaryView extends ViewPart {
 	@Override
 	public void createPartControl(Composite parent) {
 		if (servers == null) {
-			servers = (EntityGroup<GlusterServer>)guiHelper.getSelectedEntity(getSite(), EntityGroup.class);
+			servers = guiHelper.getSelectedEntity(getSite(), EntityGroup.class);
 		}
 		setPartName("Summary");
 		createSections(parent);
@@ -170,7 +170,7 @@ public class GlusterServersSummaryView extends ViewPart {
 	
 	private int getServerCountByStatus(EntityGroup<GlusterServer> servers, SERVER_STATUS status) {
 		int count = 0;
-		for (GlusterServer server : (List<GlusterServer>)servers.getEntities()) {
+		for (GlusterServer server : servers.getEntities()) {
 			if (server.getStatus() == status) {
 				count++;
 			}

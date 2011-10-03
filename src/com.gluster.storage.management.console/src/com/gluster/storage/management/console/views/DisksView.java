@@ -23,7 +23,7 @@ public class DisksView extends ViewPart {
 	@Override
 	public void createPartControl(Composite parent) {
 		if (servers == null) {
-			servers = (EntityGroup<GlusterServer>)guiHelper.getSelectedEntity(getSite(), EntityGroup.class);
+			servers = guiHelper.getSelectedEntity(getSite(), EntityGroup.class);
 		}
 		
 		page = new DisksPage(parent, SWT.NONE, getSite(), getAllDisks(servers));
@@ -32,7 +32,7 @@ public class DisksView extends ViewPart {
 
 	private List<Disk> getAllDisks(EntityGroup<GlusterServer> servers) {
 		List<Disk> disks = new ArrayList<Disk>();
-		for(GlusterServer server : (List<GlusterServer>)servers.getEntities()) {
+		for(GlusterServer server : servers.getEntities()) {
 			disks.addAll(server.getDisks());
 		}
 		return disks;

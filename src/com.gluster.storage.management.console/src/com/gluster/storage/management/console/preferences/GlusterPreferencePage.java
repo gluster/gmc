@@ -70,7 +70,7 @@ public class GlusterPreferencePage
 		
 		String[][] clusterNamesArr = new String[clusterNames.size()][2];
 		for(int i = 0; i < clusterNames.size(); i++) {
-			String clusterName = clusterNames.get(i);;
+			String clusterName = clusterNames.get(i);
 			clusterNamesArr[i][0] = clusterName;
 			clusterNamesArr[i][1] = clusterName;
 		}

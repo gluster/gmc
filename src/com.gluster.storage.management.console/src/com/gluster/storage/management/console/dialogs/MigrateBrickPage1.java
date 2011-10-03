@@ -152,10 +152,10 @@ public class MigrateBrickPage1 extends WizardPage {
 	}
 
 	private void setPageDescription(String source, String target) {
-		if (source == null || source == "") {
+		if (source == null || source.equals("")) {
 			source = "From Brick";
 		}
-		if (target == null || target == "") {
+		if (target == null || target.equals("")) {
 			target = "To Brick";
 		}
 		setDescription("Migrate volume data from \"" + source + "\" to \"" + target + "\"");
