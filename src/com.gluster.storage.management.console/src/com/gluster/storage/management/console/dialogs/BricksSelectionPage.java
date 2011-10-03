@@ -308,7 +308,7 @@ public class BricksSelectionPage extends Composite {
 	}
 
 	public List<Device> getChosenDevices() {
-		Object[] devicesArr = (Object[]) chosenBricksContentProvider.getElements(dualTableViewer);
+		Object[] devicesArr = chosenBricksContentProvider.getElements(dualTableViewer);
 		if (devicesArr != null) {
 			List<Device> devices = new ArrayList<Device>();
 			for (Object device : devicesArr) {
@@ -320,7 +320,7 @@ public class BricksSelectionPage extends Composite {
 	}
 
 	public Set<Brick> getChosenBricks(String volumeName) {
-		Object[] bricksArr = (Object[]) chosenBricksContentProvider.getElements(dualTableViewer);
+		Object[] bricksArr = chosenBricksContentProvider.getElements(dualTableViewer);
 
 		if (bricksArr != null) {
 			Set<Brick> bricks = new HashSet<Brick>();

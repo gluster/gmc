@@ -111,11 +111,7 @@ public class DiskTreeContentProvider implements ITreeContentProvider {
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#hasChildren(java.lang.Object)
 	 */
 	public boolean hasChildren(Object element) {
-		if(element instanceof Disk && ((Disk)element).getPartitions().size() > 0) {
-			return true;
-		} else {
-			return false;
-		}
+		return (element instanceof Disk && ((Disk)element).getPartitions().size() > 0);
 	}
 
 

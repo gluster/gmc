@@ -17,7 +17,7 @@ public class VolumeOptionsView extends ViewPart {
 	@Override
 	public void createPartControl(Composite parent) {
 		if (volume == null) {
-			volume = (Volume) guiHelper.getSelectedEntity(getSite(), Volume.class);
+			volume = guiHelper.getSelectedEntity(getSite(), Volume.class);
 		}
 
 		createPage(parent);

@@ -78,7 +78,7 @@ public class MigrateBrickWizard extends Wizard {
 			// To get the object
 			TasksClient taskClient = new TasksClient();
 			TaskInfo taskInfo = taskClient.getTaskInfo(uri);
-			if (taskInfo != null && taskInfo instanceof TaskInfo) {
+			if (taskInfo != null) {
 				// cluster.addTaskInfo(taskInfo);
 				String volumeName = taskInfo.getReference().split("#")[0];
 				modelManager.addTask(taskInfo);

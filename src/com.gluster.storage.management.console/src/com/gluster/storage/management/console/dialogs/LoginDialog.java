@@ -51,7 +51,7 @@ import com.gluster.storage.management.client.UsersClient;
 import com.gluster.storage.management.console.Activator;
 import com.gluster.storage.management.console.GlusterDataModelManager;
 import com.gluster.storage.management.console.IImageKeys;
-import com.gluster.storage.management.console.dialogs.ClusterSelectionDialog.CLUSTER_MODE;
+import static com.gluster.storage.management.console.dialogs.ClusterSelectionDialog.CLUSTER_MODE;
 import com.gluster.storage.management.console.preferences.PreferenceConstants;
 import com.gluster.storage.management.console.utils.GUIHelper;
 import com.gluster.storage.management.console.validators.StringRequiredValidator;

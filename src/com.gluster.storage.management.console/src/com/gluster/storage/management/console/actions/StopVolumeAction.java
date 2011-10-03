@@ -123,7 +123,7 @@ public class StopVolumeAction extends AbstractMonitoredActionDelegate {
 					+ "Error: [" + errorMessage + "]");
 		} else {
 			String info = "Volumes " + stoppedVolumes + " stopped successfully!";
-			if (errorMessage != "") {
+			if (!errorMessage.equals("")) {
 				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes " + failedVolumes
 						+ " failed to stop! [" + errorMessage + "]";
 			}

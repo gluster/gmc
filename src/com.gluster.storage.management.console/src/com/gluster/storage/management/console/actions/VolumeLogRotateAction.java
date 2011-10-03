@@ -8,13 +8,11 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchPart;
 
 import com.gluster.storage.management.client.VolumesClient;
-import com.gluster.storage.management.console.actions.AbstractActionDelegate;
 import com.gluster.storage.management.console.utils.GUIHelper;
 import com.gluster.storage.management.console.views.VolumeBricksView;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Volume;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
-import com.gluster.storage.management.core.utils.StringUtil;
 
 
 public class VolumeLogRotateAction extends AbstractActionDelegate {
@@ -51,7 +49,7 @@ public class VolumeLogRotateAction extends AbstractActionDelegate {
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		super.selectionChanged(action, selection);
-		volume = (Volume) guiHelper.getSelectedEntity(window, Volume.class);
+		volume = guiHelper.getSelectedEntity(window, Volume.class);
 
 		if (volume != null) {
 			// a volume is selected on navigation tree. Let's check if the currently open view is volume bricks view

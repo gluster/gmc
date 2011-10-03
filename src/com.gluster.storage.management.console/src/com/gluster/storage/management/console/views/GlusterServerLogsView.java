@@ -40,7 +40,7 @@ public class GlusterServerLogsView extends ViewPart {
 	@Override
 	public void createPartControl(Composite parent) {
 		if (server == null) {
-			server = (GlusterServer) guiHelper.getSelectedEntity(getSite(), GlusterServer.class);
+			server = guiHelper.getSelectedEntity(getSite(), GlusterServer.class);
 		}
 		
 		page = new ServerLogsPage(parent, SWT.NONE, server);
