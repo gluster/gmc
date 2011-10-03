@@ -28,8 +28,10 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
  */
 public class FileUtilTest {
 	
+
 	private String filePath = FileUtil.getTempDirName() + "/test.txt";
 	
+
 	/**
 	 * To write the text into given file. 
 	 *
@@ -53,7 +55,6 @@ public class FileUtilTest {
 		return file.mkdirs();
 	}
 	
-	
 	private boolean createEmptyFile(String fileName) {
 		File file = new File(fileName);
 		if (file.exists()) {
@@ -66,7 +67,6 @@ public class FileUtilTest {
 			return false;
 		}
 	}
-	
 	
 	/**
 	 * Run the File createTempDir() method test.
@@ -115,7 +115,6 @@ public class FileUtilTest {
 		throws Exception {
 		String fileName = "";
 		String contents = "";
-
 		FileUtil.createTextFile(fileName, contents);
 	}
 
@@ -129,7 +128,6 @@ public class FileUtilTest {
 	@Test
 	public void testGetTempDirName_1()
 		throws Exception {
-
 		String result = FileUtil.getTempDirName();
 
 		// while running on linux
@@ -143,6 +141,7 @@ public class FileUtilTest {
 	 *
 	 * @generatedBy CodePro at 9/29/11 2:39 PM
 	 */
+
 	@Test(expected=GlusterRuntimeException.class)
 	public void testReadFileAsByteArray_1()
 		throws Exception {
@@ -176,6 +175,7 @@ public class FileUtilTest {
 	 *
 	 * @generatedBy CodePro at 9/29/11 2:39 PM
 	 */
+
 	@Test(expected=GlusterRuntimeException.class)
 	public void testReadFileAsString_1()
 		throws Exception {
@@ -195,7 +195,6 @@ public class FileUtilTest {
 	@Test
 	public void testReadFileAsString_2()
 		throws Exception {
-		// Setup 
 		File file = new File(filePath);
 		String result = FileUtil.readFileAsString(file);
 
@@ -228,6 +227,7 @@ public class FileUtilTest {
 	 *
 	 * @generatedBy CodePro at 9/29/11 2:39 PM
 	 */
+
 	@Test(expected=GlusterRuntimeException.class)
 	public void testRecursiveDelete_2()
 		throws Exception {
@@ -306,6 +306,7 @@ public class FileUtilTest {
 	 *
 	 * @generatedBy CodePro at 9/29/11 2:39 PM
 	 */
+
 	@Test(expected=GlusterRuntimeException.class)
 	public void testRenameFile_1()
 		throws Exception {
@@ -349,7 +350,6 @@ public class FileUtilTest {
 		assertTrue(new File(toPath).exists());
 	}
 	
-
 	/**
 	 * Perform pre-test initialization.
 	 *

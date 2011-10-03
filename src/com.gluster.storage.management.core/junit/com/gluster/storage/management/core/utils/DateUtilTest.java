@@ -1,7 +1,6 @@
 package com.gluster.storage.management.core.utils;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.util.Date;
 
@@ -50,7 +49,6 @@ public class DateUtilTest {
 		String dateFormat = "";
 
 		String result = DateUtil.dateToString(date, dateFormat);
-
 		assertEquals("", result);
 	}
 	
@@ -68,7 +66,6 @@ public class DateUtilTest {
 		String dateFormat = CoreConstants.PURE_DATE_FORMAT;
 
 		String result = DateUtil.dateToString(date, dateFormat);
-
 		assertEquals("09/29/2011", result);
 	}
 
@@ -192,6 +189,7 @@ public class DateUtilTest {
 		throws Exception {
 			String inputDate = "";
 			String dateFormat = "";
+
 			DateUtil.stringToDate(inputDate, dateFormat);
 	}
 
