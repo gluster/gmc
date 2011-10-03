@@ -331,7 +331,7 @@ public class GlusterDataModelManager {
 			device.setStatus(status);
 			device.setType(DEVICE_TYPE.DATA);
 			for (ClusterListener listener : listeners) {
-				listener.serverChanged((GlusterServer) server, new Event(EVENT_TYPE.DEVICES_CHANGED, device));
+				listener.serverChanged(server, new Event(EVENT_TYPE.DEVICES_CHANGED, device));
 			}
 		}
 	}
@@ -676,7 +676,7 @@ public class GlusterDataModelManager {
 		cluster.addDiscoveredServer(server);
 		
 		for (ClusterListener listener : listeners) {
-			listener.discoveredServerAdded(server);;
+			listener.discoveredServerAdded(server);
 		}
 	}
 	

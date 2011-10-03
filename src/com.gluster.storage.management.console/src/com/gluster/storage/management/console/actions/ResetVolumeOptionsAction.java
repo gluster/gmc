@@ -53,11 +53,6 @@ public class ResetVolumeOptionsAction extends AbstractActionDelegate {
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		volume = GUIHelper.getInstance().getSelectedEntity(getWindow(), Volume.class);
-		
-		if (volume instanceof Volume) {
-			action.setEnabled(volume.getOptions().size() > 0);
-		} else {
-			action.setEnabled(false);
-		}
+		action.setEnabled(volume.getOptions().size() > 0);
 	}
 }

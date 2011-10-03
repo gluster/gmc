@@ -93,11 +93,7 @@ public class SelectDisksDialog extends Dialog {
 		return new Point(1024, 600);
 	}
 
-	@Override
-	protected void cancelPressed() {
-		super.cancelPressed();
-	}
-
+	
 	@Override
 	protected void okPressed() {
 		if (this.getSelectedDevices().size() == 0) {

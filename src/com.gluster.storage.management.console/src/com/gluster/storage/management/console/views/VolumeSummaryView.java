@@ -93,7 +93,7 @@ public class VolumeSummaryView extends ViewPart {
 	@Override
 	public void createPartControl(Composite parent) {
 		if (volume == null) {
-			volume = (Volume) guiHelper.getSelectedEntity(getSite(), Volume.class);
+			volume = guiHelper.getSelectedEntity(getSite(), Volume.class);
 		}
 
 		this.parent = parent;
@@ -436,7 +436,7 @@ public class VolumeSummaryView extends ViewPart {
 					}
 					
 					// If no cifs users and removing cifs config, nothing to do
-					if (!(!cifsCheckbox.getSelection() && volume.getCifsUsers().toString() == "[]" && (cifsUsers
+					if (!(!cifsCheckbox.getSelection() && volume.getCifsUsers().toString().equals("[]") && (cifsUsers
 							.isEmpty() || cifsUsers.equals(""))) && userAction == 1) {
 						try {
 							vc.setCifsConfig(volume.getName(), cifsCheckbox.getSelection(), cifsUsers);
@@ -850,11 +850,7 @@ public class VolumeSummaryView extends ViewPart {
 	private boolean isvalidCifsUser() {
 		if (cifsCheckbox.getSelection()) {
 			String cifsUserList = cifsUsersText.getText().trim();
-			if (cifsUserList.length() == 0) {
-				return false;
-			} else {
-				return true;
-			}
+			return (cifsUserList.length() != 0);
 		}
 		validateCifsUsers();
 		return true;

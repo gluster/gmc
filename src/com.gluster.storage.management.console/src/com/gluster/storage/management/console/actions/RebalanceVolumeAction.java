@@ -51,7 +51,7 @@ public class RebalanceVolumeAction extends AbstractActionDelegate {
 			// Add the task to model
 			TasksClient taskClient = new TasksClient();
 			TaskInfo taskInfo = taskClient.getTaskInfo(uri);
-			if (taskInfo != null && taskInfo instanceof TaskInfo) {
+			if (taskInfo != null) {
 				GlusterDataModelManager.getInstance().addTask(taskInfo);
 			}
 			showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] rebalance started successfully!");
@@ -68,7 +68,7 @@ public class RebalanceVolumeAction extends AbstractActionDelegate {
 
 		Volume selectedVolume = guiHelper.getSelectedEntity(getWindow(), Volume.class);
 		if (selectedVolume != null) {
-			volume = (Volume) selectedVolume;
+			volume = selectedVolume;
 			action.setEnabled(true);
 		} else {
 			action.setEnabled(false);

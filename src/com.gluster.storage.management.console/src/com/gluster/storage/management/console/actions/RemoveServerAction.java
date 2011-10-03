@@ -32,10 +32,12 @@ import org.eclipse.jface.viewers.ISelection;
 import com.gluster.storage.management.client.GlusterServersClient;
 import com.gluster.storage.management.console.GlusterDataModelManager;
 import com.gluster.storage.management.console.utils.GUIHelper;
+import com.gluster.storage.management.console.utils.GlusterLogger;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.GlusterServer;
 
 public class RemoveServerAction extends AbstractMonitoredActionDelegate {
+	private static final GlusterLogger logger = GlusterLogger.getInstance();
 	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 	private GUIHelper guiHelper = GUIHelper.getInstance();
 
@@ -64,12 +66,12 @@ public class RemoveServerAction extends AbstractMonitoredActionDelegate {
 			GlusterServersClient client = new GlusterServersClient();
 			try {
 				client.removeServer(server.getName());
-				GlusterServer glusterServer = (GlusterServer) server;
+				GlusterServer glusterServer = server;
 				modelManager.removeGlusterServer(glusterServer);
 				successServers.add(server);
 			} catch (Exception e) {
 				if (!serverExists(server.getName())) {
-					modelManager.removeGlusterServer((GlusterServer) server);
+					modelManager.removeGlusterServer(server);
 				}
 				errMsg += "[" + server.getName() + "] : " + e.getMessage() + CoreConstants.NEWLINE;
 			}
@@ -83,12 +85,9 @@ public class RemoveServerAction extends AbstractMonitoredActionDelegate {
 		try {
 			GlusterServersClient client = new GlusterServersClient();
 			GlusterServer server = client.getGlusterServer(serverName);
-			if (server != null && server.getName().length() > 0) {
-				return true;
-			} else {
-				return false;
-			}
+			return (server != null && server.getName().length() > 0);
 		} catch (Exception e) {
+			logger.error("Error while getting server info", e);
 			return false;
 		}
 	}

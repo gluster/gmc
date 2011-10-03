@@ -111,7 +111,7 @@ public class StartVolumeAction extends AbstractMonitoredActionDelegate {
 					+ CoreConstants.NEWLINE + "Error: [" + errorMessage + "]");
 		} else {
 			String info = "Volumes " + startedVolumes + " started successfully!";
-			if (errorMessage != "") {
+			if (!errorMessage.equals("")) {
 				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes " + failedVolumes
 						+ " failed to start! [" + errorMessage + "]";
 			}

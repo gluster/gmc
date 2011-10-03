@@ -50,7 +50,7 @@ public class GlusterServersView extends ViewPart implements IDoubleClickListener
 	@Override
 	public void createPartControl(Composite parent) {
 		if (servers == null) {
-			servers = (EntityGroup<GlusterServer>) guiHelper.getSelectedEntity(getSite(), EntityGroup.class);
+			servers = guiHelper.getSelectedEntity(getSite(), EntityGroup.class);
 		}
 		
 		page = new GlusterServersPage(getSite(), parent, SWT.NONE, servers);
