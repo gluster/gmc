@@ -1,10 +1,6 @@
 package com.gluster.storage.management.core.utils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -29,7 +25,8 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 public class FileUtilTest {
 	
 
-	private String filePath = FileUtil.getTempDirName() + "/test.txt";
+	private static final String TEST_FILE_PATH = FileUtil.getTempDirName() + "/test.txt";
+	private static final String TEST_FILE_CONTENT = "Welcome to Gluster Storage Management console.";
 	
 
 	/**
@@ -160,11 +157,12 @@ public class FileUtilTest {
 	@Test
 	public void testReadFileAsByteArray_2()
 		throws Exception {
-		File file = new File(filePath);
+		File file = new File(TEST_FILE_PATH);
 
 		byte[] result = FileUtil.readFileAsByteArray(file);
 		assertNotNull(result);
 		assertTrue(result instanceof byte[]);
+		assertTrue(TEST_FILE_CONTENT.equals(new String(result)));
 	}
 
 	
@@ -181,7 +179,7 @@ public class FileUtilTest {
 		throws Exception {
 		File file = new File("");
 		
-		String result = FileUtil.readFileAsString(file);
+		FileUtil.readFileAsString(file);
 	}
 	
 	
@@ -195,11 +193,12 @@ public class FileUtilTest {
 	@Test
 	public void testReadFileAsString_2()
 		throws Exception {
-		File file = new File(filePath);
+		File file = new File(TEST_FILE_PATH);
 		String result = FileUtil.readFileAsString(file);
 
 		assertNotNull(result);
 		assertTrue(result instanceof String);
+		assertTrue(result.equals(TEST_FILE_CONTENT));
 	}
 
 	/**
@@ -363,7 +362,7 @@ public class FileUtilTest {
 		throws Exception {
 
 		// testReadFileAsByteArray_2()
-		if (!writeToFile(filePath, "Welcome to Gluster Storage Management console.")) {
+		if (!writeToFile(TEST_FILE_PATH, TEST_FILE_CONTENT)) {
 			fail("Setup: Text file creation error!");
 		}
 
@@ -398,7 +397,7 @@ public class FileUtilTest {
 	@After
 	public void tearDown()
 		throws Exception {
-		File file = new File(filePath);
+		File file = new File(TEST_FILE_PATH);
 		file.delete();
 		file = new File(FileUtil.getTempDirName() + "/rd/b/c/d");
 		if (file.exists()) {
