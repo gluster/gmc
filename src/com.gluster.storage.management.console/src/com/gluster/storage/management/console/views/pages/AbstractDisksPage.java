@@ -270,7 +270,7 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 				TasksClient taskClient = new TasksClient();
 				TaskInfo taskInfo = taskClient.getTaskInfo(uri);
 				
-				if (taskInfo != null && taskInfo instanceof TaskInfo) {
+				if (taskInfo != null) {
 					modelManager.addTask(taskInfo);
 				}
 

@@ -20,7 +20,7 @@ package com.gluster.storage.management.console;
 
 import org.eclipse.swt.graphics.Image;
 
-import com.gluster.storage.management.console.DeviceTableLabelProvider.DEVICE_COLUMN_INDICES;
+import static com.gluster.storage.management.console.DeviceTableLabelProvider.DEVICE_COLUMN_INDICES;
 import com.gluster.storage.management.console.utils.GUIHelper;
 import com.gluster.storage.management.console.views.pages.ServerDisksPage.SERVER_DISK_TABLE_COLUMN_INDICES;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;

@@ -114,7 +114,7 @@ public class DeleteVolumeAction extends AbstractMonitoredActionDelegate {
 					+ "Error: [" + errorMessage + "]");
 		} else {
 			String info = "Volumes " + deletedVolumeNames + " deleted successfully!";
-			if (errorMessage != "") {
+			if (!errorMessage.equals("")) {
 				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes " + failedVolumes
 						+ " could not be deleted! [" + errorMessage + "]";
 			}

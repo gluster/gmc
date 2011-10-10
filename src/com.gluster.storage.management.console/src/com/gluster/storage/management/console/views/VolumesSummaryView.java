@@ -20,8 +20,6 @@
  */
 package com.gluster.storage.management.console.views;
 
-import java.util.List;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.layout.GridData;
@@ -243,7 +241,7 @@ public class VolumesSummaryView extends ViewPart {
 
 	private int getVolumeCountByStatus(EntityGroup<Volume> volumes, VOLUME_STATUS status) {
 		int count = 0;
-		for (Volume volume : (List<Volume>) volumes.getEntities()) {
+		for (Volume volume : volumes.getEntities()) {
 			if (volume.getStatus() == status) {
 				count++;
 			}

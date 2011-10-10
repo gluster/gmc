@@ -50,7 +50,7 @@ public class DiscoveredServerView extends ViewPart {
 	@Override
 	public void createPartControl(Composite parent) {
 		if (server == null) {
-			server = (Server) guiHelper.getSelectedEntity(getSite(), Server.class);
+			server = guiHelper.getSelectedEntity(getSite(), Server.class);
 		}
 		createSections(parent);
 	}

@@ -59,7 +59,6 @@ import com.gluster.storage.management.gateway.data.ClusterInfo;
 import com.gluster.storage.management.gateway.resources.v1_0.TasksResource;
 import com.gluster.storage.management.gateway.tasks.MigrateBrickTask;
 import com.gluster.storage.management.gateway.tasks.RebalanceVolumeTask;
-import com.gluster.storage.management.gateway.utils.GlusterUtil;
 import com.gluster.storage.management.gateway.utils.ServerUtil;
 
 /**
@@ -84,7 +83,10 @@ public class VolumeService {
 	private ClusterService clusterService;
 
 	@Autowired
-	private GlusterUtil glusterUtil;
+	private GlusterInterfaceService glusterUtil;
+	
+	@Autowired
+	private GlusterServerService glusterServerService;
 
 	@Autowired
 	protected ServerUtil serverUtil;
@@ -251,7 +253,7 @@ public class VolumeService {
 		
 		try {
 			GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
-			List<GlusterServer> glusterServers = glusterUtil.getGlusterServers(onlineServer);
+			List<GlusterServer> glusterServers = glusterServerService.getGlusterServers(onlineServer.getName());
 			File serversFile = new File(clusterServersListFile);
 			FileOutputStream fos = new FileOutputStream(serversFile);
 			for (GlusterServer server : glusterServers) {
@@ -683,6 +685,26 @@ public class VolumeService {
 		// call the stop_volume_cifs.py script only if the volume is cifs enabled
 		if (volume.isCifsEnable()) {
 			stopCifsReExport(clusterName, volume.getName());
+		}
+	}
+	
+	public void logRotate(String clusterName, String volumeName, List<String> brickList) {
+		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
+		try {
+			if (onlineServer == null) {
+				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
+			}
+
+			glusterUtil.logRotate(volumeName, brickList, onlineServer.getName());
+		} catch (Exception e) {
+			// check if online server has gone offline. If yes, try again one more time.
+			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
+				// online server has gone offline! try with a different one.
+				onlineServer = clusterService.getNewOnlineServer(clusterName);
+				glusterUtil.logRotate(volumeName, brickList, onlineServer.getName());
+			} else {
+				throw new GlusterRuntimeException("Volume [" + volumeName + "] log rotation failed!", e);
+			}
 		}
 	}
 	

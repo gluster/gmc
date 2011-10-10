@@ -69,7 +69,7 @@ public class RemoveBrickAction extends AbstractActionDelegate {
 		super.selectionChanged(action, selection);
 
 		action.setEnabled(false);
-		volume = (Volume) guiHelper.getSelectedEntity(window, Volume.class);
+		volume = guiHelper.getSelectedEntity(window, Volume.class);
 		if (volume != null) {
 			// a volume is selected on navigation tree. Let's check if the currently open view is volume disks view
 			IWorkbenchPart view = guiHelper.getActiveView();

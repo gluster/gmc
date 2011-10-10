@@ -46,7 +46,7 @@ public class GlusterServerDisksView extends ViewPart {
 	@Override
 	public void createPartControl(Composite parent) {
 		if (server == null) {
-			server = (GlusterServer) guiHelper.getSelectedEntity(getSite(), GlusterServer.class);
+			server = guiHelper.getSelectedEntity(getSite(), GlusterServer.class);
 		}
 		page = new ServerDisksPage(parent, SWT.NONE, getSite(), server.getDisks());
 

@@ -34,11 +34,12 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.exceptions.GlusterValidationException;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
+import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.ProcessUtil;
+import com.gluster.storage.management.core.utils.StringUtil;
 import com.gluster.storage.management.gateway.data.ClusterInfo;
 import com.gluster.storage.management.gateway.data.ServerInfo;
-import com.gluster.storage.management.gateway.utils.GlusterUtil;
 import com.gluster.storage.management.gateway.utils.ServerUtil;
 import com.gluster.storage.management.gateway.utils.SshUtil;
 
@@ -47,6 +48,12 @@ import com.gluster.storage.management.gateway.utils.SshUtil;
  */
 @Component
 public class GlusterServerService {
+	private static final String HOSTNAME_PFX = "Hostname:";
+	private static final String UUID_PFX = "Uuid:";
+	private static final String STATE_PFX = "State:";
+	private static final String GLUSTER_SERVER_STATUS_ONLINE = "Peer in Cluster (Connected)";
+	private static final String GLUSTERD_INFO_FILE = "/etc/glusterd/glusterd.info";
+
 	@Autowired
 	protected ServerUtil serverUtil;
 	
@@ -54,7 +61,7 @@ public class GlusterServerService {
 	private ClusterService clusterService;
 
 	@Autowired
-	private GlusterUtil glusterUtil;
+	private GlusterInterfaceService glusterUtil;
 	
 	@Autowired
 	private SshUtil sshUtil;
@@ -98,7 +105,7 @@ public class GlusterServerService {
 			Integer maxCount, String previousServerName) {
 		List<GlusterServer> glusterServers;
 		try {
-			glusterServers = glusterUtil.getGlusterServers(onlineServer);
+			glusterServers = getGlusterServers(onlineServer.getName());
 		} catch (Exception e) {
 			// check if online server has gone offline. If yes, try again one more time.
 			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
@@ -107,7 +114,7 @@ public class GlusterServerService {
 				if (onlineServer == null) {
 					throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 				}
-				glusterServers = glusterUtil.getGlusterServers(onlineServer);
+				glusterServers = getGlusterServers(onlineServer.getName());
 			} else {
 				throw new GlusterRuntimeException(e.getMessage());
 			}
@@ -124,6 +131,85 @@ public class GlusterServerService {
 		}
 		return glusterServers;
 	}
+	
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#getGlusterServer(com.gluster.storage.management.core.model.GlusterServer, java.lang.String)
+	 */
+	public GlusterServer getGlusterServer(String onlineServer, String serverName) {
+		List<GlusterServer> servers = getGlusterServers(onlineServer);
+		for (GlusterServer server : servers) {
+			if (server.getName().equalsIgnoreCase(serverName)) {
+				return server;
+			}
+		}
+		return null;
+	}
+	
+	private String getUuid(String serverName) {
+		return serverUtil.executeOnServer(serverName, "cat " + GLUSTERD_INFO_FILE, String.class).split("=")[1];
+	}
+
+	/* (non-Javadoc)
+	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#getGlusterServers(com.gluster.storage.management.core.model.GlusterServer)
+	 */
+	public List<GlusterServer> getGlusterServers(String knownServerName) {
+		String output = getPeerStatus(knownServerName);
+
+		GlusterServer knownServer = new GlusterServer(knownServerName);
+		knownServer.setUuid(getUuid(knownServerName));
+		
+		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();
+		glusterServers.add(knownServer);
+		
+		GlusterServer server = null;
+		boolean foundHost = false;
+		boolean foundUuid = false;
+		for (String line : output.split(CoreConstants.NEWLINE)) {
+			if (foundHost && foundUuid) {
+				// Host and UUID is found, we should look for state
+				String state = StringUtil.extractToken(line, STATE_PFX);
+				if (state != null) {
+					server.setStatus(state.contains(GLUSTER_SERVER_STATUS_ONLINE) ? SERVER_STATUS.ONLINE
+							: SERVER_STATUS.OFFLINE);
+					// Completed populating current server. Add it to the list
+					// and reset all related variables.
+					glusterServers.add(server);
+
+					foundHost = false;
+					foundUuid = false;
+					server = null;
+				}
+			} else if (foundHost) {
+				// Host is found, look for UUID
+				String uuid = StringUtil.extractToken(line, UUID_PFX);
+				if (uuid != null) {
+					server.setUuid(uuid);
+					foundUuid = true;
+				}
+			} else {
+				// Look for the next host
+				if (server == null) {
+					server = new GlusterServer();
+				}
+				String hostName = StringUtil.extractToken(line, HOSTNAME_PFX);
+				if (hostName != null) {
+					server.setName(hostName);
+					foundHost = true;
+				}
+			}
+
+		}
+		return glusterServers;
+	}
+
+	/**
+	 * @param knownServer
+	 *            A known server on which the gluster command will be executed to fetch peer status
+	 * @return Outout of the "gluster peer status" command
+	 */
+	private String getPeerStatus(String knownServer) {
+		return serverUtil.executeOnServer(knownServer, "gluster peer status", String.class);
+	}
 
 	private String fetchDetailsOfServers(List<GlusterServer> glusterServers) {
 		try {
@@ -138,16 +224,6 @@ public class GlusterServerService {
 			logger.error(errMsg, e);
 			throw new GlusterRuntimeException(errMsg, e);
 		}
-//		String errMsg = "";
-//
-//		for (GlusterServer server : glusterServers) {
-//			try {
-//				fetchServerDetails(server);
-//			} catch (Exception e) {
-//				errMsg += CoreConstants.NEWLINE + server.getName() + " : [" + e.getMessage() + "]";
-//			}
-//		}
-//		return errMsg;
 	}
 
 	private String prepareErrorMessage(List<String> errors) {
@@ -238,7 +314,7 @@ public class GlusterServerService {
 			Boolean fetchDetails) {
 		GlusterServer server = null;
 		try {
-			server = glusterUtil.getGlusterServer(onlineServer, serverName);
+			server = getGlusterServer(onlineServer.getName(), serverName);
 		} catch (Exception e) {
 			// check if online server has gone offline. If yes, try again one more time.
 			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
@@ -247,7 +323,7 @@ public class GlusterServerService {
 				if (onlineServer == null) {
 					throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 				}
-				server = glusterUtil.getGlusterServer(onlineServer, serverName);
+				server = getGlusterServer(onlineServer.getName(), serverName);
 			} else {
 				throw new GlusterRuntimeException(e.getMessage());
 			}

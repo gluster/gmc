@@ -25,24 +25,27 @@ import org.springframework.web.context.ContextLoader;
 
 import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
+import com.gluster.storage.management.core.model.InitDiskStatusResponse;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
+import com.gluster.storage.management.core.model.InitDiskStatusResponse.FORMAT_STATUS;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.gateway.services.ClusterService;
-import com.gluster.storage.management.gateway.utils.GlusterUtil;
+import com.gluster.storage.management.gateway.services.GlusterInterfaceService;
 import com.gluster.storage.management.gateway.utils.ServerUtil;
 import com.sun.jersey.core.util.Base64;
 
 public class InitializeDiskTask extends Task {
 
 	private static final String INITIALIZE_DISK_SCRIPT = "format_device.py";
+	private static final String INITIALIZE_DISK_STATUS_SCRIPT = "get_format_device_status.py";
 	
 	private String serverName;
 	private String diskName;
 	private String fsType;
 	private ServerUtil serverUtil;
-	private GlusterUtil glusterUtil;
+	private GlusterInterfaceService glusterUtil;
 
 	public InitializeDiskTask(ClusterService clusterService, String clusterName, String serverName, String diskName,
 			String fsType) {
@@ -64,7 +67,7 @@ public class InitializeDiskTask extends Task {
 
 	private void init() {
 		ApplicationContext ctx = ContextLoader.getCurrentWebApplicationContext();
-		glusterUtil = ctx.getBean(GlusterUtil.class);
+		glusterUtil = ctx.getBean(GlusterInterfaceService.class);
 		serverUtil = ctx.getBean(ServerUtil.class);
 	}
 	
@@ -130,11 +133,38 @@ public class InitializeDiskTask extends Task {
 	public TaskStatus checkStatus() {
 		
 		try {
-			return glusterUtil.getInitializingDeviceStatus(serverName, getDiskName());
+			return getInitializingDeviceStatus(serverName, getDiskName());
 		} catch(ConnectionException e) {
 			// online server might have gone offline. update the failure status
 			return new TaskStatus(new Status(Status.STATUS_CODE_FAILURE, e.getMessage()));
 		}
+	}
+	
+	private TaskStatus getInitializingDeviceStatus(String serverName, String diskName) {
+		InitDiskStatusResponse initDiskStatusResponse;
+		TaskStatus taskStatus = new TaskStatus();
+		
+		try {
+			initDiskStatusResponse = serverUtil.executeScriptOnServer(serverName, INITIALIZE_DISK_STATUS_SCRIPT + " "
+				+ diskName, InitDiskStatusResponse.class);
+		} catch(RuntimeException e) {
+			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+			taskStatus.setMessage(e.getMessage());
+			throw e;
+		}
+
+		if (initDiskStatusResponse.getFormatStatus() == FORMAT_STATUS.COMPLETED) {
+			taskStatus.setCode(Status.STATUS_CODE_SUCCESS);
+		} else if (initDiskStatusResponse.getFormatStatus() == FORMAT_STATUS.IN_PROGRESS) {
+			taskStatus.setCode(Status.STATUS_CODE_RUNNING);
+			taskStatus.setPercentCompleted(Math.round(initDiskStatusResponse.getCompletedBlocks()
+					/ initDiskStatusResponse.getTotalBlocks() * 100));
+		} else if(initDiskStatusResponse.getFormatStatus() == FORMAT_STATUS.NOT_RUNNING) {
+			taskStatus.setCode(Status.STATUS_CODE_FAILURE);
+		}
+		
+		taskStatus.setMessage(initDiskStatusResponse.getMessage());
+		return taskStatus;
 	}
 	
 	public void setDiskName(String diskName) {

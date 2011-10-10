@@ -34,6 +34,10 @@ public class TaskStatus extends Status {
 		super(status.getCode(), status.getMessage());
 	}
 
+	public boolean isCommitPending() {
+		return getCode() == STATUS_CODE_COMMIT_PENDING;
+	}
+	
 	public boolean isPercentageSupported() {
 		return isPercentageSupported;
 	}

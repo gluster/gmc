@@ -65,7 +65,7 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 			@Override
 			public void propertyChange(PropertyChangeEvent event) {
 				if(event.getProperty().equals(PreferenceConstants.P_DATA_SYNC_INTERVAL)) {
-					JOB_INTERVAL = (Integer)event.getNewValue() * 1000l;
+					JOB_INTERVAL = (Integer)event.getNewValue() * 1000L;
 				}
 			}
 		};

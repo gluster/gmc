@@ -29,7 +29,7 @@ import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.gateway.services.ClusterService;
-import com.gluster.storage.management.gateway.utils.GlusterUtil;
+import com.gluster.storage.management.gateway.services.GlusterInterfaceService;
 import com.gluster.storage.management.gateway.utils.ServerUtil;
 import com.sun.jersey.core.util.Base64;
 
@@ -38,7 +38,7 @@ public class RebalanceVolumeTask extends Task {
 	private String layout;
 	private String serverName;
 	private ServerUtil serverUtil;
-	private GlusterUtil glusterUtil;
+	private GlusterInterfaceService glusterUtil;
 
 	public RebalanceVolumeTask(ClusterService clusterService, String clusterName, String volumeName, String layout) {
 		super(clusterService, clusterName, TASK_TYPE.VOLUME_REBALANCE, volumeName, "Volume " + volumeName
@@ -51,7 +51,7 @@ public class RebalanceVolumeTask extends Task {
 	private void init() {
 		ApplicationContext ctx = ContextLoader.getCurrentWebApplicationContext();
 		serverUtil = ctx.getBean(ServerUtil.class);
-		glusterUtil = ctx.getBean(GlusterUtil.class);
+		glusterUtil = ctx.getBean(GlusterInterfaceService.class);
 	}
 
 	@Override

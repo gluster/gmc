@@ -35,7 +35,6 @@ import com.gluster.storage.management.core.utils.LRUCache;
 import com.gluster.storage.management.gateway.data.ClusterInfo;
 import com.gluster.storage.management.gateway.data.PersistenceDao;
 import com.gluster.storage.management.gateway.data.ServerInfo;
-import com.gluster.storage.management.gateway.utils.GlusterUtil;
 import com.gluster.storage.management.gateway.utils.ServerUtil;
 import com.gluster.storage.management.gateway.utils.SshUtil;
 
@@ -51,7 +50,7 @@ public class ClusterService {
 	private PersistenceDao<ServerInfo> serverDao;
 
 	@Autowired
-	private GlusterUtil glusterUtil;
+	private GlusterServerService glusterServerService;
 
 	@Autowired
 	private SshUtil sshUtil;
@@ -59,9 +58,6 @@ public class ClusterService {
 	@Autowired
 	private ServerUtil serverUtil;
 	
-	@Autowired
-	private GlusterServerService glusterServerService;
-
 	private LRUCache<String, GlusterServer> onlineServerCache = new LRUCache<String, GlusterServer>(3);
 	
 	private static final Logger logger = Logger.getLogger(ClusterService.class);
@@ -162,7 +158,7 @@ public class ClusterService {
 		
 		GlusterServer server = new GlusterServer(knownServer);
 		try {
-			List<GlusterServer> glusterServers = glusterUtil.getGlusterServers(server);
+			List<GlusterServer> glusterServers = glusterServerService.getGlusterServers(server.getName());
 			List<ServerInfo> servers = new ArrayList<ServerInfo>();
 			for(GlusterServer glusterServer : glusterServers) {
 				String serverName = glusterServer.getName();

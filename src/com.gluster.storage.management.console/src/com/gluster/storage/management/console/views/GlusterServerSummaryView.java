@@ -111,7 +111,7 @@ public class GlusterServerSummaryView extends ViewPart {
 	@Override
 	public void createPartControl(Composite parent) {
 		if (server == null) {
-			server = (GlusterServer) guiHelper.getSelectedEntity(getSite(), GlusterServer.class);
+			server = guiHelper.getSelectedEntity(getSite(), GlusterServer.class);
 		}
 		setPartName("Summary");
 		createSections(parent);
