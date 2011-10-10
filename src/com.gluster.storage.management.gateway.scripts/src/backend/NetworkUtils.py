@@ -88,9 +88,11 @@ def getNetDeviceList(root=""):
         netDevice["nmcontrolled"] = None
         netDevice["link"] = None
         netDevice["mode"] = None
-
+        netDevice["speed"] = None
         netDevice["device"] = deviceName
         netDevice["description"] = deviceName
+        netDevice["ipaddr"] = None
+        netDevice["netmask"] = None
         netDevice["hwaddr"] = Utils.readFile("/sys/class/net/%s/address" % deviceName).strip()
 
         rv = Utils.runCommand("ifconfig %s" % deviceName, output=True)
