@@ -28,6 +28,7 @@ def getDiskDom():
     diskDom = XmlHandler.XDOM()
     disksTag = diskDom.createTag("disks", None)
     diskTagDict = {}
+    raidDisksTag = diskDom.createTag("raidDisks", None)  # raid members tag
     for raidDiskName, raidDisk in procMdstat.iteritems():
         raidDiskTag = diskDom.createTag("disk", None)
         raidDiskTag.appendChild(diskDom.createTag("name", raidDiskName))
@@ -44,7 +45,6 @@ def getDiskDom():
         raidDiskTag.appendChild(diskDom.createTag("fsVersion"))
         raidDiskTag.appendChild(diskDom.createTag("size", diskInfo[raidDiskName]['Size'] / 1024.0))
         raidDiskTag.appendChild(diskDom.createTag("spaceInUse", diskInfo[raidDiskName]['SpaceInUse']))
-        raidDisksTag = diskDom.createTag("raidDisks", None)  # raid members tag
         raidDiskTag.appendChild(raidDisksTag)
         disksTag.appendChild(raidDiskTag)
         for raidMember in raidDisk['Member']:
