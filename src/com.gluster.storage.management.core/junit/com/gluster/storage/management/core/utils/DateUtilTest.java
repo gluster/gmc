@@ -19,6 +19,9 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
  * @version $Revision: 1.0 $
  */
 public class DateUtilTest {
+
+	private Date date = DateUtil.getDate(2011, 9, 29, 11, 17, 38, 10);
+
 	/**
 	 * Run the String dateToString(Date) method test.
 	 *
@@ -29,7 +32,6 @@ public class DateUtilTest {
 	@Test
 	public void testDateToString_1()
 		throws Exception {
-		Date date = new Date(1317275258795L);
 		String result = DateUtil.dateToString(date);
 
 		assertEquals("09/29/2011 11:17:38", result);
@@ -45,7 +47,6 @@ public class DateUtilTest {
 	@Test
 	public void testDateToString_2()
 		throws Exception {
-		Date date = new Date(1317275258795L);
 		String dateFormat = "";
 
 		String result = DateUtil.dateToString(date, dateFormat);
@@ -62,7 +63,6 @@ public class DateUtilTest {
 	@Test
 	public void testDateToString_3()
 		throws Exception {
-		Date date = new Date(1317275258795L);
 		String dateFormat = CoreConstants.PURE_DATE_FORMAT;
 
 		String result = DateUtil.dateToString(date, dateFormat);
@@ -79,7 +79,7 @@ public class DateUtilTest {
 	@Test
 	public void testFormatDate_1()
 		throws Exception {
-		String result = DateUtil.formatDate(new Date(1317275258795L));
+		String result = DateUtil.formatDate(date);
 
 		assertEquals("09/29/2011", result);
 	}
@@ -94,24 +94,9 @@ public class DateUtilTest {
 	@Test
 	public void testFormatDate_2()
 		throws Exception {
-		String result = DateUtil.formatDate(new Date(0L));
-		assertEquals("01/01/1970", result);
-	}
-	
-	/**
-	 * Run the String formatDate(Date) method test.
-	 *
-	 * @throws Exception
-	 *
-	 * @generatedBy CodePro at 9/27/11 12:31 PM
-	 */
-	@Test
-	public void testFormatDate_3()
-		throws Exception {
-		
-		String result = DateUtil.formatDate(new Date(-156784523000L));
+		Date date1 = DateUtil.getDate(1965, 1, 12, 0, 0, 0, 0);
+		String result = DateUtil.formatDate(date1);
 		assertEquals("01/12/1965", result);
-		
 	}
 
 	/**
@@ -124,12 +109,10 @@ public class DateUtilTest {
 	@Test
 	public void testFormatTime_1()
 		throws Exception {
-		Date inputDate = new Date(1317275258795L);
-
-		String result = DateUtil.formatTime(inputDate);
+		String result = DateUtil.formatTime(date);
 
 		// add additional test code here
-		assertEquals("11:17:38.795", result);
+		assertEquals("11:17:38.010", result);
 	}
 
 	/**
@@ -171,7 +154,7 @@ public class DateUtilTest {
 		throws Exception {
 		String dateFormat = "MM/dd/yyyy";
 		String input = "09/29/2011"; // MM/dd/yyyy HH:mm:ss
-		Date expectedDate = new Date(1317234600000L);
+		Date expectedDate = DateUtil.getDate(2011, 9, 29, 0, 0, 0, 0);
 		
 		Date result = DateUtil.stringToDate(input, dateFormat);
 		assertEquals(expectedDate, result);
