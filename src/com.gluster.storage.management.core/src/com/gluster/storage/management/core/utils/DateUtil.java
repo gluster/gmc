@@ -20,6 +20,7 @@ package com.gluster.storage.management.core.utils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
@@ -107,5 +108,12 @@ public class DateUtil {
 	 */
 	public static final Date stringToDate(String input) {
 		return stringToDate(input, CoreConstants.DATE_WITH_TIME_FORMAT);
+	}
+	
+	public static final Date getDate(int year, int month, int day, int hour, int min, int sec, int msec) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(year, month-1, day, hour, min, sec);
+		calendar.set(Calendar.MILLISECOND, msec);
+		return calendar.getTime();
 	}
 }
