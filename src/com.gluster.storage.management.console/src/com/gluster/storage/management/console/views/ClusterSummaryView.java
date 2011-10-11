@@ -278,6 +278,9 @@ public class ClusterSummaryView extends ViewPart {
 		case CPU_USAGE_ALERT:
 			alertImage = guiHelper.getImage(IImageKeys.SERVER_WARNING_22x22);
 			break;
+		case OFFLINE_VOLUME_ALERT:
+			alertImage = guiHelper.getImage(IImageKeys.VOLUME_OFFLINE_22x22);
+			break;
 		}
 		lblAlert.setImage(alertImage);
 		lblAlert.setText(alert.getMessage());

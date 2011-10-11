@@ -5,11 +5,11 @@ import org.eclipse.osgi.internal.signedcontent.Base64;
 public class Alert extends Entity {
 
 	public enum ALERT_TYPES {
-		CPU_USAGE_ALERT, MEMORY_USAGE_ALERT, DISK_USAGE_ALERT, OFFLINE_VOLUME_BRICKS_ALERT, OFFLINE_SERVERS_ALERT
+		CPU_USAGE_ALERT, MEMORY_USAGE_ALERT, DISK_USAGE_ALERT, OFFLINE_VOLUME_BRICKS_ALERT, OFFLINE_SERVERS_ALERT, OFFLINE_VOLUME_ALERT
 	};
 
 	public static final String[] ALERT_TYPE_STR = { "High CPU Usage", "High Memory Usage", "Low Disk Space",
-			"Offline Brick", "Offline Server" };
+			"Offline Brick", "Offline Server", "Offline Volume" };
 
 	//  protected String id;
 	protected ALERT_TYPES type;
