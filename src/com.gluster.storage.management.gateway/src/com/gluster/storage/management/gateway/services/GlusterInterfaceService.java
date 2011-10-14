@@ -45,7 +45,7 @@ public class GlusterInterfaceService extends AbstractGlusterInterface {
 			return glusterInterface;
 		}
 		
-		glusterInterface = new Gluster323InterfaceService();
+		glusterInterface = serverUtil.getBean(Gluster323InterfaceService.class);
 		glusterInterfaces.put(glusterFsVersion, glusterInterface);
 		return glusterInterface;
 	}

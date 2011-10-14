@@ -34,7 +34,9 @@ import javax.xml.bind.Unmarshaller;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.ContextLoader;
 
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
@@ -44,6 +46,7 @@ import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.ProcessUtil;
+import com.gluster.storage.management.gateway.services.GlusterInterfaceService;
 
 @Component
 public class ServerUtil {
@@ -351,5 +354,10 @@ public class ServerUtil {
 	 */
 	public Status getDiskForDir(String serverName, String brickDir) {
 		return executeScriptOnServer(serverName, REMOTE_SCRIPT_GET_DISK_FOR_DIR + " " + brickDir, Status.class);
+	}
+	
+	public <T> T getBean(Class<T> clazz) {
+		ApplicationContext ctx = ContextLoader.getCurrentWebApplicationContext();
+		return ctx.getBean(clazz);
 	}
 }

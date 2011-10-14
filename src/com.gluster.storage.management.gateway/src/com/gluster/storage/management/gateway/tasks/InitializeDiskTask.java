@@ -26,13 +26,12 @@ import org.springframework.web.context.ContextLoader;
 import com.gluster.storage.management.core.constants.GlusterConstants;
 import com.gluster.storage.management.core.exceptions.ConnectionException;
 import com.gluster.storage.management.core.model.InitDiskStatusResponse;
+import com.gluster.storage.management.core.model.InitDiskStatusResponse.FORMAT_STATUS;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
-import com.gluster.storage.management.core.model.InitDiskStatusResponse.FORMAT_STATUS;
 import com.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import com.gluster.storage.management.core.model.TaskStatus;
 import com.gluster.storage.management.gateway.services.ClusterService;
-import com.gluster.storage.management.gateway.services.GlusterInterfaceService;
 import com.gluster.storage.management.gateway.utils.ServerUtil;
 import com.sun.jersey.core.util.Base64;
 
@@ -45,7 +44,6 @@ public class InitializeDiskTask extends Task {
 	private String diskName;
 	private String fsType;
 	private ServerUtil serverUtil;
-	private GlusterInterfaceService glusterUtil;
 
 	public InitializeDiskTask(ClusterService clusterService, String clusterName, String serverName, String diskName,
 			String fsType) {
@@ -67,7 +65,6 @@ public class InitializeDiskTask extends Task {
 
 	private void init() {
 		ApplicationContext ctx = ContextLoader.getCurrentWebApplicationContext();
-		glusterUtil = ctx.getBean(GlusterInterfaceService.class);
 		serverUtil = ctx.getBean(ServerUtil.class);
 	}
 	
