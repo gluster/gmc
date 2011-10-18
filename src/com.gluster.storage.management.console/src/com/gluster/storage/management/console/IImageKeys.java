@@ -42,6 +42,7 @@ public interface IImageKeys {
 	public static final String BRICKS_16x16 = "icons/tango/16x16/bricks.png";
 	public static final String BRICK_ONLINE_16x16 = "icons/tango/16x16/online-brick.png";
 	public static final String BRICK_OFFLINE_16x16 = "icons/tango/16x16/offline-brick.png";
+	public static final String VOLUME_OFFLINE_22x22 = "icons/tango/22x22/offline-volume.png";
 	
 	public static final String SERVERS_16x16 = "icons/tango/16x16/servers.png";
 	public static final String SERVER_16x16 = "icons/tango/16x16/server.png";

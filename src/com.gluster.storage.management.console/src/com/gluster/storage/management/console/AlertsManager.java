@@ -191,6 +191,9 @@ public class AlertsManager {
 
 		for (Volume volume : cluster.getVolumes()) {
 			if (volume.getStatus() == VOLUME_STATUS.OFFLINE) {
+				volumeAlerts.add(new Alert(ALERT_TYPES.OFFLINE_VOLUME_ALERT, volume.getName(),
+						Alert.ALERT_TYPE_STR[ALERT_TYPES.OFFLINE_VOLUME_ALERT.ordinal()] + " [" + volume.getName()
+								+ "]"));
 				continue;
 			}
 			
