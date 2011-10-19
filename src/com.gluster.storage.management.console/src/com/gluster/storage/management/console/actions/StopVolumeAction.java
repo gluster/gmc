@@ -94,7 +94,7 @@ public class StopVolumeAction extends AbstractMonitoredActionDelegate {
 			}
 			try {
 				monitor.setTaskName("Stopping volume [" + volume.getName() + "]");
-				vc.stopVolume(volume.getName());
+				vc.stopVolume(volume.getName(), false);
 				// modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
 				stoppedVolumes.add(volume.getName());
 			} catch (Exception e) {

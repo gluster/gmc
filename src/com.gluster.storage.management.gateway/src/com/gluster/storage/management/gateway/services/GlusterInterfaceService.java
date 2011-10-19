@@ -72,16 +72,16 @@ public class GlusterInterfaceService extends AbstractGlusterInterface {
 	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#startVolume(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public void startVolume(String volumeName, String knownServer) {
-		getGlusterInterface(knownServer).startVolume(volumeName, knownServer);
+	public void startVolume(String volumeName, String knownServer, Boolean force) {
+		getGlusterInterface(knownServer).startVolume(volumeName, knownServer, force);
 	}
 
 	/* (non-Javadoc)
 	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#stopVolume(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public void stopVolume(String volumeName, String knownServer) {
-		getGlusterInterface(knownServer).stopVolume(volumeName, knownServer);
+	public void stopVolume(String volumeName, String knownServer, Boolean force) {
+		getGlusterInterface(knownServer).stopVolume(volumeName, knownServer, force);
 	}
 	
 	public void logRotate(String volumeName, List<String> brickList, String knownServer) {
