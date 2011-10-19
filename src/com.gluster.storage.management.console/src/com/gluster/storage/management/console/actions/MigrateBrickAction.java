@@ -54,7 +54,11 @@ public class MigrateBrickAction extends AbstractActionDelegate {
 		action.setEnabled(false);
 		if (selectedEntity instanceof Brick) {
 			bricks = GUIHelper.getInstance().getSelectedEntities(getWindow(), Brick.class);
-			brick = bricks.iterator().next();
+			if ( bricks.iterator().hasNext()) {
+				brick = bricks.iterator().next();
+			} else {
+				brick = null;
+			}
 			action.setEnabled(brick != null);
 		}
 	}
