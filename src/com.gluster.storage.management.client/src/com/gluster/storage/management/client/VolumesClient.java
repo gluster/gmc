@@ -90,7 +90,7 @@ public class VolumesClient extends AbstractClient {
 	private void performOperation(String volumeName, String operation, Boolean force) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_OPERATION, operation);
-		form.add(RESTConstants.FORM_PARAM_FORCE_OPTION, force);
+		form.add(RESTConstants.FORM_PARAM_FORCE, force);
 
 		putRequest(volumeName, form);
 	}

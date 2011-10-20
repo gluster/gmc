@@ -708,20 +708,20 @@ public class VolumeService {
 		}
 	}
 	
-	public void performVolumeOperation(String clusterName, String volumeName, String operation, Boolean forceOption) {
+	public void performVolumeOperation(String clusterName, String volumeName, String operation, Boolean force) {
 		GlusterServer onlineServer = clusterService.getOnlineServer(clusterName);
 		try {
 			if (onlineServer == null) {
 				throw new GlusterRuntimeException("No online servers found in cluster [" + clusterName + "]");
 			}
 
-			performOperation(clusterName, volumeName, operation, onlineServer, forceOption);
+			performOperation(clusterName, volumeName, operation, onlineServer, force);
 		} catch (Exception e) {
 			// check if online server has gone offline. If yes, try again one more time.
 			if (e instanceof ConnectionException || serverUtil.isServerOnline(onlineServer) == false) {
 				// online server has gone offline! try with a different one.
 				onlineServer = clusterService.getNewOnlineServer(clusterName);
-				performOperation(clusterName, volumeName, operation, onlineServer, forceOption);
+				performOperation(clusterName, volumeName, operation, onlineServer, force);
 			} else {
 				throw new GlusterRuntimeException(e.getMessage());
 			}
@@ -729,7 +729,7 @@ public class VolumeService {
 	}
 
 	private void performOperation(String clusterName, String volumeName, String operation, GlusterServer onlineServer,
-			Boolean forceOption) {
+			Boolean force) {
 		Volume volume = null;
 		try {
 			volume = getVolume(clusterName, volumeName);
@@ -739,9 +739,9 @@ public class VolumeService {
 		}
 
 		if (operation.equals(TASK_START)) {
-			startVolume(clusterName, onlineServer, volume, forceOption);
+			startVolume(clusterName, onlineServer, volume, force);
 		} else if (operation.equals(TASK_STOP)) {
-			stopVolume(clusterName, onlineServer, volume, forceOption);
+			stopVolume(clusterName, onlineServer, volume, force);
 		} else {
 			throw new GlusterValidationException("Invalid operation code [" + operation + "]");
 		}
