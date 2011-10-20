@@ -147,18 +147,18 @@ public class MigrateBrickPage1 extends WizardPage {
 		this.volume = volume;
 		this.fromBrick = brick;
 		setTitle("Migrate Brick [" + volume.getName() + "]");
-		setPageDescription(null, null);
+		setPageDescription(fromBrick.getQualifiedName(), null);
 		setPageComplete(false);
 	}
 
 	private void setPageDescription(String source, String target) {
-		if (source == null || source.equals("")) {
-			source = "From Brick";
+		if (source == null) {
+			source = "";
 		}
-		if (target == null || target.equals("")) {
-			target = "To Brick";
+		if (target == null) {
+			target = "";
 		}
-		setDescription("Migrate volume data from \"" + source + "\" to \"" + target + "\"");
+		setDescription("Migrate data from \"" + source + "\" to \"" + target + "\"");
 	}
 
 	private Object getSelectedItem(TableViewer tableViewer) {
@@ -194,6 +194,9 @@ public class MigrateBrickPage1 extends WizardPage {
 
 	public String getTargetBrickDir() {
 		Device targetDevice = (Device)getSelectedItem(tableViewerTo);
+		if (targetDevice == null) {
+			return "";
+		}
 		return targetDevice.getQualifiedBrickName(volume.getName());
 	}
 	
@@ -290,6 +293,7 @@ public class MigrateBrickPage1 extends WizardPage {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
 				refreshButtonStatus();
+				setPageDescription(getSourceBrickDir(), getTargetBrickDir());
 			}
 		});
 		return tableViewer;
