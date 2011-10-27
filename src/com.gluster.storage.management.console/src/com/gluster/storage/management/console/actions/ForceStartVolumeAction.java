@@ -12,6 +12,7 @@ import com.gluster.storage.management.console.views.VolumeBricksView;
 import com.gluster.storage.management.core.model.Brick;
 import com.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.utils.StringUtil;
 
 public class ForceStartVolumeAction extends AbstractActionDelegate {
 
@@ -28,17 +29,18 @@ public class ForceStartVolumeAction extends AbstractActionDelegate {
 	protected void performAction(IAction action) {
 		// volume brick service will be started, do you want to continue?
 		final String actionDesc = action.getDescription();
-		boolean confirmed = showConfirmDialog(actionDesc,
-				"Volume brick service will be started, do you want to continue?");
+		boolean confirmed = showConfirmDialog(
+				actionDesc,
+				"The offline Bricks [" + StringUtil.collectionToString(bricks, ", ") + "] of Volume ["
+						+ volume.getName() + "] will be started. Are you sure you want to continue?");
 		if (!confirmed) {
 			return;
 		}
 		try {
 			new VolumesClient().startVolume(volume.getName(), true);
-			showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] forcefully started successfully!");
+			showInfoDialog(actionDesc, "Offline Bricks of Volume [" + volume.getName() + "] started successfully!");
 		} catch (Exception e) {
-			showErrorDialog(actionDesc,
-					"Failed to forcefully start volume [" + volume.getName() + "]!  Error: [" + e.getMessage() + "]");
+			showErrorDialog(actionDesc, e.getMessage());
 		}
 	}
 	
