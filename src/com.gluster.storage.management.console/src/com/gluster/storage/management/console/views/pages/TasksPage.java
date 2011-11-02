@@ -27,6 +27,7 @@ import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
@@ -140,5 +141,11 @@ public class TasksPage extends AbstractTableViewerPage<TaskInfo> {
 				new GlusterToolbarManager(part.getSite().getWorkbenchWindow()).updateToolbar(selectedTask);
 			}
 		}	
+	}
+
+	@Override
+	protected ViewerComparator createViewerComparator() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

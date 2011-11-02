@@ -23,7 +23,7 @@ import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
 
 /**
- *
+ * Comparator for sorting contents of a table viewer
  */
 public class TableViewerComparator extends ViewerSorter {
 	private int propertyIndex;

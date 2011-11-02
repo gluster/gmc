@@ -24,6 +24,7 @@ import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.IContentProvider;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
@@ -124,5 +125,11 @@ public class VolumesPage extends AbstractTableViewerPage<Volume> {
 	@Override
 	protected List<Volume> getAllEntities() {
 		return volumes;
+	}
+
+	@Override
+	protected ViewerComparator createViewerComparator() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
