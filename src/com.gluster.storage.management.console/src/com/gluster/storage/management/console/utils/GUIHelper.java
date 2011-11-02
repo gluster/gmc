@@ -34,7 +34,6 @@ import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
-import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnLayoutData;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.ICheckStateListener;
@@ -44,8 +43,6 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StructuredViewer;
-import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
@@ -345,24 +342,6 @@ public class GUIHelper {
 
 		TableColumnLayout tableColumnLayout = (TableColumnLayout) table.getParent().getLayout();
 		tableColumnLayout.setColumnData(column, new ColumnWeightData(weight));
-	}
-
-	/**
-	 * Sets properties for alignment and weight of given column of given table
-	 * 
-	 * @param table
-	 * @param columnIndex
-	 * @param alignment
-	 * @param weight
-	 * 
-	 * @return The table viewer column created
-	 */
-	public TableViewerColumn setColumnProperties(TableViewer tableViewer, int columnIndex, int style, int weight) {
-		TableViewerColumn column = new TableViewerColumn(tableViewer, style, columnIndex);
-		TableColumnLayout tableColumnLayout = (TableColumnLayout) tableViewer.getTable().getParent().getLayout();
-		tableColumnLayout.setColumnData(column.getColumn(), new ColumnWeightData(weight));
-		column.setLabelProvider(new ColumnLabelProvider());
-		return column;
 	}
 
 	/**
