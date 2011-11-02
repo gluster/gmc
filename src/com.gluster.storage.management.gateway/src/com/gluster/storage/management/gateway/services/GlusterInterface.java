@@ -52,8 +52,12 @@ public interface GlusterInterface {
 	 * @param serverName
 	 *            Server on which the Gluster command is to be executed. This server must be part of the cluster to
 	 *            which the volume belongs.
+	 * @param force
+	 *            Flag indicating whether the "force" option should be used for starting the Volume. This is typically
+	 *            used when Volume is already started, but at least one of its bricks is offline, and results in
+	 *            bringing up the offline bricks.
 	 */
-	public abstract void startVolume(String volumeName, String serverName);
+	public abstract void startVolume(String volumeName, String serverName, Boolean force);
 
 	/**
 	 * Stops the given volume by executing appropriate Gluster command on given server.
@@ -63,8 +67,12 @@ public interface GlusterInterface {
 	 * @param serverName
 	 *            Server on which the Gluster command is to be executed. This server must be part of the cluster to
 	 *            which the volume belongs.
+	 * @param force
+	 *            Flag indicating whether the Volume should be stopped forcefully. This is typically used if the regular
+	 *            stop option fails because of issues like rebalance / brick migration / geo-replication being in
+	 *            progress. This results in forcefully stopping the volume, leaving the other processes intact.
 	 */
-	public abstract void stopVolume(String volumeName, String serverName);
+	public abstract void stopVolume(String volumeName, String serverName, Boolean force);
 
 	/**
 	 * Resets volume options on the given volume by executing appropriate Gluster command on given server.

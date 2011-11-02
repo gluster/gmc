@@ -84,7 +84,7 @@ public class StartVolumeAction extends AbstractMonitoredActionDelegate {
 			}
 			try {
 				monitor.setTaskName("Starting volume [" + volume.getName() + "]");
-				vc.startVolume(volume.getName());
+				vc.startVolume(volume.getName(), false);
 				startedVolumes.add(volume.getName());
 			} catch (Exception e) {
 				failedVolumes.add(volume.getName());

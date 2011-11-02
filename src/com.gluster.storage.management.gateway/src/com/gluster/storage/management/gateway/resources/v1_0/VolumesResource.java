@@ -37,6 +37,7 @@ import static com.gluster.storage.management.core.constants.RESTConstants.FORM_P
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VOLUME_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VOLUME_OPTIONS;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_VOLUME_TYPE;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_FORCE;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_VOLUME_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_BRICKS;
@@ -195,7 +196,7 @@ public class VolumesResource extends AbstractResource {
 			@FormParam(FORM_PARAM_MIGRATE_DATA) Boolean isMigrateData,
 			@FormParam(FORM_PARAM_FORCED_DATA_MIGRATE) Boolean isForcedDataMigrate,
 			@FormParam(FORM_PARAM_CIFS_ENABLE) Boolean enableCifs, @FormParam(FORM_PARAM_CIFS_USERS) String cifsUsers,
-			@FormParam(FORM_PARAM_BRICKS) String bricks) {
+			@FormParam(FORM_PARAM_BRICKS) String bricks, @FormParam(FORM_PARAM_FORCE) Boolean force) {
 		if (clusterName == null || clusterName.isEmpty()) {
 			throw new GlusterValidationException("Cluster name must not be empty!");
 		}
@@ -234,7 +235,10 @@ public class VolumesResource extends AbstractResource {
 				List<String> brickList = Arrays.asList(bricks.split(","));
 				volumeService.logRotate(clusterName, volumeName, brickList);
 			} else {
-				volumeService.performVolumeOperation(clusterName, volumeName, operation);
+				if (force == null) {
+					force = false;
+				}
+				volumeService.performVolumeOperation(clusterName, volumeName, operation, force);
 			}
 			return noContentResponse();
 		} catch(Exception e) {

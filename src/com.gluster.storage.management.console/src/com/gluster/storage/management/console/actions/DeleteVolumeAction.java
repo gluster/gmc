@@ -87,7 +87,7 @@ public class DeleteVolumeAction extends AbstractMonitoredActionDelegate {
 			try {
 				monitor.setTaskName("Deleting volume [" + volume.getName() + "]");
 				if (volume.getStatus() == VOLUME_STATUS.ONLINE) { // stop if online volume
-					vc.stopVolume(volume.getName());
+					vc.stopVolume(volume.getName(), false);
 				}
 				vc.deleteVolume(volume.getName(), confirmDeleteDir);
 				modelManager.deleteVolume(volume);

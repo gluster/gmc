@@ -526,6 +526,17 @@
             label="Volume Actions"
             visible="false">
          <action
+               class="com.gluster.storage.management.console.actions.ForceStartVolumeAction"
+               definitionId="com.gluster.storage.management.console.commands.ForceStartVolume"
+               icon="icons/tango/32x32/start-volume.png"
+               id="com.gluster.storage.management.console.actions.ForceStartVolumeAction"
+               label="Start Offline Bricks"
+               menubarPath="com.gluster.storage.management.console.menu.volume/volume"
+               style="push"
+               toolbarPath="Normal"
+               tooltip="Start all Offline Bricks of the selected Volume">
+         </action>
+         <action
                class="com.gluster.storage.management.console.actions.VolumeLogRotateAction"
                definitionId="com.gluster.storage.management.console.commands.LogRotate"
                icon="icons/tango/32x32/log-rotate.png"
