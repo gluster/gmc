@@ -19,49 +19,55 @@
 package com.gluster.storage.management.console.utils;
 
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerSorter;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 
 /**
- *
+ * Comparator for sorting contents of a table viewer
  */
-public class TableViewerComparator extends ViewerSorter {
-	private int propertyIndex;
+public class TableViewerComparator extends ViewerComparator {
+	private int column = -1;
 	private static final int ASCENDING = 0;
 	private static final int DESCENDING = 1;
+	private static final int NONE = -1;
 	private int direction = DESCENDING;
 
 	public TableViewerComparator() {
-		this(ASCENDING);
+		this(NONE);
 	}
 
 	public TableViewerComparator(int direction) {
-		this.propertyIndex = 0;
 		this.direction = direction;
 	}
 
 	public int getDirection() {
-		return direction == DESCENDING ? SWT.DOWN : SWT.UP;
+		return direction == DESCENDING ? SWT.DOWN : (direction == ASCENDING ? SWT.UP : SWT.NONE);
 	}
 
 	public void setColumn(int column) {
-		if (column == this.propertyIndex) {
+		if (column == this.column) {
 			// Same column as last sort; toggle the direction
 			direction = 1 - direction;
 		} else {
-			// New column; do an ascending sort
-			this.propertyIndex = column;
+			// first column selection or new column; do an ascending sort
 			direction = ASCENDING;
+			this.column = column;
 		}
 	}
 
 	@Override
 	public int compare(Viewer viewer, Object e1, Object e2) {
+		if(direction == NONE) {
+			// no sorting
+			return 0;
+		}
+		
 		int result = super.compare(viewer, e1, e2);
 		// If descending order, flip the direction
 		if (direction == DESCENDING) {
 			result = -result;
 		}
+		
 		return result;
 	}
 }
