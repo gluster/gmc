@@ -105,6 +105,11 @@ public class VolumesSummaryView extends ViewPart {
 				updateSummarySection();
 			}
 			
+			private void updateAlertSection() {
+				guiHelper.clearSection(alertsSection);
+				populateAlertSection();
+			}
+			
 			private void updateSummarySection() {
 				guiHelper.clearSection(summarySection);
 				populateSummarySection();
@@ -120,10 +125,15 @@ public class VolumesSummaryView extends ViewPart {
 			}
 			
 			@Override
-			public void alertsRemoved() {
-				super.alertsRemoved();
-				guiHelper.clearSection(alertsSection);
-				populateAlertSection();
+			public void alertRemoved(Alert alert) {
+				super.alertRemoved(alert);
+				updateAlertSection();
+			}
+			
+			@Override
+			public void alertCreated(Alert alert) {
+				super.alertCreated(alert);
+				updateAlertSection();
 			}
 
 			@Override

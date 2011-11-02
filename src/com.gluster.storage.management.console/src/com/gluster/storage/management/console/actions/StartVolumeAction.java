@@ -77,6 +77,9 @@ public class StartVolumeAction extends AbstractMonitoredActionDelegate {
 		}
 		
 		monitor.beginTask("Starting Selected Volumes...", selectedVolumes.size());
+		// Starting of a volume results in changes to the model, and ultimately updates the "selectedVolumes" list,
+		// over which we are iterating, thus resulting in ConcurrentModificationException. To avoid this, we iterate
+		// over an array obtained from the list.
 		for (Volume volume : selectedVolumes.toArray(new Volume[0])) {
 			if(monitor.isCanceled()) {
 				break;
@@ -101,11 +104,6 @@ public class StartVolumeAction extends AbstractMonitoredActionDelegate {
 			try {
 				newVolume = vc.getVolume(volume.getName());
 				modelManager.volumeChanged(volume, newVolume);
-				// Remove the offline volume alert from the AlertsManager
-				AlertsManager alertManager = new AlertsManager(modelManager.getModel().getCluster());
-				alertManager.removeAlert(Base64.encode(
-						(ALERT_TYPES.OFFLINE_VOLUME_ALERT + "-" + volume.getName()).getBytes()).toString());
-				modelManager.alertsRemoved();
 			} catch (Exception e) {
 				errorMessage += "Updating volume info failed on UI. [" + e.getMessage() + "]";
 			}
@@ -123,7 +121,11 @@ public class StartVolumeAction extends AbstractMonitoredActionDelegate {
 				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes " + failedVolumes
 						+ " failed to start! [" + errorMessage + "]";
 			}
-			showInfoDialog(actionDesc, info);
+			if (selectedVolumes.size() == startedVolumes.size()) {
+				showInfoDialog(actionDesc, info);
+			} else {
+				showWarningDialog(actionDesc, info);
+			}
 		}
 	}
 

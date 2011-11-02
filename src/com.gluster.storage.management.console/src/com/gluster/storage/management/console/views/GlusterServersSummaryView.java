@@ -197,7 +197,9 @@ public class GlusterServersSummaryView extends ViewPart {
 		List<Alert> alerts = GlusterDataModelManager.getInstance().getModel().getCluster().getAlerts();
 
 		for (Alert alert : alerts) {
-			if (alert.getType() != ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT) {
+			if (alert.getType() == ALERT_TYPES.DISK_USAGE_ALERT || alert.getType() != ALERT_TYPES.OFFLINE_SERVERS_ALERT
+					|| alert.getType() == ALERT_TYPES.MEMORY_USAGE_ALERT
+					|| alert.getType() == ALERT_TYPES.CPU_USAGE_ALERT) {
 				addAlertLabel(alertsSection, alert);
 			}
 		}
@@ -209,9 +211,6 @@ public class GlusterServersSummaryView extends ViewPart {
 		CLabel lblAlert = new CLabel(section, SWT.FLAT);
 		Image alertImage = null;
 		switch (alert.getType()) {
-		case OFFLINE_VOLUME_BRICKS_ALERT:
-			alertImage = guiHelper.getImage(IImageKeys.BRICK_OFFLINE_22x22);
-			break;
 		case DISK_USAGE_ALERT:
 			alertImage = guiHelper.getImage(IImageKeys.LOW_DISK_SPACE_22x22);
 			break;
