@@ -408,6 +408,9 @@ public class GlusterDataModelManager {
 	
 	public void volumeChanged(Volume oldVolume, Volume newVolume) {
 		oldVolume.copyFrom(newVolume);
+		
+		alertsChanged(newVolume, newVolume.getStatus());
+		
 		for (ClusterListener listener : listeners) {
 			listener.volumeChanged(oldVolume, new Event(EVENT_TYPE.VOLUME_CHANGED, newVolume));
 		}
@@ -746,6 +749,7 @@ public class GlusterDataModelManager {
 
 	public void updateVolumeStatus(Volume volume, VOLUME_STATUS newStatus) {
 		volume.setStatus(newStatus);
+		alertsChanged(volume, newStatus);
 		
 		if(newStatus == VOLUME_STATUS.OFFLINE) {
 			// mark as bricks also as offline
@@ -761,6 +765,43 @@ public class GlusterDataModelManager {
 			listener.volumeChanged(volume, new Event(EVENT_TYPE.VOLUME_STATUS_CHANGED, newStatus));
 			listener.volumeChanged(volume, new Event(EVENT_TYPE.BRICKS_CHANGED, volume.getBricks()));
 		}
+	}
+	
+	private void alertsChanged(Volume volume, VOLUME_STATUS newStatus) {
+		Alert alert = null;
+		if (newStatus == VOLUME_STATUS.OFFLINE) {
+			alert = createVolumeAlert(volume);
+			for (ClusterListener listener : listeners) {
+				listener.alertsCreated(volume, new Event(EVENT_TYPE.ALERT_CREATED, alert));
+			}
+		} else {
+			alert = removeVolumeAlert(volume);
+			for (ClusterListener listener : listeners) {
+				listener.alertsRemoved(volume, new Event(EVENT_TYPE.ALERT_REMOVED, alert));
+			}
+		}
+	}
+	
+	private Alert createVolumeAlert(Volume volume) {
+		Alert alert = new Alert(ALERT_TYPES.OFFLINE_VOLUME_ALERT, volume.getName(),
+				Alert.ALERT_TYPE_STR[ALERT_TYPES.OFFLINE_VOLUME_ALERT.ordinal()] + " [" + volume.getName() + "]");
+		getModel().getCluster().addAlert(alert);
+		return alert;
+	}
+
+	private Alert removeVolumeAlert(Volume volume) {
+		List<Alert> clusterAlerts = getModel().getCluster().getAlerts();
+		Alert removedAlert = null;
+		for (int i = 0; i < clusterAlerts.size(); i++) {
+			if (clusterAlerts.get(i).getType().equals(ALERT_TYPES.OFFLINE_VOLUME_ALERT)
+					&& clusterAlerts.get(i).getReference().equals(volume.getName())) {
+				removedAlert = clusterAlerts.get(i);
+				clusterAlerts.remove(i);
+				break;
+			}
+		}
+		getModel().getCluster().setAlerts(clusterAlerts);
+		return removedAlert;
 	}
 
 	public void resetVolumeOptions(Volume volume) {
@@ -879,12 +920,6 @@ public class GlusterDataModelManager {
 	public void alertsGenerated() {
 		for (ClusterListener listener : listeners) {
 			listener.alertsGenerated();
-		}
-	}
-	
-	public void alertsRemoved() {
-		for (ClusterListener listener : listeners) {
-			listener.alertsRemoved();
 		}
 	}
 	

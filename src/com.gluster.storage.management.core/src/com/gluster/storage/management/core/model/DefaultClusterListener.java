@@ -107,7 +107,12 @@ public class DefaultClusterListener implements ClusterListener {
 	}
 
 	@Override
-	public void alertsRemoved() {
+	public void alertsRemoved(Volume volume, Event event) {
+		modelChanged();		
+	}
+	
+	@Override
+	public void alertsCreated(Volume volume, Event event) {
 		modelChanged();		
 	}
 }
