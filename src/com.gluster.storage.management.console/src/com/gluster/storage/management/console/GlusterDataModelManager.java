@@ -882,6 +882,12 @@ public class GlusterDataModelManager {
 		}
 	}
 	
+	public void alertsRemoved() {
+		for (ClusterListener listener : listeners) {
+			listener.alertsRemoved();
+		}
+	}
+	
 	public List<VolumeOptionInfo> getVolumeOptionsInfo() {
 		if(volumeOptionsInfo == null || volumeOptionsInfo.isEmpty()) {
 			initializeVolumeOptionsInfo(getModel().getCluster());

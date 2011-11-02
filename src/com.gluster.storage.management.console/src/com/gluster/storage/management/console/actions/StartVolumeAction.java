@@ -26,13 +26,16 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.osgi.internal.signedcontent.Base64;
 
 import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.console.AlertsManager;
 import com.gluster.storage.management.console.GlusterDataModelManager;
 import com.gluster.storage.management.console.IImageKeys;
 import com.gluster.storage.management.console.utils.GUIHelper;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.Alert.ALERT_TYPES;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 
 public class StartVolumeAction extends AbstractMonitoredActionDelegate {
@@ -98,6 +101,11 @@ public class StartVolumeAction extends AbstractMonitoredActionDelegate {
 			try {
 				newVolume = vc.getVolume(volume.getName());
 				modelManager.volumeChanged(volume, newVolume);
+				// Remove the offline volume alert from the AlertsManager
+				AlertsManager alertManager = new AlertsManager(modelManager.getModel().getCluster());
+				alertManager.removeAlert(Base64.encode(
+						(ALERT_TYPES.OFFLINE_VOLUME_ALERT + "-" + volume.getName()).getBytes()).toString());
+				modelManager.alertsRemoved();
 			} catch (Exception e) {
 				errorMessage += "Updating volume info failed on UI. [" + e.getMessage() + "]";
 			}

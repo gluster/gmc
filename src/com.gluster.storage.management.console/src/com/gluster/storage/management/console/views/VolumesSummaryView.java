@@ -103,7 +103,6 @@ public class VolumesSummaryView extends ViewPart {
 			public void volumeChanged(Volume volume, Event event) {
 				super.volumeChanged(volume, event);
 				updateSummarySection();
-				updateAlertSection();
 			}
 			
 			private void updateSummarySection() {
@@ -116,6 +115,13 @@ public class VolumesSummaryView extends ViewPart {
 			@Override
 			public void alertsGenerated() {
 				super.alertsGenerated();
+				guiHelper.clearSection(alertsSection);
+				populateAlertSection();
+			}
+			
+			@Override
+			public void alertsRemoved() {
+				super.alertsRemoved();
 				guiHelper.clearSection(alertsSection);
 				populateAlertSection();
 			}
@@ -141,11 +147,6 @@ public class VolumesSummaryView extends ViewPart {
 			private void updateTasksSection() {
 				guiHelper.clearSection(tasksSection);
 				populateTasks();
-			}
-			
-			private void updateAlertSection() {
-				guiHelper.clearSection(alertsSection);
-				populateAlertSection();
 			}
 		};
 		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);

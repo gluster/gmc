@@ -47,7 +47,7 @@ public class ForceStartVolumeAction extends AbstractActionDelegate {
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		super.selectionChanged(action, selection);
-		
+		action.setEnabled(false);
 		volume = guiHelper.getSelectedEntity(window, Volume.class);
 		if (volume != null) {
 			// a volume is selected on navigation tree. Let's check if the currently open view is volume bricks view

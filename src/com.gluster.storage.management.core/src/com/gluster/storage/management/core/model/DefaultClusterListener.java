@@ -105,4 +105,9 @@ public class DefaultClusterListener implements ClusterListener {
 	public void aggregatedStatsChanged() {
 		modelChanged();
 	}
+
+	@Override
+	public void alertsRemoved() {
+		modelChanged();		
+	}
 }
