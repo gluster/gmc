@@ -86,7 +86,7 @@ public class RESTConstants {
 	public static final String FORM_PARAM_FORCED_DATA_MIGRATE = "forcedDataMigrate";
 	public static final String FORM_PARAM_OLD_PASSWORD = "oldPassword";
 	public static final String FORM_PARAM_NEW_PASSWORD = "newPassword";
-	public static final String FORM_PARAM_FORCE_OPTION = "forceOperation";
+	public static final String FORM_PARAM_FORCE = "force";
 	
 	public static final String PATH_PARAM_FORMAT = "format";
 	public static final String PATH_PARAM_VOLUME_NAME = "volumeName";
