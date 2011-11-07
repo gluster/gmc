@@ -79,16 +79,17 @@ public class Gluster323InterfaceService extends AbstractGlusterInterface {
 	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#startVolume(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public void startVolume(String volumeName, String knownServer) {
-		serverUtil.executeOnServer(knownServer, "gluster volume start " + volumeName);
+	public void startVolume(String volumeName, String knownServer, Boolean force) {
+		serverUtil.executeOnServer(knownServer, "gluster volume start " + volumeName + ((force) ? " force" : ""));
 	}
 
 	/* (non-Javadoc)
 	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#stopVolume(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public void stopVolume(String volumeName, String knownServer) {
-		serverUtil.executeOnServer(knownServer, "gluster --mode=script volume stop " + volumeName);
+	public void stopVolume(String volumeName, String knownServer, Boolean force) {
+		serverUtil.executeOnServer(knownServer, "gluster --mode=script volume stop " + volumeName
+				+ ((force) ? " force" : ""));
 	}
 
 	/* (non-Javadoc)

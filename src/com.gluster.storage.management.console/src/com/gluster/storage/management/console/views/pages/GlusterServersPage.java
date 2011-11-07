@@ -24,6 +24,7 @@ import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.IBaseLabelProvider;
 import org.eclipse.jface.viewers.IContentProvider;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
@@ -32,6 +33,7 @@ import org.eclipse.ui.IWorkbenchSite;
 
 import com.gluster.storage.management.console.EntityGroupContentProvider;
 import com.gluster.storage.management.console.GlusterServerTableLabelProvider;
+import com.gluster.storage.management.console.utils.TableViewerComparator;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
@@ -53,6 +55,11 @@ public class GlusterServersPage extends AbstractTableViewerPage<GlusterServer> {
 	public GlusterServersPage(IWorkbenchSite site, final Composite parent, int style, final EntityGroup<GlusterServer> servers) {
 		super(site, parent, style, true, true, servers);
 		this.glusterServers = servers.getEntities();
+	}
+	
+	@Override
+	protected ViewerComparator createViewerComparator() {
+		return new TableViewerComparator();
 	}
 
 	@Override

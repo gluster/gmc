@@ -22,6 +22,7 @@ package com.gluster.storage.management.console.views;
 
 import java.util.List;
 
+import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -64,7 +65,6 @@ import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.ServerStats;
 import com.gluster.storage.management.core.model.Status;
 import com.gluster.storage.management.core.model.TaskInfo;
-import com.gluster.storage.management.core.utils.NumberUtil;
 
 /**
  * 
@@ -229,18 +229,17 @@ public class ClusterSummaryView extends ViewPart {
 		
 		double totalDiskSpace = cluster.getTotalDiskSpace();
 		double diskSpaceInUse = cluster.getDiskSpaceInUse();
-		Double[] values = new Double[] { diskSpaceInUse, totalDiskSpace - diskSpaceInUse };
+		Double[] values = new Double[] { diskSpaceInUse / 1024, (totalDiskSpace - diskSpaceInUse) / 1024 };
 		createDiskSpaceChart(section, values);
 	}
 
 	private void createDiskSpaceChart(Composite section, Double[] values) {
-		String[] categories = new String[] { "Used Space: " + NumberUtil.formatNumber((values[0] / 1024)) + " GB",
-				"Free Space: " + NumberUtil.formatNumber((values[1] / 1024)) + " GB" };
+		String[] categories = new String[] { "Used Space (GB)", "Free Space (GB)" };
 		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, categories, values);
 
 		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
 		data.widthHint = 400;
-		data.heightHint = 170;
+		data.heightHint = 180;
 		data.verticalAlignment = SWT.CENTER;
 		chartViewerComposite.setLayoutData(data);
 	}
@@ -261,6 +260,11 @@ public class ClusterSummaryView extends ViewPart {
 
 	private void addAlertLabel(Composite section, Alert alert) {
 		CLabel lblAlert = new CLabel(section, SWT.FLAT);
+		GridData layoutData = new GridData();
+		layoutData.widthHint = 400;
+		layoutData.horizontalIndent = 20;
+		lblAlert.setLayoutData(layoutData);
+		
 		Image alertImage = null;
 		switch (alert.getType()) {
 		case OFFLINE_VOLUME_BRICKS_ALERT:
@@ -278,9 +282,13 @@ public class ClusterSummaryView extends ViewPart {
 		case CPU_USAGE_ALERT:
 			alertImage = guiHelper.getImage(IImageKeys.SERVER_WARNING_22x22);
 			break;
+		case OFFLINE_VOLUME_ALERT:
+			alertImage = guiHelper.getImage(IImageKeys.VOLUME_OFFLINE_22x22);
+			break;
 		}
-		lblAlert.setImage(alertImage);
 		lblAlert.setText(alert.getMessage());
+		ControlDecoration dec = new ControlDecoration(lblAlert, SWT.LEFT);
+		dec.setImage(alertImage);
 		lblAlert.redraw();
 	}
 

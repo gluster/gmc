@@ -87,19 +87,20 @@ public class VolumesClient extends AbstractClient {
 		postRequest(form);
 	}
 
-	private void performOperation(String volumeName, String operation) {
+	private void performOperation(String volumeName, String operation, Boolean force) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_OPERATION, operation);
+		form.add(RESTConstants.FORM_PARAM_FORCE, force);
 
 		putRequest(volumeName, form);
 	}
 
-	public void startVolume(String volumeName) {
-		performOperation(volumeName, RESTConstants.TASK_START);
+	public void startVolume(String volumeName, Boolean forceStart) {
+		performOperation(volumeName, RESTConstants.TASK_START, forceStart);
 	}
 
-	public void stopVolume(String volumeName) {
-		performOperation(volumeName, RESTConstants.TASK_STOP);
+	public void stopVolume(String volumeName, Boolean forceStop) {
+		performOperation(volumeName, RESTConstants.TASK_STOP, forceStop);
 	}
 	
 	public void setCifsConfig(String volumeName, Boolean isCifsEnabled, String cifsUsers) {

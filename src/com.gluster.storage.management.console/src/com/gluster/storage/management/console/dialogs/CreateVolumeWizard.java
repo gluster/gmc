@@ -99,7 +99,7 @@ public class CreateVolumeWizard extends Wizard {
 		boolean warning = false;
 		if (page.startVolumeAfterCreation()) {
 			try {
-				volumesClient.startVolume(newVolume.getName());
+				volumesClient.startVolume(newVolume.getName(), false);
 				newVolume.setStatus(VOLUME_STATUS.ONLINE);
 				message = "Volume created and started successfully!";
 			} catch(Exception e) {
@@ -127,7 +127,7 @@ public class CreateVolumeWizard extends Wizard {
 					+ errMsg + CoreConstants.NEWLINE + CoreConstants.NEWLINE
 					+ "Do you still want to start the volume [" + newVolume.getName() + "]?")) {
 				try {
-					volumesClient.startVolume(newVolume.getName());
+					volumesClient.startVolume(newVolume.getName(), false);
 					newVolume.setStatus(VOLUME_STATUS.ONLINE);
 					message1 = "Volume [" + newVolume.getName() + "] started successfully!"; // Only start operation
 				} catch(Exception e1) {

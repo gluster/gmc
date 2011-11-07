@@ -42,13 +42,13 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 		store.setDefault(PreferenceConstants.P_DATA_SYNC_INTERVAL, 300);
 		
 		// Default CPU utilisation threshold 
-		store.setDefault(PreferenceConstants.P_SERVER_CPU_CRITICAL_THRESHOLD, 95);
+		store.setDefault(PreferenceConstants.P_SERVER_CPU_CRITICAL_THRESHOLD, 80);
 		
 		// Default Memory threshold
-		store.setDefault(PreferenceConstants.P_SERVER_MEMORY_USAGE_THRESHOLD, 90);
+		store.setDefault(PreferenceConstants.P_SERVER_MEMORY_USAGE_THRESHOLD, 80);
 		
 		// Default disk free space threshold 
-		store.setDefault(PreferenceConstants.P_DISK_SPACE_USAGE_THRESHOLD, 90);
+		store.setDefault(PreferenceConstants.P_DISK_SPACE_USAGE_THRESHOLD, 80);
 		
 		// Default period for server statistics charts
 		store.setDefault(PreferenceConstants.P_CPU_CHART_PERIOD, "1d");

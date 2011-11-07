@@ -44,7 +44,10 @@ def getDiskDom():
         raidDiskTag.appendChild(diskDom.createTag("interface"))
         raidDiskTag.appendChild(diskDom.createTag("fsVersion"))
         raidDiskTag.appendChild(diskDom.createTag("size", diskInfo[raidDiskName]['Size'] / 1024.0))
-        raidDiskTag.appendChild(diskDom.createTag("spaceInUse", diskInfo[raidDiskName]['SpaceInUse']))
+        if not diskInfo[raidDiskName]['SpaceInUse']:
+            raidDiskTag.appendChild(diskDom.createTag("spaceInUse", None))
+        else:
+            raidDiskTag.appendChild(diskDom.createTag("spaceInUse", diskInfo[raidDiskName]['SpaceInUse'] / 1024.0))
         raidDiskTag.appendChild(raidDisksTag)
         disksTag.appendChild(raidDiskTag)
         for raidMember in raidDisk['Member']:
@@ -70,7 +73,10 @@ def getDiskDom():
                 diskTag.appendChild(diskDom.createTag("fsType", diskInfo[raidMember]["FsType"]))
                 diskTag.appendChild(diskDom.createTag("fsVersion", diskInfo[raidMember]["FsVersion"]))
                 diskTag.appendChild(diskDom.createTag("size", diskInfo[raidMember]["Size"] / 1024.0))
-                diskTag.appendChild(diskDom.createTag("spaceInUse", diskInfo[raidMember]["SpaceInUse"]))
+                if not diskInfo[raidMember]["SpaceInUse"]:
+                    diskTag.appendChild(diskDom.createTag("spaceInUse", None))
+                else:
+                    diskTag.appendChild(diskDom.createTag("spaceInUse", diskInfo[raidMember]["SpaceInUse"] / 1024.0))
                 raidDisksTag.appendChild(diskTag)
                 del diskInfo[raidMember]
                 continue
@@ -90,7 +96,10 @@ def getDiskDom():
                     diskTag.appendChild(diskDom.createTag("fsType", item["FsType"]))
                     diskTag.appendChild(diskDom.createTag("fsVersion", item["FsVersion"]))
                     diskTag.appendChild(diskDom.createTag("size", item["Size"] / 1024.0))
-                    diskTag.appendChild(diskDom.createTag("spaceInUse", item["SpaceInUse"]))
+                    if not item["SpaceInUse"]:
+                        diskTag.appendChild(diskDom.createTag("spaceInUse", None))
+                    else:
+                        diskTag.appendChild(diskDom.createTag("spaceInUse", item["SpaceInUse"] / 1024.0))
                     partitionsTag = diskDom.createTag("partitions", None)
                     diskTag.appendChild(partitionsTag)
                     raidDisksTag.appendChild(diskTag)
@@ -110,7 +119,10 @@ def getDiskDom():
                     partitionTag.appendChild(diskDom.createTag("type", "UNKNOWN"))
                 partitionTag.appendChild(diskDom.createTag("mountPoint", item['Partitions'][raidMember]['MountPoint']))
                 partitionTag.appendChild(diskDom.createTag("size", item['Partitions'][raidMember]["Size"] / 1024.0))
-                partitionTag.appendChild(diskDom.createTag("spaceInUse", item['Partitions'][raidMember]["SpaceInUse"]))
+                if not item['Partitions'][raidMember]["SpaceInUse"]:
+                    partitionTag.appendChild(diskDom.createTag("spaceInUse", None))
+                else:
+                    partitionTag.appendChild(diskDom.createTag("spaceInUse", item['Partitions'][raidMember]["SpaceInUse"] / 1024.0))
                 diskTagDict[disk]['partitionsTag'].appendChild(partitionTag)
                 # deleting partition entry of a raid member from diskInfo (item['Partitions'])
                 del item['Partitions'][raidMember]
@@ -140,7 +152,10 @@ def getDiskDom():
         diskTag.appendChild(diskDom.createTag("fsVersion", value["FsVersion"]))
         diskTag.appendChild(diskDom.createTag("mountPoint", value["MountPoint"]))
         diskTag.appendChild(diskDom.createTag("size", value["Size"] / 1024.0))
-        diskTag.appendChild(diskDom.createTag("spaceInUse", value["SpaceInUse"]))
+        if not value["SpaceInUse"]:
+            diskTag.appendChild(diskDom.createTag("spaceInUse", None))
+        else:
+            diskTag.appendChild(diskDom.createTag("spaceInUse", value["SpaceInUse"] / 1024.0))
         partitionsTag = diskDom.createTag("partitions", None)
         diskTag.appendChild(partitionsTag)
         for partName, partValues in value['Partitions'].iteritems():
@@ -156,7 +171,10 @@ def getDiskDom():
                 partitionTag.appendChild(diskDom.createTag("type", "UNKNOWN"))
             partitionTag.appendChild(diskDom.createTag("mountPoint", partValues['MountPoint']))
             partitionTag.appendChild(diskDom.createTag("size", partValues["Size"] / 1024.0))
-            partitionTag.appendChild(diskDom.createTag("spaceInUse", partValues["SpaceInUse"]))
+            if not partValues["SpaceInUse"]:
+                partitionTag.appendChild(diskDom.createTag("spaceInUse", None))
+            else:
+                partitionTag.appendChild(diskDom.createTag("spaceInUse", partValues["SpaceInUse"] / 1024.0))
             partitionsTag.appendChild(partitionTag)
             continue
         disksTag.appendChild(diskTag)

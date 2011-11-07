@@ -22,6 +22,7 @@ package com.gluster.storage.management.console.views;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -102,6 +103,7 @@ public class VolumesSummaryView extends ViewPart {
 			public void volumeChanged(Volume volume, Event event) {
 				super.volumeChanged(volume, event);
 				updateSummarySection();
+				updateAlertSection();
 			}
 			
 			private void updateSummarySection() {
@@ -140,6 +142,11 @@ public class VolumesSummaryView extends ViewPart {
 				guiHelper.clearSection(tasksSection);
 				populateTasks();
 			}
+			
+			private void updateAlertSection() {
+				guiHelper.clearSection(alertsSection);
+				populateAlertSection();
+			}
 		};
 		GlusterDataModelManager.getInstance().addClusterListener(clusterListener);
 	}
@@ -166,7 +173,8 @@ public class VolumesSummaryView extends ViewPart {
 
 	private void populateAlertSection() {
 		for (Alert alert : cluster.getAlerts()) {
-			if (alert.getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT) {
+			if (alert.getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT
+					|| alert.getType() == Alert.ALERT_TYPES.OFFLINE_VOLUME_ALERT) {
 				addAlertLabel(alertsSection, alert);
 			}
 		}
@@ -176,8 +184,17 @@ public class VolumesSummaryView extends ViewPart {
 
 	private void addAlertLabel(Composite section, Alert alert) {
 		CLabel lblAlert = new CLabel(section, SWT.NONE);
-		lblAlert.setImage((alert.getType() == Alert.ALERT_TYPES.DISK_USAGE_ALERT) ? guiHelper
-				.getImage(IImageKeys.LOW_DISK_SPACE_22x22) : guiHelper.getImage(IImageKeys.BRICK_OFFLINE_22x22));
+		
+		Image alertImage = null;
+		switch (alert.getType()) {
+			case OFFLINE_VOLUME_BRICKS_ALERT:
+				alertImage = guiHelper.getImage(IImageKeys.BRICK_OFFLINE_22x22);
+				break;
+			case OFFLINE_VOLUME_ALERT:
+				alertImage = guiHelper.getImage(IImageKeys.VOLUME_OFFLINE_22x22);
+				break;
+		}
+		lblAlert.setImage(alertImage);
 		lblAlert.setText(alert.getMessage());
 		lblAlert.redraw();
 	}
