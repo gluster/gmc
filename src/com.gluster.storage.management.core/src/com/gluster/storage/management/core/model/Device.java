@@ -214,11 +214,13 @@ public class Device extends Entity {
 
 	public void copyFrom(Device newDevice) {
 		setName(newDevice.getName());
+		setParent(newDevice.getParent());
 		setMountPoint(newDevice.getMountPoint());
 		setServerName(newDevice.getServerName());
 		setStatus(newDevice.getStatus());
 		setFsType(newDevice.getFsType());
 		setType(newDevice.getType());
+		setFsVersion(newDevice.getFsVersion());
 		setSpace(newDevice.getSpace());
 		setSpaceInUse(newDevice.getSpaceInUse());
 	}
