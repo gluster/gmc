@@ -34,6 +34,8 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.layout.GridData;
@@ -49,9 +51,10 @@ import org.eclipse.swt.widgets.Text;
 import com.gluster.storage.management.client.ClustersClient;
 import com.gluster.storage.management.client.UsersClient;
 import com.gluster.storage.management.console.Activator;
+import com.gluster.storage.management.console.ConsoleConstants;
 import com.gluster.storage.management.console.GlusterDataModelManager;
 import com.gluster.storage.management.console.IImageKeys;
-import static com.gluster.storage.management.console.dialogs.ClusterSelectionDialog.CLUSTER_MODE;
+import com.gluster.storage.management.console.dialogs.ClusterSelectionDialog.CLUSTER_MODE;
 import com.gluster.storage.management.console.preferences.PreferenceConstants;
 import com.gluster.storage.management.console.utils.GUIHelper;
 import com.gluster.storage.management.console.validators.StringRequiredValidator;
@@ -171,6 +174,7 @@ public class LoginDialog extends Dialog {
 		createPasswordLabel(composite);
 		createPasswordText(composite);
 
+		setupAutoLoginIfRequired();
 		return composite;
 	}
 
@@ -201,6 +205,26 @@ public class LoginDialog extends Dialog {
 		okButton.setLayoutData(layoutData);		
 
 		setupDataBinding();
+	}
+
+	private void setupAutoLoginIfRequired() {
+		final String password = System.getProperty(ConsoleConstants.PROPERTY_LOGIN_PASSWORD, null);
+		if (password == null) {
+			return;
+		}
+		getShell().addShellListener(new ShellAdapter() {
+			@Override
+			public void shellActivated(ShellEvent e) {
+				super.shellActivated(e);
+
+				if (passwordText.getText().isEmpty()) {
+					// Check whether the password has been passed as system parameter. This can be used for avoiding
+					// human intervention on login dialog while running SWTBot automated tests.
+					passwordText.setText(password);
+					okPressed();
+				}
+			}
+		});
 	}
 
 	/**

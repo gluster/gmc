@@ -24,4 +24,5 @@ package com.gluster.storage.management.console;
 public class ConsoleConstants {
 	public static final String CONSOLE_TITLE = "Gluster Management Console";
 	public static final String TERMINAL_VIEW_ID = "org.eclipse.tm.terminal.view.TerminalView";
+	public static final String PROPERTY_LOGIN_PASSWORD = "login.password";
 }
