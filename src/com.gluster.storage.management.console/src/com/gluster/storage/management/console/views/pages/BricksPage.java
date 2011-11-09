@@ -25,6 +25,7 @@ import java.util.Map;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
@@ -113,5 +114,10 @@ public class BricksPage extends AbstractTableViewerPage<Brick> {
 	@Override
 	protected List<Brick> getAllEntities() {
 		return bricks;
+	}
+
+	@Override
+	protected ViewerComparator createViewerComparator() {
+		return null;
 	}
 }

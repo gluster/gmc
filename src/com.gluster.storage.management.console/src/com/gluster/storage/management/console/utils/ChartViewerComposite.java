@@ -37,6 +37,8 @@ import org.eclipse.birt.chart.model.attribute.Bounds;
 import org.eclipse.birt.chart.model.attribute.ChartDimension;
 import org.eclipse.birt.chart.model.attribute.LineAttributes;
 import org.eclipse.birt.chart.model.attribute.LineStyle;
+import org.eclipse.birt.chart.model.attribute.Position;
+import org.eclipse.birt.chart.model.attribute.Text;
 import org.eclipse.birt.chart.model.attribute.TickStyle;
 import org.eclipse.birt.chart.model.attribute.impl.BoundsImpl;
 import org.eclipse.birt.chart.model.attribute.impl.ColorDefinitionImpl;
@@ -307,6 +309,9 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 	 */
 	public static final Chart createPieChart(String[] categories, Double[] values) {
 		ChartWithoutAxes pieChart = ChartWithoutAxesImpl.create();
+		
+		// script hook to NOT show the label if value is zero
+		pieChart.setScript("function beforeDrawDataPointLabel( dph, label, icsc ){ if (dph.getOrthogonalValue() == 0){ label.setVisible(false); } } ");
 
 		// Plot
 		pieChart.setSeriesThickness(10);
@@ -350,8 +355,13 @@ public final class ChartViewerComposite extends Composite implements PaintListen
 		sePie.setDataSet(seriesOneValues);
 		sePie.setSeriesIdentifier("Chart");//$NON-NLS-1$
 		sePie.getTitle().setVisible(false); // no title
-		sePie.getLabel().setVisible(false); // no label (values)
+		sePie.getLabel().setVisible(true); // show label (values)
 		sePie.setExplosion(0); // no gap between the pie slices
+		sePie.setLabelPosition(Position.INSIDE_LITERAL);
+		Text labelCaption = sePie.getLabel().getCaption(); 
+		labelCaption.setColor(ColorDefinitionImpl.CYAN());
+		labelCaption.getFont().setSize(8);
+		labelCaption.getFont().setBold(true);
 
 		SeriesDefinition seriesDefinition = SeriesDefinitionImpl.create();
 		seriesDefinition.getQuery().setDefinition("query.definition");//$NON-NLS-1$

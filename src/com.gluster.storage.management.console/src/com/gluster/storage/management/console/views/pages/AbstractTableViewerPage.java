@@ -28,17 +28,21 @@ import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
@@ -49,6 +53,7 @@ import org.eclipse.ui.forms.widgets.Hyperlink;
 
 import com.gluster.storage.management.console.GlusterDataModelManager;
 import com.gluster.storage.management.console.utils.GUIHelper;
+import com.gluster.storage.management.console.utils.TableViewerComparator;
 import com.gluster.storage.management.core.model.ClusterListener;
 
 public abstract class AbstractTableViewerPage<T> extends Composite implements ISelectionListener {
@@ -223,8 +228,32 @@ public abstract class AbstractTableViewerPage<T> extends Composite implements IS
 
 		// Create a case insensitive filter for the table viewer using the filter text field
 		guiHelper.createFilter(tableViewer, filterText, false);
+		
+		tableViewer.setComparator(createViewerComparator());
+		for (int columnIndex = 0; columnIndex < tableViewer.getTable().getColumnCount(); columnIndex++) {
+			TableColumn column = tableViewer.getTable().getColumn(columnIndex); 
+			column.addSelectionListener(getColumnSelectionAdapter(column, columnIndex));
+		}
+	}
+
+	private SelectionAdapter getColumnSelectionAdapter(final TableColumn column, final int columnIndex) {
+		return new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				ViewerComparator viewerComparator = tableViewer.getComparator();
+				if(viewerComparator instanceof TableViewerComparator) {
+					TableViewerComparator comparator = (TableViewerComparator)viewerComparator;
+					comparator.setColumn(columnIndex);
+					tableViewer.getTable().setSortDirection(comparator.getDirection());
+					tableViewer.getTable().setSortColumn(column);
+					tableViewer.refresh();
+				}
+			}
+		};
 	}
 	
+	protected abstract ViewerComparator createViewerComparator();
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.ISelectionListener#selectionChanged(org.eclipse.ui.IWorkbenchPart, org.eclipse.jface.viewers.ISelection)
 	 */

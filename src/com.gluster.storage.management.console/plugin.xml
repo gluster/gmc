@@ -419,7 +419,7 @@
          </property>
          <property
                name="appName"
-               value="about">
+               value="Gluster Management Console">
          </property>
          <property
                name="preferenceCustomization"
