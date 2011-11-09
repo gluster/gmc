@@ -30,6 +30,8 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.layout.GridData;
@@ -43,6 +45,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.gluster.storage.management.console.Activator;
+import com.gluster.storage.management.console.ConsoleConstants;
 import com.gluster.storage.management.console.preferences.PreferenceConstants;
 import com.gluster.storage.management.console.utils.GUIHelper;
 
@@ -166,8 +169,31 @@ public class ClusterSelectionDialog extends Dialog {
 		createRadioButtons();
 		createSubComposites();
 
+		setupAutoSelectionIfRequired();
+		
 		return composite;
 	}
+	
+	private void setupAutoSelectionIfRequired() {
+		if (clusters.size() == 0) {
+			return;
+		}
+		
+		final String clusterName = System.getProperty(ConsoleConstants.PROPERTY_AUTO_CLUSTER_NAME, null);
+		if (clusterName == null) {
+			return;
+		}
+		
+		getShell().addShellListener(new ShellAdapter() {
+			@Override
+			public void shellActivated(ShellEvent e) {
+				super.shellActivated(e);
+				clusterNameCombo.setText(clusterName);
+				okPressed();
+			}
+		});
+	}
+
 
 	private void createSubComposites() {
 		Composite subComposite = new Composite(composite, SWT.NONE);
