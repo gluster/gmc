@@ -208,7 +208,7 @@ public class LoginDialog extends Dialog {
 	}
 
 	private void setupAutoLoginIfRequired() {
-		final String password = System.getProperty(ConsoleConstants.PROPERTY_LOGIN_PASSWORD, null);
+		final String password = System.getProperty(ConsoleConstants.PROPERTY_AUTO_LOGIN_PASSWORD, null);
 		if (password == null) {
 			return;
 		}
