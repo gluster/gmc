@@ -127,10 +127,9 @@ public class DeleteVolumeAction extends AbstractMonitoredActionDelegate {
 					} catch(Exception e2) {
 						// force stop also failed.
 						// Mark as deletion failed, append error message.
-						errorMessage += CoreConstants.NEWLINE + "Stop[" + volume.getName() + "] : [" + e2.getMessage()
+						errorMessage += CoreConstants.NEWLINE + "Stop [" + volume.getName() + "] : [" + e2.getMessage()
 								+ "]";
 						failedVolumes.add(volume);
-
 						// since we are not going to perform delete on this volume, 
 						// mark the deletion task as worked
 						monitor.worked(1);
