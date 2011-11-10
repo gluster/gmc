@@ -166,8 +166,8 @@ public class GlusterInterfaceService extends AbstractGlusterInterface {
 	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#getLogFileNameForBrickDir(java.lang.String)
 	 */
 	@Override
-	public String getLogFileNameForBrickDir(String brickDir) {
-		return getGlusterInterface(brickDir.split(":")[0]).getLogFileNameForBrickDir(brickDir);
+	public String getLogFileNameForBrickDir(String serverName, String brickDir) {
+		return getGlusterInterface(serverName).getLogFileNameForBrickDir(serverName, brickDir);
 	}
 
 	/* (non-Javadoc)

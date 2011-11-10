@@ -465,7 +465,7 @@ public class VolumeService {
 		for (Brick brick : volume.getBricks()) {
 			String logDir = glusterUtil.getLogLocation(volume.getName(), brick.getQualifiedName(),
 					brick.getServerName());
-			String logFileName = glusterUtil.getLogFileNameForBrickDir(brick.getBrickDirectory());
+			String logFileName = glusterUtil.getLogFileNameForBrickDir(brick.getServerName(), brick.getBrickDirectory());
 			String logFilePath = logDir + CoreConstants.FILE_SEPARATOR + logFileName;
 
 			serverUtil.getFileFromServer(brick.getServerName(), logFilePath, tempDirPath);
@@ -587,7 +587,7 @@ public class VolumeService {
 	private List<VolumeLogMessage> getBrickLogs(Volume volume, Brick brick, Integer lineCount)
 			throws GlusterRuntimeException {
 		String logDir = glusterUtil.getLogLocation(volume.getName(), brick.getQualifiedName(), brick.getServerName());
-		String logFileName = glusterUtil.getLogFileNameForBrickDir(brick.getBrickDirectory());
+		String logFileName = glusterUtil.getLogFileNameForBrickDir(brick.getServerName(), brick.getBrickDirectory());
 		String logFilePath = logDir + CoreConstants.FILE_SEPARATOR + logFileName;
 
 		// Usage: get_volume_disk_log.py <volumeName> <diskName> <lineCount>

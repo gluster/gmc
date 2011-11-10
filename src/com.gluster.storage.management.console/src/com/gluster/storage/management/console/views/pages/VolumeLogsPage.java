@@ -26,6 +26,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnWeightData;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
@@ -422,5 +423,9 @@ public class VolumeLogsPage extends Composite {
 		calendar.set(Calendar.MINUTE, time.getMinutes());
 		calendar.set(Calendar.SECOND, time.getSeconds());
 		return calendar.getTime();
+	}
+	
+	public void addDoubleClickListener(IDoubleClickListener listener) {
+		tableViewer.addDoubleClickListener(listener);
 	}
 }

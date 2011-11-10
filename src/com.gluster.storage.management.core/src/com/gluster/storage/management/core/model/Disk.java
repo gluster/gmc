@@ -117,8 +117,8 @@ public class Disk extends Device {
 		
 		Disk disk = (Disk)obj;
 		
-		if (!(super.equals(obj) && getDescription().equals(disk.getDescription()) && getDiskInterface().equals(
-				disk.getDiskInterface()))) {
+		if (!(super.equals(obj) && getDescription().equals(disk.getDescription()) && (getDiskInterface() == disk.getDiskInterface() || getDiskInterface().equals(
+				disk.getDiskInterface()) ))) {
 			return false;
 		}
 		
@@ -145,6 +145,9 @@ public class Disk extends Device {
 	public void copyFrom(Disk newDisk) {
 		super.copyFrom(newDisk);
 		setDescription(newDisk.getDescription());
+		setDiskInterface(newDisk.getDiskInterface());
+		setPartitions(newDisk.getPartitions());
+		setRaidDisks(newDisk.getRaidDisks());
 	}
 	
 	@Override

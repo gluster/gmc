@@ -434,7 +434,7 @@ public class Gluster323InterfaceService extends AbstractGlusterInterface {
 	 * @see com.gluster.storage.management.gateway.utils.GlusterInterface#getLogFileNameForBrickDir(java.lang.String)
 	 */
 	@Override
-	public String getLogFileNameForBrickDir(String brickDir) {
+	public String getLogFileNameForBrickDir(String serverName, String brickDir) {
 		String logFileName = brickDir;
 		if (logFileName.length() > 0 && logFileName.charAt(0) == '/') {
 			logFileName = logFileName.replaceFirst("/", "");
