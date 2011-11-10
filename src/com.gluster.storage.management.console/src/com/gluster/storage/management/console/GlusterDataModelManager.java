@@ -758,6 +758,9 @@ public class GlusterDataModelManager {
 			for(Brick brick : volume.getBricks()) {
 				brick.setStatus(BRICK_STATUS.OFFLINE);
 			}
+			for (ClusterListener listener : listeners) {
+				listener.volumeChanged(volume, new Event(EVENT_TYPE.BRICKS_CHANGED, volume.getBricks()));
+			}
 		} else {
 			Volume newVolume = new VolumesClient().getVolume(volume.getName()); //Getting latest brick info
 			updateBricks(volume, volume.getBricks(), newVolume.getBricks());
@@ -765,7 +768,6 @@ public class GlusterDataModelManager {
 		
 		for (ClusterListener listener : listeners) {
 			listener.volumeChanged(volume, new Event(EVENT_TYPE.VOLUME_STATUS_CHANGED, newStatus));
-			listener.volumeChanged(volume, new Event(EVENT_TYPE.BRICKS_CHANGED, volume.getBricks()));
 		}
 	}
 	

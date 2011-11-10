@@ -91,6 +91,7 @@ public class StartVolumeAction extends AbstractMonitoredActionDelegate {
 			try {
 				monitor.setTaskName("Starting volume [" + volume.getName() + "]");
 				vc.startVolume(volume.getName(), false);
+				modelManager.updateVolumeStatus(volume, VOLUME_STATUS.ONLINE);
 				startedVolumes.add(volume.getName());
 			} catch (Exception e) {
 				failedVolumes.add(volume.getName());
@@ -100,10 +101,10 @@ public class StartVolumeAction extends AbstractMonitoredActionDelegate {
 				}
 				errorMessage += e.getMessage() + CoreConstants.NEWLINE;
 			}
+			
 			// Update the model by fetching latest volume info (NOT JUST STATUS)
 			try {
-				newVolume = vc.getVolume(volume.getName());
-				modelManager.volumeChanged(volume, newVolume);
+				modelManager.refreshVolumeData(volume);
 			} catch (Exception e) {
 				errorMessage += "Updating volume info failed on UI. [" + e.getMessage() + "]";
 			}

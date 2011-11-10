@@ -155,8 +155,8 @@ public class StopVolumeAction extends AbstractMonitoredActionDelegate {
 			try {
 				monitor.setTaskName("Stopping volume [" + volume.getName() + "]");
 				vc.stopVolume(volume.getName(), force);
-				// modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
 				stoppedVolumes.add(volume.getName());
+				modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
 			} catch (Exception e) {
 				// If any post volume stop activity failed, update the volume status
 				if (vc.getVolume(volume.getName()).getStatus() == VOLUME_STATUS.OFFLINE) {
@@ -169,13 +169,11 @@ public class StopVolumeAction extends AbstractMonitoredActionDelegate {
 					failedVolumes.add(volume);
 					errorMessage += "[" + volume.getName() + "] : " + e.getMessage() + CoreConstants.NEWLINE;
 				}
-				
 			}
 
 			// Update the model by fetching latest volume info (NOT JUST STATUS)
 			try {
-				newVolume = vc.getVolume(volume.getName());
-				modelManager.volumeChanged(volume, newVolume);
+				modelManager.refreshVolumeData(volume);
 			} catch (Exception e) {
 				errorMessage += "Failed to update volume info on UI. [" + e.getMessage() + "]";
 			}
