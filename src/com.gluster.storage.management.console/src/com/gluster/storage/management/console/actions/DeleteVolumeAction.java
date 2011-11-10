@@ -40,6 +40,8 @@ public class DeleteVolumeAction extends AbstractMonitoredActionDelegate {
 	private List<Volume> selectedVolumes = new ArrayList<Volume>();
 	private List<String> selectedVolumeNames = new ArrayList<String>();
 	private List<String> onlineVolumeNames = new ArrayList<String>();
+	private List<String> deletedVolumeNames = new ArrayList<String>();
+	private List<Volume> failedVolumes = new ArrayList<Volume>(); 
 	
 	@Override
 	protected void performAction(final IAction action, IProgressMonitor monitor) {
@@ -69,59 +71,111 @@ public class DeleteVolumeAction extends AbstractMonitoredActionDelegate {
 			warningMessage = "Are you sure to delete the volumes " + selectedVolumeNames + " ?";
 		}
 
-		final Integer directoryDeleteOption = new MessageDialog(getShell(), "Delete Volume", GUIHelper.getInstance()
+		final Integer deleteOption = new MessageDialog(getShell(), "Delete Volume", GUIHelper.getInstance()
 				.getImage(IImageKeys.VOLUME_16x16), warningMessage, MessageDialog.QUESTION, new String[] { "Cancel",
 				"Delete volume and data", "Delete volume, keep data" }, -1).open();
-		if (directoryDeleteOption <= 0) { // By Cancel button(0) or Escape key(-1)
+		if (deleteOption <= 0) { // By Cancel button(0) or Escape key(-1)
 			return;
 		}
 		
+		String errorMessage = deleteVolumes(selectedVolumes, deleteOption, monitor);
+
+		// Display the success or failure info
+		if (deletedVolumeNames.size() == 0) { // No volume(s) deleted successfully
+			showErrorDialog(actionDesc, "Volume(s) could not be deleted! " + CoreConstants.NEWLINE + errorMessage);
+		} else {
+			String info = "Volume(s) " + deletedVolumeNames + " deleted successfully!";
+			if (!failedVolumes.isEmpty()) {
+				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes " + failedVolumes
+						+ " could not be deleted!" + CoreConstants.NEWLINE + errorMessage;
+			}
+			
+			if (selectedVolumes.size() == deletedVolumeNames.size()) {
+				showInfoDialog(actionDesc, info);
+			} else {
+				showWarningDialog(actionDesc, info);
+			}
+		}
+	}
+	
+	private String deleteVolumes(List<Volume> volumes, final Integer deleteOption, IProgressMonitor monitor) {
+		deletedVolumeNames.clear();
+		failedVolumes.clear();
 		VolumesClient vc = new VolumesClient();
-		boolean confirmDeleteDir = (directoryDeleteOption == 1) ? true : false;
-		List<String> deletedVolumeNames = new ArrayList<String>();
-		List<String> failedVolumes = new ArrayList<String>();
+		boolean confirmDeleteDir = (deleteOption == 1) ? true : false;
+
 		String errorMessage = "";
 
-		monitor.beginTask("Deleting Selected Volumes...", selectedVolumes.size());
-		for (Volume volume : selectedVolumes.toArray(new Volume[0])) {
-			try {
-				monitor.setTaskName("Deleting volume [" + volume.getName() + "]");
-				if (volume.getStatus() == VOLUME_STATUS.ONLINE) { // stop if online volume
+		// To calculate the total work we need to sum volumes size + online volumes (because we treat stop and delete as
+		// separate steps)
+		List<Volume> onlineVolumes = getOnlineVolumes(volumes);
+		monitor.beginTask("Deleting Selected Volumes...", volumes.size() + onlineVolumes.size());
+		
+		// Deletion of a volume results in changes to the model, and ultimately updates the "selectedVolumes" list,
+		// over which we are iterating, thus resulting in ConcurrentModificationException. To avoid this, we iterate
+		// over an array obtained from the list.
+		for (Volume volume : volumes.toArray(new Volume[0])) {
+			if (volume.getStatus() == VOLUME_STATUS.ONLINE) { // stop if online volume
+				monitor.setTaskName("Stopping volume [" + volume.getName() + "]");
+				try {
 					vc.stopVolume(volume.getName(), false);
+				} catch (Exception e1) {
+					// try again with force = true
+					try {
+						vc.stopVolume(volume.getName(), true);
+					} catch(Exception e2) {
+						// force stop also failed.
+						// Mark as deletion failed, append error message.
+						errorMessage += CoreConstants.NEWLINE + "Stop [" + volume.getName() + "] : [" + e2.getMessage()
+								+ "]";
+						failedVolumes.add(volume);
+						// since we are not going to perform delete on this volume, 
+						// mark the deletion task as worked
+						monitor.worked(1);
+						
+						// continue to next volume without trying to delete this one
+						continue;
+					}
+				} finally {
+					// worked for "stop" operation
+					monitor.worked(1);
 				}
+			}
+
+			monitor.setTaskName("Deleting volume [" + volume.getName() + "]");
+			try {
 				vc.deleteVolume(volume.getName(), confirmDeleteDir);
 				modelManager.deleteVolume(volume);
 				deletedVolumeNames.add(volume.getName());
 			} catch (Exception e) {
 				// Volume delete succeeded and post delete operation (directory cleanup, CIFS etc) may fail
 				if (vc.volumeExists(volume.getName())) {
-					errorMessage += CoreConstants.NEWLINE + "[" + volume.getName() + "] : [" + e.getMessage() + "]";
-					failedVolumes.add(volume.getName());
+					errorMessage += CoreConstants.NEWLINE + "Delete [" + volume.getName() + "] : [" + e.getMessage() + "]";
+					failedVolumes.add(volume);
 				} else {
-					errorMessage += CoreConstants.NEWLINE + "Volume deleted, but following error occured: ["
-							+ e.getMessage() + "]";
+					errorMessage += CoreConstants.NEWLINE + "Volume [" + volume.getName()
+							+ "] deleted, but following error occured: [" + e.getMessage() + "]";
 					modelManager.deleteVolume(volume);
 					deletedVolumeNames.add(volume.getName());
 				}
+			} finally {			
+				monitor.worked(1);
 			}
-			monitor.worked(1);
 		}
 		monitor.done();
-
-		// Display the success or failure info
-		if (deletedVolumeNames.size() == 0) { // No volume(s) deleted successfully
-			showErrorDialog(actionDesc, "volumes " + failedVolumes + " could not be delete! " + CoreConstants.NEWLINE
-					+ "Error: [" + errorMessage + "]");
-		} else {
-			String info = "Volumes " + deletedVolumeNames + " deleted successfully!";
-			if (!errorMessage.equals("")) {
-				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes " + failedVolumes
-						+ " could not be deleted! [" + errorMessage + "]";
-			}
-			showInfoDialog(actionDesc, info);
-		}
+		return errorMessage;
 	}
 
+	private List<Volume> getOnlineVolumes(List<Volume> volumes) {
+		List<Volume> onlineVolumes = new ArrayList<Volume>();
+		for (Volume volume : volumes) {
+			if (volume.getStatus() == VOLUME_STATUS.ONLINE) {
+				onlineVolumes.add(volume);
+			}
+		}
+		return onlineVolumes;
+	}
+	
 	private void collectVolumeNames() {
 		selectedVolumeNames.clear();
 		onlineVolumeNames.clear();

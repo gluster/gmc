@@ -26,13 +26,16 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.osgi.internal.signedcontent.Base64;
 
 import com.gluster.storage.management.client.VolumesClient;
+import com.gluster.storage.management.console.AlertsManager;
 import com.gluster.storage.management.console.GlusterDataModelManager;
 import com.gluster.storage.management.console.IImageKeys;
 import com.gluster.storage.management.console.utils.GUIHelper;
 import com.gluster.storage.management.core.constants.CoreConstants;
 import com.gluster.storage.management.core.model.Volume;
+import com.gluster.storage.management.core.model.Alert.ALERT_TYPES;
 import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 
 public class StartVolumeAction extends AbstractMonitoredActionDelegate {
@@ -74,6 +77,9 @@ public class StartVolumeAction extends AbstractMonitoredActionDelegate {
 		}
 		
 		monitor.beginTask("Starting Selected Volumes...", selectedVolumes.size());
+		// Starting of a volume results in changes to the model, and ultimately updates the "selectedVolumes" list,
+		// over which we are iterating, thus resulting in ConcurrentModificationException. To avoid this, we iterate
+		// over an array obtained from the list.
 		for (Volume volume : selectedVolumes.toArray(new Volume[0])) {
 			if(monitor.isCanceled()) {
 				break;
@@ -107,15 +113,19 @@ public class StartVolumeAction extends AbstractMonitoredActionDelegate {
 
 		// Display the success or failure info
 		if (startedVolumes.size() == 0) { // No volume(s) started successfully
-			showErrorDialog(actionDesc, "Following volumes " + failedVolumes + " could not be started!"
+			showErrorDialog(actionDesc, "Volume(s) " + failedVolumes + " could not be started!"
 					+ CoreConstants.NEWLINE + "Error: [" + errorMessage + "]");
 		} else {
-			String info = "Volumes " + startedVolumes + " started successfully!";
+			String info = "Volume(s) " + startedVolumes + " started successfully!";
 			if (!errorMessage.equals("")) {
 				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes " + failedVolumes
 						+ " failed to start! [" + errorMessage + "]";
 			}
-			showInfoDialog(actionDesc, info);
+			if (selectedVolumes.size() == startedVolumes.size()) {
+				showInfoDialog(actionDesc, info);
+			} else {
+				showWarningDialog(actionDesc, info);
+			}
 		}
 	}
 

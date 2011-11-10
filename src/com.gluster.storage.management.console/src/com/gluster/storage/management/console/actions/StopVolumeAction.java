@@ -40,15 +40,16 @@ public class StopVolumeAction extends AbstractMonitoredActionDelegate {
 	private List<Volume> selectedVolumes = new ArrayList<Volume>();
 	private List<String> selectedVolumeNames = new ArrayList<String>();
 	private List<String> onlineVolumeNames = new ArrayList<String>();
+	private List<String> stoppedVolumes  = new ArrayList<String>();
+	private List<Volume> failedVolumes = new ArrayList<Volume>();
+	private String errorMessage = null;
 	
 	@Override
 	protected void performAction(final IAction action, IProgressMonitor monitor) {
-		final String actionDesc = action.getDescription();
-
 		collectVolumeNames();
 
 		if (onlineVolumeNames.size() == 0) {
-			showWarningDialog(actionDesc, "Volumes " + selectedVolumeNames + " already stopped!");
+			showWarningDialog(action.getDescription(), "Volumes " + selectedVolumeNames + " already stopped!");
 			return; // Volumes already stopped, Don't do anything.
 		}
 
@@ -61,10 +62,6 @@ public class StopVolumeAction extends AbstractMonitoredActionDelegate {
 			return;
 		}
 
-		VolumesClient vc = new VolumesClient();
-		List<String> stoppedVolumes = new ArrayList<String>();
-		List<String> failedVolumes = new ArrayList<String>();
-		String errorMessage = "";
 		List<String> cifsVolumes = GlusterDataModelManager.getInstance().getCifsEnabledVolumeNames(selectedVolumes);
 		List<String> offlineServers = GlusterDataModelManager.getInstance().getOfflineServers();
 		// One or more servers are offline, Show warning if cifs is enabled
@@ -80,10 +77,73 @@ public class StopVolumeAction extends AbstractMonitoredActionDelegate {
 			}
 		}
 		
-		Volume newVolume = new Volume();
+		stopVolumes(selectedVolumes, false, monitor);
+		
+		// Check for errors, trying to force stop in case of errors
+		checkForErrors(action, monitor, true);
+	}
 
-		monitor.beginTask("Stopping Selected Volumes...", selectedVolumes.size());
-		for (Volume volume : selectedVolumes.toArray(new Volume[0])) {
+	private void checkForErrors(final IAction action, IProgressMonitor monitor, boolean tryForceStop) {
+		String message = null;
+		if (stoppedVolumes.size() == 0) { // No volume(s) stopped successfully
+			message = "Volume(s) " + failedVolumes + " could not be stopped! " + CoreConstants.NEWLINE
+					+ "Error: [" + errorMessage + "]";
+			if(tryForceStop) {
+				forceStopVolumes(action.getDescription(), message + CoreConstants.NEWLINE
+						+ "Do you want to stop forcefully?", monitor);
+				// check for errors without trying to force stop in case of errors
+				checkForErrors(action, monitor, false);
+				return;
+			} else {
+				showErrorDialog(action.getDescription(), message);
+				return;
+			}
+		} else {
+			message = "Volume(s) " + stoppedVolumes + " stopped successfully!";
+			if (!errorMessage.isEmpty()) {
+				if (failedVolumes.size() > 0) { 
+					message = message + CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volume(s) "
+							+ failedVolumes + " could not be stopped! [" + errorMessage + "]";
+					if(tryForceStop) {
+						forceStopVolumes(action.getDescription(), message + CoreConstants.NEWLINE
+								+ "Do you want to stop forcefully?", monitor);
+						// check for errors without trying to force stop in case of errors
+						checkForErrors(action, monitor, false);
+						return;
+					}
+				} else { // Stop volume success, but post stop volume fails, append the error message
+					message += CoreConstants.NEWLINE + CoreConstants.NEWLINE + errorMessage;
+				}
+			}
+			
+			if (errorMessage.isEmpty()) {
+				showInfoDialog(action.getDescription(), message);
+			} else {
+				showWarningDialog(action.getDescription(), message);
+			}
+		}
+	}
+	
+	private void forceStopVolumes(String actionDesc,  String message, IProgressMonitor monitor) {
+		boolean forceStop = showConfirmDialog(actionDesc, message);
+		if (!forceStop) {
+			return;
+		}
+		stopVolumes(failedVolumes, true, monitor);
+	}
+
+	private void stopVolumes(List<Volume> volumes, Boolean force, IProgressMonitor monitor) {
+		VolumesClient vc = new VolumesClient();
+		Volume newVolume = new Volume();
+		stoppedVolumes.clear();
+		failedVolumes.clear();
+		errorMessage = "";
+
+		monitor.beginTask("Stopping Selected Volumes...", volumes.size());
+		// Stopping of a volume results in changes to the model, and ultimately updates the "selectedVolumes" list,
+		// over which we are iterating, thus resulting in ConcurrentModificationException. To avoid this, we iterate
+		// over an array obtained from the list.
+		for (Volume volume : volumes.toArray(new Volume[0])) {
 			if(monitor.isCanceled()) {
 				break;
 			}
@@ -94,16 +154,22 @@ public class StopVolumeAction extends AbstractMonitoredActionDelegate {
 			}
 			try {
 				monitor.setTaskName("Stopping volume [" + volume.getName() + "]");
-				vc.stopVolume(volume.getName(), false);
+				vc.stopVolume(volume.getName(), force);
 				// modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
 				stoppedVolumes.add(volume.getName());
 			} catch (Exception e) {
-				failedVolumes.add(volume.getName());
 				// If any post volume stop activity failed, update the volume status
 				if (vc.getVolume(volume.getName()).getStatus() == VOLUME_STATUS.OFFLINE) {
+					// stop volume succeed, so add it to stoppedVolumes
+					stoppedVolumes.add(volume.getName());
 					modelManager.updateVolumeStatus(volume, VOLUME_STATUS.OFFLINE);
+					errorMessage += "Volume [" + volume.getName() + "] stopped, but following error occured: ["
+							+ e.getMessage() + "]";
+				} else {
+					failedVolumes.add(volume);
+					errorMessage += "[" + volume.getName() + "] : " + e.getMessage() + CoreConstants.NEWLINE;
 				}
-				errorMessage += e.getMessage() + CoreConstants.NEWLINE;
+				
 			}
 
 			// Update the model by fetching latest volume info (NOT JUST STATUS)
@@ -116,19 +182,6 @@ public class StopVolumeAction extends AbstractMonitoredActionDelegate {
 			monitor.worked(1);
 		}
 		monitor.done();
-		
-		// Display the success or failure info
-		if (stoppedVolumes.size() == 0) { // No volume(s) stopped successfully
-			showErrorDialog(actionDesc, "Volumes " + failedVolumes + " could not be stopped! " + CoreConstants.NEWLINE
-					+ "Error: [" + errorMessage + "]");
-		} else {
-			String info = "Volumes " + stoppedVolumes + " stopped successfully!";
-			if (!errorMessage.equals("")) {
-				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes " + failedVolumes
-						+ " failed to stop! [" + errorMessage + "]";
-			}
-			showInfoDialog(actionDesc, info);
-		}
 	}
 
 	private void collectVolumeNames() {
