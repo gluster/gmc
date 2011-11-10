@@ -408,6 +408,11 @@ public class GlusterDataModelManager {
 	
 	public void volumeChanged(Volume oldVolume, Volume newVolume) {
 		oldVolume.copyFrom(newVolume);
+		
+		if (oldVolume.getStatus() != newVolume.getStatus()) {
+			updateVolumeStatusAlert(newVolume, newVolume.getStatus());
+		}
+		
 		for (ClusterListener listener : listeners) {
 			listener.volumeChanged(oldVolume, new Event(EVENT_TYPE.VOLUME_CHANGED, newVolume));
 		}
@@ -746,11 +751,15 @@ public class GlusterDataModelManager {
 
 	public void updateVolumeStatus(Volume volume, VOLUME_STATUS newStatus) {
 		volume.setStatus(newStatus);
+		updateVolumeStatusAlert(volume, newStatus);
 		
 		if(newStatus == VOLUME_STATUS.OFFLINE) {
 			// mark as bricks also as offline
 			for(Brick brick : volume.getBricks()) {
 				brick.setStatus(BRICK_STATUS.OFFLINE);
+			}
+			for (ClusterListener listener : listeners) {
+				listener.volumeChanged(volume, new Event(EVENT_TYPE.BRICKS_CHANGED, volume.getBricks()));
 			}
 		} else {
 			Volume newVolume = new VolumesClient().getVolume(volume.getName()); //Getting latest brick info
@@ -759,8 +768,43 @@ public class GlusterDataModelManager {
 		
 		for (ClusterListener listener : listeners) {
 			listener.volumeChanged(volume, new Event(EVENT_TYPE.VOLUME_STATUS_CHANGED, newStatus));
-			listener.volumeChanged(volume, new Event(EVENT_TYPE.BRICKS_CHANGED, volume.getBricks()));
 		}
+	}
+	
+	private void updateVolumeStatusAlert(Volume volume, VOLUME_STATUS newStatus) {
+		Alert alert = null;
+		if (newStatus == VOLUME_STATUS.OFFLINE) {
+			alert = createOfflineVolumeAlert(volume);
+			for (ClusterListener listener : listeners) {
+				listener.alertCreated(alert);
+			}
+		} else {
+			alert = removeOfflineVolumeAlert(volume);
+			for (ClusterListener listener : listeners) {
+				listener.alertRemoved(alert);
+			}
+		}
+	}
+	
+	private Alert createOfflineVolumeAlert(Volume volume) {
+		Alert alert = new Alert(ALERT_TYPES.OFFLINE_VOLUME_ALERT, volume.getName(),
+				Alert.ALERT_TYPE_STR[ALERT_TYPES.OFFLINE_VOLUME_ALERT.ordinal()] + " [" + volume.getName() + "]");
+		getModel().getCluster().addAlert(alert);
+		return alert;
+	}
+
+	private Alert removeOfflineVolumeAlert(Volume volume) {
+		List<Alert> clusterAlerts = getModel().getCluster().getAlerts();
+		Alert removedAlert = null;
+		for (Alert alert : clusterAlerts) {
+			if (alert.getType().equals(ALERT_TYPES.OFFLINE_VOLUME_ALERT)
+					&& alert.getReference().equals(volume.getName())) {
+				removedAlert = alert;
+				clusterAlerts.remove(alert);
+				break;
+			}
+		}
+		return removedAlert;
 	}
 
 	public void resetVolumeOptions(Volume volume) {
