@@ -30,6 +30,8 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.layout.GridData;
@@ -43,6 +45,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.gluster.storage.management.console.Activator;
+import com.gluster.storage.management.console.ConsoleConstants;
 import com.gluster.storage.management.console.preferences.PreferenceConstants;
 import com.gluster.storage.management.console.utils.GUIHelper;
 
@@ -50,6 +53,10 @@ import com.gluster.storage.management.console.utils.GUIHelper;
  * Cluster selection dialog, which prompts for the cluster name to be managed
  */
 public class ClusterSelectionDialog extends Dialog {
+	private static final String MESSAGE_SELECT_CLUSTER = "Select the Cluster you want to manage in this session.";
+	private static final String MESSAGE_CREATE_CLUSTER = "Create an empty Cluster and start adding servers to it.";
+	private static final String MESSAGE_REGISTER_CLUSTER = "Register an existing Cluster with the Management Gateway and start managing it using the Management Console.";
+
 	protected enum CLUSTER_MODE { SELECT, CREATE, REGISTER };
 	
 	private Combo clusterNameCombo = null;
@@ -162,8 +169,31 @@ public class ClusterSelectionDialog extends Dialog {
 		createRadioButtons();
 		createSubComposites();
 
+		setupAutoSelectionIfRequired();
+		
 		return composite;
 	}
+	
+	private void setupAutoSelectionIfRequired() {
+		if (clusters.size() == 0) {
+			return;
+		}
+		
+		final String clusterName = System.getProperty(ConsoleConstants.PROPERTY_AUTO_CLUSTER_NAME, null);
+		if (clusterName == null) {
+			return;
+		}
+		
+		getShell().addShellListener(new ShellAdapter() {
+			@Override
+			public void shellActivated(ShellEvent e) {
+				super.shellActivated(e);
+				clusterNameCombo.setText(clusterName);
+				okPressed();
+			}
+		});
+	}
+
 
 	private void createSubComposites() {
 		Composite subComposite = new Composite(composite, SWT.NONE);
@@ -250,15 +280,15 @@ public class ClusterSelectionDialog extends Dialog {
 		clusterSelectionComposite = new Composite(subComposite, SWT.NONE);
 		GridLayout layout = new GridLayout(2, false);
 		clusterSelectionComposite.setLayout(layout);
+		
 		createClusterNameLabel(clusterSelectionComposite);
 		createClusterNameCombo(clusterSelectionComposite);
-		
-		createPreferenceCheckboxes(clusterSelectionComposite);
+		createPreferenceCheckbox(clusterSelectionComposite);
 		
 		stackLayout.topControl = clusterSelectionComposite;
 	}
 
-	private void createPreferenceCheckboxes(Composite composite) {
+	private void createPreferenceCheckbox(Composite composite) {
 		GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, false);
 		layoutData.verticalIndent = 5;
 		layoutData.horizontalSpan = 2;
@@ -277,15 +307,18 @@ public class ClusterSelectionDialog extends Dialog {
 			if (clusters.size() > 0) {
 				selectButton = new Button(composite, SWT.RADIO);
 				selectButton.setText("&Select");
+				selectButton.setToolTipText(MESSAGE_SELECT_CLUSTER);
 			}
 		}
 		{
 			createButton = new Button(composite, SWT.RADIO);
 			createButton.setText("&Create");
+			createButton.setToolTipText(MESSAGE_CREATE_CLUSTER);
 		}
 		{
 			registerButton = new Button(composite, SWT.RADIO);
 			registerButton.setText("&Register");
+			registerButton.setToolTipText(MESSAGE_REGISTER_CLUSTER);
 		}
 	}
 	
