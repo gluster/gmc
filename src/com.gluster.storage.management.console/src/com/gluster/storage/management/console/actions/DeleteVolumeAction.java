@@ -82,15 +82,14 @@ public class DeleteVolumeAction extends AbstractMonitoredActionDelegate {
 
 		// Display the success or failure info
 		if (deletedVolumeNames.size() == 0) { // No volume(s) deleted successfully
-			if (!errorMessage.isEmpty()) {
-				showErrorDialog(actionDesc, "Volume(s) could not be deleted! " + CoreConstants.NEWLINE + errorMessage);
-			}
+			showErrorDialog(actionDesc, "Volume(s) could not be deleted! " + CoreConstants.NEWLINE + errorMessage);
 		} else {
 			String info = "Volume(s) " + deletedVolumeNames + " deleted successfully!";
-			if (!errorMessage.isEmpty()) {
+			if (!failedVolumes.isEmpty()) {
 				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes " + failedVolumes
-						+ " could not be deleted!" + errorMessage;
+						+ " could not be deleted!" + CoreConstants.NEWLINE + errorMessage;
 			}
+			
 			if (selectedVolumes.size() == deletedVolumeNames.size()) {
 				showInfoDialog(actionDesc, info);
 			} else {

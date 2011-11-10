@@ -113,10 +113,10 @@ public class StartVolumeAction extends AbstractMonitoredActionDelegate {
 
 		// Display the success or failure info
 		if (startedVolumes.size() == 0) { // No volume(s) started successfully
-			showErrorDialog(actionDesc, "Following volumes " + failedVolumes + " could not be started!"
+			showErrorDialog(actionDesc, "Volume(s) " + failedVolumes + " could not be started!"
 					+ CoreConstants.NEWLINE + "Error: [" + errorMessage + "]");
 		} else {
-			String info = "Volumes " + startedVolumes + " started successfully!";
+			String info = "Volume(s) " + startedVolumes + " started successfully!";
 			if (!errorMessage.equals("")) {
 				info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volumes " + failedVolumes
 						+ " failed to start! [" + errorMessage + "]";

@@ -42,15 +42,14 @@ public class StopVolumeAction extends AbstractMonitoredActionDelegate {
 	private List<String> onlineVolumeNames = new ArrayList<String>();
 	private List<String> stoppedVolumes  = new ArrayList<String>();
 	private List<Volume> failedVolumes = new ArrayList<Volume>();
+	private String errorMessage = null;
 	
 	@Override
 	protected void performAction(final IAction action, IProgressMonitor monitor) {
-		final String actionDesc = action.getDescription();
-
 		collectVolumeNames();
 
 		if (onlineVolumeNames.size() == 0) {
-			showWarningDialog(actionDesc, "Volumes " + selectedVolumeNames + " already stopped!");
+			showWarningDialog(action.getDescription(), "Volumes " + selectedVolumeNames + " already stopped!");
 			return; // Volumes already stopped, Don't do anything.
 		}
 
@@ -78,51 +77,67 @@ public class StopVolumeAction extends AbstractMonitoredActionDelegate {
 			}
 		}
 		
-		String errorMessage = stopVolume(selectedVolumes, false, monitor);
+		stopVolumes(selectedVolumes, false, monitor);
 		
-		// Display the success or failure info
+		// Check for errors, trying to force stop in case of errors
+		checkForErrors(action, monitor, true);
+	}
+
+	private void checkForErrors(final IAction action, IProgressMonitor monitor, boolean tryForceStop) {
+		String message = null;
 		if (stoppedVolumes.size() == 0) { // No volume(s) stopped successfully
-			String message = "Volume(s) " + failedVolumes + " could not be stopped! " + CoreConstants.NEWLINE
+			message = "Volume(s) " + failedVolumes + " could not be stopped! " + CoreConstants.NEWLINE
 					+ "Error: [" + errorMessage + "]";
-			errorMessage = forceStopVolume(actionDesc, message, monitor);
-			if (errorMessage.isEmpty()) {
+			if(tryForceStop) {
+				forceStopVolumes(action.getDescription(), message + CoreConstants.NEWLINE
+						+ "Do you want to stop forcefully?", monitor);
+				// check for errors without trying to force stop in case of errors
+				checkForErrors(action, monitor, false);
+				return;
+			} else {
+				showErrorDialog(action.getDescription(), message);
 				return;
 			}
-			showErrorDialog(actionDesc, errorMessage);
 		} else {
-			String info = "Volume(s) " + stoppedVolumes + " stopped successfully!";
-			if (!errorMessage.equals("")) {
+			message = "Volume(s) " + stoppedVolumes + " stopped successfully!";
+			if (!errorMessage.isEmpty()) {
 				if (failedVolumes.size() > 0) { 
-					String message = info + CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volume(s) " + failedVolumes
-							+ " failed to stop! [" + errorMessage + "]";
-					info += forceStopVolume(actionDesc, message, monitor);
+					message = message + CoreConstants.NEWLINE + CoreConstants.NEWLINE + "Volume(s) "
+							+ failedVolumes + " could not be stopped! [" + errorMessage + "]";
+					if(tryForceStop) {
+						forceStopVolumes(action.getDescription(), message + CoreConstants.NEWLINE
+								+ "Do you want to stop forcefully?", monitor);
+						// check for errors without trying to force stop in case of errors
+						checkForErrors(action, monitor, false);
+						return;
+					}
 				} else { // Stop volume success, but post stop volume fails, append the error message
-					info += CoreConstants.NEWLINE + CoreConstants.NEWLINE + errorMessage;
+					message += CoreConstants.NEWLINE + CoreConstants.NEWLINE + errorMessage;
 				}
 			}
-			if (stoppedVolumes.size() == selectedVolumes.size()) {
-				showInfoDialog(actionDesc, info);
+			
+			if (errorMessage.isEmpty()) {
+				showInfoDialog(action.getDescription(), message);
 			} else {
-				showWarningDialog(actionDesc, info);
+				showWarningDialog(action.getDescription(), message);
 			}
 		}
 	}
 	
-	private String forceStopVolume(String actionDesc,  String message, IProgressMonitor monitor) {
-		boolean forceStop = showConfirmDialog(actionDesc,
-				message + CoreConstants.NEWLINE + "Do you want to stop forcefully?");
+	private void forceStopVolumes(String actionDesc,  String message, IProgressMonitor monitor) {
+		boolean forceStop = showConfirmDialog(actionDesc, message);
 		if (!forceStop) {
-			return "";
+			return;
 		}
-		return stopVolume(failedVolumes, true, monitor);
+		stopVolumes(failedVolumes, true, monitor);
 	}
 
-	private String stopVolume(List<Volume> volumes, Boolean force, IProgressMonitor monitor) {
+	private void stopVolumes(List<Volume> volumes, Boolean force, IProgressMonitor monitor) {
 		VolumesClient vc = new VolumesClient();
 		Volume newVolume = new Volume();
 		stoppedVolumes.clear();
 		failedVolumes.clear();
-		String errorMessage = "";
+		errorMessage = "";
 
 		monitor.beginTask("Stopping Selected Volumes...", volumes.size());
 		// Stopping of a volume results in changes to the model, and ultimately updates the "selectedVolumes" list,
@@ -167,7 +182,6 @@ public class StopVolumeAction extends AbstractMonitoredActionDelegate {
 			monitor.worked(1);
 		}
 		monitor.done();
-		return errorMessage;
 	}
 
 	private void collectVolumeNames() {
