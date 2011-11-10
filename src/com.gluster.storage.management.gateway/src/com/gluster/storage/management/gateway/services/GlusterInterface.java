@@ -224,11 +224,13 @@ public interface GlusterInterface {
 	/**
 	 * Returns the log file name for given brick directory.
 	 * 
+	 * @param serverName
+	 *            Server to which the brick belongs
 	 * @param brickDir
 	 *            Brick directory for which log file name is to be returned.
 	 * @return The log file name (without path) for the given brick directory.
 	 */
-	public abstract String getLogFileNameForBrickDir(String brickDir);
+	public abstract String getLogFileNameForBrickDir(String serverName, String brickDir);
 
 	/**
 	 * Checks the status of "Rebalance" operation on given Volume by executing appropriate Gluster command on the
