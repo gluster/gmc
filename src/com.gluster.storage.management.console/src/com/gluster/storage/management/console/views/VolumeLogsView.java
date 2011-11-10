@@ -51,7 +51,8 @@ public class VolumeLogsView extends ViewPart implements IDoubleClickListener {
 				+ DateUtil.formatTime(volumeLogMessage.getTimestamp()) + " [" + volumeLogMessage.getSeverity() + "]"
 				+ CoreConstants.NEWLINE + CoreConstants.NEWLINE + volumeLogMessage.getMessage();
 
-		new MessageDialog(getSite().getShell(), "Log message from " + volumeLogMessage.getBrick(), GUIHelper
-				.getInstance().getImage(""), message, MessageDialog.NONE, new String[] { "Close" }, 0).open();
+		new MessageDialog(getSite().getShell(), "Log message from " + volumeLogMessage.getBrick(), null, message,
+				MessageDialog.NONE, new String[] { "Close" }, 0).open();
+
 	}
 }
