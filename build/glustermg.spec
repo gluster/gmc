@@ -27,7 +27,6 @@ Requires(preun): /sbin/chkconfig
 Requires:       python >= 2.4.3
 Requires:       perl >= 5.8.8
 Requires:       rrdtool-perl >= 1.2.27
-Requires:       appliance-base >= 1.3
 Requires:       sudo
 Requires:       crontabs
 Requires:       samba3
