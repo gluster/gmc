@@ -1226,7 +1226,7 @@
             description="Set of Actions in &quot;Edit&quot; menu"
             id="com.gluster.storage.management.console.actionsets.help"
             label="Help Action Set"
-            visible="true">
+            visible="false">
          <action
                allowLabelUpdate="false"
                class="com.gluster.storage.management.console.actions.SupportAction"
@@ -1236,7 +1236,7 @@
                menubarPath="help/helpEnd"
                pulldown="false"
                retarget="false"
-               state="false"
+               state="true"
                style="push"
                tooltip="Support Information">
          </action>
