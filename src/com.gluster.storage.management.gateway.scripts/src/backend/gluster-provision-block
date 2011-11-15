@@ -1,0 +1,171 @@
+#!/bin/bash
+
+ME=$(basename $0);
+
+set -o pipefail;
+
+function show_help()
+{
+    usage_banner;
+    cat <<EOF
+
+Usage:  $ME [-h] [-t FSTYPE] DEVICE
+
+Prepare DEVICE to be used in volumes.
+DEVICE is the special file corresponding to the
+device (e.g /dev/sdXX).
+
+General:
+  -t FSTYPE                 Prepare DEVICE using FSTYPE filesystem.
+                            Supported filesystems are ext3/ext4/xfs
+                            (Default is ext4/ext3)
+
+Miscellaneous:
+  -h                        display this help and exit
+
+Example:
+  $ME /dev/sdb
+  $ME -t xfs /dev/sdb
+EOF
+}
+
+
+function usage_banner()
+{
+    echo "Gluster Storage Virtual Appliance, Version 1.2."
+}
+
+function fail()
+{
+    echo "$ME: FATAL: $@"
+    exit 1;
+}
+
+
+function main()
+{
+    # Parse command line arguments.
+    while getopts :ht: OPT; do
+	case "$OPT" in
+	    h)
+		show_help
+		exit 0
+		;;
+	    t)
+		fstype=$OPTARG
+		case $fstype in
+		    ext3 | ext4 | xfs)
+			;;
+		    *)
+			echo "unknown fstype $fstype"
+			show_help
+			exit 1
+			;;
+		esac
+		;;
+	    \?)
+                # getopts issues an error message
+		echo "Invalid option: -$OPTARG"
+		show_help
+		exit 1
+		;;
+	    :)
+		echo "Option -$OPTARG requires an argument."
+		show_help
+		exit 1
+		;;
+	esac
+    done
+
+    # Remove the switches we parsed above.
+    shift `expr $OPTIND - 1`
+
+    # We want only one non-option argument.
+    if [ $# -ne 1 ]; then
+	show_help
+	exit 1
+    fi
+
+    if [ -z "$fstype" ]; then
+	if [ -x /sbin/mkfs.ext4 ]; then
+	    fstype=ext4
+	elif [ -x /sbin/mkfs.ext3 ]; then
+	    fstype=ext3
+	else
+	    fail "neither ext4 nor ext3 support available (or mkfs tools not present)"
+	fi
+    fi
+
+    set -e;
+
+    devblk="$1";
+    blk=$(echo $1 | cut -f3 -d/);
+    mnt="/export/$blk";
+
+    [ -e $mnt ] || mkdir -p $mnt
+
+    [ -b $devblk ] || fail "$devblk is not a valid block device";
+
+    [ -d $mnt ] || fail "$mnt is not a directory";
+
+    grep -wq $blk /proc/partitions || fail "$blk is not detected in /proc/partitions";
+
+    blkid -c /dev/null | grep -q "^$devblk:" && fail "$devblk is already formatted";
+
+    grep -q " $mnt " /proc/mounts && fail "$mnt already has a mount";
+    grep -q " $mnt/" /proc/mounts && fail "$mnt has a submount";
+
+    grep -q " $mnt " /etc/fstab && fail "$mnt already has an entry in fstab";
+
+    grep -wq "$devblk" /etc/fstab && fail "$devblk already has an entry in fstab";
+
+    if [ ! -x /sbin/mkfs.$fstype ]; then
+	fail "no $fstype support available"
+    fi
+
+    case $fstype in
+	ext3 | ext4)
+	    /sbin/mkfs.$fstype -I 512 $devblk;
+	    ;;
+	xfs)
+	    /sbin/mkfs.$fstype -i size=512 $devblk
+	    ;;
+    esac
+
+    uuid=$(blkid -c /dev/null -o value $devblk | head -1); #sed -n 's/ID_FS_UUID=//p');
+
+    grep -wq "$uuid" /etc/fstab && fail "$uuid already has an entry in fstab";
+
+    case $fstype in
+	ext3 | ext4)
+	    echo "UUID=$uuid $mnt $fstype defaults,user_xattr 0 2" >> /etc/fstab || fail "Failed to update fstab";
+	    ;;
+	*)
+	    echo "UUID=$uuid $mnt $fstype defaults 0 2" >> /etc/fstab || fail "Failed to update fstab";
+	    ;;
+    esac
+
+    mount -v $mnt || fail "mounting $devblk on $mnt failed";
+
+cat <<EOF
+
+================================================================================
+Completed mounting and setting up fstab for $devblk on $mnt
+
+You may now expand existing volumes or create new volumes with commands like:
+
+  sh# gluster volume create VOLNAME $(hostname):$mnt/SUBDIR" ...
+
+  or
+
+  sh# gluster volume add-brick VOLNAME $(hostname):$mnt/SUBDIR ...
+
+Please refer documentation at http://www.gluster.com/community/documentation/
+for the exact syntax and reference.
+
+================================================================================
+EOF
+}
+
+
+main "$@";
