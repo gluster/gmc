@@ -1,8 +1,8 @@
 # Buckminster commands to build Gluster Management Console projects
 
-importtarget --active src/com.gluster.storage.management.releng/gluster-management-console.target
+importtarget --active gmc-target/com.gluster.storage.management.console.target/gmc.target
 
-import src/com.gluster.storage.management.releng/com.gluster.storage.management.console.feature.webstart.cquery
+import build/com.gluster.storage.management.console.feature.webstart.cquery
 perform com.gluster.storage.management.console.feature.webstart#create.eclipse.jnlp.product
 perform com.gluster.storage.management.console.feature.webstart#copy.root.files
 perform com.gluster.storage.management.console.feature.webstart#unsign.jars
