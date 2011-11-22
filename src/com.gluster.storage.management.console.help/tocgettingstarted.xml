@@ -10,14 +10,14 @@
       <topic href="html/gettingstarted/install_gmg_backend.html" label="Installing Gluster Management Gateway Backend Packages">
       </topic>
    </topic>
-   <topic label="Setting up the Gluster Management Console">
+   <topic label="Setting up the GlusterFS Management Console">
       <topic href="html/gettingstarted/check_req_client.html" label="Checking the Minimum Requirements on the Client Machine">
       </topic>
-      <topic href="html/gettingstarted/access_gmc_jws.html" label="Accessing the Gluster Management Console Using Java Web Start">
+      <topic href="html/gettingstarted/access_gmc_jws.html" label="Accessing the GlusterFS Management Console Using Java Web Start">
       </topic>
    </topic> 
-	<topic href="html/gettingstarted/explore_gmc.html" label="Exploring Gluster Management Console">
-    <topic href="html/gettingstarted/gmc_toolbar.html" label="Gluster Management Console Toolbar">
+	<topic href="html/gettingstarted/explore_gmc.html" label="Exploring GlusterFS Management Console">
+    <topic href="html/gettingstarted/gmc_toolbar.html" label="GlusterFS Management Console Toolbar">
     </topic>
     <topic href="html/gettingstarted/tasks.html" label="Tasks">
     </topic>

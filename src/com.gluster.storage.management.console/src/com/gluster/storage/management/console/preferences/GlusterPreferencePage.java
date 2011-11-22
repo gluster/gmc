@@ -52,7 +52,7 @@ public class GlusterPreferencePage
 	public GlusterPreferencePage() {
 		super(GRID);
 		setPreferenceStore(Activator.getDefault().getPreferenceStore());
-		setDescription("Gluster Management Console");
+		setDescription("GlusterFS Management Console");
 	}
 	
 	/**

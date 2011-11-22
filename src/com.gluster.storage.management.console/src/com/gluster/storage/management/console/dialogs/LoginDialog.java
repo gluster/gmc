@@ -82,7 +82,7 @@ public class LoginDialog extends Dialog {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 
-		newShell.setText("Gluster Management Console");
+		newShell.setText("GlusterFS Management Console");
 		addEscapeListener(newShell);
 	}
 
@@ -339,7 +339,7 @@ public class LoginDialog extends Dialog {
 				errMsg = e.getMessage();
 			}
 			setReturnCode(RETURN_CODE_ERROR);
-			MessageDialog.openError(getShell(), "Gluster Management Console", errMsg);
+			MessageDialog.openError(getShell(), "GlusterFS Management Console", errMsg);
 		}
 	}
 
