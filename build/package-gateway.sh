@@ -97,7 +97,7 @@ get-console-dists
 tar cvf ${TAR_NAME} ${NEW_WAR_NAME}
 gzip ${TAR_NAME}
 
-if [ ! -z "${DIST_DIR} ]; then
+if [ ! -z "${DIST_DIR}" ]; then
 	mv ${TAR_NAME}.gz ${DIST_DIR}
 fi
 
