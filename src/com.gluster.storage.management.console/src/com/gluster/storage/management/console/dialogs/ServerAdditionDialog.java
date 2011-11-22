@@ -64,7 +64,7 @@ public class ServerAdditionDialog extends Dialog {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 
-		newShell.setText("Gluster Management Console - Add Server");
+		newShell.setText("GlusterFS Management Console - Add Server");
 		addEscapeListener(newShell);
 	}
 

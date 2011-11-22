@@ -378,7 +378,7 @@
             sequence="ALT+ARROW_LEFT">
       </key>
       <scheme
-            description="Default Key Bindings Scheme for Gluster Management Console"
+            description="Default Key Bindings Scheme for GlusterFS Management Console"
             id="com.gluster.storage.management.console.KeyConfig"
             name="Gluster">
       </scheme>
@@ -400,11 +400,11 @@
    </extension>
    <extension
          id="product"
-         name="Gluster Management Console"
+         name="GlusterFS Management Console"
          point="org.eclipse.core.runtime.products">
       <product
             application="com.gluster.storage.management.console.application"
-            name="Gluster Management Console">
+            name="GlusterFS Management Console">
          <property
                name="aboutText"
                value="%aboutText">
@@ -419,7 +419,7 @@
          </property>
          <property
                name="appName"
-               value="Gluster Management Console">
+               value="GlusterFS Management Console">
          </property>
          <property
                name="preferenceCustomization"

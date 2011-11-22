@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?NLS TYPE="org.eclipse.help.toc"?>
 
-<toc label="Gluster Management Console - Help" topic="html/toc.html">
+<toc label="GlusterFS Management Console - Help" topic="html/toc.html">
    <topic label="Concepts">
       <anchor id="concepts"/>
    </topic>
