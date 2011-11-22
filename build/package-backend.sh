@@ -22,6 +22,9 @@ get-scripts()
 #---------------------------------------------
 # Main Action Body
 #---------------------------------------------
+if [ $? -eq 1 ]; then
+	DIST_DIR=${1}
+fi
 echo "Packaging Gluster Management Gateway Back-end Scripts..."
 
 prepare-script-dir
@@ -30,5 +33,9 @@ get-scripts
 /bin/rm -rf ${TAR_NAME} ${TAR_NAME}.gz
 tar cvf ${TAR_NAME} ${ROOT_DIR}
 gzip ${TAR_NAME}
+if [ ! -z "${DIST_DIR}" ]; then
+	mv ${TAR_NAME}.gz ${DIST_DIR}
+fi
+/bin/rm -rf ${ROOT_DIR}
 
 echo "Done!"
