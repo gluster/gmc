@@ -14,7 +14,6 @@ if not p2 in sys.path:
 import Globals
 import Utils
 import DiskUtils
-from optparse import OptionParser
 
 
 def main():
@@ -22,22 +21,48 @@ def main():
         sys.stderr.write("format device unsupported")
         sys.exit(1)
 
-    parser = OptionParser()
-    parser.add_option("-t", "--type", action="store", type="string", dest="fstype")
-    (options, args) = parser.parse_args()
-
-    if len(args) != 1:
-        sys.stderr.write("usage: %s [-t FSTYPE] DEVICE_NAME\n" % os.path.basename(sys.argv[0]))
+    if len(sys.argv) != 4:
+        sys.stderr.write("usage: %s FSTYPE MOUNT_POINT DEVICE_NAME\n" % os.path.basename(sys.argv[0]))
         sys.exit(-1)
 
-    device = DiskUtils.getDevice(args[0])
+    fsType = sys.argv[1]
+    mountPoint = sys.argv[2]
+    device = DiskUtils.getDevice(sys.argv[3])
+
+    if DiskUtils.isDataDiskPartitionFormatted(device):
+        Utils.log("device %s already formatted" % device)
+        sys.stderr.write("device %s already formatted\n" % sys.argv[3])
+        sys.exit(2)
+
+    if os.path.exists(mountPoint):
+        if not os.path.isdir(mountPoint):
+            Utils.log("mount point %s exists but not a directory" % mountPoint)
+            sys.stderr.write("mount point %s exists but not a directory" % mountPoint)
+            sys.exit(3)
+        procMounts = Utils.readFile("/proc/mounts")
+        if procMounts.find(" %s " % mountPoint) != -1:
+            Utils.log("mount point %s already has a mount" % mountPoint)
+            sys.stderr.write("mount point %s already has a mount\n" % mountPoint)
+            sys.exit(4)
+        if procMounts.find(" %s/" % mountPoint) != -1:
+            Utils.log("mount point %s has a submount" % mountPoint)
+            sys.stderr.write("mount point %s has a submount\n" % mountPoint)
+            sys.exit(5)
+    else:
+        status = Utils.runCommand("mkdir -p %s" % mountPoint, output=True, root=True)
+        if status["Status"] != 0:
+            Utils.log("failed to create mount point %s" % mountPoint)
+            sys.stderr.write("failed to create mount point %s\n" % mountPoint)
+            sys.exit(6)
+
+    if fsType not in Utils.getFileSystemType():
+        Utils.log("invalid file system type %s" % fsType)
+        sys.stderr.write("invalid file system type %s\n" % fsType)
+        sys.exit(7)
+
     deviceFormatLockFile = Utils.getDeviceFormatLockFile(device)
     deviceFormatStatusFile = Utils.getDeviceFormatStatusFile(device)
     deviceFormatOutputFile = Utils.getDeviceFormatOutputFile(device)
-
-    if DiskUtils.isDataDiskPartitionFormatted(device):
-        sys.stderr.write("Device already formatted\n")
-        sys.exit(2)
 
     if os.path.exists(deviceFormatStatusFile):
         Utils.log("format status file %s exists" % deviceFormatStatusFile)
@@ -46,29 +71,19 @@ def main():
             sys.stderr.write("failed to read format status file %s\n" % deviceFormatStatusFile)
             sys.exit(-2)
         if line.strip().upper() == "COMPLETED":
-            sys.stderr.write("Device already formatted\n")
-            sys.exit(3)
+            sys.stderr.write("Device %s already formatted\n" % sys.argv[3])
+            sys.exit(8)
         else:
-            sys.stderr.write("Device format already running\n")
-            sys.exit(4)
+            sys.stderr.write("Formatting device %s already running\n" % sys.argv[3])
+            sys.exit(9)
 
     if os.path.exists(deviceFormatLockFile):
         Utils.log("lock file %s exists" % deviceFormatLockFile)
-        sys.stderr.write("Device format already running\n")
-        sys.exit(5)
+        sys.stderr.write("Formatting device %s already running\n" % sys.argv[3])
+        sys.exit(10)
 
-    if options.fstype:
-        command = ["%s/gluster_provision_block_wrapper.py" % p1, "-t", "%s" % (options.fstype), "%s" % (device)]
-    else:
-        command = ["%s/gluster_provision_block_wrapper.py" % p1, "%s" % (device)]
-
-    try:
-        pid = os.fork()
-    except OSError, e:
-        Utils.log("failed to fork a child process: %s" % str(e))
-        sys.exit(6)
-    if pid == 0:
-        os.execv(command[0], command)
+    command = ["%s/format_device_background.py" % p1, fsType, mountPoint, sys.argv[3]]
+    Utils.runCommandBG(command)
     sys.exit(0)
 
 
