@@ -2,7 +2,7 @@ WAR_NAME="glustermg.war"
 WAR_SCRIPTS_DIR=${WAR_NAME}/scripts
 NEW_WAR_NAME="glustermg"
 TAR_NAME=${NEW_WAR_NAME}-${VERSION}.war.tar
-SERVER_DIST_DIR="${WORKSPACE}/buckminster.output"
+SERVER_DIST_DIR=${DIST_DIR:-${WORKSPACE}/buckminster.output}
 
 prepare-dist-dir()
 {
@@ -48,7 +48,11 @@ get-dist()
 	OS=${2}
 	WS=${3}
 
-	OUT_DIR="${WORKSPACE}/../../${BRANCH}-glustermc/workspace/arch/${ARCH}/os/${OS}/ws/${WS}/buckminster.output/com.gluster.storage.management.console.feature.webstart*.feature/glustermc"
+	if [ -z "${GMC_DIST_DIR}" ]; then
+		OUT_DIR="${WORKSPACE}/../../${BRANCH}-glustermc/workspace/arch/${ARCH}/os/${OS}/ws/${WS}/buckminster.output/com.gluster.storage.management.console.feature.webstart*.feature/glustermc"
+	else
+		OUT_DIR="${GMC_DIST_DIR}/${OS}.${WS}.${ARCH}/com.gluster.storage.management.console.feature.webstart*.feature/glustermc"
+	fi
 	NEW_DIR=${WAR_NAME}/${OS}.${WS}.${ARCH}
 	cp -R ${OUT_DIR} ${NEW_DIR}
 
@@ -75,7 +79,13 @@ get-scripts()
 #---------------------------------------------
 # Main Action Body
 #---------------------------------------------
-echo "Packaging Gluster Management Server..."
+
+if [ $# -eq 2 ]; then
+	DIST_DIR=${1}
+	GMC_DIST_DIR=${2}
+fi
+
+echo "Packaging GlusterFS Management Gateway..."
 
 prepare-dist-dir
 get-scripts
@@ -86,5 +96,9 @@ get-console-dists
 /bin/rm -rf ${TAR_NAME} ${TAR_NAME}.gz
 tar cvf ${TAR_NAME} ${NEW_WAR_NAME}
 gzip ${TAR_NAME}
+
+if [ ! -z "${DIST_DIR}" ]; then
+	mv ${TAR_NAME}.gz ${DIST_DIR}
+fi
 
 echo "Done!"
