@@ -15,6 +15,7 @@ import syslog
 import subprocess
 import time
 import tempfile
+import glob
 
 import Globals
 
@@ -323,3 +324,6 @@ def grun(serverFile, command, argumentList=[]):
         return 0
     else:
         return 2
+
+def getFileSystemType():
+    return [os.path.basename(i).split('.')[1] for i in glob.glob("/sbin/mkfs.*")]
