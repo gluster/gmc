@@ -44,6 +44,7 @@ public class RESTConstants {
 	public static final String RESOURCE_KEYS = "keys";
 	public static final String RESOURCE_STATISTICS = "statistics";
 	public static final String RESOURCE_USERS = "users";
+	public static final String RESOURCE_FSTYPE = "fstype";
 	
 	public static final String TASK_START = "start";
 	public static final String TASK_PAUSE = "pause";
@@ -87,6 +88,7 @@ public class RESTConstants {
 	public static final String FORM_PARAM_OLD_PASSWORD = "oldPassword";
 	public static final String FORM_PARAM_NEW_PASSWORD = "newPassword";
 	public static final String FORM_PARAM_FORCE = "force";
+	public static final String FORM_PARAM_MOUNTPOINT = "mountPoint";
 	
 	public static final String PATH_PARAM_FORMAT = "format";
 	public static final String PATH_PARAM_VOLUME_NAME = "volumeName";

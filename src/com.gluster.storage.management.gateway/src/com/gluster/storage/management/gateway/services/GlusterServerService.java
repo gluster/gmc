@@ -35,6 +35,7 @@ import com.gluster.storage.management.core.exceptions.GlusterValidationException
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
+import com.gluster.storage.management.core.response.StringListResponse;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.gluster.storage.management.core.utils.StringUtil;
@@ -142,6 +143,20 @@ public class GlusterServerService {
 				return server;
 			}
 		}
+
+		// Server not found. It's possible that the server name returned by glusterfs is actually IP address
+		// Hence fetch details of all servers and then compare the host names again.
+		String errMsg = fetchDetailsOfServers(Collections.synchronizedList(servers));
+		if (!errMsg.isEmpty()) {
+			throw new GlusterRuntimeException("Couldn't fetch details for server(s): " + errMsg);
+		}
+		for (GlusterServer server : servers) {
+			if (server.getName().equalsIgnoreCase(serverName)) {
+				return server;
+			}
+		}
+
+		// still not found!
 		return null;
 	}
 	
@@ -502,6 +517,14 @@ public class GlusterServerService {
 			} else {
 				throw new GlusterRuntimeException(e.getMessage());
 			}
+		}
+	}
+
+	public StringListResponse getFsType(String clusterName, String serverName) {
+		if (isValidServer(clusterName, serverName)) {
+			return serverUtil.getFsType(serverName);
+		} else {
+			throw new GlusterRuntimeException(serverName + " is not belongs to the cluster [" + clusterName + "]");
 		}
 	}
 }

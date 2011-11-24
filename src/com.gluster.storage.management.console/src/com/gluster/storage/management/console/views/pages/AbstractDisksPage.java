@@ -19,6 +19,7 @@
 package com.gluster.storage.management.console.views.pages;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -45,6 +46,7 @@ import com.gluster.storage.management.console.Application;
 import com.gluster.storage.management.console.GlusterDataModelManager;
 import com.gluster.storage.management.console.IEntityListener;
 import com.gluster.storage.management.console.dialogs.InitializeDiskTypeSelection;
+import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
 import com.gluster.storage.management.core.model.Device;
@@ -255,17 +257,26 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 				return;
 			}
 			
-			InitializeDiskTypeSelection formatDialog = new InitializeDiskTypeSelection(getShell());
+			// To collect the available fsType
+			GlusterServersClient serversClient = new GlusterServersClient();
+			List<String> possibleFsType = new ArrayList<String>();
+			try {
+				possibleFsType = serversClient.getFSType(device.getServerName());
+			} catch (GlusterRuntimeException eFsType) {
+				MessageDialog.openError(getShell(), "Error: File System Type", eFsType.getMessage());
+				return;
+			}
+
+			InitializeDiskTypeSelection formatDialog = new InitializeDiskTypeSelection(getShell(), device.getName(), possibleFsType);
 			int userAction = formatDialog.open();
 			if (userAction == Window.CANCEL) {
 				formatDialog.cancelPressed();
 				return;
 			}
 
-			GlusterServersClient serversClient = new GlusterServersClient();
 			try {
 				
-				URI uri = serversClient.initializeDisk(device.getServerName(), device.getName(), formatDialog.getFSType());
+				URI uri = serversClient.initializeDisk(device.getServerName(), device.getName(), formatDialog.getFSType(), formatDialog.getMountPoint());
 
 				TasksClient taskClient = new TasksClient();
 				TaskInfo taskInfo = taskClient.getTaskInfo(uri);
@@ -289,6 +300,7 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 				}
 				guiHelper.showTaskView();
 			} catch (Exception e1) {
+				e1.printStackTrace();
 				MessageDialog.openError(getShell(), "Error: Initialize disk", e1.getMessage());
 			}
 		}

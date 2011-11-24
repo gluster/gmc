@@ -31,6 +31,7 @@ import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.ServerStats;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
+import com.gluster.storage.management.core.response.StringListResponse;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
 import com.sun.jersey.api.representation.Form;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
@@ -76,9 +77,16 @@ public class GlusterServersClient extends AbstractClient {
 		return postRequest(form);
 	}
 	
-	public URI initializeDisk(String serverName, String diskName, String fsType) {
+	public List<String> getFSType(String serverName) {
+		List<String> fsType = ((StringListResponse) fetchSubResource(serverName + "/" + RESTConstants.RESOURCE_FSTYPE,
+				StringListResponse.class)).getData();
+		return fsType;
+	}
+
+	public URI initializeDisk(String serverName, String diskName, String fsType, String mountPoint) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_FSTYPE, fsType);
+		form.add(RESTConstants.FORM_PARAM_MOUNTPOINT, fsType);
 		return putRequestURI(serverName + "/" + RESTConstants.RESOURCE_DISKS + "/" + diskName, form);
 	}
 	

@@ -44,6 +44,7 @@ import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.Server;
 import com.gluster.storage.management.core.model.Server.SERVER_STATUS;
 import com.gluster.storage.management.core.model.Status;
+import com.gluster.storage.management.core.response.StringListResponse;
 import com.gluster.storage.management.core.utils.ProcessResult;
 import com.gluster.storage.management.core.utils.ProcessUtil;
 import com.gluster.storage.management.gateway.services.GlusterInterfaceService;
@@ -65,6 +66,7 @@ public class ServerUtil {
 	private static final String SCRIPT_COMMAND = "python";
 	private static final String REMOTE_SCRIPT_GET_DISK_FOR_DIR = "get_disk_for_dir.py";
 	private static final String REMOTE_SCRIPT_GET_SERVER_DETAILS = "get_server_details.py";
+	private static final String REMOTE_SCRIPT_GET_FILE_SYSTEM_TYPE = "get_filesystem_type.py";
 	private static final String REMOTE_SCRIPT_BASE_DIR = "/opt/glustermg";
 	private static final String REMOTE_SCRIPT_DIR_NAME = "backend";
 
@@ -359,5 +361,11 @@ public class ServerUtil {
 	public <T> T getBean(Class<T> clazz) {
 		ApplicationContext ctx = ContextLoader.getCurrentWebApplicationContext();
 		return ctx.getBean(clazz);
+	}
+	
+	public StringListResponse getFsType(String serverName) {
+		String output = executeScriptOnServer(serverName, REMOTE_SCRIPT_GET_FILE_SYSTEM_TYPE);
+		StringListResponse response = new StringListResponse(Arrays.asList(output.trim().split(CoreConstants.NEWLINE)));
+		return response;
 	}
 }
