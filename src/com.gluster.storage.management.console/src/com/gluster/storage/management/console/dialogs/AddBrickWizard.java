@@ -40,7 +40,7 @@ public class AddBrickWizard extends Wizard {
 	private Volume volume;
 
 	public AddBrickWizard(Volume volume) {
-		setWindowTitle("GlusterFS Management Console - Add Brick");
+		setWindowTitle("Gluster Management Console - Add Brick");
 		setHelpAvailable(false); // TODO: Introduce wizard help
 		this.volume = volume;
 	}

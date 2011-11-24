@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="com.gluster.storage.management.console.feature.webstart"
-      label="GlusterFS Management Console - Webstart"
+      label="Gluster Management Console - Webstart"
       version="1.0.0"
       provider-name="Gluster Inc."
       os="linux,macosx,win32"

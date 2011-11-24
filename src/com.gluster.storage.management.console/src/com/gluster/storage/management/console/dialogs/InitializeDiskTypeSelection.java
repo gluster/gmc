@@ -56,7 +56,7 @@ public class InitializeDiskTypeSelection extends Dialog  {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 
-		newShell.setText("GlusterFS Management Console - Select File System Type");
+		newShell.setText("Gluster Management Console - Select File System Type");
 		addEscapeListener(newShell);
 	}
 	

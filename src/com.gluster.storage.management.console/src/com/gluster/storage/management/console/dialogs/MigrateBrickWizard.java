@@ -42,7 +42,7 @@ public class MigrateBrickWizard extends Wizard {
 	private Cluster cluster = modelManager.getModel().getCluster();
 
 	public MigrateBrickWizard(Volume volume, Brick brick) {
-		setWindowTitle("GlusterFS Management Console - Migrate Brick [" + volume.getName() + "]");
+		setWindowTitle("Gluster Management Console - Migrate Brick [" + volume.getName() + "]");
 		this.volume = volume;
 		this.brick = brick;
 		setHelpAvailable(false); // TODO: Introduce wizard help

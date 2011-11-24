@@ -12,7 +12,7 @@ public class AlertsPreferencePage extends FieldEditorPreferencePage implements I
 	public AlertsPreferencePage() {
 		super(GRID);
 		setPreferenceStore(Activator.getDefault().getPreferenceStore());
-		setDescription("GlusterFS Management Console - Alerts");
+		setDescription("Gluster Management Console - Alerts");
 	}
 	
 	/* (non-Javadoc)

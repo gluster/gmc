@@ -72,7 +72,7 @@ public class ChangePasswordDialog extends Dialog {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 
-		newShell.setText("GlusterFS Management Console");
+		newShell.setText("Gluster Management Console");
 		addEscapeListener(newShell);
 	}
 

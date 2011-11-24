@@ -34,7 +34,7 @@ import com.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import com.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 
 public class CreateVolumeWizard extends Wizard {
-	private static final String title = "GlusterFS Management Console - Create Volume";
+	private static final String title = "Gluster Management Console - Create Volume";
 	private CreateVolumePage1 page;
 	
 	public CreateVolumeWizard() {
