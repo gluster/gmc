@@ -47,7 +47,7 @@ public class InitializeDiskTask extends Task {
 	private ServerUtil serverUtil;
 
 	public InitializeDiskTask(ClusterService clusterService, String clusterName, String serverName, String diskName,
-			String fsType, String deviceMountPoint) {
+			String fsType, String mountPoint) {
 		// Reference contains "Server:disk"
 		super(clusterService, clusterName, TASK_TYPE.DISK_FORMAT, serverName + ":" + diskName, "Initialize disk "
 				+ serverName + ":" + diskName, false, false, false);
@@ -55,7 +55,7 @@ public class InitializeDiskTask extends Task {
 		setServerName(serverName);
 		setDiskName(diskName);
 		setFsType(fsType);
-		setMountpoint(deviceMountPoint);
+		setMountpoint(mountPoint);
 		taskInfo.setName(getId());
 		init();
 	}
@@ -119,8 +119,8 @@ public class InitializeDiskTask extends Task {
 	}
 
 	private void startInitializeDisk(String serverName) {
-		String output = serverUtil.executeScriptOnServer(serverName, INITIALIZE_DISK_SCRIPT + getFsType() + " "
-				+ mountPoint + " " + getDiskName() );
+		String output = serverUtil.executeScriptOnServer(serverName, INITIALIZE_DISK_SCRIPT + " " + getFsType() + " \""
+				+ getMountpoint() + "\" " + getDiskName() );
 		TaskStatus taskStatus = new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, output));
 		taskStatus.setPercentageSupported((getFsType().equals(GlusterConstants.FSTYPE_XFS)) ? false : true);
 		getTaskInfo().setStatus(taskStatus);

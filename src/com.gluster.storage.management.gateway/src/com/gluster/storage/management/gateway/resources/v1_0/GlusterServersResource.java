@@ -19,8 +19,8 @@
 package com.gluster.storage.management.gateway.resources.v1_0;
 
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_FSTYPE;
-import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SERVER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_MOUNTPOINT;
+import static com.gluster.storage.management.core.constants.RESTConstants.FORM_PARAM_SERVER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_CLUSTER_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_DISK_NAME;
 import static com.gluster.storage.management.core.constants.RESTConstants.PATH_PARAM_SERVER_NAME;
@@ -31,7 +31,7 @@ import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_PERIOD;
 import static com.gluster.storage.management.core.constants.RESTConstants.QUERY_PARAM_TYPE;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_DISKS;
-import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_FSTYPE;
+import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_FSTYPES;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_PATH_CLUSTERS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_SERVERS;
 import static com.gluster.storage.management.core.constants.RESTConstants.RESOURCE_STATISTICS;
@@ -63,9 +63,9 @@ import com.gluster.storage.management.core.exceptions.GlusterValidationException
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.ServerStats;
 import com.gluster.storage.management.core.model.TaskStatus;
+import com.gluster.storage.management.core.response.FsTypeListResponse;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
 import com.gluster.storage.management.core.response.ServerNameListResponse;
-import com.gluster.storage.management.core.response.StringListResponse;
 import com.gluster.storage.management.gateway.data.ClusterInfo;
 import com.gluster.storage.management.gateway.services.ClusterService;
 import com.gluster.storage.management.gateway.services.GlusterServerService;
@@ -202,9 +202,10 @@ public class GlusterServersResource extends AbstractResource {
 
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-	@Path("{" + PATH_PARAM_SERVER_NAME + "}/" + RESOURCE_FSTYPE)
-	public StringListResponse getFsType(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName, @PathParam(PATH_PARAM_SERVER_NAME) String serverName) {
-		return glusterServerService.getFsType(clusterName, serverName);
+	@Path("{" + PATH_PARAM_SERVER_NAME + "}/" + RESOURCE_FSTYPES)
+	public FsTypeListResponse getFsTypes(@PathParam(PATH_PARAM_CLUSTER_NAME) String clusterName, @PathParam(PATH_PARAM_SERVER_NAME) String serverName) {
+		List<String> fsTypes = glusterServerService.getFsTypes(clusterName, serverName);
+		return new FsTypeListResponse(fsTypes);
 	}
 
 	@PUT

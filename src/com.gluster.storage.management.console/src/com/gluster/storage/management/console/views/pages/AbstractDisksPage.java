@@ -45,7 +45,8 @@ import com.gluster.storage.management.client.TasksClient;
 import com.gluster.storage.management.console.Application;
 import com.gluster.storage.management.console.GlusterDataModelManager;
 import com.gluster.storage.management.console.IEntityListener;
-import com.gluster.storage.management.console.dialogs.InitializeDiskTypeSelection;
+import com.gluster.storage.management.console.dialogs.InitDiskDialog;
+import com.gluster.storage.management.console.utils.GlusterLogger;
 import com.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import com.gluster.storage.management.core.model.ClusterListener;
 import com.gluster.storage.management.core.model.DefaultClusterListener;
@@ -61,6 +62,7 @@ import com.gluster.storage.management.core.model.TaskInfo;
 
 public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk> implements IEntityListener {
 	protected List<Disk> disks;
+	protected static final GlusterLogger logger = GlusterLogger.getInstance();
 	
 	/**
 	 * @return Index of the "status" column in the table. Return -1 if status column is not displayed
@@ -71,7 +73,7 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 		super(site, parent, style, false, true, disks);
 		this.disks = disks;
 		
-		// creates hyperlinks for "unitialized" disks
+		// creates hyperlinks for "uninitialized" disks
 		setupStatusCellEditor(); 
 		// Listen for disk status change events
 		Application.getApplication().addEntityListener(this);
@@ -252,25 +254,25 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 			TaskInfo existingTaskInfo = modelManager.getTaskByReference(reference);
 			if (existingTaskInfo != null && existingTaskInfo.getStatus().getCode() != Status.STATUS_CODE_SUCCESS
 					&& existingTaskInfo.getStatus().getCode() != Status.STATUS_CODE_FAILURE) {
-				MessageDialog.openInformation(getShell(), "Error: Initialize disk", "Initializing disk [" + reference
+				MessageDialog.openInformation(getShell(), "Initialize disk - Error", "Initializing disk [" + reference
 						+ "] is already in progress! Try later.");
 				return;
 			}
 			
 			// To collect the available fsType
 			GlusterServersClient serversClient = new GlusterServersClient();
-			List<String> possibleFsType = new ArrayList<String>();
+			List<String> fsTypes = new ArrayList<String>();
 			try {
-				possibleFsType = serversClient.getFSType(device.getServerName());
-			} catch (GlusterRuntimeException eFsType) {
-				MessageDialog.openError(getShell(), "Error: File System Type", eFsType.getMessage());
+				fsTypes = serversClient.getFSTypes(device.getServerName());
+			} catch (GlusterRuntimeException e1) {
+				MessageDialog.openError(getShell(), "Initialize disk - Error", e1.getMessage());
 				return;
 			}
 
-			InitializeDiskTypeSelection formatDialog = new InitializeDiskTypeSelection(getShell(), device.getName(), possibleFsType);
+			InitDiskDialog formatDialog = new InitDiskDialog(getShell(), device.getName(), fsTypes);
 			int userAction = formatDialog.open();
 			if (userAction == Window.CANCEL) {
-				formatDialog.cancelPressed();
+				// formatDialog.cancelPressed();
 				return;
 			}
 
@@ -296,12 +298,12 @@ public abstract class AbstractDisksPage extends AbstractTableTreeViewerPage<Disk
 					// GlusterDataModelManager.getInstance().updateDeviceStatus(device.getServerName(), device.getName(),
 					//		DEVICE_STATUS.INITIALIZED);
 				} else {
-					MessageDialog.openError(getShell(), "Error: Initialize disk", taskInfo.getStatus().getMessage());
+					MessageDialog.openError(getShell(), "Initialize disk - Error", taskInfo.getStatus().getMessage());
 				}
 				guiHelper.showTaskView();
 			} catch (Exception e1) {
-				e1.printStackTrace();
-				MessageDialog.openError(getShell(), "Error: Initialize disk", e1.getMessage());
+				logger.error("Exception while initialize disk", e1);
+				MessageDialog.openError(getShell(), "Initialize disk - Error", e1.getMessage());
 			}
 		}
 	}

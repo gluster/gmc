@@ -363,9 +363,8 @@ public class ServerUtil {
 		return ctx.getBean(clazz);
 	}
 	
-	public StringListResponse getFsType(String serverName) {
+	public List<String> getFsTypes(String serverName) {
 		String output = executeScriptOnServer(serverName, REMOTE_SCRIPT_GET_FILE_SYSTEM_TYPE);
-		StringListResponse response = new StringListResponse(Arrays.asList(output.trim().split(CoreConstants.NEWLINE)));
-		return response;
+		return Arrays.asList(output.trim().split(CoreConstants.NEWLINE));
 	}
 }

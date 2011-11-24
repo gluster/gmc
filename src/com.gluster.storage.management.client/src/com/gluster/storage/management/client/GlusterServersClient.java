@@ -30,6 +30,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import com.gluster.storage.management.core.constants.RESTConstants;
 import com.gluster.storage.management.core.model.GlusterServer;
 import com.gluster.storage.management.core.model.ServerStats;
+import com.gluster.storage.management.core.response.FsTypeListResponse;
 import com.gluster.storage.management.core.response.GlusterServerListResponse;
 import com.gluster.storage.management.core.response.StringListResponse;
 import com.gluster.storage.management.core.utils.GlusterCoreUtil;
@@ -77,10 +78,10 @@ public class GlusterServersClient extends AbstractClient {
 		return postRequest(form);
 	}
 	
-	public List<String> getFSType(String serverName) {
-		List<String> fsType = ((StringListResponse) fetchSubResource(serverName + "/" + RESTConstants.RESOURCE_FSTYPE,
-				StringListResponse.class)).getData();
-		return fsType;
+	public List<String> getFSTypes(String serverName) {
+		FsTypeListResponse fsTypeListResponse = ((FsTypeListResponse) fetchSubResource(serverName + "/" + RESTConstants.RESOURCE_FSTYPES,
+				FsTypeListResponse.class));
+		return fsTypeListResponse.getFsTypes();
 	}
 
 	public URI initializeDisk(String serverName, String diskName, String fsType, String mountPoint) {

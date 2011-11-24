@@ -520,11 +520,11 @@ public class GlusterServerService {
 		}
 	}
 
-	public StringListResponse getFsType(String clusterName, String serverName) {
+	public List<String> getFsTypes(String clusterName, String serverName) {
 		if (isValidServer(clusterName, serverName)) {
-			return serverUtil.getFsType(serverName);
+			return serverUtil.getFsTypes(serverName);
 		} else {
-			throw new GlusterRuntimeException(serverName + " is not belongs to the cluster [" + clusterName + "]");
+			throw new GlusterRuntimeException(serverName + " does not belong to the cluster [" + clusterName + "]");
 		}
 	}
 }

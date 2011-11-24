@@ -44,7 +44,7 @@ public class RESTConstants {
 	public static final String RESOURCE_KEYS = "keys";
 	public static final String RESOURCE_STATISTICS = "statistics";
 	public static final String RESOURCE_USERS = "users";
-	public static final String RESOURCE_FSTYPE = "fstype";
+	public static final String RESOURCE_FSTYPES = "fstypes";
 	
 	public static final String TASK_START = "start";
 	public static final String TASK_PAUSE = "pause";

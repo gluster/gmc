@@ -46,24 +46,23 @@ import org.eclipse.ui.forms.widgets.Hyperlink;
 
 import com.gluster.storage.management.console.utils.GUIHelper;
 
-public class InitializeDiskTypeSelection extends Dialog  {
+public class InitDiskDialog extends Dialog  {
 	
 	private Combo formatTypeCombo = null;
 	private final GUIHelper guiHelper = GUIHelper.getInstance();
 	private Composite initializeDiskTypeComposite;
 	private Composite composite;
 	private String fsType;
-	private String mountPointText;
-	private Text mountPoint;
+	private String mountPoint;
+	private Text mountPointText;
 	private String deviceName;
-	private List<String> possibleFsType; 
-    private String defaultMountPoint = "/export/";
+	private List<String> fsTypes; 
+    private static final String DEFAULT_MOUNT_POINT = "/export/";
 
-	public InitializeDiskTypeSelection(Shell parentShell, String formatingDeviceName, List<String> possibleFsType) {
+	public InitDiskDialog(Shell parentShell, String deviceName, List<String> fsTypes) {
 		super(parentShell);
-		this.possibleFsType = possibleFsType;
-		this.deviceName = formatingDeviceName;
-		// TODO Auto-generated constructor stub
+		this.fsTypes = fsTypes;
+		this.deviceName = deviceName;
 	}
 	
 	@Override
@@ -127,24 +126,23 @@ public class InitializeDiskTypeSelection extends Dialog  {
 	
 	private void createFormatTypeCombo(Composite composite) {
 		formatTypeCombo = new Combo(composite, SWT.READ_ONLY);
-		formatTypeCombo.setItems(possibleFsType.toArray(new String[0]));
+		formatTypeCombo.setItems(fsTypes.toArray(new String[0]));
 		formatTypeCombo.select(0);
 		new Label(composite, SWT.NONE);
 	}
 	
 	private void createMountPointText(Composite container) {
-		mountPoint = new Text(container, SWT.BORDER);
+		mountPointText = new Text(container, SWT.BORDER);
 		GridData txtNameData = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
-		txtNameData.horizontalSpan = 1;
 		txtNameData.widthHint = 400;
-		mountPoint.setTextLimit(100);
-		mountPoint.setLayoutData(txtNameData);
-		mountPoint.setText(defaultMountPoint + deviceName);
-		mountPoint.setEnabled(false);
-		mountPoint.addModifyListener(new ModifyListener() {
+		mountPointText.setTextLimit(100);
+		mountPointText.setLayoutData(txtNameData);
+		mountPointText.setText(DEFAULT_MOUNT_POINT + deviceName);
+		mountPointText.setEnabled(false);
+		mountPointText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				validateMountPoint(mountPoint.getText().trim());
+				validateMountPoint();
 			}
 		});
 	}
@@ -156,26 +154,11 @@ public class InitializeDiskTypeSelection extends Dialog  {
 		changeLink.setForeground(new Color(Display.getDefault(), 0, 0, 255));
 		
 		changeLink.addHyperlinkListener(new HyperlinkAdapter() {
-
-		//	private void finishEdit() {
-		//		changeLink.setText("change");
-		//		mountPoint.setEnabled(false);
-		//	}
-
-			private void startEdit() {
-				// changeLink.setText("update");
-				changeLink.setVisible(false);
-				mountPoint.setEnabled(true);
-			}
-
 			@Override
 			public void linkActivated(HyperlinkEvent e) {
-				if (mountPoint.isEnabled()) {
-					// we were already in edit mode.
-					// finishEdit();
-				} else {
-					// Get in to edit mode
-					startEdit();
+				if (!mountPointText.isEnabled()) {
+					changeLink.setVisible(false);
+					mountPointText.setEnabled(true);
 				}
 			}
 		});
@@ -184,11 +167,11 @@ public class InitializeDiskTypeSelection extends Dialog  {
 	@Override
 	protected void okPressed() {
 		fsType = formatTypeCombo.getText().trim();
-		mountPointText = mountPoint.getText().trim();
+		mountPoint = mountPointText.getText().trim();
 		if (validateForm()) {
 			super.okPressed();
 		} else {
-			MessageDialog.openError(getShell(), "Error: Validation error!", "Empty or Invalid mountpoint."); 
+			MessageDialog.openError(getShell(), "Initialize Disk - Error", "Please enter a valid mount point"); 
 		}
 	}
 	
@@ -197,15 +180,16 @@ public class InitializeDiskTypeSelection extends Dialog  {
 		super.cancelPressed();
 	}
 	
-	private boolean validateMountPoint(String deviceMountPoint) {
-		if (deviceMountPoint.isEmpty()) {
+	private boolean validateMountPoint() {
+		String mountPoint = mountPointText.getText().trim();
+		if (mountPoint.isEmpty()) {
 			return false;
 		}
-		return deviceMountPoint.matches("^/.+");
+		return mountPoint.matches("^/.+");
 	}
 
 	private boolean validateForm() {
-		return (!formatTypeCombo.getText().trim().isEmpty() && validateMountPoint(  mountPoint.getText().trim()));
+		return (!formatTypeCombo.getText().trim().isEmpty() && validateMountPoint());
 	}
 
 	/**
@@ -223,6 +207,6 @@ public class InitializeDiskTypeSelection extends Dialog  {
 	}
 
 	public String getMountPoint() {
-		return mountPointText;
+		return mountPoint;
 	}
 }
