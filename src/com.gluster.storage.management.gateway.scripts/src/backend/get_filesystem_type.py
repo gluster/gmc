@@ -13,8 +13,10 @@ if not p2 in sys.path:
     sys.path.append(p2)
 import Utils
 
+SUPPORTED_FSTYPE = ['ext3', 'ext4', 'ext4dev', 'xfs']
+
 def main():
-    print "\n".join(Utils.getFileSystemType())
+    print "\n".join(list(set(Utils.getFileSystemType()).intersection(set(SUPPORTED_FSTYPE))))
 
 if __name__ == "__main__":
     main()
