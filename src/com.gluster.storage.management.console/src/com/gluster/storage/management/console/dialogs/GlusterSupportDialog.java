@@ -54,7 +54,7 @@ public class GlusterSupportDialog extends FormDialog {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		this.parent = newShell;
-		newShell.setText("GlusterFS Management Console - Support Information");
+		newShell.setText("Gluster Management Console - Support Information");
 	}
 	
 	protected void createFormContent(IManagedForm mform) {
@@ -95,7 +95,7 @@ public class GlusterSupportDialog extends FormDialog {
 		Composite section = guiHelper.createSection(form, toolkit, "Coming Soon", null, 7, false);
 		FormText formText = toolkit.createFormText(section, true);
 		String commingSoonInfo = "<form>" +
-					"The following features of GlusterFS will soon be supported in upcoming releases of GlusterFS Management Console " +
+					"The following features of GlusterFS will soon be supported in upcoming releases of Gluster Management Console " +
 					"<li>Geo-replication</li>" +
 					"<li>Directory Quota</li>" +
 					"<li>Top and Profile</li>" +
