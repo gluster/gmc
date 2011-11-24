@@ -7,6 +7,6 @@
 	</topic>
  <topic href="html/concepts/about_gmg.html" label="About Gluster Management Gateway">
  </topic> 
-	<topic label="About Gluster Management Console"  href="html/concepts/about_gmc.html"> 
+	<topic label="About GlusterFS Management Console"  href="html/concepts/about_gmc.html"> 
 	</topic> 
 </toc>

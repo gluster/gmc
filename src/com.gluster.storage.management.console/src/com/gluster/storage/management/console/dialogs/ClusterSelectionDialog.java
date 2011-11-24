@@ -95,7 +95,7 @@ public class ClusterSelectionDialog extends Dialog {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 
-		newShell.setText("Gluster Management Console - Select Cluster");
+		newShell.setText("GlusterFS Management Console - Select Cluster");
 		addEscapeListener(newShell);
 	}
 
