@@ -163,7 +163,10 @@ def getDiskDom():
             partitionTag.appendChild(diskDom.createTag("name", partName))
             partitionTag.appendChild(diskDom.createTag("uuid", partValues["Uuid"]))
             partitionTag.appendChild(diskDom.createTag("fsType", partValues["FsType"]))
-            if partValues["FsType"]:
+            if partValues["MountPoint"] and partValues["MountPoint"] in ["/", "/boot"]:
+                partitionTag.appendChild(diskDom.createTag("status", "INITIALIZED"))
+                partitionTag.appendChild(diskDom.createTag("type", "BOOT"))
+            elif partValues["FsType"]:
                 partitionTag.appendChild(diskDom.createTag("status", "INITIALIZED"))
                 partitionTag.appendChild(diskDom.createTag("type", "DATA"))
             else:
