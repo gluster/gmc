@@ -19,10 +19,10 @@
 
 # Buckminster commands to build Gluster Management Gateway
 
-importtarget --active gmc-target/com.gluster.storage.management.console.target/gmc.target
+importtarget --active gmc-target/org.gluster.storage.management.console.target/gmc.target
 
-import build/com.gluster.storage.management.core.cquery
-import build/com.gluster.storage.management.gateway.cquery
+import build/org.gluster.storage.management.core.cquery
+import build/org.gluster.storage.management.gateway.cquery
 
-perform com.gluster.storage.management.core#bundle.jar
-perform com.gluster.storage.management.gateway#archive
+perform org.gluster.storage.management.core#bundle.jar
+perform org.gluster.storage.management.gateway#archive

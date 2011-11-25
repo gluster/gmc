@@ -70,14 +70,14 @@ get-dist()
 	WS=${3}
 
 	if [ -z "${GMC_DIST_DIR}" ]; then
-		OUT_DIR="${WORKSPACE}/../../${BRANCH}-glustermc/workspace/arch/${ARCH}/os/${OS}/ws/${WS}/buckminster.output/com.gluster.storage.management.console.feature.webstart*.feature/glustermc"
+		OUT_DIR="${WORKSPACE}/../../${BRANCH}-glustermc/workspace/arch/${ARCH}/os/${OS}/ws/${WS}/buckminster.output/org.gluster.storage.management.console.feature.webstart*.feature/glustermc"
 	else
-		OUT_DIR="${GMC_DIST_DIR}/${OS}.${WS}.${ARCH}/com.gluster.storage.management.console.feature.webstart*.feature/glustermc"
+		OUT_DIR="${GMC_DIST_DIR}/${OS}.${WS}.${ARCH}/org.gluster.storage.management.console.feature.webstart*.feature/glustermc"
 	fi
 	NEW_DIR=${WAR_NAME}/${OS}.${WS}.${ARCH}
 	cp -R ${OUT_DIR} ${NEW_DIR}
 
-	update-jnlp ${ARCH} ${NEW_DIR}/com.gluster.storage.management.console.feature_*.jnlp
+	update-jnlp ${ARCH} ${NEW_DIR}/org.gluster.storage.management.console.feature_*.jnlp
 }
 
 get-console-dists()
@@ -92,8 +92,8 @@ get-console-dists()
 
 get-scripts()
 {
-	cp src/com.gluster.storage.management.gateway.scripts/src/common/* ${WAR_SCRIPTS_DIR}
-	cp src/com.gluster.storage.management.gateway.scripts/src/gateway/* ${WAR_SCRIPTS_DIR}
+	cp src/org.gluster.storage.management.gateway.scripts/src/common/* ${WAR_SCRIPTS_DIR}
+	cp src/org.gluster.storage.management.gateway.scripts/src/gateway/* ${WAR_SCRIPTS_DIR}
 	chmod +x ${WAR_SCRIPTS_DIR}/*
 }
 

@@ -18,9 +18,9 @@
 #------------------------------------------------------------------
 
 # Buckminster commands for JUnit test run
-importtarget --active gmc-target/com.gluster.storage.management.console.target/gmc.target
+importtarget --active gmc-target/org.gluster.storage.management.console.target/gmc.target
 
-import build/com.gluster.storage.management.core.cquery
-perform com.gluster.storage.management.core#java.binaries
+import build/org.gluster.storage.management.core.cquery
+perform org.gluster.storage.management.core#java.binaries
 
-junit -o test-reports/core.xml -l /com.gluster.storage.management.core/junit/core.junit.launch
+junit -o test-reports/core.xml -l /org.gluster.storage.management.core/junit/core.junit.launch
