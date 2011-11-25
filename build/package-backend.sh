@@ -34,8 +34,8 @@ prepare-script-dir()
 get-scripts()
 {
 	cd ${DIR_NAME}
-	cp ../../src/com.gluster.storage.management.gateway.scripts/src/common/* .
-	cp ../../src/com.gluster.storage.management.gateway.scripts/src/backend/* .
+	cp ../../src/org.gluster.storage.management.gateway.scripts/src/common/* .
+	cp ../../src/org.gluster.storage.management.gateway.scripts/src/backend/* .
 	chmod +x *
 	cd -
 }

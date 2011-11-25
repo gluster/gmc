@@ -22,13 +22,10 @@
 USAGE_ERR=1
 
 BUCKMINSTER_URL=http://download.eclipse.org/tools/buckminster/headless-3.7/
-TARGET_PLATFORM_URL=git@github.com:gluster/gmc.git
-SRC_URL=git@github.com:gluster/gmc-target.git
-
 BUCKMINSTER_PRODUCT_NAME=org.eclipse.buckminster.cmdline.product
-GMC_WEBSTART_PROJECT=com.gluster.storage.management.console.feature.webstart
-GMC_CORE_PROJECT=com.gluster.storage.management.core
-GMG_PROJECT=com.gluster.storage.management.gateway
+GMC_WEBSTART_PROJECT=org.gluster.storage.management.console.feature.webstart
+GMC_CORE_PROJECT=org.gluster.storage.management.core
+GMG_PROJECT=org.gluster.storage.management.gateway
 
 TYPE_ALL="a"
 TYPE_SETUP="s"
@@ -110,14 +107,12 @@ configure_workspace()
 	rm -rf ${WORKSPACE_DIR}
 	mkdir -p ${WORKSPACE_DIR}
 	cd ${WORKSPACE_DIR}
-	#git clone ${TARGET_PLATFORM_URL}
-	#git clone ${SRC_URL}
 
 	cp -R ${BASE_DIR}/gmc/* . 2>/dev/null
 	ln -fs ${BASE_DIR}/gmc-target .
 
 	echo "Importing target platform..."
-	${BUCKMINSTER_HOME}/buckminster importtarget -data ${WORKSPACE_DIR} --active gmc-target/com.gluster.storage.management.console.target/gmc.target
+	${BUCKMINSTER_HOME}/buckminster importtarget -data ${WORKSPACE_DIR} --active gmc-target/org.gluster.storage.management.console.target/gmc.target
 	cd -
 }
 
@@ -133,7 +128,7 @@ build_gmc()
 	fi
 
 	echo "Importing component query for glustermc..."
-	${BUCKMINSTER_HOME}/buckminster import -data ${WORKSPACE_DIR} build/com.gluster.storage.management.console.feature.webstart.cquery
+	${BUCKMINSTER_HOME}/buckminster import -data ${WORKSPACE_DIR} build/org.gluster.storage.management.console.feature.webstart.cquery
 
 	echo "Building GMC for [${os}.${ws}.${arch}]"
 	${BUCKMINSTER_HOME}/buckminster perform -Dbuckminster.output.root=${DIST_DIR} -data ${WORKSPACE_DIR} -Dtarget.os=${os} -Dtarget.ws=${ws} -Dtarget.arch=${arch} -Dcbi.include.source=false --properties ${PROPERTIES_FILE} ${GMC_WEBSTART_PROJECT}#create.eclipse.jnlp.product
@@ -154,8 +149,8 @@ build_gmg()
 	fi
 
 	echo "Importing component query for glustermg..."
-	${BUCKMINSTER_HOME}/buckminster import -data ${WORKSPACE_DIR} build/com.gluster.storage.management.core.cquery
-	${BUCKMINSTER_HOME}/buckminster import -data ${WORKSPACE_DIR} build/com.gluster.storage.management.gateway.cquery
+	${BUCKMINSTER_HOME}/buckminster import -data ${WORKSPACE_DIR} build/org.gluster.storage.management.core.cquery
+	${BUCKMINSTER_HOME}/buckminster import -data ${WORKSPACE_DIR} build/org.gluster.storage.management.gateway.cquery
 
 	echo "Building CORE..."
 	${BUCKMINSTER_HOME}/buckminster perform -Dbuckminster.output.root=${DIST_DIR} -data ${WORKSPACE_DIR} -Dcbi.include.source=false --properties ${PROPERTIES_FILE} ${GMC_CORE_PROJECT}#bundle.jar
