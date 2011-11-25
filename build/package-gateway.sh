@@ -120,6 +120,7 @@ gzip ${TAR_NAME}
 
 if [ ! -z "${DIST_DIR}" ]; then
 	mv ${TAR_NAME}.gz ${DIST_DIR}
+	cp -f build/gmg-install.sh ${DIST_DIR}
 fi
 
 echo "Done!"
