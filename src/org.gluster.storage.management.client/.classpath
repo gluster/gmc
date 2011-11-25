@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry exported="true" kind="lib" path="lib/jersey-1.5/jersey-multipart-1.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="keystore/"/>
+	<classpathentry exported="true" kind="lib" path="lib/jersey-1.5/jersey-client-1.5.jar" sourcepath="/data/downloads/sun/jersey/sources/jersey-client-1.5-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jersey-1.5/jersey-core-1.5.jar" sourcepath="/home/selvam/sources/jersey/jersey-core-1.5-sources.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry excluding="keystore/" kind="src" path="src"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/org.gluster.storage.management.core"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
