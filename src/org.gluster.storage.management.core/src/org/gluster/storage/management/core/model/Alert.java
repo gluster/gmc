@@ -2,6 +2,7 @@ package org.gluster.storage.management.core.model;
 
 import org.eclipse.osgi.internal.signedcontent.Base64;
 
+@SuppressWarnings("restriction")
 public class Alert extends Entity {
 
 	public enum ALERT_TYPES {

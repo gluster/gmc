@@ -18,14 +18,12 @@
  *******************************************************************************/
 package org.gluster.storage.management.console;
 
-import org.gluster.storage.management.console.utils.GUIHelper;
 import org.gluster.storage.management.console.views.pages.ServersPage.SERVER_TABLE_COLUMN_INDICES;
 import org.gluster.storage.management.core.model.Server;
 import org.gluster.storage.management.core.utils.NumberUtil;
 
 
 public class ServerTableLabelProvider extends TableLabelProviderAdapter {
-	private GUIHelper guiHelper = GUIHelper.getInstance();
 
 	@Override
 	public String getColumnText(Object element, int columnIndex) {

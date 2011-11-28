@@ -145,7 +145,7 @@ public class FileUtilTest {
 		throws Exception {
 		File file = new File("");
 		
-		byte[] result = FileUtil.readFileAsByteArray(file);
+		FileUtil.readFileAsByteArray(file);
 	}
 
 	/**

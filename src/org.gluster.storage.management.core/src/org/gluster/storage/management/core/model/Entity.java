@@ -30,7 +30,6 @@ import org.gluster.storage.management.core.utils.StringUtil;
 
 @XmlRootElement
 public class Entity extends PlatformObject implements Filterable {
-	private static final long serialVersionUID = 1L;
 
 	protected String name;
 	protected List<Entity> children = new ArrayList<Entity>();

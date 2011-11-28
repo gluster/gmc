@@ -40,6 +40,7 @@ public class DiskTreeContentProvider implements ITreeContentProvider {
 	 * 
 	 * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
 	 */
+	@SuppressWarnings("unchecked")
 	public Object[] getElements(Object inputElement) {
 		return ((List<Disk>) inputElement).toArray();
 	}

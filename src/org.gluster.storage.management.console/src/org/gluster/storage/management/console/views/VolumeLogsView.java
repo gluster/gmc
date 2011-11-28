@@ -6,7 +6,6 @@ import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.part.ViewPart;
 import org.gluster.storage.management.console.utils.GUIHelper;
 import org.gluster.storage.management.console.views.pages.VolumeLogsPage;

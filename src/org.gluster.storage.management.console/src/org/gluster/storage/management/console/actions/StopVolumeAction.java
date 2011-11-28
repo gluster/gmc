@@ -134,7 +134,6 @@ public class StopVolumeAction extends AbstractMonitoredActionDelegate {
 
 	private void stopVolumes(List<Volume> volumes, Boolean force, IProgressMonitor monitor) {
 		VolumesClient vc = new VolumesClient();
-		Volume newVolume = new Volume();
 		stoppedVolumes.clear();
 		failedVolumes.clear();
 		errorMessage = "";

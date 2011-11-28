@@ -33,10 +33,12 @@ public class EntityGroup<T extends Entity> extends Entity {
 		this.type = type;
 	}
 
+	@SuppressWarnings("unchecked")
 	public List<T> getEntities() {
 		return (List<T>)children;
 	}
 
+	@SuppressWarnings("unchecked")
 	public void setEntities(List<T> entities) {
 		children = (List<Entity>)entities;
 	}

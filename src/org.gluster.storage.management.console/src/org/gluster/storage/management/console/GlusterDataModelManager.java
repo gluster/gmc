@@ -35,30 +35,27 @@ import org.gluster.storage.management.console.utils.GlusterLogger;
 import org.gluster.storage.management.core.constants.GlusterConstants;
 import org.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import org.gluster.storage.management.core.model.Alert;
+import org.gluster.storage.management.core.model.Alert.ALERT_TYPES;
 import org.gluster.storage.management.core.model.Brick;
+import org.gluster.storage.management.core.model.Brick.BRICK_STATUS;
 import org.gluster.storage.management.core.model.Cluster;
 import org.gluster.storage.management.core.model.ClusterListener;
 import org.gluster.storage.management.core.model.Device;
+import org.gluster.storage.management.core.model.Device.DEVICE_STATUS;
+import org.gluster.storage.management.core.model.Device.DEVICE_TYPE;
 import org.gluster.storage.management.core.model.Disk;
 import org.gluster.storage.management.core.model.Event;
+import org.gluster.storage.management.core.model.Event.EVENT_TYPE;
 import org.gluster.storage.management.core.model.GlusterDataModel;
 import org.gluster.storage.management.core.model.GlusterServer;
 import org.gluster.storage.management.core.model.Partition;
 import org.gluster.storage.management.core.model.Server;
-import org.gluster.storage.management.core.model.Status;
 import org.gluster.storage.management.core.model.TaskInfo;
-import org.gluster.storage.management.core.model.TaskStatus;
 import org.gluster.storage.management.core.model.Volume;
-import org.gluster.storage.management.core.model.VolumeOptionInfo;
-import org.gluster.storage.management.core.model.Alert.ALERT_TYPES;
-import org.gluster.storage.management.core.model.Brick.BRICK_STATUS;
-import org.gluster.storage.management.core.model.Device.DEVICE_STATUS;
-import org.gluster.storage.management.core.model.Device.DEVICE_TYPE;
-import org.gluster.storage.management.core.model.Event.EVENT_TYPE;
-import org.gluster.storage.management.core.model.TaskInfo.TASK_TYPE;
 import org.gluster.storage.management.core.model.Volume.TRANSPORT_TYPE;
 import org.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 import org.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
+import org.gluster.storage.management.core.model.VolumeOptionInfo;
 import org.gluster.storage.management.core.utils.GlusterCoreUtil;
 
 
@@ -483,79 +480,6 @@ public class GlusterDataModelManager {
 		String networkStatsPeriod = preferenceStore.getString(PreferenceConstants.P_NETWORK_AGGREGATED_CHART_PERIOD);
 		
 		cluster.setAggregatedNetworkStats(new GlusterServersClient().getAggregatedNetworkStats(networkStatsPeriod));
-	}
-
-	private List<TaskInfo> getDummyTasks() {
-		List<TaskInfo> taskInfoList = new ArrayList<TaskInfo>();
-
-		// Task #1
-		TaskInfo taskInfo = new TaskInfo();
-		taskInfo.setType(TASK_TYPE.BRICK_MIGRATE);
-		taskInfo.setName("Migrate Brick-music");
-		taskInfo.setPauseSupported(true);
-		taskInfo.setStopSupported(true);
-		taskInfo.setStatus(new TaskStatus(new Status(Status.STATUS_CODE_PAUSE, "")));
-		
-		taskInfo.getStatus().setMessage("Paused");
-		taskInfo.setDescription("Migrate Brick on volume [Movies] from /export/adb/music to /export/sdc/music.");
-		taskInfoList.add(taskInfo);
-		
-		// Task #2
-		taskInfo = new TaskInfo();
-		taskInfo.setType(TASK_TYPE.DISK_FORMAT);
-		taskInfo.setName("Initialize disk [KVM-GVSA1:sdc]");
-		taskInfo.setPauseSupported(false);
-		taskInfo.setStopSupported(false);
-		taskInfo.setStatus( new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, ""))); 
-		taskInfo.getStatus().setMessage("Format completed 80% ...");
-		taskInfo.setDescription("Formatting disk [KVM-GVSA1:sdc]");
-		taskInfoList.add(taskInfo);
-
-		// Task #2
-		taskInfo = new TaskInfo();
-		taskInfo.setType(TASK_TYPE.VOLUME_REBALANCE);
-		taskInfo.setName("Rebalance volume [songs]");
-		taskInfo.setPauseSupported(false);
-		taskInfo.setStopSupported(false);
-		taskInfo.setStatus( new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, ""))); 
-		taskInfo.getStatus().setMessage("Rebalance step1: layout fix in progress");
-		taskInfo.setDescription("Rebalance volume [songs]");
-		taskInfoList.add(taskInfo);
-		
-		return taskInfoList;
-	}
-	
-	private List<Alert> getDummyAlerts(Cluster cluster) {
-		List<Alert> alerts = new ArrayList<Alert>();
-		for (Server server : cluster.getServers()) {
-			if (alerts.size() == 0) {
-				alerts.add(new Alert(ALERT_TYPES.CPU_USAGE_ALERT, server.getName(),
-						Alert.ALERT_TYPE_STR[ALERT_TYPES.CPU_USAGE_ALERT.ordinal()] + " [93.42 %] in "
-								+ server.getName()));
-				continue;
-			}
-
-			if (alerts.size() == 1) {
-				alerts.add(new Alert(ALERT_TYPES.MEMORY_USAGE_ALERT, server.getName(),
-						Alert.ALERT_TYPE_STR[ALERT_TYPES.MEMORY_USAGE_ALERT.ordinal()] + " [91.83 %] in "
-								+ server.getName()));
-				continue;
-			}
-
-			if (alerts.size() == 2) {
-				alerts.add(new Alert(ALERT_TYPES.OFFLINE_SERVERS_ALERT, server.getName(),
-						Alert.ALERT_TYPE_STR[ALERT_TYPES.OFFLINE_SERVERS_ALERT.ordinal()] + " " + server.getName()));
-				continue;
-			}
-
-			if (alerts.size() == 3) {
-				alerts.add(new Alert(ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT, "songs",
-						Alert.ALERT_TYPE_STR[ALERT_TYPES.OFFLINE_VOLUME_BRICKS_ALERT.ordinal()]
-								+ " [KVM-GVSA4:/export/hdb4/songs] in volume [songs]"));
-				continue;
-			}
-		}
-		return alerts;
 	}
 
 	public void initializeAlerts(Cluster cluster) {
