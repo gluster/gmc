@@ -22,8 +22,10 @@
 WAR_NAME="glustermg.war"
 WAR_SCRIPTS_DIR=${WAR_NAME}/scripts
 NEW_WAR_NAME="glustermg"
+VERSION=${VERSION:-1.0.0}
 TAR_NAME=${NEW_WAR_NAME}-${VERSION}.war.tar
-SERVER_DIST_DIR=${DIST_DIR:-${WORKSPACE}/buckminster.output}
+INSTALL_SCRIPT_NAME=gmg-install.sh
+INSTALLER_TAR_NAME=gmg-installer-${VERSION}.war.tar
 
 prepare-dist-dir()
 {
@@ -82,10 +84,10 @@ get-dist()
 
 get-console-dists()
 {
-	get-dist x86 win32 win32
-	get-dist x86_64 win32 win32
 	get-dist x86 linux gtk
 	get-dist x86_64 linux gtk
+	get-dist x86 win32 win32
+	get-dist x86_64 win32 win32
 	get-dist x86 macosx cocoa
 	get-dist x86_64 macosx cocoa
 }
@@ -105,6 +107,7 @@ if [ $# -eq 2 ]; then
 	DIST_DIR=${1}
 	GMC_DIST_DIR=${2}
 fi
+SERVER_DIST_DIR=${DIST_DIR:-${WORKSPACE}/buckminster.output}
 
 echo "Packaging GlusterFS Management Gateway..."
 
@@ -115,12 +118,13 @@ get-console-dists
 
 /bin/mv -f ${WAR_NAME} ${NEW_WAR_NAME}
 /bin/rm -rf ${TAR_NAME} ${TAR_NAME}.gz
-tar cvf ${TAR_NAME} ${NEW_WAR_NAME}
-gzip ${TAR_NAME}
+tar cvfz ${TAR_NAME}.gz ${NEW_WAR_NAME}
+cp build/${INSTALL_SCRIPT_NAME} .
+
+tar cvfz ${INSTALLER_TAR_NAME}.gz ${TAR_NAME}.gz ${INSTALL_SCRIPT_NAME}
 
 if [ ! -z "${DIST_DIR}" ]; then
-	mv ${TAR_NAME}.gz ${DIST_DIR}
-	cp -f build/gmg-install.sh ${DIST_DIR}
+	mv ${INSTALLER_TAR_NAME}.gz ${DIST_DIR}
 fi
 
 echo "Done!"

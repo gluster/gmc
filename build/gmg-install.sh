@@ -46,7 +46,20 @@ function post_install()
 	echo
 }
 
-function configure_server()
+function create_links()
+{
+	ln -fs ${GMG_HOME_DIR}/glustermg ${WEBAPPS_DIR}
+
+	GMG_SCRIPTS_DIR="${GMG_HOME_DIR}/glustermg/scripts"
+    ln -sf ${GMG_SCRIPTS_DIR}/grun.py /usr/sbin/grun.py
+    ln -sf ${GMG_SCRIPTS_DIR}/add_user_cifs_all.py /usr/sbin/add_user_cifs_all.py
+    ln -sf ${GMG_SCRIPTS_DIR}/delete_user_cifs_all.py /usr/sbin/delete_user_cifs_all.py
+    ln -sf ${GMG_SCRIPTS_DIR}/setup_cifs_config_all.py /usr/sbin/setup_cifs_config_all.py
+    ln -sf ${GMG_SCRIPTS_DIR}/gmg-reset-password.sh /usr/sbin/gmg-reset-password.sh
+}
+
+# Update tomcat sysconfig file with java options
+function set_java_options()
 {
 	TOMCAT_CONFIG_FILE="/etc/sysconfig/$TOMCAT_BIN"
 	if [ -f ${TOMCAT_CONFIG_FILE} ]; then
@@ -60,8 +73,13 @@ function configure_server()
 			echo 'JAVA_OPTS="${JAVA_OPTS} -Xms1024m -Xmx1024m -XX:PermSize=256m -XX:MaxPermSize=256m"' >> ${TOMCAT_CONFIG_FILE}
     	fi
 	fi
+}
 
-    if ! grep -q ${GMG_HOME_DIR}/glustermg/ssl/gmg-ssl.keystore $TOMCAT_DIR/conf/server.xml; then
+function configure_ssl()
+{
+	TOMCAT_SERVER_CONFIG_FILE=${TOMCAT_DIR}/conf/server.xml
+	SSL_KEYSTORE_FILE=${WEBAPPS_DIR}/glustermg/ssl/gmg-ssl.keystore
+    if ! grep -q ${SSL_KEYSTORE_FILE} ${TOMCAT_SERVER_CONFIG_FILE}; then
 		sed -i '/<\/Service>/i \
     	<Connector SSLEnabled="true" \
                clientAuth="false" \
@@ -73,21 +91,24 @@ function configure_server()
                protocol="org.apache.coyote.http11.Http11Protocol" \
                scheme="https" \
                secure="true" \
-               sslProtocol="TLS" />' $TOMCAT_DIR/conf/server.xml
-		sed -i "s,keystoreFile=\"\$TOMCAT_DIR/webapps/glustermg/ssl/gmg-ssl.keystore\",keystoreFile=\"$TOMCAT_DIR/webapps/glustermg/ssl/gmg-ssl.keystore\"," $TOMCAT_DIR/conf/server.xml
+               sslProtocol="TLS" />' ${TOMCAT_SERVER_CONFIG_FILE}
+		sed -i "s,keystoreFile=\"\$TOMCAT_DIR/webapps/glustermg/ssl/gmg-ssl.keystore\",keystoreFile=\"${SSL_KEYSTORE_FILE}\"," ${TOMCAT_SERVER_CONFIG_FILE}
     fi
+}
+
+function enable_proxy_caching()
+{
     if ! grep -q "org.apache.catalina.authenticator.NonLoginAuthenticator" $TOMCAT_DIR/conf/context.xml; then
 		sed -i '/<\/Context>/i \
     	<Valve className="org.apache.catalina.authenticator.NonLoginAuthenticator" \
            	disableProxyCaching="false" />' $TOMCAT_DIR/conf/context.xml
     fi
-    
-	GMG_SCRIPTS_DIR="${GMG_HOME_DIR}/glustermg/scripts"
-    ln -sf ${GMG_SCRIPTS_DIR}/grun.py /usr/sbin/grun.py
-    ln -sf ${GMG_SCRIPTS_DIR}/add_user_cifs_all.py /usr/sbin/add_user_cifs_all.py
-    ln -sf ${GMG_SCRIPTS_DIR}/delete_user_cifs_all.py /usr/sbin/delete_user_cifs_all.py
-    ln -sf ${GMG_SCRIPTS_DIR}/setup_cifs_config_all.py /usr/sbin/setup_cifs_config_all.py
-    ln -sf ${GMG_SCRIPTS_DIR}/gmg-reset-password.sh /usr/sbin/gmg-reset-password.sh
+}
+
+function configure_server()
+{
+	set_java_options
+	enable_proxy_caching	
 }
 
 function make_dirs()
@@ -100,7 +121,6 @@ function make_dirs()
     chown -R tomcat:tomcat $GMG_HOME_DIR $GMG_LOG_DIR;
 }
 
-
 function check_tar_gz()
 {
     file $GMG_ARCHIVE_PATH | grep "gzip" > /dev/null;
@@ -109,7 +129,7 @@ function check_tar_gz()
     fi
 }
 
-function get_GMG_VERSION()
+function get_gmg_version()
 {
 	# Format is /path/to/glustermg-version.war.tar.gz
 	# Remove prefix
@@ -117,12 +137,12 @@ function get_GMG_VERSION()
 	# Remove suffix
 	GMG_VERSION=${PART1%.war.tar.gz}
 
-	GMG_HOME_DIR="${GMG_HOME_DIR}/${GMG_VERSION}";
+	GMG_HOME_DIR="${GMG_ROOT_DIR}/${GMG_VERSION}";
 }
 
 function check_tomcat_dir()
 {
-	WEBAPPS_DIR="${TOMCAT_DIR}/webapps/"
+	WEBAPPS_DIR="${TOMCAT_DIR}/webapps"
     if [ ! -d "${WEBAPPS_DIR}" ]; then
 		quit "There is no webapps directory in [${TOMCAT_DIR}]." ${TOMCAT_ERR}
     fi
@@ -145,7 +165,7 @@ function check_java_version()
 function install_gmg()
 {
 	tar -xvf ${GMG_ARCHIVE_PATH} -C ${GMG_HOME_DIR}
-	ln -fs ${GMG_HOME_DIR}/glustermg ${WEBAPPS_DIR}
+	create_links
 }
 
 #-----------------------------------
@@ -163,7 +183,7 @@ TOMCAT_DIR="$2";
 check_tomcat_dir
 check_java_version
 check_tar_gz
-get_GMG_VERSION
+get_gmg_version
 
 make_dirs
 install_gmg
