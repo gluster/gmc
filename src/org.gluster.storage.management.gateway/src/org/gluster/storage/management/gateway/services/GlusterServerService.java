@@ -32,7 +32,6 @@ import org.gluster.storage.management.core.exceptions.GlusterValidationException
 import org.gluster.storage.management.core.model.GlusterServer;
 import org.gluster.storage.management.core.model.Server;
 import org.gluster.storage.management.core.model.Server.SERVER_STATUS;
-import org.gluster.storage.management.core.response.StringListResponse;
 import org.gluster.storage.management.core.utils.GlusterCoreUtil;
 import org.gluster.storage.management.core.utils.ProcessUtil;
 import org.gluster.storage.management.core.utils.StringUtil;

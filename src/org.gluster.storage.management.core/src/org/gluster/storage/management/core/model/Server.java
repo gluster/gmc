@@ -200,6 +200,7 @@ public class Server extends Entity {
 	 * 
 	 * @param server
 	 */
+	@SuppressWarnings("unchecked")
 	public void copyFrom(Server server) {
 		setName(server.getName());
 		setParent(server.getParent());

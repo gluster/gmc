@@ -24,7 +24,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.birt.chart.util.CDateTime;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -41,7 +40,6 @@ import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
@@ -49,7 +47,6 @@ import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.forms.widgets.FormToolkit;
-import org.eclipse.ui.forms.widgets.Hyperlink;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.ViewPart;
 import org.gluster.storage.management.client.GlusterServersClient;
@@ -61,21 +58,18 @@ import org.gluster.storage.management.console.NetworkInterfaceTableLabelProvider
 import org.gluster.storage.management.console.preferences.PreferenceConstants;
 import org.gluster.storage.management.console.toolbar.GlusterToolbarManager;
 import org.gluster.storage.management.console.utils.ChartUtil;
-import org.gluster.storage.management.console.utils.ChartViewerComposite;
+import org.gluster.storage.management.console.utils.ChartUtil.ChartPeriodLinkListener;
 import org.gluster.storage.management.console.utils.GUIHelper;
 import org.gluster.storage.management.console.utils.GlusterLogger;
-import org.gluster.storage.management.console.utils.ChartUtil.ChartPeriodLinkListener;
 import org.gluster.storage.management.core.model.ClusterListener;
 import org.gluster.storage.management.core.model.DefaultClusterListener;
 import org.gluster.storage.management.core.model.Event;
-import org.gluster.storage.management.core.model.GlusterServer;
-import org.gluster.storage.management.core.model.ServerStats;
-import org.gluster.storage.management.core.model.ServerStatsRow;
 import org.gluster.storage.management.core.model.Event.EVENT_TYPE;
+import org.gluster.storage.management.core.model.GlusterServer;
 import org.gluster.storage.management.core.model.Server.SERVER_STATUS;
+import org.gluster.storage.management.core.model.ServerStats;
 import org.gluster.storage.management.core.utils.NumberUtil;
 
-import com.ibm.icu.util.Calendar;
 import com.richclientgui.toolbox.gauges.CoolGauge;
 
 public class GlusterServerSummaryView extends ViewPart {
@@ -85,8 +79,6 @@ public class GlusterServerSummaryView extends ViewPart {
 	private ScrolledForm form;
 	private GlusterServer server;
 	private ClusterListener clusterListener;
-	private static final int CHART_WIDTH = 350;
-	private static final int CHART_HEIGHT = 250;
 	private static final GlusterLogger logger = GlusterLogger.getInstance();
 	private static final IPreferenceStore preferenceStore = Activator.getDefault().getPreferenceStore();
 
@@ -207,49 +199,6 @@ public class GlusterServerSummaryView extends ViewPart {
 		preferenceStore.removePropertyChangeListener(propertyChangeListener);
 	}
 
-	private void createAreaChart(Composite section, Calendar timestamps[], Double values[], String unit) {
-		ChartViewerComposite chartViewerComposite = new ChartViewerComposite(section, SWT.NONE, timestamps, values, unit, "HH:mm", 100);
-		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
-		data.widthHint = CHART_WIDTH;
-		data.heightHint = CHART_HEIGHT;
-		chartViewerComposite.setLayoutData(data);
-	}
-
-	private void extractChartData(ServerStats stats, List<Calendar> timestamps, List<Double> data, int dataColumnIndex) {
-		for(ServerStatsRow row : stats.getRows()) {
-			Double cpuUsage = row.getUsageData().get(dataColumnIndex);
-			if(!cpuUsage.isNaN()) {
-				timestamps.add(new CDateTime(row.getTimestamp() * 1000));
-				data.add(cpuUsage);
-			}
-		}
-	}
-
-	private void createAreaChartSection(ServerStats stats, String sectionTitle, int dataColumnIndex, String unit) {
-		List<Calendar> timestamps = new ArrayList<Calendar>();
-		List<Double> data = new ArrayList<Double>();
-		extractChartData(stats, timestamps, data, dataColumnIndex);
-		
-		if(timestamps.size() == 0) {
-			// Log a message saying no CPU stats available
-			return;
-		}
-
-		Composite section = guiHelper.createSection(form, toolkit, sectionTitle, null, 1, false);
-		createAreaChart(section, timestamps.toArray(new Calendar[0]), data.toArray(new Double[0]), unit);
-
-//		Calendar[] timestamps = new Calendar[] { new CDateTime(1000l*1310468100), new CDateTime(1000l*1310468400), new CDateTime(1000l*1310468700),
-//				new CDateTime(1000l*1310469000), new CDateTime(1000l*1310469300), new CDateTime(1000l*1310469600), new CDateTime(1000l*1310469900),
-//				new CDateTime(1000l*1310470200), new CDateTime(1000l*1310470500), new CDateTime(1000l*1310470800), new CDateTime(1000l*1310471100),
-//				new CDateTime(1000l*1310471400), new CDateTime(1000l*1310471700), new CDateTime(1000l*1310472000), new CDateTime(1000l*1310472300),
-//				new CDateTime(1000l*1310472600), new CDateTime(1000l*1310472900), new CDateTime(1000l*1310473200), new CDateTime(1000l*1310473500),
-//				new CDateTime(1000l*1310473800) };
-//		
-//		Double[] values = new Double[] { 10d, 11.23d, 17.92d, 18.69d, 78.62d, 89.11d, 92.43d, 89.31d, 57.39d, 18.46d, 10.44d, 16.28d, 13.51d, 17.53d, 12.21, 20d, 21.43d, 16.45d, 14.86d, 15.27d };
-//		createLineChart(section, timestamps, values, "%");
-		createChartLinks(section, 4);
-	}
-	
 	private void createMemoryUsageSection() {
 		String memStatsPeriod = preferenceStore.getString(PreferenceConstants.P_MEM_CHART_PERIOD);
 		memoryUsageSection = guiHelper.createSection(form, toolkit, "Memory Usage", null, 1, false);
@@ -311,25 +260,6 @@ public class GlusterServerSummaryView extends ViewPart {
 				networkChartPeriodLinkListener , -1, 5);
 	}
 	
-	private Composite createChartLinks(Composite section, int columnCount) {
-		GridLayout layout = new org.eclipse.swt.layout.GridLayout(columnCount, false);
-		layout.marginBottom = 0;
-		layout.marginTop = 0;
-		layout.marginLeft = (CHART_WIDTH - (50*columnCount)) / 2;
-		Composite graphComposite = toolkit.createComposite(section, SWT.NONE);
-		graphComposite.setLayout(layout);
-		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
-		data.widthHint = CHART_WIDTH;
-		graphComposite.setLayoutData(data);
-		
-		Label label1 = toolkit.createLabel(graphComposite, "1 day");
-		Hyperlink link1 = toolkit.createHyperlink(graphComposite, "1 week", SWT.NONE);
-		Hyperlink link2 = toolkit.createHyperlink(graphComposite, "1 month", SWT.NONE);
-		Hyperlink link3 = toolkit.createHyperlink(graphComposite, "1 year", SWT.NONE);
-		
-		return graphComposite;
-	}
-
 	private void createSections(Composite parent) {
 		String serverName = server.getName();
 		form = guiHelper.setupForm(parent, toolkit, "Server Summary [" + serverName + "]");

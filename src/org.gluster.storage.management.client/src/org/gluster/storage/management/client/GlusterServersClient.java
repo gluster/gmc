@@ -32,7 +32,6 @@ import org.gluster.storage.management.core.model.GlusterServer;
 import org.gluster.storage.management.core.model.ServerStats;
 import org.gluster.storage.management.core.response.FsTypeListResponse;
 import org.gluster.storage.management.core.response.GlusterServerListResponse;
-import org.gluster.storage.management.core.response.StringListResponse;
 import org.gluster.storage.management.core.utils.GlusterCoreUtil;
 
 import com.sun.jersey.api.representation.Form;

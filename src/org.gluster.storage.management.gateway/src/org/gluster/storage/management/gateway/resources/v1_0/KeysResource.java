@@ -50,7 +50,6 @@ import com.sun.jersey.multipart.FormDataParam;
 @Path(RESOURCE_PATH_KEYS)
 public class KeysResource extends AbstractResource {
 	private static final Logger logger = Logger.getLogger(KeysResource.class);
-	private ProcessUtil processUtil = new ProcessUtil();
 
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
@@ -78,17 +77,17 @@ public class KeysResource extends AbstractResource {
 		}
 		
 		// Copy keys to temp folder
-		ProcessResult result = processUtil.executeCommand("cp", sourcePrivateKeyFile, targetPrivateKeyFile);
+		ProcessResult result = ProcessUtil.executeCommand("cp", sourcePrivateKeyFile, targetPrivateKeyFile);
 		if (!result.isSuccess()) {
 			throw new GlusterRuntimeException("Failed to copy key files! [" + result.getOutput() + "]");
 		}
-		result = processUtil.executeCommand("cp", sourcePublicKeyFile, targetPubKeyFile);
+		result = ProcessUtil.executeCommand("cp", sourcePublicKeyFile, targetPubKeyFile);
 		if (!result.isSuccess()) {
 			throw new GlusterRuntimeException("Failed to copy key files! [" + result.getOutput() + "]");
 		}
 		
 		// To compress the key files
-		result = processUtil.executeCommand("tar", "cvf", zipFile, "-C", targetDir, SshUtil.PRIVATE_KEY_FILE.getName(),
+		result = ProcessUtil.executeCommand("tar", "cvf", zipFile, "-C", targetDir, SshUtil.PRIVATE_KEY_FILE.getName(),
 				SshUtil.PUBLIC_KEY_FILE.getName());
 		if (!result.isSuccess()) {
 			throw new GlusterRuntimeException("Failed to compress key files! [" + result.getOutput() + "]");
@@ -96,7 +95,7 @@ public class KeysResource extends AbstractResource {
 
 		// To remove the copied key files
 		try {
-			processUtil.executeCommand("rm", "-f", targetPrivateKeyFile, targetPubKeyFile); // Ignore the errors if any
+			ProcessUtil.executeCommand("rm", "-f", targetPrivateKeyFile, targetPubKeyFile); // Ignore the errors if any
 		} catch (Exception e) {
 			logger.warn(e.toString());
 		}
@@ -125,7 +124,7 @@ public class KeysResource extends AbstractResource {
 			}
 		}
 		// Extract SSH private and public key files.
-		ProcessResult output = processUtil.executeCommand("tar", "xvf", uploadedFile.getAbsolutePath(), "-C",
+		ProcessResult output = ProcessUtil.executeCommand("tar", "xvf", uploadedFile.getAbsolutePath(), "-C",
 				SshUtil.SSH_AUTHORIZED_KEYS_DIR_LOCAL);
 		uploadedFile.delete();
 		if (!output.isSuccess()) {

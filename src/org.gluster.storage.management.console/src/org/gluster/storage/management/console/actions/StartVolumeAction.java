@@ -26,15 +26,12 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.osgi.internal.signedcontent.Base64;
 import org.gluster.storage.management.client.VolumesClient;
-import org.gluster.storage.management.console.AlertsManager;
 import org.gluster.storage.management.console.GlusterDataModelManager;
 import org.gluster.storage.management.console.IImageKeys;
 import org.gluster.storage.management.console.utils.GUIHelper;
 import org.gluster.storage.management.core.constants.CoreConstants;
 import org.gluster.storage.management.core.model.Volume;
-import org.gluster.storage.management.core.model.Alert.ALERT_TYPES;
 import org.gluster.storage.management.core.model.Volume.VOLUME_STATUS;
 
 
@@ -57,7 +54,6 @@ public class StartVolumeAction extends AbstractMonitoredActionDelegate {
 		}
 		
 		VolumesClient vc = new VolumesClient();
-		Volume newVolume = new Volume();
 		List<String> startedVolumes = new ArrayList<String>();
 		List<String> failedVolumes = new ArrayList<String>();
 		String errorMessage = "";

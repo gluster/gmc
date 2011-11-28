@@ -84,7 +84,6 @@ public class ValidationUtil {
 	}
 
 	public static void main(String[] argv) {
-		String ip = "0.0.0.0";
 		// System.out.println("Is valid ip (" + ip + ")? " + isValidIp(ip));
 		String hostName = "myhost.q";
 		// System.out.println(isValidHostName(hostName));

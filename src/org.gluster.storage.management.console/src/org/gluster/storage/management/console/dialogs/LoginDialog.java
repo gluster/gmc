@@ -272,7 +272,6 @@ public class LoginDialog extends Dialog {
 
 		// If the password is default, Let user to change the password
 		if (password.equalsIgnoreCase(CoreConstants.DEFAULT_PASSWORD)) {
-			String oldSecurityTokeString = GlusterDataModelManager.getInstance().getSecurityToken();
 			ChangePasswordDialog dialog = new ChangePasswordDialog(getShell());
 
 			if (dialog.open() == Dialog.CANCEL) {

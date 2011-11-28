@@ -4,18 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-
-import org.gluster.storage.management.core.model.Device;
-import org.gluster.storage.management.core.model.Disk;
-import org.gluster.storage.management.core.model.Partition;
-import org.gluster.storage.management.core.model.Server;
 import org.gluster.storage.management.core.model.Device.DEVICE_STATUS;
 import org.gluster.storage.management.core.model.Device.DEVICE_TYPE;
 import org.junit.After;

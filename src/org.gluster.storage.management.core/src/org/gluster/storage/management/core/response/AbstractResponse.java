@@ -21,7 +21,7 @@ package org.gluster.storage.management.core.response;
 import org.gluster.storage.management.core.model.Response;
 import org.gluster.storage.management.core.model.Status;
 
-public abstract class AbstractResponse implements Response {
+public abstract class AbstractResponse implements Response<Object> {
 	private Status status;
 
 	@Override

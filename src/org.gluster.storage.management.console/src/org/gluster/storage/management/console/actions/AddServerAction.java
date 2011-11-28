@@ -33,7 +33,6 @@ import org.gluster.storage.management.core.model.Server;
 
 
 public class AddServerAction extends AbstractMonitoredActionDelegate {
-	private GUIHelper guiHelper = GUIHelper.getInstance();
 	
 	@Override
 	protected void performAction(final IAction action, IProgressMonitor monitor) {

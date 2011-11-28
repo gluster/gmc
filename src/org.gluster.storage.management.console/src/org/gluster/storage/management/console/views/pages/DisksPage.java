@@ -34,17 +34,10 @@ public class DisksPage extends AbstractDisksPage {
 		DISK, PARTITION, FREE_SPACE, TOTAL_SPACE, STATUS
 	};
 
-	private static final String[] DISK_TABLE_COLUMN_NAMES = new String[] { "Disk", "Partition", "Free Space (GB)",
-			"Total Space (GB)", "Status" };
-
 	public DisksPage(final Composite parent, int style, IWorkbenchSite site, List<Disk> disks) {
 		super(parent, style, site, disks);
 	}
 
-	private String getDiskTableColumnDesc(DISK_TABLE_COLUMN_INDICES idx) {
-		return DISK_TABLE_COLUMN_NAMES[idx.ordinal()];
-	}
-	
 	@Override
 	protected DeviceTableLabelProvider getLabelProvider() {
 		return new DeviceTableLabelProvider();

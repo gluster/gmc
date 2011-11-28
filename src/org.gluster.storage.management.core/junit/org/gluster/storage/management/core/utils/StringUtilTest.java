@@ -107,7 +107,6 @@ public class StringUtilTest {
 	public void testEnumToArray_1()
 		throws Exception {
 
-		String[] expected = new String[] {"WINTER", "SPRING", "SUMMER", "FALL"};
 		List<String> result = StringUtil.enumToArray(Season.values());
 
 		assertNotNull(result);

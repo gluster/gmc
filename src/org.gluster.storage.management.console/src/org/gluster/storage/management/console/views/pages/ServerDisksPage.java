@@ -38,8 +38,6 @@ public class ServerDisksPage  extends AbstractDisksPage {
 		DISK, PARTITION, FREE_SPACE, TOTAL_SPACE, STATUS
 	};
 
-	private static final String[] SERVER_DISK_TABLE_COLUMN_NAMES = new String[] { "Disk", "Partition", "Free Space (GB)",
-			"Total Space (GB)", "Status" };
 
 	@Override
 	protected int getStatusColumnIndex() {
