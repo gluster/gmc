@@ -24,14 +24,12 @@ package org.gluster.storage.management.console.actions;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.wizard.WizardDialog;
-import org.gluster.storage.management.console.GlusterDataModelManager;
 import org.gluster.storage.management.console.dialogs.AddBrickWizard;
 import org.gluster.storage.management.core.model.Volume;
 
 
 public class AddBrickAction extends AbstractActionDelegate {
 	private Volume volume;
-	private GlusterDataModelManager modelManager = GlusterDataModelManager.getInstance();
 	
 	@Override
 	public void dispose() {

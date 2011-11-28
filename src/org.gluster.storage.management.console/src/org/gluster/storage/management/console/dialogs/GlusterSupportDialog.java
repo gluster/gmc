@@ -44,7 +44,6 @@ public class GlusterSupportDialog extends FormDialog {
 	private final GUIHelper guiHelper = GUIHelper.getInstance();
 	private FormToolkit toolkit;
 	private ScrolledForm form;
-	private Composite parent;
 	
 	public GlusterSupportDialog(Shell shell) {
 		super(shell);
@@ -53,7 +52,6 @@ public class GlusterSupportDialog extends FormDialog {
 	@Override
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
-		this.parent = newShell;
 		newShell.setText("Gluster Management Console - Support Information");
 	}
 	

@@ -37,12 +37,10 @@ import org.gluster.storage.management.core.constants.CoreConstants;
 import org.gluster.storage.management.core.exceptions.ConnectionException;
 import org.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 import org.gluster.storage.management.core.model.Server;
-import org.gluster.storage.management.core.model.Status;
 import org.gluster.storage.management.core.model.Server.SERVER_STATUS;
-import org.gluster.storage.management.core.response.StringListResponse;
+import org.gluster.storage.management.core.model.Status;
 import org.gluster.storage.management.core.utils.ProcessResult;
 import org.gluster.storage.management.core.utils.ProcessUtil;
-import org.gluster.storage.management.gateway.services.GlusterInterfaceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -333,6 +331,7 @@ public class ServerUtil {
 	 *            Input string
 	 * @return Object of given expected class
 	 */
+	@SuppressWarnings("unchecked")
 	public <T> T unmarshal(Class<T> expectedClass, String input) {
 		try {
 			// create JAXB context and instantiate marshaller

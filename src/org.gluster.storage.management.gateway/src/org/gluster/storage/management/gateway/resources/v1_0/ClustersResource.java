@@ -37,7 +37,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.log4j.Logger;
 import org.gluster.storage.management.core.exceptions.GlusterValidationException;
 import org.gluster.storage.management.core.response.ClusterNameListResponse;
 import org.gluster.storage.management.gateway.data.ClusterInfo;
@@ -56,7 +55,6 @@ import com.sun.jersey.spi.resource.Singleton;
 public class ClustersResource extends AbstractResource {
 	@InjectParam
 	private ClusterService clusterService;
-	private static final Logger logger = Logger.getLogger(ClustersResource.class);
 	
 	@GET
 	@Produces(MediaType.APPLICATION_XML)

@@ -43,7 +43,6 @@ import com.richclientgui.toolbox.duallists.IRemovableContentProvider;
  */
 public class AddBrickPage extends WizardPage {
 	private List<Device> availableDevices = new ArrayList<Device>();
-	private List<Device> selectedDevices = new ArrayList<Device>();
 	private Volume volume = null;
 	private BricksSelectionPage page = null;
 

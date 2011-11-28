@@ -33,7 +33,6 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.gluster.storage.management.console.utils.GUIHelper;
@@ -45,13 +44,11 @@ public class ServerLogsPage extends Composite {
 	private final FormToolkit toolkit = new FormToolkit(Display.getCurrent());
 	private final GUIHelper guiHelper = GUIHelper.getInstance();
 	private Text text;
-	private Table table;
 
 	public enum LOG_TABLE_COLUMN_INDICES {
 		DATE, TIME, DISK, SEVERITY, MESSAGE
 	};
 
-	private static final String[] LOG_TABLE_COLUMN_NAMES = new String[] { "Date", "Time", "Disk", "Severity", "Message" };
 
 	/**
 	 * Create the composite.

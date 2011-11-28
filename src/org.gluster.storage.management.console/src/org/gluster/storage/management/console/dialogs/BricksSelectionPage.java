@@ -41,9 +41,8 @@ import org.gluster.storage.management.console.TableLabelProviderAdapter;
 import org.gluster.storage.management.console.utils.EntityViewerFilter;
 import org.gluster.storage.management.console.utils.GUIHelper;
 import org.gluster.storage.management.core.model.Brick;
-import org.gluster.storage.management.core.model.Device;
-import org.gluster.storage.management.core.model.Disk;
 import org.gluster.storage.management.core.model.Brick.BRICK_STATUS;
+import org.gluster.storage.management.core.model.Device;
 import org.gluster.storage.management.core.utils.NumberUtil;
 
 import com.richclientgui.toolbox.duallists.CustomTableDualListComposite;
@@ -104,15 +103,6 @@ public class BricksSelectionPage extends Composite {
 												.formatNumber((device.getSpace() / 1024)) : "Invalid");
 			}
 		};
-	}
-
-	private int indexOf(List<Disk> disks, Disk searchDisk) {
-		for (Disk disk : disks) {
-			if (disk.getQualifiedName().equals(searchDisk.getQualifiedName())) {
-				return disks.indexOf(disk);
-			}
-		}
-		return -1;
 	}
 
 	private void createPage(List<Device> allDevice, List<Device> selectedDevice, String volumeName) {

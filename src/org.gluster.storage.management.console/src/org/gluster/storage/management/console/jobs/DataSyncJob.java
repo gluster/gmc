@@ -24,7 +24,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.widgets.Display;
 import org.gluster.storage.management.console.GlusterDataModelManager;
-import org.gluster.storage.management.console.utils.GlusterLogger;
 import org.gluster.storage.management.core.model.GlusterDataModel;
 
 
@@ -32,7 +31,6 @@ import org.gluster.storage.management.core.model.GlusterDataModel;
  *
  */
 public class DataSyncJob extends Job {
-	private static final GlusterLogger logger = GlusterLogger.getInstance();
 
 	public DataSyncJob(String name) {
 		super(name);

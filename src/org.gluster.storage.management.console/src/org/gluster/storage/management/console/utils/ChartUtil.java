@@ -201,7 +201,6 @@ public class ChartUtil {
 		@Override
 		public void linkActivated(HyperlinkEvent e) {
 			super.linkActivated(e);
-			Composite section = ((Hyperlink) e.getSource()).getParent().getParent();
 			updatePreference(serverName);
 		}
 
@@ -222,7 +221,6 @@ public class ChartUtil {
 
 		@Override
 		protected void updatePreference(String serverName) {
-			ServerStats stats;
 			if (serverName == null) {
 				preferenceStore.setValue(PreferenceConstants.P_CPU_AGGREGATED_CHART_PERIOD, statsPeriod);
 			} else {

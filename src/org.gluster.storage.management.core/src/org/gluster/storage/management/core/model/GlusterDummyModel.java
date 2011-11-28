@@ -32,9 +32,9 @@ import org.gluster.storage.management.core.model.Volume.VOLUME_TYPE;
 
 public class GlusterDummyModel {
 	// private Server discoveredServer1, discoveredServer2, discoveredServer3, discoveredServer4, discoveredServer5;
-	private GlusterServer server1, server2, server3, server4, server5;
+	private GlusterServer server1, server2, server4, server5;
 	private Volume volume1, volume2, volume3, volume4, volume5;
-	private Disk s1da, s1db, s2da, s2db, s2dc, s2dd, s3da, s4da, s5da, s5db;
+	private Disk s1da, s1db, s2da, s2db, s2dc, s2dd, s4da, s5da, s5db;
 	private static List<VolumeLogMessage> logMessages = new ArrayList<VolumeLogMessage>();
 	private static GlusterDummyModel instance = new GlusterDummyModel();
 	private GlusterDataModel model;
@@ -57,7 +57,6 @@ public class GlusterDummyModel {
 			double memoryInUse) {
 		GlusterServer glusterServer = new GlusterServer(name, parent, status, numOfCPUs, cpuUsage, totalMemory,
 				memoryInUse);
-		NetworkInterface networkInterface = addNetworkInterface(glusterServer, interfaceName); 
 
 		servers.add(glusterServer);
 		return glusterServer;
@@ -174,7 +173,6 @@ public class GlusterDummyModel {
 		List<GlusterServer> servers = new ArrayList<GlusterServer>();
 		server1 = addGlusterServer(servers, cluster, "Server1", SERVER_STATUS.ONLINE, "eth0", 4, 56.3, 16, 8.4);
 		server2 = addGlusterServer(servers, cluster, "Server2", SERVER_STATUS.ONLINE, "eth1", 8, 41.92, 32, 18.76);
-		server3 = addGlusterServer(servers, cluster, "Server3", SERVER_STATUS.OFFLINE, "eth0", -1, -1, -1, -1);
 		server4 = addGlusterServer(servers, cluster, "Server4", SERVER_STATUS.ONLINE, "eth0", 1, 92.83, 4, 3.18);
 		server5 = addGlusterServer(servers, cluster, "Server5", SERVER_STATUS.ONLINE, "inf0", 2, 87.24, 8, 7.23);
 

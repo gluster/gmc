@@ -29,6 +29,7 @@ import javax.persistence.OneToMany;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 
+@SuppressWarnings("deprecation")
 @Entity(name="cluster_info")
 public class ClusterInfo {
 	@Id

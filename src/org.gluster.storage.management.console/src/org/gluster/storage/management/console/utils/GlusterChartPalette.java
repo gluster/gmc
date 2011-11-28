@@ -81,7 +81,7 @@ public class GlusterChartPalette extends EObjectImpl implements Palette
 
 	private static ILogger logger = Logger.getLogger( "org.eclipse.birt.chart.engine/model.attribute.impl" ); //$NON-NLS-1$
 
-	private static List colorLib = new ArrayList( 32 );
+	private static List<ColorDefinition> colorLib = new ArrayList<ColorDefinition>( 32 );
 	static
 	{
 		colorLib.add( ColorDefinitionImpl.create ( 0, 1, 252) );
@@ -303,7 +303,7 @@ public class GlusterChartPalette extends EObjectImpl implements Palette
 	 * @param lst
 	 * @param pos
 	 */
-	private static final void shiftList( final List lst, int pos )
+	private static final void shiftList( final List<ColorDefinition> lst, int pos )
 	{
 		int size = lst.size( );
 
@@ -322,7 +322,7 @@ public class GlusterChartPalette extends EObjectImpl implements Palette
 			return;
 		}
 
-		Object[] array = lst.toArray( );
+		ColorDefinition[] array = lst.toArray(new ColorDefinition[0]);
 
 		lst.clear( );
 
@@ -344,13 +344,13 @@ public class GlusterChartPalette extends EObjectImpl implements Palette
 	 */
 	public final void update( int iIndex )
 	{
-		final EList el = getEntries( );
+		final EList<Fill> el = getEntries( );
 		el.clear( );
 		if ( iIndex < 0 )
 		{
 			// a rotation version of palette-0, rataion pos is the negatvie
 			// index.
-			ArrayList al = new ArrayList( );
+			ArrayList<ColorDefinition> al = new ArrayList<ColorDefinition>( );
 
 			al.add( ColorDefinitionImpl.create( 80, 166, 218 ) );
 			al.add( ColorDefinitionImpl.create( 242, 88, 106 ) );
@@ -406,7 +406,7 @@ public class GlusterChartPalette extends EObjectImpl implements Palette
 	 */
 	public final void update( Fill f )
 	{
-		final EList el = getEntries( );
+		final EList<Fill> el = getEntries( );
 		el.clear( );
 		el.add( f );
 	}

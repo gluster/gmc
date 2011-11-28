@@ -780,12 +780,6 @@ public class VolumeSummaryView extends ViewPart {
 		lblStatusValue.redraw();
 	}
 
-	private void createTransportTypeField(Composite section) {
-		toolkit.createLabel(section, "Transport Type: ", SWT.NONE);
-		toolkit.createLabel(section, "" + volume.getTransportTypeStr(), SWT.NONE);
-		toolkit.createLabel(section, "", SWT.NONE); // dummy
-	}
-
 	private void createNumOfBricksField(Composite section) {
 		toolkit.createLabel(section, "Number of Bricks: ", SWT.NONE);
 		numberOfBricks = toolkit.createLabel(section, "" + volume.getNumOfBricks(), SWT.NONE);
