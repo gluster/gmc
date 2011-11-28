@@ -135,10 +135,10 @@ function check_java_version()
 	JAVA_VERSION=`java -version 2>&1 |awk 'NR==1{ gsub(/"/,""); gsub(/_.*/, ""); print $3 }'`
 	MINVERSION=1.6
 
-	if expr $JAVA_VERSION \>= $MINVER > /dev/null; then
+	if expr ${JAVA_VERSION} \>= ${MINVERSION} > /dev/null; then
 		echo "Found java version [${JAVA_VERSION}]"
 	else
-		quit "Java minimum version expected [${MINVER}], found [${JAVA_VERSION}]!" ${JAVA_ERR}
+		quit "Java minimum version expected [${MINVERSION}], found [${JAVA_VERSION}]!" ${JAVA_ERR}
 	fi
 }
 
