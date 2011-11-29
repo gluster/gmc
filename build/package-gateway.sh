@@ -25,7 +25,7 @@ NEW_WAR_NAME="glustermg"
 VERSION=${VERSION:-1.0.0}
 TAR_NAME=${NEW_WAR_NAME}-${VERSION}.war.tar
 INSTALL_SCRIPT_NAME=gmg-install.sh
-INSTALLER_TAR_NAME=gmg-installer-${VERSION}.war.tar
+INSTALLER_TAR_NAME=gmg-installer-${VERSION}.tar
 
 prepare-dist-dir()
 {
