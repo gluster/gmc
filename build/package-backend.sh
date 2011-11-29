@@ -23,7 +23,7 @@ ROOT_DIR=glustermg-backend-${VERSION}
 DIR_NAME=${ROOT_DIR}/gmg-scripts
 TAR_NAME=${ROOT_DIR}.tar
 INSTALL_SCRIPT_NAME=gmg-backend-install.sh
-INSTALLER_TAR_NAME=gmg-backend-installer-${VERSION}.war.tar
+INSTALLER_TAR_NAME=gmg-backend-installer-${VERSION}.tar
 
 prepare-script-dir()
 {
