@@ -118,7 +118,7 @@ function make_dirs()
 		ssh-keygen -t rsa -f /opt/glustermg/keys/gluster.pem -N ''
 		mv -f /opt/glustermg/keys/gluster.pem.pub /opt/glustermg/keys/gluster.pub
     fi
-    chown -R tomcat:tomcat $GMG_HOME_DIR $GMG_LOG_DIR;
+    chown -R tomcat:tomcat $GMG_ROOT_DIR $GMG_LOG_DIR;
 }
 
 function check_tar_gz()
