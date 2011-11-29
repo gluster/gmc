@@ -108,6 +108,7 @@ function enable_proxy_caching()
 function configure_server()
 {
 	set_java_options
+	configure_ssl
 	enable_proxy_caching	
 }
 
