@@ -5,7 +5,7 @@
 %define current_arch x86
 %endif
 
-Summary:        %{product_family} web IU component
+Summary:        %{product_family} Management Gateway
 Name:           glustermg
 Version:        %{release_version}
 Release:        1%{?extra_release}
@@ -17,7 +17,7 @@ Requires:       tomcat5 >= 5.5.23
 Requires:       java-1.6.0-openjdk >= 1.6.0.0
 Requires:       wget
 %description
-%{product_family} web UI component for GlusterFS and Gluster appliances
+%{product_family} Management Gateway
 
 %package        backend
 Summary:        %{product_family} server side backend tools

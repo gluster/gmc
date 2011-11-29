@@ -2,17 +2,17 @@
 
 #------------------------------------------------------------------
 # Copyright (c) 2006-2011 Gluster, Inc. <http://www.gluster.com>
-# This file is part of GlusterFS.
+# This file is part of Gluster Management Gateway.
 # 
 # Gluster Management Gateway is free software; you can redistribute 
 # it and/or modify it under the terms of the GNU General Public 
 # License as published by the Free Software Foundation; either 
 # version 3 of the License, or (at your option) any later version.
 # 
-# GlusterFS is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# General Public License for more details.
+# Gluster Management Gateway is distributed in the hope that it 
+# will be useful, but WITHOUT ANY WARRANTY; without even the 
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+# PURPOSE.  See the GNU General Public License for more details.
 # 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see
@@ -22,6 +22,8 @@
 ROOT_DIR=glustermg-backend-${VERSION}
 DIR_NAME=${ROOT_DIR}/gmg-scripts
 TAR_NAME=${ROOT_DIR}.tar
+INSTALL_SCRIPT_NAME=gmg-backend-install.sh
+INSTALLER_TAR_NAME=gmg-backend-installer-${VERSION}.war.tar
 
 prepare-script-dir()
 {
@@ -52,10 +54,12 @@ prepare-script-dir
 get-scripts
 
 /bin/rm -rf ${TAR_NAME} ${TAR_NAME}.gz
-tar cvf ${TAR_NAME} ${ROOT_DIR}
-gzip ${TAR_NAME}
+tar cvfz ${TAR_NAME}.gz ${ROOT_DIR}
+cp build/${INSTALL_SCRIPT_NAME} .
+tar cvfz ${INSTALLER_TAR_NAME}.gz ${TAR_NAME}.gz ${INSTALL_SCRIPT_NAME}
+
 if [ ! -z "${DIST_DIR}" ]; then
-	mv ${TAR_NAME}.gz ${DIST_DIR}
+	mv ${INSTALLER_TAR_NAME}.gz ${DIST_DIR}
 fi
 /bin/rm -rf ${ROOT_DIR}
 

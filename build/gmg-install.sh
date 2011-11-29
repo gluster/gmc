@@ -2,18 +2,18 @@
 
 #------------------------------------------------------------------
 # Copyright (c) 2006-2011 Gluster, Inc. <http://www.gluster.com>
-# This file is part of GlusterFS.
-# 
-# Gluster Management Gateway is free software; you can redistribute 
-# it and/or modify it under the terms of the GNU General Public 
-# License as published by the Free Software Foundation; either 
+# This file is part of Gluster Management Gateway.
+#
+# Gluster Management Gateway is free software; you can redistribute
+# it and/or modify it under the terms of the GNU General Public
+# License as published by the Free Software Foundation; either
 # version 3 of the License, or (at your option) any later version.
-# 
-# GlusterFS is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# General Public License for more details.
-# 
+#
+# Gluster Management Gateway is distributed in the hope that it
+# will be useful, but WITHOUT ANY WARRANTY; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see
 # <http://www.gnu.org/licenses/>.
@@ -48,10 +48,13 @@ function post_install()
 
 function create_links()
 {
+	if [ -f ${WEBAPPS_DIR}/glustermg ]; then
+    	rm -f ${WEBAPPS_DIR}/glustermg
+	fi
 	ln -fs ${GMG_HOME_DIR}/glustermg ${WEBAPPS_DIR}
 
 	GMG_SCRIPTS_DIR="${GMG_HOME_DIR}/glustermg/scripts"
-    ln -sf ${GMG_SCRIPTS_DIR}/grun.py /usr/sbin/grun.py
+    ln -sf ${GMG_SCRIPTS_DIR}/grun.py /usr/bin/grun.py
     ln -sf ${GMG_SCRIPTS_DIR}/add_user_cifs_all.py /usr/sbin/add_user_cifs_all.py
     ln -sf ${GMG_SCRIPTS_DIR}/delete_user_cifs_all.py /usr/sbin/delete_user_cifs_all.py
     ln -sf ${GMG_SCRIPTS_DIR}/setup_cifs_config_all.py /usr/sbin/setup_cifs_config_all.py
@@ -174,8 +177,7 @@ function install_gmg()
 #-----------------------------------
 
 if [ "x$1" == "x" ] || [ "x$1$2" == "x$1" ] || [ $# -gt 2 ]; then
-	echo "Usage: $0 <path to glustermg-version.war.tar.gz> <path to tomcat directory>";
-	exit 1;
+	quit "Usage: $0 <path to glustermg-version.war.tar.gz> <path to tomcat directory>" ${USAGE_ERR}
 fi
 
 GMG_ARCHIVE_PATH="$1";
