@@ -9,11 +9,11 @@ Summary:        %{product_family} Management Gateway
 Name:           glustermg
 Version:        %{release_version}
 Release:        1%{?extra_release}
-License:        Proprietary
+License:        GPLv3+
 Group:          System Environment/Base
 Source0:        glustermg-backend-%{release_version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-buildroot
-Requires:       tomcat5 >= 5.5.23
+Requires:       tomcat6 >= 6.0.24
 Requires:       java-1.6.0-openjdk >= 1.6.0.0
 Requires:       wget
 %description
@@ -29,7 +29,7 @@ Requires:       perl >= 5.8.8
 Requires:       rrdtool-perl >= 1.2.27
 Requires:       sudo
 Requires:       crontabs
-Requires:       samba3
+Requires:       samba >= 3.5.6
 Requires:       libxml2 >= 2.6.26
 %description    backend
 %{product_family} server side backend tools
@@ -66,48 +66,48 @@ ln -sf /opt/glustermg/%{release_version}/backend/gluster_cifs_volume_startup.py 
 
 
 %post
-if [ -f /usr/share/tomcat5/webapps/glustermg ]; then
-    rm -f /usr/share/tomcat5/webapps/glustermg
+if [ -f /usr/share/tomcat6/webapps/glustermg ]; then
+    rm -f /usr/share/tomcat6/webapps/glustermg
 fi
-ln -fs /opt/glustermg/%{release_version}/glustermg /usr/share/tomcat5/webapps/glustermg
+ln -fs /opt/glustermg/%{release_version}/glustermg /usr/share/tomcat6/webapps/glustermg
 if [ ! -f /opt/glustermg/keys/gluster.pem ]; then
-    ssh-keygen -t rsa -f /opt/glustermg/keys/gluster.pem -N ''
+x    ssh-keygen -t rsa -f /opt/glustermg/keys/gluster.pem -N ''
     mv -f /opt/glustermg/keys/gluster.pem.pub /opt/glustermg/keys/gluster.pub
 fi
 chown -R tomcat:tomcat /opt/glustermg /var/log/glustermg
-if ! grep -q '^JAVA_HOME="/usr/lib/jvm/jre-1.6.0-openjdk.x86_64"' /etc/sysconfig/tomcat5; then
-    sed -i 's/^JAVA_HOME=/# JAVA_HOME=/g' /etc/sysconfig/tomcat5
-    echo 'JAVA_HOME="/usr/lib/jvm/jre-1.6.0-openjdk.x86_64"' >> /etc/sysconfig/tomcat5
+if ! grep -q '^JAVA_HOME="/usr/lib/jvm/jre-1.6.0-openjdk.x86_64"' /etc/sysconfig/tomcat6; then
+    sed -i 's/^JAVA_HOME=/# JAVA_HOME=/g' /etc/sysconfig/tomcat6
+    echo 'JAVA_HOME="/usr/lib/jvm/jre-1.6.0-openjdk.x86_64"' >> /etc/sysconfig/tomcat6
 fi
-if ! grep -q '# Added by Gluster: JAVA_OPTS="${JAVA_OPTS} -Xms1024m -Xmx1024m -XX:PermSize=256m -XX:MaxPermSize=256m"' /etc/sysconfig/tomcat5; then
-    echo '# Added by Gluster: JAVA_OPTS="${JAVA_OPTS} -Xms1024m -Xmx1024m -XX:PermSize=256m -XX:MaxPermSize=256m"' >> /etc/sysconfig/tomcat5
-    echo 'JAVA_OPTS="${JAVA_OPTS} -Xms1024m -Xmx1024m -XX:PermSize=256m -XX:MaxPermSize=256m"' >> /etc/sysconfig/tomcat5
+if ! grep -q '# Added by Gluster: JAVA_OPTS="${JAVA_OPTS} -Xms1024m -Xmx1024m -XX:PermSize=256m -XX:MaxPermSize=256m"' /etc/sysconfig/tomcat6; then
+    echo '# Added by Gluster: JAVA_OPTS="${JAVA_OPTS} -Xms1024m -Xmx1024m -XX:PermSize=256m -XX:MaxPermSize=256m"' >> /etc/sysconfig/tomcat6
+    echo 'JAVA_OPTS="${JAVA_OPTS} -Xms1024m -Xmx1024m -XX:PermSize=256m -XX:MaxPermSize=256m"' >> /etc/sysconfig/tomcat6
 fi
-if ! grep -q /usr/share/tomcat5/webapps/glustermg/ssl/gmg-ssl.keystore /etc/tomcat5/server.xml; then
+if ! grep -q /usr/share/tomcat6/webapps/glustermg/ssl/gmg-ssl.keystore /etc/tomcat6/server.xml; then
     sed -i '/<\/Service>/i \
     <Connector SSLEnabled="true" \
                clientAuth="false" \
                executor="tomcatThreadPool" \
                maxThreads="150" \
                port="8443" \
-               keystoreFile="/usr/share/tomcat5/webapps/glustermg/ssl/gmg-ssl.keystore" \
+               keystoreFile="/usr/share/tomcat6/webapps/glustermg/ssl/gmg-ssl.keystore" \
                keystorePass="gluster" \
                protocol="org.apache.coyote.http11.Http11Protocol" \
                scheme="https" \
                secure="true" \
-               sslProtocol="TLS" />' /etc/tomcat5/server.xml
+               sslProtocol="TLS" />' /etc/tomcat6/server.xml
 fi
-if ! grep -q "org.apache.catalina.authenticator.NonLoginAuthenticator" /etc/tomcat5/context.xml; then
+if ! grep -q "org.apache.catalina.authenticator.NonLoginAuthenticator" /etc/tomcat6/context.xml; then
     sed -i '/<\/Context>/i \
     <Valve className="org.apache.catalina.authenticator.NonLoginAuthenticator" \
-           disableProxyCaching="false" />' /etc/tomcat5/context.xml
+           disableProxyCaching="false" />' /etc/tomcat6/context.xml
 fi
 if wget -t 1 -T 1 -q -O /dev/null http://169.254.169.254/latest; then
     sed -i '/<constructor-arg value="multicast"/c <constructor-arg value="none" \/>' /opt/glustermg/%{release_version}/glustermg/WEB-INF/classes/spring/gluster-server-base.xml
 fi
 
 %preun
-rm -f /usr/share/tomcat5/webapps/glustermg
+rm -f /usr/share/tomcat6/webapps/glustermg
 
 %pre backend
 modprobe -q fuse
@@ -144,6 +144,7 @@ fi
 
 %preun backend
 if [ "$1" = 0 ] ; then
+    /etc/init.d/multicast-discoverd stop
     /sbin/chkconfig --del multicast-discoverd
     /sbin/chkconfig --del gluster-volume-settings
 fi
@@ -175,5 +176,8 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue Nov 29 2011 Bala.FA <barumuga@redhat.com> - 1.1.0
+- Updated tomcat6/samba dependency
+- Added multicast-discoverd stop in preun backend
 * Thu Aug  4 2011 Bala.FA <bala@gluster.com> - 1.0.0
 - Initial release
