@@ -52,7 +52,7 @@ function get_gmg_version()
 {
 	# Format is /path/to/glustermg-backend-version.tar.gz
 	# Remove prefix
-	PART1=${GMG_ARCHIVE_PATH#*glustermg-backend-}
+	PART1=${GMGBE_ARCHIVE_PATH#*glustermg-backend-}
 	# Remove suffix
 	GMG_VERSION=${PART1%.tar.gz}
 
