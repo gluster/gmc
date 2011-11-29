@@ -307,6 +307,60 @@
             id="org.gluster.storage.management.console.commands.LogRotate"
             name="LogRotate">
       </command>
+      <command
+            categoryId="org.gluster.storage.management.console.category"
+            description="Download Volume Log"
+            id="org.gluster.storage.management.console.commands.DownloadVolumeLogs"
+            name="Download Log">
+      </command>
+      <command
+            categoryId="org.gluster.storage.management.console.category"
+            description="Clear Task"
+            id="org.gluster.storage.management.console.commands.Clear"
+            name="Clear Task">
+      </command>
+      <command
+            categoryId="org.gluster.storage.management.console.category"
+            description="Manual Server Addition"
+            id="org.gluster.storage.management.console.commands.ServerAddition"
+            name="Manual Server Addition">
+      </command>
+      <command
+            categoryId="org.gluster.storage.management.console.category"
+            description="Commit Task"
+            id="org.gluster.storage.management.console.commands.Commit"
+            name="Commit Task">
+      </command>
+      <command
+            categoryId="org.gluster.storage.management.console.category"
+            description="Export SSH Keys"
+            id="org.gluster.storage.management.console.commands.ExportSshKeys"
+            name="Export SSH Keys">
+      </command>
+      <command
+            categoryId="org.gluster.storage.management.console.category"
+            description="Force Start Volume"
+            id="org.gluster.storage.management.console.commands.ForceStartVolume"
+            name="Force Start Volume">
+      </command>
+      <command
+            categoryId="org.gluster.storage.management.console.category"
+            description="Import SSH Keys"
+            id="org.gluster.storage.management.console.commands.ImportSshKeys"
+            name="Import SSH Keys">
+      </command>
+      <command
+            categoryId="org.gluster.storage.management.console.category"
+            description="Support Info"
+            id="org.gluster.storage.management.console.commands.Support"
+            name="Support Info">
+      </command>
+      <command
+            categoryId="org.gluster.storage.management.console.category"
+            description="Manual Server Addition"
+            id="org.gluster.storage.management.console.commands.ServerAddition"
+            name="Manual Server Addition">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.bindings">
@@ -1221,7 +1275,7 @@
                moveable="false"
                ratio="0.30f"
                relationship="right"
-               relative="org.gluster.storage.management.console.views.navigator.NavigationView"
+               relative="org.gluster.storage.management.console.views.NavigationView"
                showTitle="true"
                standalone="false"
                visible="false">
@@ -1476,73 +1530,58 @@
             id="gluster.context.menu.volume"
             objectClass="org.gluster.storage.management.core.model.Volume">
          <action
-               allowLabelUpdate="false"
                class="org.gluster.storage.management.console.actions.MigrateBrickAction"
                definitionId="org.gluster.storage.management.console.commands.MigrateDisk"
                enablesFor="1"
                id="org.gluster.storage.management.console.actions.MigrateDiskAction"
                label="&amp;Migrate Disk"
                menubarPath="additions"
-               retarget="false"
                state="false"
                style="push"
-               toolbarPath="Normal"
                tooltip="Migrate Disk">
          </action>
          <action
-               allowLabelUpdate="false"
                class="org.gluster.storage.management.console.actions.DeleteVolumeAction"
                definitionId="org.gluster.storage.management.console.commands.DeleteVolume"
                enablesFor="1"
                id="org.gluster.storage.management.console.actions.DeleteVolumeAction"
                label="&amp;Delete Volume"
                menubarPath="additions"
-               retarget="false"
                state="false"
                style="push"
-               toolbarPath="Normal"
                tooltip="Delete Volume">
          </action>
          <action
-               allowLabelUpdate="false"
                class="org.gluster.storage.management.console.actions.RebalanceVolumeAction"
                definitionId="org.gluster.storage.management.console.commands.RebalanceVolume"
                enablesFor="1"
                id="org.gluster.storage.management.console.actions.RebalanceVolumeAction"
                label="&amp;Rebalance Volume"
                menubarPath="additions"
-               retarget="false"
                state="false"
                style="push"
-               toolbarPath="Normal"
                tooltip="Rebalance Volume">
          </action>
          <action
-               allowLabelUpdate="false"
                class="org.gluster.storage.management.console.actions.StopVolumeAction"
                definitionId="org.gluster.storage.management.console.commands.StopVolume"
                enablesFor="+"
                id="org.gluster.storage.management.console.actions.StopVolumeAction"
                label="S&amp;top Volume"
                menubarPath="additions"
-               retarget="false"
                state="false"
                style="push"
-               toolbarPath="Normal"
                tooltip="Stop Volume">
          </action>
          <action
-               allowLabelUpdate="false"
                class="org.gluster.storage.management.console.actions.StartVolumeAction"
                definitionId="org.gluster.storage.management.console.commands.StartVolume"
                enablesFor="+"
                id="org.gluster.storage.management.console.actions.StartVolumeAction"
                label="&amp;Start Volume"
                menubarPath="additions"
-               retarget="false"
                state="false"
                style="push"
-               toolbarPath="Normal"
                tooltip="Start Volume">
          </action>
       </objectContribution>
@@ -1550,17 +1589,14 @@
             id="gluster.context.menu.server"
             objectClass="org.gluster.storage.management.core.model.Server">
          <action
-               allowLabelUpdate="false"
                class="org.gluster.storage.management.console.actions.AddServerAction"
                definitionId="org.gluster.storage.management.console.commands.AddServer"
                enablesFor="+"
                id="org.gluster.storage.management.console.actions.AddServerAction"
                label="&amp;Add Server(s)"
                menubarPath="additions"
-               retarget="false"
                state="false"
                style="push"
-               toolbarPath="Normal"
                tooltip="Add Server(s) to Cluster">
          </action>
          <visibility>
@@ -1575,29 +1611,23 @@
             id="gluster.context.menu.entityGroup"
             objectClass="org.gluster.storage.management.core.model.EntityGroup">
          <action
-               allowLabelUpdate="false"
                class="org.gluster.storage.management.console.actions.CreateVolumeAction"
                definitionId="org.gluster.storage.management.console.commands.CreateVolume"
                id="org.gluster.storage.management.console.actions.CreateVolumeAction"
                label="&amp;Create Volume"
                menubarPath="additions"
-               retarget="false"
                state="false"
                style="push"
-               toolbarPath="Normal"
                tooltip="Create a new Volume">
          </action>
          <action
-               allowLabelUpdate="false"
                class="org.gluster.storage.management.console.actions.AddServerAction"
                definitionId="org.gluster.storage.management.console.commands.AddServer"
                id="org.gluster.storage.management.console.actions.AddServerAction"
                label="&amp;Add Server(s)"
                menubarPath="additions"
-               retarget="false"
                state="false"
                style="push"
-               toolbarPath="Normal"
                tooltip="Add Server(s) to Cluster">
          </action>
       </objectContribution>
