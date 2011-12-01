@@ -57,7 +57,7 @@ public class ClustersResource extends AbstractResource {
 	private ClusterService clusterService;
 	
 	@GET
-	@Produces(MediaType.APPLICATION_XML)
+	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public ClusterNameListResponse getClusters() {
 		List<ClusterInfo> clusters = clusterService.getAllClusters();
 		List<String> clusterList = new ArrayList<String>();
