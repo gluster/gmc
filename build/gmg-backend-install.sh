@@ -22,7 +22,8 @@
 # Variables
 USAGE_ERR=1
 FUSE_ERR=2
-TAR_ERR=3
+CHKCONFIG_ERR=3
+TAR_ERR=4
 GMGBE_ROOT_DIR="/opt/glustermg"
 
 function quit()
@@ -36,7 +37,11 @@ function pre()
 {
 	modprobe -q fuse
 	if ! lsmod | grep -qw fuse; then
-    	quit "FATAL: fuse kernel module is not found." ${FUSE_ERR}
+    	quit "fuse kernel module is not found!" ${FUSE_ERR}
+	fi
+
+	if [ ! -f /sbin/chkconfig ]; then
+		quit "/sbin/chkconfig not found!" ${CHKCONFIG_ERR}
 	fi
 }
 
