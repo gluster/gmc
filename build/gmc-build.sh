@@ -201,7 +201,7 @@ echo
 if [ $# -ne 1 ]; then
 	echo "Usage: ${0} <build-type>"
 	echo "build-type value can be one of:"
-	echo "	`startBold` ${TYPE_ALL}`stopBold` - Sets up the build directoryand then triggers a full build"
+	echo "	`startBold` ${TYPE_ALL}`stopBold` - Sets up the build directory and then triggers a full build"
 	echo "	`startBold` ${TYPE_SETUP}`stopBold` - Sets up the build directory; doesn't trigger build"
 	echo "	`startBold` ${TYPE_BUILD}`stopBold` - Assumes that build directory is set up and simply triggers the build"
 	echo
