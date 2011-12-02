@@ -83,18 +83,15 @@ public class PersistenceDao<T> {
 		return getEntityManager().find(type, id);
 	}
 
-	@SuppressWarnings("unchecked")
 	public List<T> findAll() {
 		return getEntityManager().createQuery("select t from " + type.getName() + " t").getResultList();
 	}
 
-	@SuppressWarnings("unchecked")
 	public List<T> findBy(String whereClause) {
 		return getEntityManager().createQuery("select t from " + type.getName() + " t where " + whereClause)
 				.getResultList();
 	}
 
-	@SuppressWarnings("unchecked")
 	public List<T> findBy(String whereClause, String... params) {
 		return createQuery("select t from " + type.getName() + " t where " + whereClause, params).getResultList();
 	}
