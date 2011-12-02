@@ -1,1 +1,1 @@
-../../../com.gluster.storage.management.gateway.scripts/src/common/XmlHandler.py
+../../../org.gluster.storage.management.gateway.scripts/src/common/XmlHandler.py

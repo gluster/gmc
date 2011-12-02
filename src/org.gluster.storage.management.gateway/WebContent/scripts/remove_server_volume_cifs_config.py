@@ -1,1 +1,1 @@
-../../../com.gluster.storage.management.gateway.scripts/src/gateway/remove_server_volume_cifs_config.py
+../../../org.gluster.storage.management.gateway.scripts/src/gateway/remove_server_volume_cifs_config.py

@@ -1,1 +1,1 @@
-../../../com.gluster.storage.management.gateway.scripts/src/gateway/update_volume_cifs_all.py
+../../../org.gluster.storage.management.gateway.scripts/src/gateway/update_volume_cifs_all.py

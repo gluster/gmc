@@ -1,1 +1,1 @@
-../../../com.gluster.storage.management.gateway.scripts/src/gateway/get_volume_user_cifs.py
+../../../org.gluster.storage.management.gateway.scripts/src/gateway/get_volume_user_cifs.py
