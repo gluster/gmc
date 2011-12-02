@@ -133,4 +133,5 @@ get_gmg_version
 make_dirs
 extract_archive
 create_links
+post
 
