@@ -87,7 +87,7 @@ public class GlusterServersClient extends AbstractClient {
 	public URI initializeDisk(String serverName, String diskName, String fsType, String mountPoint) {
 		Form form = new Form();
 		form.add(RESTConstants.FORM_PARAM_FSTYPE, fsType);
-		form.add(RESTConstants.FORM_PARAM_MOUNTPOINT, fsType);
+		form.add(RESTConstants.FORM_PARAM_MOUNTPOINT, mountPoint);
 		return putRequestURI(serverName + "/" + RESTConstants.RESOURCE_DISKS + "/" + diskName, form);
 	}
 	
