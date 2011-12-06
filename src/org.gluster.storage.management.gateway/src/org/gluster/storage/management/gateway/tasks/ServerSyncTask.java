@@ -138,7 +138,6 @@ public class ServerSyncTask {
 		return false;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void discoverServers() {
 		if(discoveryMechanism.equals(GlusterConstants.NONE)) {
 			return;

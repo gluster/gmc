@@ -415,7 +415,6 @@ public class GUIHelper {
 		
 		tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
 			
-			@SuppressWarnings("unchecked")
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
 				List<Object> checkedElements = Arrays.asList(tableViewer.getCheckedElements());

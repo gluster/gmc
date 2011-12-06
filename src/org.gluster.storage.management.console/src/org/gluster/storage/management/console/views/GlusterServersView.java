@@ -44,7 +44,6 @@ public class GlusterServersView extends ViewPart implements IDoubleClickListener
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public void createPartControl(Composite parent) {
 		if (servers == null) {

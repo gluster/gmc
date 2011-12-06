@@ -329,7 +329,6 @@ public class ServerUtil {
 	 *            Input string
 	 * @return Object of given expected class
 	 */
-	@SuppressWarnings("unchecked")
 	public <T> T unmarshal(Class<T> expectedClass, String input) {
 		try {
 			// create JAXB context and instantiate marshaller
