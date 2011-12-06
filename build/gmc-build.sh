@@ -19,74 +19,60 @@
 # <http://www.gnu.org/licenses/>.
 #------------------------------------------------------------------
 
-USAGE_ERR=1
+set -e
 
+GMC_TARGET_URL='git@github.com:gluster/gmc-target.git'
 BUCKMINSTER_URL=http://download.eclipse.org/tools/buckminster/headless-3.7/
 BUCKMINSTER_PRODUCT_NAME=org.eclipse.buckminster.cmdline.product
 GMC_WEBSTART_PROJECT=org.gluster.storage.management.console.feature.webstart
 GMC_CORE_PROJECT=org.gluster.storage.management.core
 GMG_PROJECT=org.gluster.storage.management.gateway
 
-TYPE_ALL="a"
-TYPE_SETUP="s"
-TYPE_BUILD="b"
-
-startBold() {
-	tput bold
-}
-
-stopBold() {
-	tput sgr0
-}
-
-# Shows given text in bold
-showBold() {
-	startBold
-	echo ${1}
-	stopBold
-}
 
 # Get the director that can be used to install headless buckminster
 get_director()
 {
-	rm -rf ${TOOLS_DIR}
-	mkdir -p ${TOOLS_DIR}
-	cd ${TOOLS_DIR}
+    mkdir -p ${TOOLS_DIR}
+    cd ${TOOLS_DIR}
 
-	echo "Downloading `startBold`director`stopBold`..."
+    echo "Downloading buckminster director..."
+    wget -c http://ftp.daum.net/eclipse//tools/buckminster/products/director_latest.zip
+    if ! unzip -tqq director_latest.zip; then
+	rm -f director_latest.zip
 	wget http://ftp.daum.net/eclipse//tools/buckminster/products/director_latest.zip
-	echo "Installing director..."
-	unzip director_latest.zip
+    fi
+    unzip -q director_latest.zip
+    cd -
 }
 
 install_buckminster()
 {
-	rm -rf ${BUCKMINSTER_HOME}
-	mkdir -p ${BUCKMINSTER_HOME}
+    mkdir -p ${BUCKMINSTER_HOME}
 
-	echo "Installing `startBold`Buckminster`stopBold`..."
-	cd ${TOOLS_DIR}/director
-	./director -r ${BUCKMINSTER_URL} -d ${BUCKMINSTER_HOME} -p Buckminster -i ${BUCKMINSTER_PRODUCT_NAME}
+    echo "Installing buckminster..."
+    cd ${TOOLS_DIR}/director
+    ./director -r ${BUCKMINSTER_URL} -d ${BUCKMINSTER_HOME} -p Buckminster -i ${BUCKMINSTER_PRODUCT_NAME}
 
-	echo "Setting up Buckminster..."
-	cd ${BUCKMINSTER_HOME}
-	echo "  => core"
-	./buckminster install ${BUCKMINSTER_URL} org.eclipse.buckminster.core.headless.feature
-	echo "  => pde"
-	./buckminster install ${BUCKMINSTER_URL} org.eclipse.buckminster.pde.headless.feature
-	echo "  => git"
-	./buckminster install ${BUCKMINSTER_URL} org.eclipse.buckminster.git.headless.feature
-	echo "  => emma"
-	./buckminster install ${BUCKMINSTER_URL} org.eclipse.buckminster.emma.headless.feature
+    echo "Setting up buckminster..."
+    cd ${BUCKMINSTER_HOME}
+    echo "  => core"
+    ./buckminster install ${BUCKMINSTER_URL} org.eclipse.buckminster.core.headless.feature
+    echo "  => pde"
+    ./buckminster install ${BUCKMINSTER_URL} org.eclipse.buckminster.pde.headless.feature
+    echo "  => git"
+    ./buckminster install ${BUCKMINSTER_URL} org.eclipse.buckminster.git.headless.feature
+    echo "  => emma"
+    ./buckminster install ${BUCKMINSTER_URL} org.eclipse.buckminster.emma.headless.feature
+    cd -
 }
 
 # Create keystore for jar signing (self signed)
 setup_keys()
 {
-	mkdir -p ${KEYS_DIR}
-	cd ${KEYS_DIR}
-	keytool -genkeypair -keystore gluster.keystore -storepass gluster -alias gluster -keyalg RSA << EOF
-Gluster
+    mkdir -p ${KEYS_DIR}
+    cd ${KEYS_DIR}
+    keytool -genkeypair -keystore gluster.keystore -storepass gluster -alias gluster -keyalg RSA << EOF
+Gluster Temp Build
 Gluster
 Gluster
 Dummy
@@ -95,136 +81,212 @@ US
 yes
 EOF
 
-	keytool -selfcert -alias gluster -keystore gluster.keystore << EOF
+    keytool -selfcert -alias gluster -keystore gluster.keystore << EOF
 gluster
 EOF
-	cd -
+    cd -
 }
 
 configure_workspace()
 {
-	echo "Configuring the workspace..."
-	rm -rf ${WORKSPACE_DIR}
-	mkdir -p ${WORKSPACE_DIR}
-	cd ${WORKSPACE_DIR}
+    echo "Configuring the workspace..."
+    rm -rf ${WORKSPACE_DIR}
+    mkdir -p ${WORKSPACE_DIR}
+    cd ${WORKSPACE_DIR}
 
-	cp -R ${BASE_DIR}/gmc/* . 2>/dev/null
-	ln -fs ${BASE_DIR}/gmc-target .
+    for f in $src_dir/*; do
+	ln -s $f
+    done
 
-	echo "Importing target platform..."
-	${BUCKMINSTER_HOME}/buckminster importtarget -data ${WORKSPACE_DIR} --active gmc-target/org.gluster.storage.management.console.target/gmc.target
-	cd -
+    if [ ! -e gmc-target ]; then
+	ln -s $gmc_target_dir gmc-target
+    fi
+
+    echo "Importing target platform..."
+    ${BUCKMINSTER_HOME}/buckminster importtarget -data ${WORKSPACE_DIR} --active gmc-target/org.gluster.storage.management.console.target/gmc.target
+    cd -
 }
 
 build_gmc()
 {
-	os=${1}
-	ws=${2}
-	arch=${3}
-	cd ${WORKSPACE_DIR}
-	DIST_DIR=${DIST_BASE}/gmc/${os}.${ws}.${arch}
-	if [ ! -d ${DIST_DIR} ]; then
-		mkdir -p ${DIST_DIR}
-	fi
+    os=${1}
+    ws=${2}
+    arch=${3}
+    cd ${WORKSPACE_DIR}
+    DIST_DIR=${DIST_BASE}/gmc/${os}.${ws}.${arch}
+    if [ ! -d ${DIST_DIR} ]; then
+	mkdir -p ${DIST_DIR}
+    fi
 
-	echo "Importing component query for glustermc..."
-	${BUCKMINSTER_HOME}/buckminster import -data ${WORKSPACE_DIR} build/org.gluster.storage.management.console.feature.webstart.cquery
+    echo "Importing component query for glustermc..."
+    ${BUCKMINSTER_HOME}/buckminster import -data ${WORKSPACE_DIR} build/org.gluster.storage.management.console.feature.webstart.cquery
 
-	echo "Building GMC for [${os}.${ws}.${arch}]"
-	${BUCKMINSTER_HOME}/buckminster perform -Dbuckminster.output.root=${DIST_DIR} -data ${WORKSPACE_DIR} -Dtarget.os=${os} -Dtarget.ws=${ws} -Dtarget.arch=${arch} -Dcbi.include.source=false --properties ${PROPERTIES_FILE} ${GMC_WEBSTART_PROJECT}#create.eclipse.jnlp.product
-	${BUCKMINSTER_HOME}/buckminster perform -Dbuckminster.output.root=${DIST_DIR} -data ${WORKSPACE_DIR} --properties ${PROPERTIES_FILE} ${GMC_WEBSTART_PROJECT}#copy.root.files
+    echo "Building GMC for [${os}.${ws}.${arch}]"
+    ${BUCKMINSTER_HOME}/buckminster perform -Dbuckminster.output.root=${DIST_DIR} -data ${WORKSPACE_DIR} -Dtarget.os=${os} -Dtarget.ws=${ws} -Dtarget.arch=${arch} -Dcbi.include.source=false --properties ${PROPERTIES_FILE} ${GMC_WEBSTART_PROJECT}#create.eclipse.jnlp.product
+    ${BUCKMINSTER_HOME}/buckminster perform -Dbuckminster.output.root=${DIST_DIR} -data ${WORKSPACE_DIR} --properties ${PROPERTIES_FILE} ${GMC_WEBSTART_PROJECT}#copy.root.files
 
-	# buckminster signs the jars using eclipse certificate - hence unsign and sign them again
-	echo "Signing product jars..."
-	${BUCKMINSTER_HOME}/buckminster perform -data ${WORKSPACE_DIR} -Dbuckminster.output.root=${DIST_DIR} --properties ${PROPERTIES_FILE} ${GMC_WEBSTART_PROJECT}#unsign.jars
-	${BUCKMINSTER_HOME}/buckminster perform -data ${WORKSPACE_DIR} -Dbuckminster.output.root=${DIST_DIR} -Djar.signing.keystore=${KEYS_DIR}/gluster.keystore --properties ${PROPERTIES_FILE} ${GMC_WEBSTART_PROJECT}#sign.jars
+    # buckminster signs the jars using eclipse certificate - hence unsign and sign them again
+    echo "Signing product jars..."
+    ${BUCKMINSTER_HOME}/buckminster perform -data ${WORKSPACE_DIR} -Dbuckminster.output.root=${DIST_DIR} --properties ${PROPERTIES_FILE} ${GMC_WEBSTART_PROJECT}#unsign.jars
+    ${BUCKMINSTER_HOME}/buckminster perform -data ${WORKSPACE_DIR} -Dbuckminster.output.root=${DIST_DIR} -Djar.signing.keystore=${KEYS_DIR}/gluster.keystore --properties ${PROPERTIES_FILE} ${GMC_WEBSTART_PROJECT}#sign.jars
 }
 
 build_gmg()
 {
-	cd ${WORKSPACE_DIR}
-	export DIST_DIR=${DIST_BASE}/gmg
-	if [ ! -d ${DIST_DIR} ]; then
-		mkdir -p ${DIST_DIR}
-	fi
+    cd ${WORKSPACE_DIR}
+    export DIST_DIR=${DIST_BASE}/gmg
+    if [ ! -d ${DIST_DIR} ]; then
+	mkdir -p ${DIST_DIR}
+    fi
 
-	echo "Importing component query for glustermg..."
-	${BUCKMINSTER_HOME}/buckminster import -data ${WORKSPACE_DIR} build/org.gluster.storage.management.core.cquery
-	${BUCKMINSTER_HOME}/buckminster import -data ${WORKSPACE_DIR} build/org.gluster.storage.management.gateway.cquery
+    echo "Importing component query for glustermg..."
+    ${BUCKMINSTER_HOME}/buckminster import -data ${WORKSPACE_DIR} build/org.gluster.storage.management.core.cquery
+    ${BUCKMINSTER_HOME}/buckminster import -data ${WORKSPACE_DIR} build/org.gluster.storage.management.gateway.cquery
 
-	echo "Building CORE..."
-	${BUCKMINSTER_HOME}/buckminster perform -Dbuckminster.output.root=${DIST_DIR} -data ${WORKSPACE_DIR} -Dcbi.include.source=false --properties ${PROPERTIES_FILE} ${GMC_CORE_PROJECT}#bundle.jar
+    echo "Building CORE..."
+    ${BUCKMINSTER_HOME}/buckminster perform -Dbuckminster.output.root=${DIST_DIR} -data ${WORKSPACE_DIR} -Dcbi.include.source=false --properties ${PROPERTIES_FILE} ${GMC_CORE_PROJECT}#bundle.jar
 
-	echo "Building Gateway..."
-	${BUCKMINSTER_HOME}/buckminster perform -Dbuckminster.output.root=${DIST_DIR} -data ${WORKSPACE_DIR} -Dcbi.include.source=false --properties ${PROPERTIES_FILE} ${GMG_PROJECT}#archive
+    echo "Building Gateway..."
+    ${BUCKMINSTER_HOME}/buckminster perform -Dbuckminster.output.root=${DIST_DIR} -data ${WORKSPACE_DIR} -Dcbi.include.source=false --properties ${PROPERTIES_FILE} ${GMG_PROJECT}#archive
 
-	echo "Packaging Gateway..."
-	${SCRIPT_DIR}/package-gateway.sh ${DIST_DIR} ${DIST_BASE}/gmc
+    echo "Packaging Gateway..."
+    ${SCRIPT_DIR}/package-gateway.sh ${DIST_DIR} ${DIST_BASE}/gmc
 }
 
 package_backend()
 {
-	cd ${WORKSPACE_DIR}
+    cd ${WORKSPACE_DIR}
 
-	echo "Packaging backend scripts"
-	export DIST_DIR=${DIST_BASE}/gmg-backend
-	if [ ! -d ${DIST_DIR} ]; then
-		mkdir -p ${DIST_DIR}
-	fi
+    echo "Packaging backend scripts"
+    export DIST_DIR=${DIST_BASE}/gmg-backend
+    if [ ! -d ${DIST_DIR} ]; then
+	mkdir -p ${DIST_DIR}
+    fi
 
-	${SCRIPT_DIR}/package-backend.sh ${DIST_DIR}
+    ${SCRIPT_DIR}/package-backend.sh ${DIST_DIR}
 }
 
 build_gmc_all()
 {
-	build_gmc linux gtk x86
-	build_gmc linux gtk x86_64
-	build_gmc win32 win32 x86
-	build_gmc win32 win32 x86_64
-	build_gmc macosx cocoa x86
-	build_gmc macosx cocoa x86_64
+    build_gmc linux gtk x86
+    build_gmc linux gtk x86_64
+    build_gmc win32 win32 x86
+    build_gmc win32 win32 x86_64
+    build_gmc macosx cocoa x86
+    build_gmc macosx cocoa x86_64
 }
 
 build()
 {
-	export VERSION=1.0.0
-	build_gmc_all
-	build_gmg
-	package_backend
+    export VERSION=1.0.0
+    build_gmc_all
+    build_gmg
+    package_backend
 }
 
 #-----------------------------------
 # Main Action Body
 #-----------------------------------
+ME=$(basename $0)
 
-echo
-if [ $# -ne 1 ]; then
-	echo "Usage: ${0} <build-type>"
-	echo "build-type value can be one of:"
-	echo "	`startBold` ${TYPE_ALL}`stopBold` - Sets up the build directory and then triggers a full build"
-	echo "	`startBold` ${TYPE_SETUP}`stopBold` - Sets up the build directory; doesn't trigger build"
-	echo "	`startBold` ${TYPE_BUILD}`stopBold` - Assumes that build directory is set up and simply triggers the build"
-	echo
-	exit ${USAGE_ERR}
-fi
 
-BUILD_MODE=${1}
-BASE_DIR=${PWD}/../..
-TOOLS_DIR=${BASE_DIR}/tools
-DIST_BASE=${BASE_DIR}/dist
-KEYS_DIR=${TOOLS_DIR}/keys
-BUCKMINSTER_HOME=${TOOLS_DIR}/buckminster
-WORKSPACE_DIR=${BUCKMINSTER_HOME}/workspace
-PROPERTIES_FILE=${WORKSPACE_DIR}/build/glustermc_build.properties
-SCRIPT_DIR=${PWD}
+function show_help()
+{
+    cat <<EOF
 
-if [ "${BUILD_MODE}" == "${TYPE_ALL}" -o "${BUILD_MODE}" == "${TYPE_SETUP}" ]; then
-	get_director
-	install_buckminster
-	setup_keys
-fi
+Usage:  $ME [-f] [-h] [GMC-TARGET-DIR]
 
-if [ "${BUILD_MODE}" == "${TYPE_ALL}" -o "${BUILD_MODE}" == "${TYPE_BUILD}" ]; then
-	configure_workspace
-	build
-fi
+Build Gluster Management Console from source.
+
+General:
+  -f                        Force build
+
+Miscellaneous:
+  -h                        display this help and exit
+
+Example:
+  $ME gmc-build
+  $ME gmc-build ~/gmc-target
+EOF
+}
+
+
+function main()
+{
+    # Parse command line arguments.
+    while getopts :fh OPT; do
+	case "$OPT" in
+	    h)
+		show_help
+		exit 0
+		;;
+	    f)
+		force=yes
+		;;
+	    \?)
+                # getopts issues an error message
+		echo "Invalid option: -$OPTARG"
+		show_help
+		exit 1
+		;;
+	    :)
+		echo "Option -$OPTARG requires an argument."
+		show_help
+		exit 1
+		;;
+	esac
+    done
+
+    # Remove the switches we parsed above.
+    shift `expr $OPTIND - 1`
+
+    # We want only one non-option argument.
+    if [ $# -gt 1 ]; then
+	show_help
+	exit 1
+    fi
+
+    gmc_target_dir=$1
+
+    src_dir=$(dirname $(dirname $(readlink -e $0)))
+    build_dir=$PWD/.gmc-build
+
+    if [ -z "$gmc_target_dir" ]; then
+	gmc_target_dir=$PWD/gmc-target
+	if [ ! -e "$gmc_target_dir" ]; then
+	    git clone $GMC_TARGET_URL $gmc_target_dir
+	fi
+    fi
+
+    if [ "$force" = "yes" ]; then
+	rm -fr $build_dir
+    fi
+
+    TOOLS_DIR=${build_dir}/tools
+    DIST_BASE=${build_dir}/dist
+    KEYS_DIR=${TOOLS_DIR}/keys
+    BUCKMINSTER_HOME=${TOOLS_DIR}/buckminster
+    WORKSPACE_DIR=${BUCKMINSTER_HOME}/workspace
+    PROPERTIES_FILE=${WORKSPACE_DIR}/build/glustermc_build.properties
+    SCRIPT_DIR=$src_dir/build
+
+    if [ ! -e $build_dir ]; then
+	mkdir -p $build_dir
+	if [ ! -e ${TOOLS_DIR} ]; then
+	    get_director
+	fi
+	if [ ! -e ${BUCKMINSTER_HOME} ]; then
+	    install_buckminster
+	fi
+	if [ ! -e ${KEYS_DIR} ]; then
+	    setup_keys
+	fi
+    fi
+
+    configure_workspace
+    build
+    mv ${DIST_BASE}/gmg/gmg-installer-*.tar.gz ${DIST_BASE}/gmg-backend/gmg-backend-installer-*.tar.gz .
+}
+
+main "$@";
+
