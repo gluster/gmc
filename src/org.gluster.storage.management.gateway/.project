@@ -3,6 +3,7 @@
 	<name>org.gluster.storage.management.gateway</name>
 	<comment></comment>
 	<projects>
+		<project>org.gluster.storage.management.core</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
