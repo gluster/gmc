@@ -45,7 +45,7 @@ public class AbstractResource {
 	 * @return the {@link Response} object
 	 */
 	protected Response createdResponse(String relativePath) {
-		return Response.created(createRelatriveURI(relativePath)).build();
+		return Response.created(createRelativeURI(relativePath)).build();
 	}
 
 	/**
@@ -94,7 +94,7 @@ public class AbstractResource {
 	 * @return the {@link Response} object
 	 */
 	protected Response noContentResponse(String location) {
-		return Response.noContent().location(createRelatriveURI(location)).build();
+		return Response.noContent().location(createRelativeURI(location)).build();
 	}
 
 	/**
@@ -102,7 +102,7 @@ public class AbstractResource {
 	 * @param location path relative to current URI
 	 * @return newly created URI
 	 */
-	protected URI createRelatriveURI(String location) {
+	protected URI createRelativeURI(String location) {
 		return uriInfo.getAbsolutePathBuilder().path(location).build();
 	}
 
