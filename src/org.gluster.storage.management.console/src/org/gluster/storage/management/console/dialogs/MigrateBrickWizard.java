@@ -64,7 +64,7 @@ public class MigrateBrickWizard extends Wizard {
 		String dialogTitle = "Brick migration";
 
 		try {
-			String reference = volume.getName() + "-" + sourceDir + "-" + targetDir;
+			String reference = volume.getName() + "#" + sourceDir + "#" + targetDir;
 			TaskInfo existingTaskInfo = GlusterDataModelManager.getInstance().getTaskByReference(reference);
 			if (existingTaskInfo != null && existingTaskInfo.getStatus().getCode() != Status.STATUS_CODE_SUCCESS
 					&& existingTaskInfo.getStatus().getCode() != Status.STATUS_CODE_FAILURE) {

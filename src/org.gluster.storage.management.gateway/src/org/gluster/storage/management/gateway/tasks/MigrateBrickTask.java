@@ -96,7 +96,7 @@ public class MigrateBrickTask extends Task {
 				// online server might have gone Offline. try with a new one.
 				startMigration(getNewOnlineServer().getName());
 			} else {
-				throw new GlusterRuntimeException(e.getMessage());
+				throw new GlusterRuntimeException("Error while starting migration!", e);
 			}
 		}
 	}
@@ -105,6 +105,7 @@ public class MigrateBrickTask extends Task {
 		String volumeName = getTaskInfo().getReference().split("#")[0];
 		glusterInterface.startBrickMigration(onlineServerName, volumeName, getFromBrick(), getToBrick());
 		getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_RUNNING, "Brick Migration Started.")));
+		System.out.println(getTaskInfo().getStatus().toString());
 	}
 
 	@Override
@@ -193,9 +194,14 @@ public class MigrateBrickTask extends Task {
 			if (e instanceof ConnectionException || serverUtil.isServerOnline(getOnlineServer()) == false) {
 				// online server might have gone offline. try with a new one.
 				return checkMigrationStatus(getNewOnlineServer().getName());
-			} 
+			} else {
+				if(e instanceof GlusterRuntimeException) {
+					throw ((GlusterRuntimeException)e);
+				} else {
+					throw new GlusterRuntimeException("Exception while checking brick migration status!", e);
+				}
+			}
 		}
-		return null;
 	}
 	
 	private TaskStatus checkMigrationStatus(String serverName) {
