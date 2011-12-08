@@ -178,7 +178,7 @@ build_gmc_all()
 
 build()
 {
-    export VERSION=1.0.0
+    export VERSION=1.0.0-alpha
     build_gmc_all
     build_gmg
     package_backend
