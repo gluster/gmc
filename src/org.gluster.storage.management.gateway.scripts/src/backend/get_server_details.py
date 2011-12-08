@@ -160,6 +160,8 @@ def getDiskDom():
             diskTag.appendChild(diskDom.createTag("type", "BOOT"))
         elif "UNINITIALIZED" == status:
             diskTag.appendChild(diskDom.createTag("type", "UNKNOWN"))
+        elif "swap" == value["FsType"]:
+            diskTag.appendChild(diskDom.createTag("type", "SWAP"))
         else:
             diskTag.appendChild(diskDom.createTag("type", "DATA"))
         diskTag.appendChild(diskDom.createTag("fsType", value["FsType"]))
@@ -182,7 +184,10 @@ def getDiskDom():
                 partitionTag.appendChild(diskDom.createTag("type", "BOOT"))
             elif partValues["FsType"]:
                 partitionTag.appendChild(diskDom.createTag("status", "INITIALIZED"))
-                partitionTag.appendChild(diskDom.createTag("type", "DATA"))
+                if "swap" == partValues["FsType"]:
+                    partitionTag.appendChild(diskDom.createTag("type", "SWAP"))
+                else:
+                    partitionTag.appendChild(diskDom.createTag("type", "DATA"))
             else:
                 partitionTag.appendChild(diskDom.createTag("status", "UNINITIALIZED"))
                 partitionTag.appendChild(diskDom.createTag("type", "UNKNOWN"))
