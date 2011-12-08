@@ -194,7 +194,7 @@ function show_help()
 {
     cat <<EOF
 
-Usage:  $ME [-f] [-h] [GMC-TARGET-DIR]
+Usage:  $ME [-f] [-h] [GMC-TARGET-DIR] [BUILD-DIR]
 
 Build Gluster Management Console from source.
 
@@ -205,8 +205,9 @@ Miscellaneous:
   -h                        display this help and exit
 
 Example:
-  $ME gmc-build
-  $ME gmc-build ~/gmc-target
+  $ME
+  $ME ~/gmc-target
+  $ME ~/gmc-target ~/gmc-build
 EOF
 }
 
@@ -241,21 +242,28 @@ function main()
     shift `expr $OPTIND - 1`
 
     # We want only one non-option argument.
-    if [ $# -gt 1 ]; then
+    if [ $# -gt 2 ]; then
 	show_help
 	exit 1
     fi
 
-    gmc_target_dir=$1
-
     src_dir=$(dirname $(dirname $(readlink -e $0)))
-    build_dir=$PWD/.gmc-build
+    parent_dir=$(dirname $src_dir)
+
+    gmc_target_dir=$1
+    build_dir=$2
 
     if [ -z "$gmc_target_dir" ]; then
-	gmc_target_dir=$PWD/gmc-target
-	if [ ! -e "$gmc_target_dir" ]; then
-	    git clone $GMC_TARGET_URL $gmc_target_dir
-	fi
+	gmc_target_dir=$parent_dir/gmc-target
+    fi
+
+    if [ -z "$build_dir" ]; then
+	build_dir=$parent_dir/gmc-build
+    fi
+
+    if [ ! -e "$gmc_target_dir" ]; then
+	echo "Getting gmc-target from $GMC_TARGET_URL"
+	git clone $GMC_TARGET_URL $gmc_target_dir
     fi
 
     if [ "$force" = "yes" ]; then
@@ -285,8 +293,7 @@ function main()
 
     configure_workspace
     build
-    mv ${DIST_BASE}/gmg/gmg-installer-*.tar.gz ${DIST_BASE}/gmg-backend/gmg-backend-installer-*.tar.gz .
+    echo ${DIST_BASE}/gmg/gmg-installer-$VERSION.tar.gz ${DIST_BASE}/gmg-backend/gmg-backend-installer-$VERSION.tar.gz
 }
 
-main "$@";
-
+main "$@"
