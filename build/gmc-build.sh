@@ -28,6 +28,23 @@ GMC_WEBSTART_PROJECT=org.gluster.storage.management.console.feature.webstart
 GMC_CORE_PROJECT=org.gluster.storage.management.core
 GMG_PROJECT=org.gluster.storage.management.gateway
 
+startBold() 
+{
+	tput bold
+}
+
+stopBold() 
+{
+	tput sgr0
+}
+
+# Shows given text in bold
+showBold() 
+{
+	startBold
+	echo ${1}
+	stopBold
+}
 
 # Get the director that can be used to install headless buckminster
 get_director()
@@ -38,8 +55,8 @@ get_director()
     echo "Downloading buckminster director..."
     wget -c http://ftp.daum.net/eclipse//tools/buckminster/products/director_latest.zip
     if ! unzip -tqq director_latest.zip; then
-	rm -f director_latest.zip
-	wget http://ftp.daum.net/eclipse//tools/buckminster/products/director_latest.zip
+		rm -f director_latest.zip
+		wget http://ftp.daum.net/eclipse//tools/buckminster/products/director_latest.zip
     fi
     unzip -q director_latest.zip
     cd -
@@ -99,7 +116,7 @@ configure_workspace()
     done
 
     if [ ! -e gmc-target ]; then
-	ln -s $gmc_target_dir gmc-target
+		ln -s $gmc_target_dir gmc-target
     fi
 
     echo "Importing target platform..."
@@ -115,7 +132,7 @@ build_gmc()
     cd ${WORKSPACE_DIR}
     DIST_DIR=${DIST_BASE}/gmc/${os}.${ws}.${arch}
     if [ ! -d ${DIST_DIR} ]; then
-	mkdir -p ${DIST_DIR}
+		mkdir -p ${DIST_DIR}
     fi
 
     echo "Importing component query for glustermc..."
@@ -136,7 +153,7 @@ build_gmg()
     cd ${WORKSPACE_DIR}
     export DIST_DIR=${DIST_BASE}/gmg
     if [ ! -d ${DIST_DIR} ]; then
-	mkdir -p ${DIST_DIR}
+		mkdir -p ${DIST_DIR}
     fi
 
     echo "Importing component query for glustermg..."
@@ -160,7 +177,7 @@ package_backend()
     echo "Packaging backend scripts"
     export DIST_DIR=${DIST_BASE}/gmg-backend
     if [ ! -d ${DIST_DIR} ]; then
-	mkdir -p ${DIST_DIR}
+		mkdir -p ${DIST_DIR}
     fi
 
     ${SCRIPT_DIR}/package-backend.sh ${DIST_DIR}
@@ -188,26 +205,31 @@ build()
 # Main Action Body
 #-----------------------------------
 ME=$(basename $0)
+GMC_DIR=$(dirname $(dirname $(readlink -e $0)))
 
 
 function show_help()
 {
     cat <<EOF
 
-Usage:  $ME [-f] [-h] [GMC-TARGET-DIR] [BUILD-DIR]
+Usage:  `startBold`$ME [-f] [-h] [GMC-TARGET-DIR] [BUILD-DIR]`stopBold`
 
 Build Gluster Management Console from source.
 
-General:
-  -f                        Force build
+  GMC-TARGET-DIR  -> Directory where gmc-target.git has been or should be cloned
+  BUILD-DIR       -> Directory where build tasks will be performed and binaries will be created
 
-Miscellaneous:
-  -h                        display this help and exit
+  If not passed, these two directories will be created parallel to ${GMC_DIR}
 
-Example:
-  $ME
-  $ME ~/gmc-target
-  $ME ~/gmc-target ~/gmc-build
+  Options:
+    -f              -> Force build (re-create build directory and perform build).
+    -h              -> Display this help and exit
+
+  Examples:
+    $ME
+    $ME ~/gmc-target
+    $ME ~/gmc-target ~/gmc-build
+
 EOF
 }
 
@@ -243,8 +265,8 @@ function main()
 
     # We want only one non-option argument.
     if [ $# -gt 2 ]; then
-	show_help
-	exit 1
+		show_help
+		exit 1
     fi
 
     src_dir=$(dirname $(dirname $(readlink -e $0)))
@@ -254,20 +276,20 @@ function main()
     build_dir=$2
 
     if [ -z "$gmc_target_dir" ]; then
-	gmc_target_dir=$parent_dir/gmc-target
+		gmc_target_dir=$parent_dir/gmc-target
     fi
 
     if [ -z "$build_dir" ]; then
-	build_dir=$parent_dir/gmc-build
+		build_dir=$parent_dir/gmc-build
     fi
 
     if [ ! -e "$gmc_target_dir" ]; then
-	echo "Getting gmc-target from $GMC_TARGET_URL"
-	git clone $GMC_TARGET_URL $gmc_target_dir
+		echo "Getting gmc-target from $GMC_TARGET_URL"
+		git clone $GMC_TARGET_URL $gmc_target_dir
     fi
 
     if [ "$force" = "yes" ]; then
-	rm -fr $build_dir
+		rm -fr $build_dir
     fi
 
     TOOLS_DIR=${build_dir}/tools
@@ -279,21 +301,25 @@ function main()
     SCRIPT_DIR=$src_dir/build
 
     if [ ! -e $build_dir ]; then
-	mkdir -p $build_dir
-	if [ ! -e ${TOOLS_DIR} ]; then
-	    get_director
-	fi
-	if [ ! -e ${BUCKMINSTER_HOME} ]; then
-	    install_buckminster
-	fi
-	if [ ! -e ${KEYS_DIR} ]; then
-	    setup_keys
-	fi
+		mkdir -p $build_dir
+		if [ ! -e ${TOOLS_DIR} ]; then
+	    	get_director
+		fi
+		if [ ! -e ${BUCKMINSTER_HOME} ]; then
+	    	install_buckminster
+		fi
+		if [ ! -e ${KEYS_DIR} ]; then
+	    	setup_keys
+		fi
     fi
 
     configure_workspace
     build
-    echo ${DIST_BASE}/gmg/gmg-installer-$VERSION.tar.gz ${DIST_BASE}/gmg-backend/gmg-backend-installer-$VERSION.tar.gz
+	echo
+	echo "Build artifacts:"
+    showBold "    ${DIST_BASE}/gmg/gmg-installer-$VERSION.tar.gz"
+	showBold "    ${DIST_BASE}/gmg-backend/gmg-backend-installer-$VERSION.tar.gz"
+	echo
 }
 
 main "$@"
