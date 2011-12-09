@@ -81,6 +81,7 @@ public interface IImageKeys {
 	public static final String COMMIT_TASK_32x32 = "icons/tango/32x32/commit-task.png";
 	public static final String PAUSE_TASK_16x16 = "icons/tango/16x16/pause.png";
 	public static final String RESUME_TASK_16x16 = "icons/tango/16x16/start.png";
+	public static final String ERROR_TASK_16x16 = "icons/tango/16x16/error.png";
 	public static final String STOP_TASK_16x16 = "icons/tango/16x16/stop.png";
 	public static final String CLEAR_TASK_16x16 = "icons/tango/16x16/close_task.png";
 	public static final String COMPLETED_TASK_16x16 = "icons/tango/16x16/task-completed.png";

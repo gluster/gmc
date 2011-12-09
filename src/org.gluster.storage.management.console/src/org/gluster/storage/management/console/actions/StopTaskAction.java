@@ -52,8 +52,9 @@ public class StopTaskAction extends AbstractActionDelegate {
 		if (selectedEntity instanceof TaskInfo) {
 			taskInfo = (TaskInfo) selectedEntity;
 			action.setEnabled(taskInfo.getStopSupported()
-					&& (taskInfo.getStatus().getCode() == Status.STATUS_CODE_PAUSE 
-							|| taskInfo.getStatus().getCode() == Status.STATUS_CODE_RUNNING));
+					&& (taskInfo.getStatus().getCode() == Status.STATUS_CODE_PAUSE
+							|| taskInfo.getStatus().getCode() == Status.STATUS_CODE_RUNNING || taskInfo.getStatus()
+							.getCode() == Status.STATUS_CODE_ERROR));
 		}
 	}
 

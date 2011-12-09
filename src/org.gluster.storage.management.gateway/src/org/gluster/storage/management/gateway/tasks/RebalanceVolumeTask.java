@@ -119,9 +119,11 @@ public class RebalanceVolumeTask extends Task {
 				// online server might have gone offline. update the failure status
 				getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_FAILURE, e.getMessage())));
 				return getTaskInfo().getStatus();
+			} else {
+				getTaskInfo().setStatus(new TaskStatus(new Status(Status.STATUS_CODE_ERROR, e.getMessage())));
+				return getTaskInfo().getStatus();
 			}
 		}
-		return null;
 	}
 	
 	public void setLayout(String layout) {

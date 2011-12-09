@@ -51,7 +51,8 @@ public class ClearTaskAction extends AbstractActionDelegate {
 		if (selectedEntity instanceof TaskInfo) {
 			taskInfo = (TaskInfo) selectedEntity;
 			action.setEnabled(taskInfo.getStatus().getCode() == Status.STATUS_CODE_SUCCESS 
-							|| taskInfo.getStatus().getCode() == Status.STATUS_CODE_FAILURE);
+							|| taskInfo.getStatus().getCode() == Status.STATUS_CODE_FAILURE
+							|| taskInfo.getStatus().getCode() == Status.STATUS_CODE_ERROR);
 		} else {
 			action.setEnabled(false);
 		}
