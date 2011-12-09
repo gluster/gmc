@@ -23,6 +23,7 @@
 GMG_LOG_DIR="/var/log/glustermg";
 GMG_ROOT_DIR="/opt/glustermg"
 GMG_KEYS_DIR="${GMG_ROOT_DIR}/keys"
+GMG_ETC_DIR="${GMG_ROOT_DIR}/etc"
 USAGE_ERR=1
 TOMCAT_ERR=2
 JAVA_ERR=3
@@ -117,7 +118,7 @@ function configure_server()
 
 function make_dirs()
 {
-    mkdir -p $GMG_HOME_DIR $GMG_KEYS_DIR $GMG_LOG_DIR;
+    mkdir -p $GMG_HOME_DIR $GMG_KEYS_DIR $GMG_ETC_DIR $GMG_LOG_DIR
     if [ ! -f ${GMG_KEYS_DIR}/gluster.pem ]; then
 		ssh-keygen -t rsa -f /opt/glustermg/keys/gluster.pem -N ''
 		mv -f /opt/glustermg/keys/gluster.pem.pub /opt/glustermg/keys/gluster.pub
