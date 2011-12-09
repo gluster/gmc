@@ -95,7 +95,13 @@ public class MigrateBrickWizard extends Wizard {
 					return true;
 				}
 			} 
-			MessageDialog.openInformation(getShell(), dialogTitle, "Brick migration started successfully");
+			if (taskInfo.getStatus().getCode() == TaskStatus.STATUS_CODE_RUNNING) {
+				MessageDialog.openInformation(getShell(), dialogTitle, "Brick migration started successfully");
+			} else {
+				MessageDialog.openInformation(getShell(), dialogTitle,
+						"Brick migration started, but following error occured [" + taskInfo.getStatus().getMessage()
+								+ "]");
+			}
 			GUIHelper.getInstance().showTaskView();
 			
 		} catch (Exception e) {
