@@ -192,7 +192,8 @@ public class TasksResource extends AbstractResource {
 		
 		if(taskOperation == null || taskOperation.isEmpty()) {
 			int taskStatus = task.getTaskInfo().getStatus().getCode();
-			if (taskStatus == Status.STATUS_CODE_SUCCESS || taskStatus == Status.STATUS_CODE_FAILURE) {
+			if (taskStatus == Status.STATUS_CODE_SUCCESS || taskStatus == Status.STATUS_CODE_FAILURE
+					|| taskStatus == Status.STATUS_CODE_ERROR) {
 				taskOperation = RESTConstants.TASK_DELETE;
 			} else {
 				taskOperation = RESTConstants.TASK_STOP;

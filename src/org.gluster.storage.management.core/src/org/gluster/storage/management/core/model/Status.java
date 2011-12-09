@@ -34,6 +34,7 @@ public class Status {
 	public static final int STATUS_CODE_PAUSE = 4;
 	public static final int STATUS_CODE_WARNING = 5;
 	public static final int STATUS_CODE_COMMIT_PENDING = 6;
+	public static final int STATUS_CODE_ERROR = 7;
 	public static final Status STATUS_SUCCESS = new Status(STATUS_CODE_SUCCESS, "Success");
 	public static final Status STATUS_FAILURE = new Status(STATUS_CODE_FAILURE, "Failure");
 	
