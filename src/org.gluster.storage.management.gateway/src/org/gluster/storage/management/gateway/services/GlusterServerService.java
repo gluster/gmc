@@ -171,6 +171,7 @@ public class GlusterServerService {
 
 		GlusterServer knownServer = new GlusterServer(knownServerName);
 		knownServer.setUuid(getUuid(knownServerName));
+		knownServer.setStatus(SERVER_STATUS.ONLINE);
 		
 		List<GlusterServer> glusterServers = new ArrayList<GlusterServer>();
 		glusterServers.add(knownServer);
