@@ -26,6 +26,7 @@ BUCKMINSTER_URL=http://download.eclipse.org/tools/buckminster/headless-3.7/
 BUCKMINSTER_PRODUCT_NAME=org.eclipse.buckminster.cmdline.product
 GMC_WEBSTART_PROJECT=org.gluster.storage.management.console.feature.webstart
 GMC_CORE_PROJECT=org.gluster.storage.management.core
+GMC_CONSOLE_PROJECT=org.gluster.storage.management.console
 GMG_PROJECT=org.gluster.storage.management.gateway
 
 startBold() 
@@ -124,6 +125,11 @@ configure_workspace()
     cd -
 }
 
+buckminster_perform()
+{
+    ${BUCKMINSTER_HOME}/buckminster perform --properties ${PROPERTIES_FILE} -Dbuckminster.output.root=${DIST_DIR} -data ${WORKSPACE_DIR} $*
+}
+
 build_gmc()
 {
     os=${1}
@@ -139,13 +145,14 @@ build_gmc()
     ${BUCKMINSTER_HOME}/buckminster import -data ${WORKSPACE_DIR} build/org.gluster.storage.management.console.feature.webstart.cquery
 
     echo "Building GMC for [${os}.${ws}.${arch}]"
-    ${BUCKMINSTER_HOME}/buckminster perform -Dbuckminster.output.root=${DIST_DIR} -data ${WORKSPACE_DIR} -Dtarget.os=${os} -Dtarget.ws=${ws} -Dtarget.arch=${arch} -Dcbi.include.source=false --properties ${PROPERTIES_FILE} ${GMC_WEBSTART_PROJECT}#create.eclipse.jnlp.product
-    ${BUCKMINSTER_HOME}/buckminster perform -Dbuckminster.output.root=${DIST_DIR} -data ${WORKSPACE_DIR} --properties ${PROPERTIES_FILE} ${GMC_WEBSTART_PROJECT}#copy.root.files
+	buckminster_perform -Dproduct.version=${VERSION} ${GMC_CONSOLE_PROJECT}#update.version
+    buckminster_perform -Dtarget.os=${os} -Dtarget.ws=${ws} -Dtarget.arch=${arch} ${GMC_WEBSTART_PROJECT}#create.eclipse.jnlp.product
+    buckminster_perform ${GMC_WEBSTART_PROJECT}#copy.root.files
 
     # buckminster signs the jars using eclipse certificate - hence unsign and sign them again
     echo "Signing product jars..."
-    ${BUCKMINSTER_HOME}/buckminster perform -data ${WORKSPACE_DIR} -Dbuckminster.output.root=${DIST_DIR} --properties ${PROPERTIES_FILE} ${GMC_WEBSTART_PROJECT}#unsign.jars
-    ${BUCKMINSTER_HOME}/buckminster perform -data ${WORKSPACE_DIR} -Dbuckminster.output.root=${DIST_DIR} -Djar.signing.keystore=${KEYS_DIR}/gluster.keystore --properties ${PROPERTIES_FILE} ${GMC_WEBSTART_PROJECT}#sign.jars
+    buckminster_perform ${GMC_WEBSTART_PROJECT}#unsign.jars
+    buckminster_perform -Djar.signing.keystore=${KEYS_DIR}/gluster.keystore ${GMC_WEBSTART_PROJECT}#sign.jars
 }
 
 build_gmg()
@@ -161,10 +168,10 @@ build_gmg()
     ${BUCKMINSTER_HOME}/buckminster import -data ${WORKSPACE_DIR} build/org.gluster.storage.management.gateway.cquery
 
     echo "Building CORE..."
-    ${BUCKMINSTER_HOME}/buckminster perform -Dbuckminster.output.root=${DIST_DIR} -data ${WORKSPACE_DIR} -Dcbi.include.source=false --properties ${PROPERTIES_FILE} ${GMC_CORE_PROJECT}#bundle.jar
+    buckminster_perform ${GMC_CORE_PROJECT}#bundle.jar
 
     echo "Building Gateway..."
-    ${BUCKMINSTER_HOME}/buckminster perform -Dbuckminster.output.root=${DIST_DIR} -data ${WORKSPACE_DIR} -Dcbi.include.source=false --properties ${PROPERTIES_FILE} ${GMG_PROJECT}#archive
+    buckminster_perform -Dproduct.version=${VERSION} ${GMG_PROJECT}#archive
 
     echo "Packaging Gateway..."
     ${SCRIPT_DIR}/package-gateway.sh ${DIST_DIR} ${DIST_BASE}/gmc
@@ -195,7 +202,7 @@ build_gmc_all()
 
 build()
 {
-    export VERSION=1.0.0-alpha
+    export VERSION=${VERSION:-1.0.0alpha}
     build_gmc_all
     build_gmg
     package_backend
