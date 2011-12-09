@@ -17,12 +17,11 @@
     along with this program.  If not, see
     <http://www.gnu.org/licenses/>.
  -->
-
 <feature
       id="org.gluster.storage.management.console.feature.webstart"
       label="Gluster Management Console - Webstart"
-      version="1.0.0"
-      provider-name="Gluster Inc."
+      version="1.0.0.qualifier"
+      provider-name="Gluster"
       os="linux,macosx,win32"
       ws="cocoa,gtk,win32"
       arch="x86,x86_64,amd64">

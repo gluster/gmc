@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Gluster Storage Platform Client
 Bundle-SymbolicName: org.gluster.storage.management.client
-Bundle-Version: 1.0.0
-Bundle-Vendor: GLUSTER
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: Gluster
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: org.gluster.storage.management.core;bundle-version="1.0.0",
  org.eclipse.equinox.common;bundle-version="3.6.0"

@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Gluster Management Console - Help
 Bundle-SymbolicName: org.gluster.storage.management.console.help;singleton:=true
-Bundle-Version: 1.0.0
-Bundle-Vendor: GLUSTER
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: Gluster
 Require-Bundle: org.eclipse.help.ui;bundle-version="3.5.2",
  org.eclipse.help.webapp;bundle-version="3.5.2",
  org.eclipse.help
