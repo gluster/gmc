@@ -98,9 +98,8 @@ public class MigrateBrickWizard extends Wizard {
 			if (taskInfo.getStatus().getCode() == TaskStatus.STATUS_CODE_RUNNING) {
 				MessageDialog.openInformation(getShell(), dialogTitle, "Brick migration started successfully");
 			} else {
-				MessageDialog.openInformation(getShell(), dialogTitle,
-						"Brick migration started, but following error occured [" + taskInfo.getStatus().getMessage()
-								+ "]");
+				MessageDialog.openWarning(getShell(), dialogTitle,
+						"Brick migration started, but following error occured: " + taskInfo.getStatus());
 			}
 			GUIHelper.getInstance().showTaskView();
 			

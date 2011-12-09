@@ -55,9 +55,8 @@ public class RebalanceVolumeAction extends AbstractActionDelegate {
 				GlusterDataModelManager.getInstance().addTask(taskInfo);
 			}
 			if (taskInfo.getStatus().getCode() == Status.STATUS_CODE_ERROR) {
-				showInfoDialog(actionDesc, "Volume [" + volume.getName()
-						+ "] rebalance started, but following error occured [" + taskInfo.getStatus().getMessage()
-						+ "]");
+				showWarningDialog(actionDesc, "Volume [" + volume.getName()
+						+ "] rebalance started, but following error occured: " + taskInfo.getStatus());
 			} else {
 				showInfoDialog(actionDesc, "Volume [" + volume.getName() + "] rebalance started successfully!");
 			}
