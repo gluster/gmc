@@ -15,7 +15,7 @@
 	<actions>
 		<public name="archive" actor="ant">
 	      <actorProperties>
-	        <property key="buildFile" value="build/glusterserver.ant"/>
+	        <property key="buildFile" value="build/glustermg.ant"/>
 	      </actorProperties>
 	    </public>
 	</actions>

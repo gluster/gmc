@@ -57,7 +57,11 @@
 				<exclude name="**/servlet-api.jar" />
 			</fileset>
 		</copy>
+
+        <!-- Update product version in xml files -->
 		<replace file="${TEMP}/WEB-INF/web.xml" token="@VERSION@" value="${product.version}" />
+		<replace file="${TEMP}/WEB-INF/classes/spring/gluster-server-base.xml" token="@VERSION@" value="${product.version}" />
+
 		<war destfile="${OUT}/${WAR_FILE_NAME}" basedir="${TEMP}" compress="true" webxml="${TEMP}/WEB-INF/web.xml" />
 		<delete dir="${TEMP}" />
 	</target>
