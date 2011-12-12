@@ -26,7 +26,7 @@ public class ClientConstants {
 	public static final String DEFAULT_SERVER_URL = "https://localhost:8443/glustermg/linux.gtk.x86_64";
 	public static final String CONTEXT_ROOT = "glustermg";
 	public static final String SYS_PROP_API_VERSION = "gluster.api.version";
-	public static final String DEFAULT_API_VERSION = "1.0.0";
+	public static final String DEFAULT_API_VERSION = "@VERSION@";
 	
 	// SSL related
 	public static final String TRUSTED_KEYSTORE = "gmc-trusted.keystore"; 
