@@ -20,7 +20,7 @@
 		<jar href="plugins/org.eclipse.equinox.launcher_1.2.0.v20110502.jar" main="true"/>
 		<extension
 			name="Gluster Management Console"
-			href="org.gluster.storage.management.console.feature_1.0.0.jnlp"/>
+			href="org.gluster.storage.management.console.feature_@VERSION@.jnlp"/>
 		<property
 			name="osgi.instance.area"
 			value="@user.home/Application Data/glustermc"/>
@@ -33,6 +33,9 @@
 		<property
 			name="gluster.server.url"
 			value="$$codebase"/>
+		<property
+			name="gluster.api.version"
+			value="@VERSION@"/>
 		<property 
 			name="javaws.cfg.jauthenticator" 
 			value="true"/>

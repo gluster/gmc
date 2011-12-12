@@ -37,5 +37,11 @@
 				<property key="targets" value="copy.root.files" />
 			</actorProperties>
 		</public>
+		<public name="update.version" actor="ant">
+			<actorProperties>
+				<property key="buildFile" value="build/glustermc.ant" />
+				<property key="targets" value="update.version" />
+			</actorProperties>
+		</public>
 	</actions>
 </cspecExtension>

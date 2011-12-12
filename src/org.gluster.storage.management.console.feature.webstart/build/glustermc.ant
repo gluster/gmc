@@ -1,5 +1,7 @@
 <project>
 	<property name="export.dir" value="${buckminster.output}/glustermc/" />
+	<property name="jnlp.file" value="${export.dir}/gluster-management-console.jnlp" />
+
 	<target name='unsign'>
 		<buckminster.signatureCleaner>
 			<fileset dir='${export.dir}/plugins'>
@@ -27,4 +29,17 @@
 			<fileset dir="${basedir}/rootfiles" />
 		</copy>
 	</target>
+
+	<target name='update.version'>
+		<replace file="${jnlp.file}" token="@VERSION@" value="${product.version}" />
+		<move todir="${export.dir}">
+			<fileset dir="${export.dir}" />
+			<mapper>
+				<mapper type="regexp"
+		                from="org.gluster.storage.management.console.feature_.*.jnlp" 
+		        		to="org.gluster.storage.management.console.feature_${product.version}.jnlp" />
+			</mapper>
+		</move>
+	</target>
+
 </project>

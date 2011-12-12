@@ -28,7 +28,11 @@ import org.gluster.storage.management.client.constants.ClientConstants;
 public class ClientUtil {
 
 	public static URI getServerBaseURI() {
-		return UriBuilder.fromUri(getBaseURL()).path(ClientConstants.REST_API_VERSION).build();
+		return UriBuilder.fromUri(getBaseURL()).path(getAPIVersion()).build();
+	}
+	
+	private static String getAPIVersion() {
+		return System.getProperty(ClientConstants.SYS_PROP_API_VERSION, ClientConstants.DEFAULT_API_VERSION);
 	}
 	
 	private static String getBaseURL() {

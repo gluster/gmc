@@ -149,6 +149,7 @@ build_gmc()
 	buckminster_perform -Dproduct.version=${VERSION} ${GMC_CONSOLE_PROJECT}#update.version
     buckminster_perform -Dtarget.os=${os} -Dtarget.ws=${ws} -Dtarget.arch=${arch} ${GMC_WEBSTART_PROJECT}#create.eclipse.jnlp.product
     buckminster_perform ${GMC_WEBSTART_PROJECT}#copy.root.files
+    buckminster_perform -Dproduct.version=${VERSION} ${GMC_WEBSTART_PROJECT}#update.version
 
     # buckminster signs the jars using eclipse certificate - hence unsign and sign them again
     echo "Signing product jars..."
