@@ -23,7 +23,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletContext;
 import javax.xml.bind.JAXBContext;
@@ -65,6 +67,7 @@ public class ServerUtil {
 	private static final String REMOTE_SCRIPT_GET_FILE_SYSTEM_TYPE = "get_filesystem_type.py";
 	private static final String REMOTE_SCRIPT_BASE_DIR = "/opt/glustermg";
 	private static final String REMOTE_SCRIPT_DIR_NAME = "backend";
+	private static final String ENV_GMG_VERSION = "GMG_VERSION";
 
 	public void setSshUtil(SshUtil sshUtil) {
 		this.sshUtil = sshUtil;
@@ -80,7 +83,12 @@ public class ServerUtil {
 		command.add(SCRIPT_COMMAND);
 		command.add(getScriptPath(scriptName));
 		command.addAll(arguments);
-		return ProcessUtil.executeCommand(runInForeground, command);
+		
+		// Set the Gateway Version number in an env variable which will be available to the script being executed.
+		Map<String, String> env = new HashMap<String, String>(1);
+		env.put(ENV_GMG_VERSION, appVersion);
+		
+		return ProcessUtil.executeCommand(runInForeground, command, env);
 	}
 
 	private String getScriptPath(String scriptName) {

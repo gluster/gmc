@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.gluster.storage.management.core.exceptions.GlusterRuntimeException;
 
@@ -68,42 +69,76 @@ public class ProcessUtil {
         return executeCommand(commandList);
     }
 
-    /**
-     * Executes given command in foreground/background
-     * @param runInForeground Boolean flag indicating whether the command should
-     * be executed in foreground
-     * @param command
-     * @return {@link ProcessResult} object
-     */
-    public static ProcessResult executeCommand(boolean runInForeground, List<String> command) {
-        StringBuilder output = new StringBuilder();
-        try {
-            Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
-            if (runInForeground) {
-                process.waitFor();      // Wait for process to finish
+	/**
+	 * Creates a process builder for executing given command with given set of environment variables
+	 * 
+	 * @param command
+	 *            The command to be executed
+	 * @param env
+	 *            Set of env variables to be made available to the command
+	 * @return Process builder that can be used to execute the command
+	 */
+	private static ProcessBuilder createProcessBuilder(List<String> command, Map<String, String> env) {
+		ProcessBuilder builder = new ProcessBuilder(command);
+		if (env != null) {
+			builder.environment().putAll(env);
+		}
+		return builder;
+	}
 
-                InputStream is = process.getInputStream();
-                InputStreamReader isr = new InputStreamReader(is);
-                BufferedReader br = new BufferedReader(isr);
-                String line;
+	/**
+	 * Executes given command in foreground/background
+	 * 
+	 * @param runInForeground
+	 *            Boolean flag indicating whether the command should
+	 *            be executed in foreground
+	 * @param command
+	 * @return {@link ProcessResult} object
+	 */
+	public static ProcessResult executeCommand(boolean runInForeground, List<String> command) {
+		return executeCommand(runInForeground, command, null);
+	}
+	
+	/**
+	 * Executes given command in foreground/background
+	 * 
+	 * @param runInForeground
+	 *            Boolean flag indicating whether the command should
+	 *            be executed in foreground
+	 * @param command
+	 * @param env
+	 *            Set of env variables to be made available to the command
+	 * @return {@link ProcessResult} object
+	 */
+	public static ProcessResult executeCommand(boolean runInForeground, List<String> command, Map<String, String> env) {
+		StringBuilder output = new StringBuilder();
+		try {
+			Process process = createProcessBuilder(command, env).redirectErrorStream(true).start();
+			if (runInForeground) {
+				process.waitFor(); // Wait for process to finish
 
-                while ((line = br.readLine()) != null) {
-                    output.append(line);
-                    output.append(NEWLINE);
-                }
-                br.close();
-                isr.close();
-                is.close();
-            } else {
-                output.append("Command [");
-                output.append(command);
-                output.append("] triggerred in background.");
-            }
+				InputStream is = process.getInputStream();
+				InputStreamReader isr = new InputStreamReader(is);
+				BufferedReader br = new BufferedReader(isr);
+				String line;
 
-            return new ProcessResult(process.exitValue(), output.toString());
-        } catch (Throwable e) {
+				while ((line = br.readLine()) != null) {
+					output.append(line);
+					output.append(NEWLINE);
+				}
+				br.close();
+				isr.close();
+				is.close();
+			} else {
+				output.append("Command [");
+				output.append(command);
+				output.append("] triggerred in background.");
+			}
+
+			return new ProcessResult(process.exitValue(), output.toString());
+		} catch (Throwable e) {
 			throw new GlusterRuntimeException("Exception while executing command [" + command + "] : ["
 					+ e.getMessage() + "]", e);
-        }
-    }
+		}
+	}
 }
