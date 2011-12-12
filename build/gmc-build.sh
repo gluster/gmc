@@ -113,7 +113,7 @@ configure_workspace()
     cd ${WORKSPACE_DIR}
 
     for f in $src_dir/*; do
-	ln -s $f
+		ln -s $f
     done
 
     if [ ! -e gmc-target ]; then
@@ -145,6 +145,7 @@ build_gmc()
     ${BUCKMINSTER_HOME}/buckminster import -data ${WORKSPACE_DIR} build/org.gluster.storage.management.console.feature.webstart.cquery
 
     echo "Building GMC for [${os}.${ws}.${arch}]"
+    buckminster_perform ${GMC_WEBSTART_PROJECT}#buckminster.clean
 	buckminster_perform -Dproduct.version=${VERSION} ${GMC_CONSOLE_PROJECT}#update.version
     buckminster_perform -Dtarget.os=${os} -Dtarget.ws=${ws} -Dtarget.arch=${arch} ${GMC_WEBSTART_PROJECT}#create.eclipse.jnlp.product
     buckminster_perform ${GMC_WEBSTART_PROJECT}#copy.root.files
@@ -200,9 +201,22 @@ build_gmc_all()
     build_gmc macosx cocoa x86_64
 }
 
+# Clean the workspace (class files, jar files created during previous build)
+# and the dist directory
+clean()
+{
+	# Remove the core jar file created by previous build
+	/bin/rm -f ${WORKSPACE_DIR}/src/org.gluster.storage.management.gateway/WebContent/WEB-INF/lib/org.gluster.storage.management.core*jar
+	# Remove compiled class files
+	/bin/rm -rf ${WORKSPACE_DIR}/src/org.gluster.storage.management.gateway/WebContent/WEB-INF/classes/*
+	# Remove old build artifacts
+	/bin/rm -rf ${DIST_BASE}/*
+}
+
 build()
 {
     export VERSION=${VERSION:-1.0.0alpha}
+	clean
     build_gmc_all
     build_gmg
     package_backend
