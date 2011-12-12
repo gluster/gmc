@@ -44,7 +44,7 @@ function pre()
 		quit "/sbin/chkconfig not found!" ${CHKCONFIG_ERR}
 	fi
 
-	if which python 1>/dev/null 2>/dev/null; then
+	if ! which python 1>/dev/null 2>/dev/null; then
 	    quit "python not found" -2
 	fi
 
@@ -53,7 +53,7 @@ function pre()
 	    quit "python version 2.4+ and less than 3.0 is required" -2
 	fi
 
-	if which perl 1>/dev/null 2>/dev/null; then
+	if ! which perl 1>/dev/null 2>/dev/null; then
 	    quit "perl not found" -2
 	fi
 
@@ -61,7 +61,7 @@ function pre()
 	    quit "perl::RRDs not found" -2
 	fi
 
-	if which smbd 1>/dev/null 2>/dev/null; then
+	if ! which smbd 1>/dev/null 2>/dev/null; then
 	    quit "samba not found" -2
 	fi
 
