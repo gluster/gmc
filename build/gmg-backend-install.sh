@@ -43,6 +43,31 @@ function pre()
 	if [ ! -f /sbin/chkconfig ]; then
 		quit "/sbin/chkconfig not found!" ${CHKCONFIG_ERR}
 	fi
+
+	if which python 1>/dev/null 2>/dev/null; then
+	    quit "python not found" -2
+	fi
+
+	if python -c 'import sys; sys.exit(sys.version_info >= (2,4,0) and sys.version_info < (3,0,0))'; then
+	    python -c 'import sys; print "Python", sys.version'
+	    quit "python version 2.4+ and less than 3.0 is required" -2
+	fi
+
+	if which perl 1>/dev/null 2>/dev/null; then
+	    quit "perl not found" -2
+	fi
+
+	if ! perl -MRRDs -e 1 2>/dev/null; then
+	    quit "perl::RRDs not found" -2
+	fi
+
+	if which smbd 1>/dev/null 2>/dev/null; then
+	    quit "samba not found" -2
+	fi
+
+	if [ ! -f /usr/lib64/libxml2.so.2 ]; then
+	    quit "libxml2 not found" -2
+	fi
 }
 
 function check_tar_gz()
