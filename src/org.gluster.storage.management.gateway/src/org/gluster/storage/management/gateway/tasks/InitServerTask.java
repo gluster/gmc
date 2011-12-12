@@ -57,7 +57,7 @@ public class InitServerTask extends JdbcDaoSupport {
 	private UserDetailsService userDetailsService;
 
 	@Autowired
-	private String appVersion;
+	private String dataVersion;
 
 	@Autowired
 	private PersistenceDao<ClusterInfo> clusterDao;
@@ -104,7 +104,7 @@ public class InitServerTask extends JdbcDaoSupport {
 
 	private void initDatabase() {
 		logger.info("Initializing server data...");
-		executeScriptsFrom(getDirFromRelativePath(SCRIPT_DIR + appVersion));
+		executeScriptsFrom(getDirFromRelativePath(SCRIPT_DIR + dataVersion));
 
 		securePasswords(); // encrypt the passwords
 	}
@@ -136,14 +136,13 @@ public class InitServerTask extends JdbcDaoSupport {
 	 */
 	public synchronized void initServer() {
 		try {
-			String dbVersion = getDBVersion();
-			if (!appVersion.equals(dbVersion)) {
-				logger.info("App version [" + appVersion + "] differs from data version [" + dbVersion
-						+ "]. Trying to upgrade data...");
-				upgradeData(dbVersion, appVersion);
+			String currentDataVersion = getDataVersion();
+			if (!dataVersion.equals(currentDataVersion)) {
+				logger.info("Upgrading data from [" + currentDataVersion + "] to [" + dataVersion + "]...");
+				upgradeData(currentDataVersion, dataVersion);
 			}
 		} catch (Exception ex) {
-			logger.info("No cluster created yet. DB version query failed with error [" + ex.getMessage() + "]", ex);
+			logger.info("Data version query failed with error [" + ex.getMessage() + "]", ex);
 			// Database not created yet. Create it!
 			initDatabase();
 		}
@@ -153,7 +152,7 @@ public class InitServerTask extends JdbcDaoSupport {
 		executeScriptsFrom(getDirFromRelativePath(SCRIPT_DIR + fromVersion + "-" + toVersion));
 	}
 
-	private String getDBVersion() {
+	private String getDataVersion() {
 		return (String) clusterDao.getSingleResultFromSQL("select version from version");
 	}
 }

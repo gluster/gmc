@@ -62,6 +62,11 @@
 	
 	<!-- Gluster Management Gateway Version -->
 	<bean id="appVersion" class="java.lang.String">
+		<constructor-arg value="@VERSION@" />
+	</bean>
+
+	<!-- Gluster Management Gateway Data Version -->
+	<bean id="dataVersion" class="java.lang.String">
 		<constructor-arg value="1.0.0" />
 	</bean>
 
