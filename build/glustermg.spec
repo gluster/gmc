@@ -71,7 +71,7 @@ if [ -f /usr/share/tomcat6/webapps/glustermg ]; then
 fi
 ln -fs /opt/glustermg/%{release_version}/glustermg /usr/share/tomcat6/webapps/glustermg
 if [ ! -f /opt/glustermg/keys/gluster.pem ]; then
-x    ssh-keygen -t rsa -f /opt/glustermg/keys/gluster.pem -N ''
+    ssh-keygen -t rsa -f /opt/glustermg/keys/gluster.pem -N ''
     mv -f /opt/glustermg/keys/gluster.pem.pub /opt/glustermg/keys/gluster.pub
 fi
 chown -R tomcat:tomcat /opt/glustermg /var/log/glustermg
