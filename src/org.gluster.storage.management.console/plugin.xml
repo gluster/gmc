@@ -596,7 +596,8 @@
          <action
                class="org.gluster.storage.management.console.actions.ForceStartVolumeAction"
                definitionId="org.gluster.storage.management.console.commands.ForceStartVolume"
-               icon="icons/tango/32x32/start-volume.png"
+               disabledIcon="icons/tango/32x32/start-offline-bricks-disabled.png"
+               icon="icons/tango/32x32/start-offline-bricks.png"
                id="org.gluster.storage.management.console.actions.ForceStartVolumeAction"
                label="Start Offline Bricks"
                menubarPath="org.gluster.storage.management.console.menu.volume/volume"
