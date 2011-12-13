@@ -20,14 +20,6 @@
  -->
 
 <toc label="Getting Started" link_to="toc.xml#gettingstarted">
-   <topic label="Preparing to Install Gluster Management Gateway">
-      <topic href="html/gettingstarted/check_req_gmg.html" label="Checking the Gluster Management Gateway Minimum Requirements">
-      </topic>
-      <topic href="html/gettingstarted/install_gmg.html" label="Installing the Gluster Management Gateway">
-      </topic>
-      <topic href="html/gettingstarted/install_gmg_backend.html" label="Installing Gluster Management Gateway Backend Packages">
-      </topic>
-   </topic>
    <topic label="Setting up the Gluster Management Console">
       <topic href="html/gettingstarted/check_req_client.html" label="Checking the Minimum Requirements on the Client Machine">
       </topic>
