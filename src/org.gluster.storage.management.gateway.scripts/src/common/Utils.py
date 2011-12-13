@@ -43,7 +43,7 @@ sshCommandPrefix = "ssh -l root -q -i /opt/glustermg/keys/gluster.pem -o BatchMo
 try:
     commandPath = "/opt/glustermg/%s/backend" % os.environ['GMG_VERSION']
 except KeyError, e:
-    commandPath = "/opt/glustermg/1.0.0/backend"
+    commandPath = "/opt/glustermg/@VERSION@/backend"
 
 def log(priority, message=None):
     global logOpened

@@ -22,7 +22,7 @@
 WAR_NAME="glustermg.war"
 WAR_SCRIPTS_DIR=${WAR_NAME}/scripts
 NEW_WAR_NAME="glustermg"
-VERSION=${VERSION:-1.0.0-alpha}
+VERSION=${VERSION:-1.0.0alpha}
 TAR_NAME=${NEW_WAR_NAME}-${VERSION}.war.tar
 INSTALL_SCRIPT_NAME=gmg-install.sh
 INSTALLER_TAR_NAME=gmg-installer-${VERSION}.tar
@@ -43,6 +43,10 @@ get-server-war()
 	cd ${WAR_NAME}
 	WAR_FILE=`find -L ${SERVER_DIST_DIR} -name ${WAR_NAME}`
 	jar xvf ${WAR_FILE}
+
+	# Update version number in Utils.py
+	sed -i "s/@VERSION@/${VERSION}/g" scripts/Utils.py
+
 	chmod +x scripts/*
 	cd -
 }
