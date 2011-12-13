@@ -23,7 +23,10 @@
 importtarget --active gmc-target/org.gluster.storage.management.console.target/gmc.target
 
 import build/org.gluster.storage.management.console.feature.webstart.cquery
+perform org.gluster.storage.management.console.feature.webstart#buckminster.clean
+perform org.gluster.storage.management.console#update.version
 perform org.gluster.storage.management.console.feature.webstart#create.eclipse.jnlp.product
 perform org.gluster.storage.management.console.feature.webstart#copy.root.files
+perform org.gluster.storage.management.console.feature.webstart#update.version
 perform org.gluster.storage.management.console.feature.webstart#unsign.jars
 perform org.gluster.storage.management.console.feature.webstart#sign.jars
