@@ -138,7 +138,7 @@ if /etc/init.d/multicast-discoverd status >/dev/null; then
 else
     /etc/init.d/multicast-discoverd start
 fi
-/etc/init.d/crond reload
+service crond restart
 /sbin/chkconfig smb on
 /sbin/chkconfig --add gluster-volume-settings
 
@@ -176,6 +176,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue Dec 13 2011 Bala.FA <barumuga@redhat.com> - 1.1.0
+- crond is restarted instead of reload for fedora 16
+  compatibility
 * Tue Nov 29 2011 Bala.FA <barumuga@redhat.com> - 1.1.0
 - Updated tomcat6/samba dependency
 - Added multicast-discoverd stop in preun backend
