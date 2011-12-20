@@ -121,13 +121,13 @@ function post()
 	fi
 
 	if ! grep -q rrd_cpu.pl /etc/crontab; then
-		echo '*/5 * * * * root /opt/glustermg/%{GMG_VERSION}/backend/rrd_cpu.pl' >> /etc/crontab
+		echo '*/5 * * * * root /opt/glustermg/${GMG_VERSION}/backend/rrd_cpu.pl' >> /etc/crontab
 	fi
 	if ! grep -q rrd_mem.pl /etc/crontab; then
-		echo '*/5 * * * * root /opt/glustermg/%{GMG_VERSION}/backend/rrd_mem.pl' >> /etc/crontab
+		echo '*/5 * * * * root /opt/glustermg/${GMG_VERSION}/backend/rrd_mem.pl' >> /etc/crontab
 	fi
 	if ! grep -q rrd_net.pl /etc/crontab; then
-		echo '*/5 * * * * root /opt/glustermg/%{GMG_VERSION}/backend/rrd_net.pl' >> /etc/crontab
+		echo '*/5 * * * * root /opt/glustermg/${GMG_VERSION}/backend/rrd_net.pl' >> /etc/crontab
 	fi
 	/sbin/chkconfig --add multicast-discoverd
 	/sbin/chkconfig --level 345 multicast-discoverd on
