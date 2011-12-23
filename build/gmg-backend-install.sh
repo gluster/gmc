@@ -136,7 +136,7 @@ function post()
 	else
 		/etc/init.d/multicast-discoverd start
 	fi
-	/etc/init.d/crond reload
+	service crond restart
 	/sbin/chkconfig smb on
 	/sbin/chkconfig --add gluster-volume-settings
 }
